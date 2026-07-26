@@ -679,12 +679,13 @@ class AdminProductListingController extends Controller
             })
             ->orderBy('p.name_en')
             ->limit(30)
-            ->get(['product_variants.id', 'p.name_en', 'product_variants.sku', 'product_variants.variant_name']);
+            ->get(['product_variants.id', 'product_variants.product_id', 'p.name_en', 'product_variants.sku', 'product_variants.variant_name', 'product_variants.slug']);
 
         return response()->json([
             'results' => $variants->map(fn($v) => [
                 'id' => $v->id,
-                'text' => $v->name_en . ($v->variant_name ? " ({$v->variant_name})" : '') . " — {$v->sku}",
+                'product_id' => $v->product_id,
+                'text' => $v->name_en . ($v->variant_name ? " ({$v->variant_name})" : '') . " [{$v->slug}] — {$v->sku}",
             ]),
         ]);
     }

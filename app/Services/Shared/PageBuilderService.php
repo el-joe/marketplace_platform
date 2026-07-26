@@ -156,7 +156,18 @@ class PageBuilderService
         if ($b->blockProducts->isNotEmpty()) {
             $data['products'] = $b->blockProducts
                 ->filter(fn($bp) => $bp->productVariant?->product !== null)
-                ->map(fn($bp) => (new ProductListResource($bp->productVariant->product))->toArray(request()))
+                ->map(function ($bp) use ($country) {
+                    $product = $bp->productVariant->product;
+                    $listing = $this->listingQuery->getForVariant($bp->productVariant->id, $country, 1)->first();
+
+                    if ($listing) {
+                        $product->setAttribute('buy_box_listing_id', $listing->id);
+                        $product->setAttribute('buy_box_variant_slug', $bp->productVariant->slug);
+                        $product->setAttribute('buy_box_variant_name', $bp->productVariant->variant_name);
+                    }
+
+                    return (new ProductListResource($product))->toArray(request());
+                })
                 ->values()
                 ->all();
         }

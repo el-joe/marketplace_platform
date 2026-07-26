@@ -25,14 +25,25 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.product_variant_required') }} <span class="text-red-500">*</span></label>
                 <select name="product_variant_id" required data-async-select
                         data-config='{{ json_encode(["url" => route("admin.admin-product-listings.search-variants"), "param" => "q", "minLength" => 2, "delay" => 300]) }}'
+                        data-slug-preview-url-template="{{ route("admin.products.variants.slug-preview", ["product" => "__PRODUCT__", "variant" => "__VARIANT__"]) }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                     @if($selectedVariant)
-                        <option value="{{ $selectedVariant->id }}" selected>
-                            {{ $selectedVariant->product?->name_en }} — {{ $selectedVariant->sku }}
+                        <option value="{{ $selectedVariant->id }}" data-product-id="{{ $selectedVariant->product_id }}" selected>
+                            {{ $selectedVariant->product?->name_en }} ({{ $selectedVariant->variant_name }}) [{{ $selectedVariant->slug }}] — {{ $selectedVariant->sku }}
                         </option>
                     @endif
                 </select>
                 @error('product_variant_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+
+            <div id="variant-url-preview-card" class="{{ $selectedVariant ? '' : 'hidden' }} bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ __('admin.admin_product_listings.url_preview') ?? 'URL Preview' }}</p>
+                <p class="text-xs text-gray-500">
+                    {{ __('admin.admin_product_listings.attribute_summary') ?? 'Variant' }}:
+                    <span id="variant-attribute-summary" class="font-medium text-gray-700">—</span>
+                </p>
+                <input type="text" id="variant-url-preview" readonly
+                       class="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 text-xs font-mono text-gray-600 focus:outline-none">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -491,6 +502,47 @@
         // select2 (data-select2-init) fires jQuery 'change', not native DOM 'change'
         if (window.jQuery) {
             jQuery(countrySelect).on('change', syncCurrency);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var variantSelect = document.querySelector('[name="product_variant_id"]');
+        var previewCard = document.getElementById('variant-url-preview-card');
+        var previewInput = document.getElementById('variant-url-preview');
+        var summaryEl = document.getElementById('variant-attribute-summary');
+        if (!variantSelect || !window.jQuery) return;
+
+        var urlTemplate = variantSelect.getAttribute('data-slug-preview-url-template') || '';
+
+        function fetchSlugPreview(variantId, productId) {
+            if (!variantId || !productId || !urlTemplate) return;
+
+            var url = urlTemplate.replace('__PRODUCT__', productId).replace('__VARIANT__', variantId);
+
+            fetch(url, {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    previewInput.value = data.preview_url ?? '';
+                    summaryEl.textContent = data.attribute_summary || '—';
+                    previewCard.classList.remove('hidden');
+                })
+                .catch(() => {});
+        }
+
+        jQuery(variantSelect).on('select2:select', function (e) {
+            var data = e.params.data;
+            fetchSlugPreview(data.id, data.product_id);
+        });
+
+        // Prefill on edit when a variant is already selected
+        var selectedOption = variantSelect.querySelector('option[selected]');
+        if (selectedOption) {
+            fetchSlugPreview(selectedOption.value, selectedOption.dataset.productId);
         }
     });
 </script>

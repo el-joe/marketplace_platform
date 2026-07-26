@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Customer\MiscController as ApiMiscController;
 use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Api\Customer\OrderController as ApiOrderController;
 use App\Http\Controllers\Api\Customer\OtpController as ApiOtpController;
+use App\Http\Controllers\Api\Customer\ProductDetailController;
 use App\Http\Controllers\Api\Customer\QrCodeController;
 use App\Http\Controllers\Api\Customer\ReturnRequestController as ApiReturnRequestController;
 use App\Http\Controllers\Api\Customer\ReviewController as ApiReviewController;
@@ -74,8 +75,22 @@ Route::prefix('v1/{country}')
         Route::prefix('products')->name('customer.products.')->group(function (): void {
             Route::get('/', [ProductController::class, 'index'])->name('index');
 
-            // Legacy: product detail moved to /l/{identifier}. Keep old URLs working.
-            Route::get('{identifier}', [ListingDetailController::class, 'show'])->name('show.redirect');
+            // GET /products/{productSlug}/{variantSlug}?listing={listing_id} — product + variant detail
+            // {productSlug} and {variantSlug} are resolved to Product/ProductVariant models
+            // via the Route::bind bindings registered in AppServiceProvider::boot().
+            Route::get('{productSlug}/{variantSlug}', [ProductDetailController::class, 'show'])->name('show');
+
+            // POST /products/{productSlug}/resolve-variant — resolve target variant/listing after an attribute change.
+            // Rate limited: prevents brute-force enumeration of variant/attribute combinations.
+            Route::post('{productSlug}/resolve-variant', [ProductDetailController::class, 'resolveVariant'])
+                ->middleware('throttle:60,1')
+                ->name('resolve-variant');
+
+            // Legacy: bare product slug (no variant) redirects 301 to the canonical variant URL.
+            // Also carries forward the old /products/{identifier} → /l/{identifier} fallback for
+            // non-product identifiers (listing UUID, SKU, listing_ref). Must stay registered AFTER
+            // {productSlug}/{variantSlug} and {productSlug}/resolve-variant so those take priority.
+            Route::get('{identifier}', [ProductDetailController::class, 'redirectLegacy'])->name('show.redirect');
         });
 
         // ── Listing detail (public) ───────────────────────────────────────────

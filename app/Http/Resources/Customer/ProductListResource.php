@@ -14,11 +14,24 @@ class ProductListResource extends JsonResource
             'en' => $this->name_override_en ?? $this->name_en,
         ];
 
+        $variantImage = $this->buy_box_variant_image_path
+            ? \Storage::disk($this->buy_box_variant_image_disk)->url($this->buy_box_variant_image_path)
+            : null;
+
         return [
             'id'           => $this->id,
+            'listing_id'   => $this->buy_box_listing_id,
+            'listing_type' => 'vendor',
+            'product_slug' => $this->slug,
             'slug'         => $this->slug,
+            'variant_slug' => $this->buy_box_variant_slug,
+            'variant_name' => $this->buy_box_variant_name ?? null,
+            'variant_image' => $variantImage,
+            'product_url' => $this->buy_box_listing_id && $this->buy_box_variant_slug
+                ? "/products/{$this->slug}/{$this->buy_box_variant_slug}?listing={$this->buy_box_listing_id}"
+                : null,
             'name'         => $name,
-            'primary_image' => $this->whenLoaded('images', function () {
+            'primary_image' => $variantImage ?? $this->whenLoaded('images', function () {
                 $primary = $this->images->firstWhere('is_primary', true) ?? $this->images->first();
                 return $primary ? \Storage::disk($primary->disk)->url($primary->path) : null;
             }),

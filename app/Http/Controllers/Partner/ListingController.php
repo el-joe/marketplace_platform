@@ -13,6 +13,7 @@ use App\Models\Country;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductVariant;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
@@ -312,6 +313,28 @@ class ListingController extends Controller
                 ]),
             ];
         }));
+    }
+
+    /**
+     * Read-only slug/URL preview for a product variant. Vendors cannot edit
+     * slugs — they are product-level and managed by admins only.
+     */
+    public function slugPreview(string $product, string $variant): JsonResponse
+    {
+        $productModel = Product::query()->whereNull('deleted_at')->findOrFail($product);
+
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->where('product_id', $product)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+
+        return response()->json([
+            'variant_slug' => $variantModel->slug,
+            'product_slug' => $productModel->slug,
+            'preview_url' => "/products/{$productModel->slug}/{$variantModel->slug}?listing=preview",
+            'attribute_summary' => $variantModel->attributeSummary(),
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

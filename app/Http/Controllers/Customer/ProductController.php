@@ -45,7 +45,8 @@ class ProductController extends Controller
             ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
             ->with([
                 'vendor:id,store_name,store_rating_avg',
-                'productVariant:id,sku,product_id',
+                'productVariant:id,sku,slug,variant_name,product_id',
+                'productVariant.images',
                 'productVariant.product.images',
                 'productVariant.product.category:id,name_en,name_ar,slug',
                 'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',

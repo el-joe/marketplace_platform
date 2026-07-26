@@ -117,6 +117,7 @@ function initEditValueActions() {
     document.getElementById('save-new-value')?.addEventListener('click', function () {
         const valueEn = document.getElementById('new-value-en')?.value.trim();
         const valueAr = document.getElementById('new-value-ar')?.value.trim();
+        const slug = document.getElementById('new-value-slug')?.value.trim();
         const colorHex = document.getElementById('new-color-hex-text')?.value.trim()
             || document.getElementById('new-color-hex')?.value || null;
 
@@ -128,7 +129,7 @@ function initEditValueActions() {
         $.ajax({
             url: window.ROUTES_ATTR_EDIT.storeValue,
             method: 'POST',
-            data: JSON.stringify({ value_en: valueEn, value_ar: valueAr || null, color_hex: colorHex || null }),
+            data: JSON.stringify({ value_en: valueEn, value_ar: valueAr || null, slug: slug || null, color_hex: colorHex || null }),
             contentType: 'application/json',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         }).done(function (res) {
@@ -141,9 +142,12 @@ function initEditValueActions() {
             // Clear inputs
             if (document.getElementById('new-value-en')) document.getElementById('new-value-en').value = '';
             if (document.getElementById('new-value-ar')) document.getElementById('new-value-ar').value = '';
+            if (document.getElementById('new-value-slug')) document.getElementById('new-value-slug').value = '';
             window.Toast?.success(T().valueAdded || 'Value added.');
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || T().valueAddFailed || 'Failed to add value.');
+            const errors = xhr.responseJSON?.errors ?? {};
+            const msg = Object.values(errors).flat()[0];
+            window.Toast?.error(msg || xhr.responseJSON?.message || T().valueAddFailed || 'Failed to add value.');
         });
     });
 
@@ -188,47 +192,108 @@ function initEditValueActions() {
 
         const valueAr = $(this).data('value-ar');
         const newAr = window.prompt(T().promptValueAr || 'Arabic value:', valueAr ?? '');
+
+        const currentSlug = $(this).data('slug');
+        const newSlug = window.prompt(T().promptSlug || 'Slug (leave blank to keep, must be unique):', currentSlug ?? '');
+        if (newSlug === null) return;
+
         const colorHex = $(this).data('color-hex');
+        const regenerateUrl = $(this).data('regenerate-url');
 
         const url = (window.ROUTES_ATTR_EDIT.updateValue || '').replace(':value_id', id);
 
         $.ajax({
             url: url,
             method: 'PUT',
-            data: JSON.stringify({ value_en: newEn.trim(), value_ar: newAr?.trim() || null, color_hex: colorHex || null }),
+            data: JSON.stringify({
+                value_en: newEn.trim(),
+                value_ar: newAr?.trim() || null,
+                slug: newSlug.trim() || null,
+                color_hex: colorHex || null,
+            }),
             contentType: 'application/json',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         }).done(function (res) {
             const item = document.querySelector(`.value-item[data-id="${id}"]`);
             if (item) {
                 item.querySelector('span.flex-1').textContent = newEn.trim();
+                const slugEl = item.querySelector('.value-slug');
+                if (slugEl && res.slug) slugEl.textContent = res.slug;
             }
-            $(`.edit-value-btn[data-id="${id}"]`).data('value-en', newEn.trim()).data('value-ar', newAr?.trim());
+            $(`.edit-value-btn[data-id="${id}"]`).data('value-en', newEn.trim()).data('value-ar', newAr?.trim()).data('slug', res.slug);
             window.Toast?.success(T().valueUpdated || 'Value updated.');
+
+            if (res.slug_changed && res.affected_variants > 0) {
+                showSlugWarning(id, res.affected_variants, regenerateUrl);
+            }
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || T().valueUpdateFailed || 'Failed to update value.');
+            const errors = xhr.responseJSON?.errors ?? {};
+            const msg = Object.values(errors).flat()[0];
+            window.Toast?.error(msg || xhr.responseJSON?.message || T().valueUpdateFailed || 'Failed to update value.');
+        });
+    });
+
+    // Regenerate variant slugs
+    $(document).on('click', '.regenerate-slugs-btn', function () {
+        const id = $(this).data('id');
+        const url = $(`.edit-value-btn[data-id="${id}"]`).data('regenerate-url');
+        if (!url) return;
+
+        const $btn = $(this).prop('disabled', true);
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+        }).done(function (res) {
+            window.Toast?.success(res.message || 'Variant slugs regenerated.');
+            document.querySelector(`.value-slug-warning[data-id="${id}"]`)?.classList.add('hidden');
+        }).fail(function (xhr) {
+            window.Toast?.error(xhr.responseJSON?.message || T().regenerateSlugsFailed || 'Failed to regenerate variant slugs.');
+        }).always(function () {
+            $btn.prop('disabled', false);
         });
     });
 }
 
+function showSlugWarning(id, count, regenerateUrl) {
+    const banner = document.querySelector(`.value-slug-warning[data-id="${id}"]`);
+    if (!banner) return;
+    const textEl = banner.querySelector('.warning-text');
+    if (textEl) {
+        textEl.textContent = (T().slugStaleWarning || 'Changing this slug will affect :count variant URLs. Regenerate affected variant slugs.')
+            .replace(':count', count);
+    }
+    banner.classList.remove('hidden');
+}
+
 function buildValueRow(v) {
-    const updateUrl = (window.ROUTES_ATTR_EDIT?.updateValue ?? '').replace(':value_id', v.id);
     const destroyUrl = (window.ROUTES_ATTR_EDIT?.destroyValue ?? '').replace(':value_id', v.id);
+    const regenerateUrl = (window.ROUTES_ATTR_EDIT?.regenerateVariantSlugs ?? '').replace(':value_id', v.id);
     return `
         <div class="flex items-center gap-3 px-4 py-2.5 bg-white value-item" data-id="${v.id}">
             <span class="flex-1 text-sm text-gray-800">${esc(v.value_en)}</span>
             <span class="text-sm text-gray-400" dir="rtl">${esc(v.value_ar ?? '')}</span>
+            <span class="text-xs font-mono text-gray-400 value-slug">${esc(v.slug ?? '')}</span>
             ${v.color_hex ? `<span class="w-5 h-5 rounded-full border border-gray-200 flex-shrink-0" style="background:${esc(v.color_hex)}"></span>` : ''}
             <button type="button"
                 class="edit-value-btn text-xs text-primary-600 hover:underline"
                 data-id="${esc(v.id)}"
                 data-value-en="${esc(v.value_en)}"
                 data-value-ar="${esc(v.value_ar ?? '')}"
-                data-color-hex="${esc(v.color_hex ?? '')}">${esc(T().edit || 'Edit')}</button>
+                data-slug="${esc(v.slug ?? '')}"
+                data-color-hex="${esc(v.color_hex ?? '')}"
+                data-regenerate-url="${esc(regenerateUrl)}">${esc(T().edit || 'Edit')}</button>
             <button type="button"
                 class="delete-value-btn text-xs text-red-500 hover:underline"
                 data-id="${esc(v.id)}"
                 data-url="${esc(destroyUrl)}">${esc(T().delete || 'Delete')}</button>
+        </div>
+        <div class="value-slug-warning hidden px-4 py-2 bg-amber-50 border-t border-amber-200 text-xs text-amber-800 flex items-center justify-between gap-3" data-id="${esc(v.id)}">
+            <span class="warning-text"></span>
+            <button type="button" class="regenerate-slugs-btn btn btn-xs btn-outline text-amber-800 border-amber-300 hover:bg-amber-100 whitespace-nowrap" data-id="${esc(v.id)}">
+                ${esc(T().regenerateVariantSlugs || 'Regenerate variant slugs')}
+            </button>
         </div>`;
 }
 

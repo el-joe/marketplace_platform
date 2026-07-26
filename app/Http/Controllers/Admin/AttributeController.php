@@ -8,7 +8,9 @@ use App\Http\Requests\Admin\UpdateAttributeRequest;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
 use App\Models\CategoryAttribute;
+use App\Models\ProductVariant;
 use App\Models\ProductVariantAttribute;
+use App\Services\VariantSlugService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class AttributeController extends Controller
@@ -115,11 +118,17 @@ class AttributeController extends Controller
                 foreach ($request->input('values', []) as $value) {
                     if (empty($value['value_en']))
                         continue;
+                    $providedSlug = trim($value['slug'] ?? '');
+                    $slug = ($providedSlug !== '' && preg_match('/^[a-z0-9-]+$/', $providedSlug) && ! AttributeValue::query()->where('slug', $providedSlug)->exists())
+                        ? $providedSlug
+                        : $this->uniqueSlug(Str::slug($value['value_en']));
+
                     AttributeValue::query()->insert([
                         'id' => (string) Str::uuid(),
                         'attribute_id' => $id,
                         'value_en' => $value['value_en'],
                         'value_ar' => $value['value_ar'] ?? null,
+                        'slug' => $slug,
                         'code_hex' => $value['code_hex'] ?? null,
                         'sort_order' => (int) ($value['sort_order'] ?? 0),
                         'created_at' => now(),
@@ -234,17 +243,22 @@ class AttributeController extends Controller
             'value_ar' => 'nullable|string|max:255',
             'code_hex' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'sort_order' => 'nullable|integer|min:0',
+            'slug' => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/', Rule::unique('attribute_values', 'slug')],
         ]);
 
         Attribute::query()->where('id', $attribute)->firstOrFail();
 
         $id = (string) Str::uuid();
+        $slug = $request->filled('slug')
+            ? $request->slug
+            : $this->uniqueSlug(Str::slug($request->value_en));
 
         AttributeValue::query()->insert([
             'id' => $id,
             'attribute_id' => $attribute,
             'value_en' => $request->value_en,
             'value_ar' => $request->value_ar ?: null,
+            'slug' => $slug,
             'code_hex' => $request->code_hex ?: null,
             'sort_order' => (int) ($request->sort_order ?? 0),
             'created_at' => now(),
@@ -257,6 +271,7 @@ class AttributeController extends Controller
                 'id' => $id,
                 'value_en' => $request->value_en,
                 'value_ar' => $request->value_ar,
+                'slug' => $slug,
                 'color_hex' => $request->color_hex,
                 'sort_order' => (int) ($request->sort_order ?? 0),
             ],
@@ -270,20 +285,68 @@ class AttributeController extends Controller
             'value_ar' => 'nullable|string|max:255',
             'color_hex' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'sort_order' => 'nullable|integer|min:0',
+            'slug' => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/', Rule::unique('attribute_values', 'slug')->ignore($value)],
         ]);
 
+        $attributeValue = AttributeValue::query()
+            ->where('id', $value)
+            ->where('attribute_id', $attribute)
+            ->firstOrFail();
+
+        $slugChanged = $request->filled('slug') && $request->slug !== $attributeValue->slug;
+        $slug = $request->filled('slug')
+            ? $request->slug
+            : ($attributeValue->slug ?: $this->uniqueSlug(Str::slug($request->value_en)));
+
+        $attributeValue->update([
+            'value_en' => $request->value_en,
+            'value_ar' => $request->value_ar ?: null,
+            'slug' => $slug,
+            'color_hex' => $request->color_hex ?: null,
+            'sort_order' => (int) ($request->sort_order ?? 0),
+        ]);
+
+        $affectedVariants = $slugChanged
+            ? ProductVariantAttribute::query()->where('attribute_value_id', $value)->distinct('product_variant_id')->count('product_variant_id')
+            : 0;
+
+        return response()->json([
+            'success' => true,
+            'message' => __('admin.attributes_section.value_updated'),
+            'slug' => $slug,
+            'slug_changed' => $slugChanged,
+            'affected_variants' => $affectedVariants,
+        ]);
+    }
+
+    public function regenerateVariantSlugs(VariantSlugService $variantSlugService, string $attribute, string $value): JsonResponse
+    {
         AttributeValue::query()
             ->where('id', $value)
             ->where('attribute_id', $attribute)
-            ->update([
-                'value_en' => $request->value_en,
-                'value_ar' => $request->value_ar ?: null,
-                'color_hex' => $request->color_hex ?: null,
-                'sort_order' => (int) ($request->sort_order ?? 0),
-                'updated_at' => now(),
-            ]);
+            ->firstOrFail();
 
-        return response()->json(['success' => true, 'message' => __('admin.attributes_section.value_updated')]);
+        $variantIds = ProductVariantAttribute::query()
+            ->where('attribute_value_id', $value)
+            ->distinct()
+            ->pluck('product_variant_id');
+
+        $variants = ProductVariant::query()->whereIn('id', $variantIds)->get();
+
+        $count = 0;
+        foreach ($variants as $variant) {
+            $newSlug = $variantSlugService->buildSlug($variant);
+            if ($newSlug !== '') {
+                $variant->update(['slug' => $newSlug]);
+                $count++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => trans_choice('admin.attributes_section.variant_slugs_regenerated', $count, ['count' => $count]),
+            'count' => $count,
+        ]);
     }
 
     public function destroyValue(string $attribute, string $value): JsonResponse
@@ -329,6 +392,20 @@ class AttributeController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     // Private Helpers
     // ─────────────────────────────────────────────────────────────────────────
+
+    private function uniqueSlug(string $base): string
+    {
+        $base = $base !== '' ? $base : 'value';
+        $slug = $base;
+        $counter = 1;
+
+        while (AttributeValue::query()->where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
+    }
 
     private function columnDefinitions(): array
     {

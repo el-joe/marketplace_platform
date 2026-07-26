@@ -142,6 +142,15 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::put('/{product}', [ProductController::class, 'update'])->name('update');
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
 
+        // ── Variant slug management ────────────────────────────────────────────
+        Route::get('/{product}/variants/{variant}', [ProductController::class, 'variantDetail'])
+            ->name('variants.show');
+        Route::get('/{product}/variants/{variant}/slug-preview', [ProductController::class, 'slugPreview'])
+            ->name('variants.slug-preview');
+        Route::patch('/{product}/variants/{variant}/regenerate-slug', [ProductController::class, 'regenerateVariantSlug'])
+            ->name('variants.regenerate-slug')
+            ->middleware('admin.permission:products.edit');
+
         // ── Frequently bought together ─────────────────────────────────────────
         Route::prefix('/{product}/frequently-bought-together')->name('frequently-bought-together.')->group(function () {
             Route::get('/', [ProductController::class, 'frequentlyBoughtTogetherIndex'])->name('index');
@@ -276,6 +285,9 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::put('/{attribute}/values/{value}', [AttributeController::class, 'updateValue'])->name('values.update');
         Route::delete('/{attribute}/values/{value}', [AttributeController::class, 'destroyValue'])->name('values.destroy');
         Route::post('/{attribute}/values/reorder', [AttributeController::class, 'reorderValues'])->name('values.reorder');
+        Route::post('/{attribute}/values/{value}/regenerate-variant-slugs', [AttributeController::class, 'regenerateVariantSlugs'])
+            ->name('values.regenerate-variant-slugs')
+            ->middleware('admin.permission:attributes.edit');
     });
 
     Route::post('/country', function (Request $request) {

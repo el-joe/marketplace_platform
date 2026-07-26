@@ -236,6 +236,7 @@ function renderVariantRows(variants) {
 <tr class="variant-row hover:bg-gray-50">
   <td class="px-4 py-3 font-medium text-gray-800">${esc(v.name)}</td>
   <td class="px-4 py-3"><input type="text" name="variants[${i}][sku]" value="${esc(v.sku)}" placeholder="${skuPlaceholder}" class="form-input text-sm py-1.5 w-full" /></td>
+  <td class="px-4 py-3"><input type="text" name="variants[${i}][slug]" value="${esc(v.slug || '')}" maxlength="255" class="form-input text-sm py-1.5 w-full variant-slug-input" /></td>
   <td class="px-4 py-3"><input type="text" name="variants[${i}][barcode]" value="${esc(v.barcode)}" class="form-input text-sm py-1.5 w-full" /></td>
   <td class="px-4 py-3"><input type="number" name="variants[${i}][weight_grams]" value="${esc(v.weight_grams)}" min="0" class="form-input text-sm py-1.5 w-full" /></td>
   <td class="px-4 py-3 text-center">
@@ -273,6 +274,37 @@ function initVariantTableEvents() {
     $(document).on('change', '.variant-default-radio', function () {
         $('#variants-tbody .default-flag').val('0');
         $(this).closest('tr').find('.default-flag').val('1');
+    });
+
+    // Regenerate slug (AJAX)
+    $(document).on('click', '.regenerate-variant-slug', function () {
+        const T = window.TRANSLATIONS || {};
+        const $btn = $(this).prop('disabled', true);
+        const variantId = $btn.data('variant-id');
+        const $slugInput = $btn.closest('tr').find('.variant-slug-input');
+
+        const basePath = window.location.pathname.replace(/\/(create|[^/]+\/edit).*/, '');
+        if (!variantId) {
+            $btn.prop('disabled', false);
+            return;
+        }
+
+        $.ajax({
+            url: basePath + '/variants/' + variantId + '/regenerate-slug',
+            method: 'PATCH',
+        })
+            .done(function (res) {
+                if (res.success) {
+                    $slugInput.val(res.new_slug);
+                    window.Toast && window.Toast.success(T.regenerateSlugSuccess || 'Slug regenerated.');
+                }
+            })
+            .fail(function () {
+                window.Toast && window.Toast.error(T.regenerateSlugFailed || 'Failed to regenerate slug.');
+            })
+            .always(function () {
+                $btn.prop('disabled', false);
+            });
     });
 }
 

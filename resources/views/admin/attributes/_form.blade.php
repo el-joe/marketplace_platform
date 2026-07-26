@@ -155,15 +155,19 @@
                     @if(!$isEdit)
                     <div id="value-rows" class="space-y-2">
                         <div class="value-row grid grid-cols-12 gap-2 items-end">
-                            <div class="col-span-4">
+                            <div class="col-span-3">
                                 <label class="text-xs font-medium text-gray-600">{{ __('admin.attributes_section.value_en') }}</label>
-                                <input type="text" name="values[0][value_en]" class="input w-full mt-1" placeholder="{{ __('admin.attributes_section.value_en_placeholder') }}" dir="ltr" />
+                                <input type="text" name="values[0][value_en]" class="input w-full mt-1 value-en-input" placeholder="{{ __('admin.attributes_section.value_en_placeholder') }}" dir="ltr" />
                             </div>
-                            <div class="col-span-4">
+                            <div class="col-span-3">
                                 <label class="text-xs font-medium text-gray-600">{{ __('admin.attributes_section.value_ar') }}</label>
                                 <input type="text" name="values[0][value_ar]" class="input w-full mt-1" placeholder="{{ __('admin.attributes_section.value_ar_placeholder') }}" dir="rtl" />
                             </div>
-                            <div class="col-span-3" x-show="attrType === 'color'">
+                            <div class="col-span-4">
+                                <label class="text-xs font-medium text-gray-600">{{ __('admin.attributes_section.slug') }}</label>
+                                <input type="text" name="values[0][slug]" class="input w-full mt-1 font-mono text-sm value-slug-input" placeholder="{{ __('admin.attributes_section.slug_placeholder') }}" dir="ltr" pattern="[a-z0-9-]+" />
+                            </div>
+                            <div class="col-span-1" x-show="attrType === 'color'">
                                 <label class="text-xs font-medium text-gray-600">{{ __('admin.attributes_section.hex_color') }}</label>
                                 <input type="color" name="values[0][color_hex]" class="w-full h-9 mt-1 rounded border border-gray-300 cursor-pointer" value="#000000" />
                             </div>
@@ -186,6 +190,7 @@
                         <div class="flex items-center gap-3 px-4 py-2.5 bg-white value-item" data-id="{{ $val->id }}">
                             <span class="flex-1 text-sm text-gray-800">{{ $val->value_en }}</span>
                             <span class="text-sm text-gray-400" dir="rtl">{{ $val->value_ar }}</span>
+                            <span class="text-xs font-mono text-gray-400 value-slug" title="{{ __('admin.attributes_section.slug') }}">{{ $val->slug }}</span>
                             @if($attribute->type === \App\Enums\AttributeType::Color && $val->color_hex)
                             <span class="w-5 h-5 rounded-full border border-gray-200 flex-shrink-0"
                                 style="background:{{ $val->color_hex }}"></span>
@@ -195,7 +200,9 @@
                                 data-id="{{ $val->id }}"
                                 data-value-en="{{ $val->value_en }}"
                                 data-value-ar="{{ $val->value_ar }}"
-                                data-color-hex="{{ $val->color_hex }}">
+                                data-slug="{{ $val->slug }}"
+                                data-color-hex="{{ $val->color_hex }}"
+                                data-regenerate-url="{{ route('admin.attributes.values.regenerate-variant-slugs', [$attribute->id, $val->id]) }}">
                                 {{ __('common.edit') }}
                             </button>
                             <button type="button"
@@ -203,6 +210,12 @@
                                 data-id="{{ $val->id }}"
                                 data-url="{{ route('admin.attributes.values.destroy', [$attribute->id, $val->id]) }}">
                                 {{ __('common.delete') }}
+                            </button>
+                        </div>
+                        <div class="value-slug-warning hidden px-4 py-2 bg-amber-50 border-t border-amber-200 text-xs text-amber-800 flex items-center justify-between gap-3" data-id="{{ $val->id }}">
+                            <span class="warning-text"></span>
+                            <button type="button" class="regenerate-slugs-btn btn btn-xs btn-outline text-amber-800 border-amber-300 hover:bg-amber-100 whitespace-nowrap" data-id="{{ $val->id }}">
+                                {{ __('admin.attributes_section.regenerate_variant_slugs') }}
                             </button>
                         </div>
                         @empty
@@ -216,6 +229,11 @@
                         <div class="grid grid-cols-2 gap-3">
                             <input type="text" id="new-value-en" class="input w-full" placeholder="{{ __('admin.attributes_section.new_value_en_placeholder') }}" dir="ltr" />
                             <input type="text" id="new-value-ar" class="input w-full" placeholder="{{ __('admin.attributes_section.new_value_ar_placeholder') }}" dir="rtl" />
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-600">{{ __('admin.attributes_section.slug') }}</label>
+                            <input type="text" id="new-value-slug" class="input w-full mt-1 font-mono text-sm" placeholder="{{ __('admin.attributes_section.slug_placeholder') }}" dir="ltr" pattern="[a-z0-9-]+" />
+                            <p class="text-xs text-gray-400 mt-1">{{ __('admin.attributes_section.slug_hint') }}</p>
                         </div>
                         @if($attribute->type === \App\Enums\AttributeType::Color)
                         <div class="flex items-center gap-3">
@@ -299,6 +317,10 @@
             attributeSaved: @json(__('admin.attributes_section.attribute_saved')),
             validationError: @json(__('admin.attributes_section.validation_error')),
             saveFailedGeneric: @json(__('admin.attributes_section.save_failed_generic')),
+            promptSlug: @json(__('admin.attributes_section.prompt_slug')),
+            slugStaleWarning: @json(__('admin.attributes_section.slug_stale_warning')),
+            regenerateVariantSlugs: @json(__('admin.attributes_section.regenerate_variant_slugs')),
+            regenerateSlugsFailed: @json(__('admin.attributes_section.regenerate_slugs_failed')),
         });
     </script>
 @endpush

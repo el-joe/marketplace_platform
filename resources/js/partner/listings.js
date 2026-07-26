@@ -353,6 +353,8 @@ function selectVariant(data) {
     }
     if (skuEl) skuEl.textContent = data.sku ? `SKU: ${data.sku}` : '';
 
+    fetchCustomerUrlPreview(data.productId, data.variantId);
+
     // Show form, hide placeholder
     document.getElementById('listing-form-placeholder')?.classList.add('hidden');
     document.getElementById('listing-form-container')?.classList.remove('hidden');
@@ -361,11 +363,31 @@ function selectVariant(data) {
     document.getElementById('vendor-covers-delivery-field')?.classList.remove('hidden');
 }
 
+function fetchCustomerUrlPreview(productId, variantId) {
+    const wrap = document.getElementById('customer-url-preview-wrap');
+    const input = document.getElementById('customer-url-preview');
+    const template = window.LISTINGS_CREATE?.slugPreviewUrlTemplate;
+    if (!wrap || !input || !template || !productId || !variantId) return;
+
+    const url = template.replace('__PRODUCT__', productId).replace('__VARIANT__', variantId);
+
+    fetch(url, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            input.value = data.preview_url ?? '';
+            wrap.classList.remove('hidden');
+        })
+        .catch(() => {});
+}
+
 function initChangeProduct() {
     document.getElementById('change-product-btn')?.addEventListener('click', () => {
         document.getElementById('listing-form-placeholder')?.classList.remove('hidden');
         document.getElementById('listing-form-container')?.classList.add('hidden');
         document.getElementById('form-product-variant-id').value = '';
+        document.getElementById('customer-url-preview-wrap')?.classList.add('hidden');
         document.getElementById('product-search-input').value = '';
         document.getElementById('product-search-results').innerHTML =
             '<p class="text-xs text-gray-400 text-center py-6">ابدأ الكتابة للبحث...</p>';

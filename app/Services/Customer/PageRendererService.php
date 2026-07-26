@@ -55,6 +55,7 @@ class PageRendererService
 
     public function __construct(
         private readonly ProductQueryService $productQuery,
+        private readonly \App\Services\Customer\ListingQueryService $listingQuery,
     ) {
     }
 
@@ -419,7 +420,7 @@ class PageRendererService
             ->filter(fn($bp) => $bp->productVariant
                 && $bp->productVariant->product_id
                 && !isset($unavailableIds[$bp->productVariant->product_id]))
-            ->map(function ($bp) use ($priceByVariant) {
+            ->map(function ($bp) use ($priceByVariant, $country) {
                 $product = $bp->productVariant->product;
                 $price = $priceByVariant[$bp->product_variant_id] ?? null;
                 $product->setAttribute('min_price', $price['min_price'] ?? null);
@@ -428,6 +429,13 @@ class PageRendererService
                 $product->setAttribute('total_stock', ($price['seller_count'] ?? 0) > 0 ? 1 : 0);
                 $product->setAttribute('rating_avg', 0);
                 $product->setAttribute('rating_count', 0);
+
+                $listing = $this->listingQuery->getForVariant($bp->product_variant_id, $country, 1)->first();
+                if ($listing) {
+                    $product->setAttribute('buy_box_listing_id', $listing->id);
+                    $product->setAttribute('buy_box_variant_slug', $bp->productVariant->slug);
+                    $product->setAttribute('buy_box_variant_name', $bp->productVariant->variant_name);
+                }
 
                 return (new ProductListResource($product))->toArray(request());
             })
@@ -483,6 +491,9 @@ class PageRendererService
                 $product->setAttribute('total_stock', $s->quantity_remaining > 0 ? 1 : 0);
                 $product->setAttribute('rating_avg', 0);
                 $product->setAttribute('rating_count', 0);
+                $product->setAttribute('buy_box_listing_id', $s->vendorListing->id);
+                $product->setAttribute('buy_box_variant_slug', $s->vendorListing->productVariant->slug);
+                $product->setAttribute('buy_box_variant_name', $s->vendorListing->productVariant->variant_name);
 
                 return (new ProductListResource($product))->toArray(request());
             })

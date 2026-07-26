@@ -70,9 +70,14 @@ use App\Observers\SubOrderObserver;
 use App\Observers\VendorListingObserver;
 use App\Observers\WarrantyPurchaseObserver;
 use App\Models\WarrantyPurchase;
+use App\Models\AdminProductListing;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Observers\AdminProductListingObserver;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use App\Auth\TravelAgencyUserProvider;
@@ -144,6 +149,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(PaidAdSlot::class, AdSlotPolicy::class);
 
         VendorListing::observe(VendorListingObserver::class);
+        AdminProductListing::observe(AdminProductListingObserver::class);
         WarrantyPurchase::observe(WarrantyPurchaseObserver::class);
         SubOrder::observe(SubOrderObserver::class);
 
@@ -197,5 +203,37 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.marketer', MarketerSidebarComposer::class);
 
         View::composer('*', SettingsComposer::class);
+
+        // Product detail routes: /products/{productSlug}/{variantSlug}
+        // Binds the active Product by slug, then the active, non-deleted variant
+        // belonging to that product. 404s early instead of leaking lookups into
+        // every controller action that touches these routes.
+        Route::bind('productSlug', function (string $value): Product {
+            return Product::where('slug', $value)
+                ->where('status', 'active')
+                ->firstOrFail();
+        });
+
+        Route::bind('variantSlug', function (string $value, $route): ProductVariant {
+            $product = $route->parameter('productSlug');
+
+            if (! $product instanceof Product) {
+                $product = Product::where('slug', $product)
+                    ->where('status', 'active')
+                    ->firstOrFail();
+            }
+
+            $variant = ProductVariant::where('product_id', $product->id)
+                ->where('slug', $value)
+                ->where('is_active', 1)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if (! $variant) {
+                abort(404, 'Variant not found');
+            }
+
+            return $variant;
+        });
     }
 }

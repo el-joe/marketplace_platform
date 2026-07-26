@@ -8,6 +8,7 @@
     <script>
         window.LISTINGS_CREATE = {
             productSearchUrl: '{{ route('partner.listings.product-search') }}',
+            slugPreviewUrlTemplate: '{{ route('partner.listings.slug-preview', ['product' => '__PRODUCT__', 'variant' => '__VARIANT__']) }}',
             warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
@@ -91,6 +92,12 @@
                                 class="text-xs text-blue-600 hover:underline shrink-0">{{ __('partner.listings.change') }}</button>
                         </div>
                         <input type="hidden" id="form-product-variant-id" name="product_variant_id">
+
+                        <div id="customer-url-preview-wrap" class="hidden mt-4">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('partner.listings.customer_url') ?? 'Customer URL' }}</label>
+                            <input type="text" id="customer-url-preview" readonly
+                                class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-xs font-mono text-gray-500 focus:outline-none">
+                        </div>
                     </div>
 
                     {{-- Pricing & Details --}}
