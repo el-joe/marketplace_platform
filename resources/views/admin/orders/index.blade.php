@@ -161,6 +161,15 @@
                 'label' => __('admin.orders.risk_score'),
                 'options' => ['70' => __('admin.orders.risk_high'), '40' => __('admin.orders.risk_medium')],
             ],
+            [
+                'type' => 'select',
+                'name' => 'listing_type',
+                'label' => __('admin.orders.listing_type'),
+                'options' => [
+                    'vendor' => __('admin.orders.listing_type_vendor'),
+                    'admin' => __('admin.orders.listing_type_admin'),
+                ],
+            ],
         ];
     @endphp
 

@@ -15,6 +15,7 @@ class AdCampaignProduct extends Model
         'product_variant_id',
         'vendor_id',
         'vendor_listing_id',
+        'admin_product_listing_id',
         'is_active',
     ];
 
@@ -36,5 +37,17 @@ class AdCampaignProduct extends Model
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class);
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
+    }
+
+    public function getListingAttribute(): VendorListing|AdminProductListing|null
+    {
+        return $this->admin_product_listing_id
+            ? $this->adminProductListing
+            : $this->vendorListing;
     }
 }

@@ -15,8 +15,10 @@ class StoreSecretPromotionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'vendor_id' => ['required', 'exists:vendors,id'],
-            'vendor_listing_id' => ['required', 'exists:vendor_listings,id'],
+            'listing_type' => ['nullable', 'in:vendor,admin'],
+            'vendor_id' => ['required_if:listing_type,vendor', 'nullable', 'exists:vendors,id'],
+            'vendor_listing_id' => ['required_if:listing_type,vendor', 'nullable', 'exists:vendor_listings,id'],
+            'admin_product_listing_id' => ['required_if:listing_type,admin', 'nullable', 'exists:admin_product_listings,id'],
             'marketer_id' => ['nullable', 'exists:marketers,id'],
             'product_value' => ['required', 'numeric', 'min:0.01'],
             'total_commission_pct' => ['required', 'numeric', 'min:0.01', 'max:99'],
@@ -47,7 +49,9 @@ class StoreSecretPromotionRequest extends FormRequest
                 );
             }
 
-            if ($this->vendor_listing_id) {
+            $isAdminListing = ($this->listing_type ?? 'vendor') === 'admin';
+
+            if (!$isAdminListing && $this->vendor_listing_id) {
                 $listing = VendorListing::find($this->vendor_listing_id);
                 if ($listing && $listing->vendor_id !== $this->vendor_id) {
                     $v->errors()->add(
@@ -55,6 +59,13 @@ class StoreSecretPromotionRequest extends FormRequest
                         'This listing does not belong to the selected vendor.'
                     );
                 }
+            }
+
+            if ($isAdminListing && !$this->admin_product_listing_id) {
+                $v->errors()->add(
+                    'admin_product_listing_id',
+                    'Select an admin product listing.'
+                );
             }
         });
     }

@@ -544,6 +544,91 @@ function initPerformanceChart() {
 }
 
 /* ─── Utility ─────────────────────────────────────────────────────────────── */
+/* ─── Campaign Products DataTable + Add Product modal ────────────────────── */
+let productsTable = null;
+
+function initProductsTable() {
+    const el = document.getElementById('campaign-products-table');
+    if (!el) return;
+
+    productsTable = new DataTable('#campaign-products-table', {
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: el.dataset.datatableUrl,
+            type: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+        },
+        columns: [
+            { data: 'type', orderable: false },
+            { data: 'product', orderable: false },
+            { data: 'variant', orderable: false },
+            { data: 'price', orderable: false },
+            { data: 'active', orderable: false },
+            { data: 'actions', orderable: false },
+        ],
+    });
+
+    $(document).on('click', '.js-remove-campaign-product', function () {
+        const id = $(this).data('id');
+        if (!window.confirm(window.TRANSLATIONS?.removeProductConfirm || 'Remove this product from the campaign?')) return;
+
+        const url = el.dataset.destroyUrlTemplate.replace('__ID__', id);
+        $.ajax({
+            url,
+            type: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+        })
+            .done(res => {
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.productRemoved || 'Product removed from campaign.'));
+                productsTable?.ajax.reload(null, false);
+            })
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToRemoveProduct || 'Failed to remove product.')));
+    });
+}
+
+function setCampaignProductType(type) {
+    $('#cp-type-input').val(type);
+    $('#cp-type-vendor-btn').toggleClass('bg-primary-600 text-white', type === 'vendor').toggleClass('bg-white text-gray-600', type !== 'vendor');
+    $('#cp-type-admin-btn').toggleClass('bg-primary-600 text-white', type === 'admin').toggleClass('bg-white text-gray-600', type !== 'admin');
+    $('#cp-vendor-field').toggleClass('hidden', type !== 'vendor');
+    $('#cp-admin-field').toggleClass('hidden', type !== 'admin');
+}
+
+function initAddProductModal() {
+    $('#cp-type-vendor-btn').on('click', () => setCampaignProductType('vendor'));
+    $('#cp-type-admin-btn').on('click', () => setCampaignProductType('admin'));
+
+    $('#add-campaign-product-btn').on('click', function () {
+        setCampaignProductType('vendor');
+        $('#cp-vendor-listing-select').val(null).trigger('change');
+        $('#cp-admin-listing-select').val(null).trigger('change');
+        $('#add-campaign-product-modal').modal('open');
+    });
+
+    $('#confirm-add-campaign-product-btn').on('click', function () {
+        const type = $('#cp-type-input').val();
+        const payload = {
+            listing_type: type,
+            vendor_listing_id: type === 'vendor' ? $('#cp-vendor-listing-select').val() : null,
+            admin_product_listing_id: type === 'admin' ? $('#cp-admin-listing-select').val() : null,
+        };
+
+        const storeUrl = document.getElementById('campaign-products-table')?.dataset.storeUrl;
+        if (!storeUrl) return;
+
+        const $btn = $(this).prop('disabled', true);
+        postJson(storeUrl, payload)
+            .done(res => {
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.productAdded || 'Product added to campaign.'));
+                $('#add-campaign-product-modal').modal('close');
+                productsTable?.ajax.reload(null, false);
+            })
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToAddProduct || 'Failed to add product.')))
+            .always(() => $btn.prop('disabled', false));
+    });
+}
+
 function debounce(fn, delay) {
     let timer;
     return (...args) => {
@@ -565,4 +650,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initCreativeReviewModals();
     initSlotsTable();
     initPerformanceChart();
+    initProductsTable();
+    initAddProductModal();
 });

@@ -55,6 +55,7 @@ class PageRendererService
 
     public function __construct(
         private readonly ProductQueryService $productQuery,
+        private readonly \App\Services\Customer\ListingQueryService $listingQuery,
     ) {
     }
 
@@ -87,8 +88,13 @@ class PageRendererService
     /**
      * Renders an already-resolved Page (e.g. one looked up by id rather than
      * by page_type/slug, as with app-context home pages).
+     *
+     * $appContextKey scopes block visibility to a specific app context (e.g.
+     * 'nawy_now') — blocks with a different app_context_key are dropped, while
+     * blocks with a NULL app_context_key are always shown. Pass null (default)
+     * to skip context filtering entirely, preserving existing callers' behavior.
      */
-    public function renderPage(Page $page, Country $country, ?Customer $customer, string $sessionId): array
+    public function renderPage(Page $page, Country $country, ?Customer $customer, string $sessionId, ?string $appContextKey = null): array
     {
         $identityKey = $customer ? 'c:' . $customer->id : 's:' . $sessionId;
 
@@ -105,12 +111,12 @@ class PageRendererService
             dispatch(new LogAbImpressionJob($test->id, $variant));
         }
 
-        return $this->assemble($page, $country, $customer, $chosenVariants);
+        return $this->assemble($page, $country, $customer, $chosenVariants, $appContextKey);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function assemble(Page $page, Country $country, ?Customer $customer, array $chosenVariants): array
+    private function assemble(Page $page, Country $country, ?Customer $customer, array $chosenVariants, ?string $appContextKey = null): array
     {
         $sections = PageSection::where('page_id', $page->id)
             ->where('is_visible', true)
@@ -121,7 +127,7 @@ class PageRendererService
             ->orderBy('position')
             ->get();
 
-        $resolvedBlocks = $this->filterBlocks($allBlocks, $country, $customer, $chosenVariants);
+        $resolvedBlocks = $this->filterBlocks($allBlocks, $country, $customer, $chosenVariants, $appContextKey);
 
         $sectionsData = [];
 
@@ -165,12 +171,15 @@ class PageRendererService
      * Apply all block-level filtering rules BEFORE any hydration happens.
      * A block is skipped (removed from the collection) if any rule matches.
      */
-    private function filterBlocks(Collection $blocks, Country $country, ?Customer $customer, array $chosenVariants): Collection
+    private function filterBlocks(Collection $blocks, Country $country, ?Customer $customer, array $chosenVariants, ?string $appContextKey = null): Collection
     {
         $now = now();
 
-        return $blocks->filter(function (PageBlock $block) use ($now, $country, $customer, $chosenVariants) {
+        return $blocks->filter(function (PageBlock $block) use ($now, $country, $customer, $chosenVariants, $appContextKey) {
             if (!$block->is_visible) {
+                return false;
+            }
+            if ($appContextKey !== null && $block->app_context_key !== null && $block->app_context_key !== $appContextKey) {
                 return false;
             }
             if ($block->visible_from !== null && $block->visible_from->gt($now)) {
@@ -411,7 +420,7 @@ class PageRendererService
             ->filter(fn($bp) => $bp->productVariant
                 && $bp->productVariant->product_id
                 && !isset($unavailableIds[$bp->productVariant->product_id]))
-            ->map(function ($bp) use ($priceByVariant) {
+            ->map(function ($bp) use ($priceByVariant, $country) {
                 $product = $bp->productVariant->product;
                 $price = $priceByVariant[$bp->product_variant_id] ?? null;
                 $product->setAttribute('min_price', $price['min_price'] ?? null);
@@ -420,6 +429,13 @@ class PageRendererService
                 $product->setAttribute('total_stock', ($price['seller_count'] ?? 0) > 0 ? 1 : 0);
                 $product->setAttribute('rating_avg', 0);
                 $product->setAttribute('rating_count', 0);
+
+                $listing = $this->listingQuery->getForVariant($bp->product_variant_id, $country, 1)->first();
+                if ($listing) {
+                    $product->setAttribute('buy_box_listing_id', $listing->id);
+                    $product->setAttribute('buy_box_variant_slug', $bp->productVariant->slug);
+                    $product->setAttribute('buy_box_variant_name', $bp->productVariant->variant_name);
+                }
 
                 return (new ProductListResource($product))->toArray(request());
             })
@@ -475,6 +491,9 @@ class PageRendererService
                 $product->setAttribute('total_stock', $s->quantity_remaining > 0 ? 1 : 0);
                 $product->setAttribute('rating_avg', 0);
                 $product->setAttribute('rating_count', 0);
+                $product->setAttribute('buy_box_listing_id', $s->vendorListing->id);
+                $product->setAttribute('buy_box_variant_slug', $s->vendorListing->productVariant->slug);
+                $product->setAttribute('buy_box_variant_name', $s->vendorListing->productVariant->variant_name);
 
                 return (new ProductListResource($product))->toArray(request());
             })

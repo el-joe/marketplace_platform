@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@push('styles')
+    @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/components/select2.js'])
+@endpush
+
 @section('title', $campaign->name)
 
 @section('content')
@@ -209,6 +213,31 @@
             </dl>
         </x-card>
 
+        {{-- Campaign Products ------------------------------------------------------}}
+        <x-card>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base font-semibold text-gray-800">{{ __('admin.marketers.products') ?? 'Products' }}</h2>
+                <button type="button" id="add-campaign-product-btn" class="btn btn-primary btn-sm">
+                    {{ __('admin.marketers.add_product') ?? 'Add Product to Campaign' }}
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="campaign-products-table" class="w-full text-sm" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Listing Type</th>
+                            <th>Product</th>
+                            <th>Platform SKU</th>
+                            <th>Price</th>
+                            <th>Position</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </x-card>
+
         {{-- Performance ---------------------------------------------------------}}
         <x-card>
             <h2 class="text-base font-semibold text-gray-800 mb-4">{{ __('admin.performance') }}</h2>
@@ -322,6 +351,45 @@
     </div>
 </div>
 
+{{-- ─── Add Product to Campaign Modal ──────────────────────────────────────── --}}
+<div id="add-campaign-product-modal" class="modal" style="display:none;">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">{{ __('admin.marketers.add_product') ?? 'Add Product to Campaign' }}</h3>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Listing Source</label>
+            <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+                <button type="button" id="cp-type-vendor-btn" data-type="vendor"
+                    class="cp-type-btn px-4 py-1.5 text-sm font-medium bg-blue-600 text-white">Vendor Listing</button>
+                <button type="button" id="cp-type-admin-btn" data-type="admin"
+                    class="cp-type-btn px-4 py-1.5 text-sm font-medium bg-white text-gray-600">Admin Listing</button>
+            </div>
+            <input type="hidden" id="cp-type-input" value="vendor">
+        </div>
+
+        <div id="cp-vendor-field" class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Vendor Listing</label>
+            <select id="cp-vendor-listing-select" class="form-input w-full"
+                data-async-select
+                data-config='{"url": "/marketer-campaigns/listings/vendor-search", "param": "q", "minLength": 1, "placeholder": "Search vendor listings…"}'>
+            </select>
+        </div>
+
+        <div id="cp-admin-field" class="mb-4 hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Admin Product Listing</label>
+            <select id="cp-admin-listing-select" class="form-input w-full"
+                data-async-select
+                data-config='{"url": "/marketer-campaigns/listings/admin-search", "param": "q", "minLength": 1, "placeholder": "Search by product name or SKU…"}'>
+            </select>
+        </div>
+
+        <div class="flex gap-3 justify-end">
+            <button type="button" id="cancel-add-campaign-product" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-add-campaign-product" class="btn btn-primary btn-sm">{{ __('admin.save') }}</button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -386,6 +454,87 @@ document.addEventListener('DOMContentLoaded', function () {
                 $('#reject-campaign-modal').hide();
                 setTimeout(() => location.reload(), 800);
             } else { window.Toast.error(data.message); }
+        });
+    });
+    // ── Campaign products DataTable ──────────────────────────────────────────
+    window.initDataTable('campaign-products-table', {
+        url: '{{ route('admin.marketers.campaigns.products.datatable', $campaign) }}',
+        columns: [
+            {
+                data: 'listing_type', orderable: false,
+                render: (v) => v === 'admin'
+                    ? '<span class="badge bg-amber-100 text-amber-800 border border-amber-200">Admin</span>'
+                    : '<span class="badge bg-blue-100 text-blue-800 border border-blue-200">Vendor</span>',
+            },
+            { data: 'product_name' },
+            { data: 'platform_sku' },
+            { data: 'price_formatted' },
+            { data: 'position' },
+            {
+                data: 'id', orderable: false,
+                render: (id) => `<button type="button" class="btn btn-danger btn-xs js-remove-campaign-product" data-id="${id}">{{ __('common.remove') ?? 'Remove' }}</button>`,
+            },
+        ],
+        order: [[4, 'asc']],
+    });
+
+    $(document).on('click', '.js-remove-campaign-product', function () {
+        const id = $(this).data('id');
+        window.confirmDialog({
+            title: 'Remove product?',
+            confirmText: 'Remove',
+            onConfirm: () => {
+                fetch('{{ route('admin.marketers.campaigns.products.destroy', [$campaign, '__ID__']) }}'.replace('__ID__', id), {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                }).then(r => r.json()).then(data => {
+                    if (data.success) { window.Toast.success(data.message); $('#campaign-products-table').DataTable().ajax.reload(); }
+                    else { window.Toast.error(data.message); }
+                });
+            },
+        });
+    });
+
+    // ── Add product modal ────────────────────────────────────────────────────
+    function setCpType(type) {
+        $('#cp-type-input').val(type);
+        $('#cp-type-vendor-btn').toggleClass('bg-blue-600 text-white', type === 'vendor').toggleClass('bg-white text-gray-600', type !== 'vendor');
+        $('#cp-type-admin-btn').toggleClass('bg-blue-600 text-white', type === 'admin').toggleClass('bg-white text-gray-600', type !== 'admin');
+        $('#cp-vendor-field').toggleClass('hidden', type !== 'vendor');
+        $('#cp-admin-field').toggleClass('hidden', type !== 'admin');
+    }
+
+    $('#cp-type-vendor-btn').on('click', () => setCpType('vendor'));
+    $('#cp-type-admin-btn').on('click', () => setCpType('admin'));
+
+    $('#add-campaign-product-btn').on('click', function () {
+        setCpType('vendor');
+        $('#cp-vendor-listing-select').val(null).trigger('change');
+        $('#cp-admin-listing-select').val(null).trigger('change');
+        $('#add-campaign-product-modal').show();
+    });
+    $('#cancel-add-campaign-product').on('click', () => $('#add-campaign-product-modal').hide());
+
+    $('#confirm-add-campaign-product').on('click', function () {
+        const type = $('#cp-type-input').val();
+        const payload = {
+            listing_type: type,
+            vendor_listing_id: type === 'vendor' ? $('#cp-vendor-listing-select').val() : null,
+            admin_product_listing_id: type === 'admin' ? $('#cp-admin-listing-select').val() : null,
+        };
+
+        fetch('{{ route('admin.marketers.campaigns.products.store', $campaign) }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload),
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                window.Toast.success(data.message);
+                $('#add-campaign-product-modal').hide();
+                $('#campaign-products-table').DataTable().ajax.reload();
+            } else {
+                window.Toast.error(data.message || 'Failed to add product.');
+            }
         });
     });
 }, { once: true });

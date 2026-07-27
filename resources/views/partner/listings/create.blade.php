@@ -8,7 +8,10 @@
     <script>
         window.LISTINGS_CREATE = {
             productSearchUrl: '{{ route('partner.listings.product-search') }}',
+            slugPreviewUrlTemplate: '{{ route('partner.listings.slug-preview', ['product' => '__PRODUCT__', 'variant' => '__VARIANT__']) }}',
+            urlInfoUrlTemplate: '{{ route('partner.listings.variants.url-info', ['variant' => '__VARIANT__']) }}',
             warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
+            availableShippingMethodsUrl: '{{ route('partner.listings.available-shipping-methods') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
         };
@@ -91,6 +94,17 @@
                                 class="text-xs text-blue-600 hover:underline shrink-0">{{ __('partner.listings.change') }}</button>
                         </div>
                         <input type="hidden" id="form-product-variant-id" name="product_variant_id">
+
+                        <div id="customer-url-preview-wrap" class="hidden mt-4">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('partner.listings.customer_url') ?? 'Customer URL' }}</label>
+                            <p class="text-xs text-gray-400 mb-1">{{ __('partner.listings.customer_url_hint') ?? 'This is the URL customers will see for your listing.' }}</p>
+                            <p class="text-xs text-gray-500 mb-1">
+                                {{ __('partner.listings.attribute_summary') ?? 'Variant' }}:
+                                <span id="customer-url-attribute-summary" class="font-medium text-gray-700">—</span>
+                            </p>
+                            <input type="text" id="customer-url-preview" readonly
+                                class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-xs font-mono text-gray-500 focus:outline-none">
+                        </div>
                     </div>
 
                     {{-- Pricing & Details --}}
@@ -267,6 +281,16 @@
                                 <option value="special_tech">يحتاج تقنية خاصة / Requires Special Handling</option>
                             </select>
                         </div>
+                    </div>
+
+                    {{-- Preferred Shipping Method --}}
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-3">
+                        <h4 class="font-semibold text-gray-800 text-sm mb-1">{{ __('partner.listings.preferred_shipping_method') ?? 'Primary Shipping Method (optional — overrides category default)' }}</h4>
+                        <select name="primary_shipping_method_id" id="primary-shipping-method-select"
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                            <option value="">{{ __('partner.listings.shipping_method_default_option') ?? 'Use category default' }}</option>
+                        </select>
+                        <p class="text-xs text-gray-400">{{ __('partner.listings.preferred_shipping_method_hint') ?? "If not set, the category default method will be used automatically" }}</p>
                     </div>
 
                     {{-- Warehouse & Initial Stock --}}

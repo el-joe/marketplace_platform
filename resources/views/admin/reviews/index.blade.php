@@ -103,6 +103,16 @@
                 </select>
             </div>
 
+            {{-- Listing Type --}}
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">{{ __('admin.reviews_section.listing_type') }}</label>
+                <select id="filter-listing-type" class="form-input w-full text-sm">
+                    <option value="">{{ __('admin.reviews_section.all_listing_types') }}</option>
+                    <option value="vendor">{{ __('admin.reviews_section.vendor_listing') }}</option>
+                    <option value="admin">{{ __('admin.reviews_section.admin_listing') }}</option>
+                </select>
+            </div>
+
             {{-- Rating --}}
             <div>
                 <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">{{ __('admin.reviews_section.rating') }}</label>

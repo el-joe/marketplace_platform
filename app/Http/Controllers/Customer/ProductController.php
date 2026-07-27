@@ -17,11 +17,14 @@ use App\Services\Customer\ProductQueryService;
 use App\Services\Customer\ProductViewService;
 use App\Services\Customer\ReviewService;
 use App\Services\Customer\SponsoredProductService;
+use App\Support\Concerns\BuildsProductAttributeSelector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    use BuildsProductAttributeSelector;
+
     public function __construct(
         private readonly ProductQueryService $products,
         private readonly ListingQueryService $listings,
@@ -29,6 +32,7 @@ class ProductController extends Controller
         private readonly ProductViewService $viewService,
         private readonly SponsoredProductService $sponsored,
         private readonly ReviewService $reviewService,
+        private readonly \App\Services\Customer\ListingIdentifierService $identifiers,
     ) {
     }
 
@@ -45,7 +49,8 @@ class ProductController extends Controller
             ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
             ->with([
                 'vendor:id,store_name,store_rating_avg',
-                'productVariant:id,sku,product_id',
+                'productVariant:id,sku,slug,variant_name,product_id',
+                'productVariant.images',
                 'productVariant.product.images',
                 'productVariant.product.category:id,name_en,name_ar,slug',
                 'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
@@ -146,9 +151,24 @@ class ProductController extends Controller
             referrerUrl: $request->header('Referer'),
         );
 
+        $selectedVariant = $listings->first()?->productVariant
+            ?? $product->variants->firstWhere('is_default', true)
+            ?? $product->variants->first();
+
+        $listingsByVariant = $listings
+            ->groupBy('product_variant_id')
+            ->map(fn($group) => [
+                'listing_id' => $group->first()->id,
+                'listing_ref' => $this->identifiers->buildListingRef($group->first()),
+            ])
+            ->all();
+
         $resource = new ProductDetailResource($product);
         $resource->isWishlisted = $isWishlisted;
         $resource->ratingBreakdown = $this->reviewService->ratingBreakdown($product);
+        $resource->productAttributes = $selectedVariant
+            ? $this->productAttributesShape($product->variants, $selectedVariant, $listingsByVariant)
+            : [];
 
         return ApiResponse::success($resource->toArray($request));
     }

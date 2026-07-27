@@ -133,6 +133,20 @@
                                 </div>
                             @endif
                         </div>
+
+                        @php $customerUrl = "/products/{$variant->id}/{$listing->id}"; @endphp
+                        <div class="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <span class="text-xs text-gray-400 block mb-1">{{ __('partner.listings.customer_url') ?? 'Customer URL' }}</span>
+                            <p class="text-xs text-gray-400 mb-1">{{ __('partner.listings.customer_url_hint') ?? 'This is the URL customers will see for your listing.' }}</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" readonly value="{{ $customerUrl }}"
+                                    class="flex-1 border border-gray-200 bg-white rounded-lg px-3 py-1.5 text-xs font-mono text-gray-600 focus:outline-none">
+                                <button type="button" class="js-copy px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
+                                        data-value="{{ $customerUrl }}">
+                                    {{ __('partner.listings.copy_url') ?? 'Copy URL' }}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -172,7 +186,17 @@
                     </div>
                     <div>
                         <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.shipping_method') }}</span>
-                        <span id="display-shipping-method" class="font-medium">{{ $listing->primaryShippingMethod?->name ?? __('partner.listings.show.not_set') }}</span>
+                        @if($listing->primaryShippingMethod)
+                            <span id="display-shipping-method"
+                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                                style="background-color: {{ $listing->primaryShippingMethod->badge_color_hex ?? '#eef2ff' }}22; color: {{ $listing->primaryShippingMethod->badge_color_hex ?? '#4f46e5' }};">
+                                {{ $listing->primaryShippingMethod->badge_label_en ?? $listing->primaryShippingMethod->name }}
+                            </span>
+                        @else
+                            <span id="display-shipping-method" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                {{ __('partner.listings.show.category_default') ?? 'Category default' }}{{ $defaultShippingMethod ? ' — ' . $defaultShippingMethod->name : '' }}
+                            </span>
+                        @endif
                     </div>
                 </div>
 

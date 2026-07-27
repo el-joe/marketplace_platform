@@ -7,10 +7,12 @@ use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Customer\ListingDetailResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\AdminProductListing;
 use App\Models\Country;
 use App\Models\VendorListing;
 use App\Models\Wishlist;
 use App\Models\Product;
+use App\Services\AppContextService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\ProductDetailEnrichmentService;
@@ -19,11 +21,14 @@ use App\Services\Customer\ReviewService;
 use App\Services\ListingShippingResolver;
 use App\Services\WarrantyPlanService;
 use App\Support\Bilingual;
+use App\Support\Concerns\BuildsProductAttributeSelector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ListingDetailController extends Controller
 {
+    use BuildsProductAttributeSelector;
+
     public function __construct(
         private readonly ListingIdentifierService $identifiers,
         private readonly ListingShippingResolver $shipping,
@@ -32,6 +37,7 @@ class ListingDetailController extends Controller
         private readonly ProductDetailEnrichmentService $enrichment,
         private readonly WarrantyPlanService $warrantyPlanService,
         private readonly ListingQueryService $listings,
+        private readonly AppContextService $appContext,
     ) {
     }
 
@@ -45,7 +51,9 @@ class ListingDetailController extends Controller
             return ApiResponse::error('Listing not found or not available in this country.', [], 404);
         }
 
-        $siblings = $this->identifiers->getSiblings($listing, $country);
+        $siblings = $listing instanceof VendorListing
+            ? $this->identifiers->getSiblings($listing, $country)
+            : ['same_variant' => collect(), 'other_variants' => collect()];
         $deliveryOptions = $this->shipping->resolveForListing($listing);
 
         $product = $listing->productVariant->product;
@@ -69,7 +77,7 @@ class ListingDetailController extends Controller
         $customer = auth('customer')->user();
 
         $bestSellerBadge = $this->enrichment->getBestSellerBadge($product, $country);
-        $coupons = $this->enrichment->getApplicableCoupons($product, $country, $customer, $listing);
+        $coupons = $this->enrichment->getApplicableCoupons($product, $country, $customer, $listing instanceof VendorListing ? $listing : null);
         $paymentOptions = $this->enrichment->getPaymentOptions($country, $listing->price, $customer);
         $warrantyPlans = $this->warrantyPlanService->getPlansForProduct($product, $country->id, $country->currency_code);
 
@@ -87,6 +95,8 @@ class ListingDetailController extends Controller
             ->limit(5)
             ->get();
 
+        $productAttributes = $this->productAttributesForListing($product, $listing->productVariant, $country);
+
         return ApiResponse::success(new ListingDetailResource([
             'listing' => $this->listingShape($listing, $country, $isWishlisted),
             'seller' => $this->sellerShape($listing),
@@ -95,8 +105,13 @@ class ListingDetailController extends Controller
             'coupons' => $coupons,
             'payment_options' => $paymentOptions,
             'product' => $this->productShape($product, $listing),
+            'product_attributes' => $productAttributes,
             'variant' => $this->variantShape($listing->productVariant),
-            'other_sellers' => $siblings['same_variant']->map(fn(VendorListing $l) => $this->otherSellerShape($l, $country))->values()->all(),
+            'other_sellers' => ($listing instanceof VendorListing ? $siblings['same_variant']->push($listing) : $siblings['same_variant'])
+                ->sortBy('price')
+                ->map(fn(VendorListing $l) => $this->otherSellerShape($l, $country, $l->id === $listing->id))
+                ->values()
+                ->all(),
             'other_variants' => $siblings['other_variants']->map(fn(VendorListing $l) => $this->otherVariantShape($l))->values()->all(),
             'reviews' => [
                 'rating_avg' => (float) $listing->rating_avg,
@@ -111,8 +126,12 @@ class ListingDetailController extends Controller
         ]));
     }
 
-    private function resolveListing(string $identifier, $country): ?VendorListing
+    private function resolveListing(string $identifier, $country): VendorListing|AdminProductListing|null
     {
+        if ($this->appContext->isNawyNow()) {
+            return $this->identifiers->resolveAdminListing($identifier, $country->id);
+        }
+
         if (str_contains($identifier, '--')) {
             $parsed = $this->identifiers->parseListingRef($identifier);
 
@@ -120,7 +139,7 @@ class ListingDetailController extends Controller
                 return null;
             }
 
-            return VendorListing::whereHas('productVariant', fn($q) => $q->where('sku', $parsed['sku']))
+            return VendorListing::whereHas('productVariant', fn($q) => $q->where('id', $parsed['product_variant_id']))
                 ->where('id', 'like', $parsed['listing_id_prefix'] . '%')
                 ->where('country_id', $country->id)
                 ->where('status', 'active')
@@ -143,8 +162,33 @@ class ListingDetailController extends Controller
         return $this->identifiers->resolve($identifier, $type, $country);
     }
 
-    private function listingShape(VendorListing $listing, $country, bool $isWishlisted): array
+    private function listingShape(VendorListing|AdminProductListing $listing, $country, bool $isWishlisted): array
     {
+        if ($listing instanceof AdminProductListing) {
+            return [
+                'listing_id' => $listing->id,
+                'listing_ref' => $this->identifiers->buildListingRef($listing),
+                'vendor_sku' => $listing->platform_sku,
+                'sku' => $listing->productVariant->sku,
+                'price' => $listing->price,
+                'price_formatted' => number_format($listing->price / 100, 2),
+                'currency' => $country->currency_code,
+                'condition' => $listing->condition,
+                'condition_notes' => $listing->condition_notes,
+                'is_admin_listing' => true,
+                'is_express_fbn' => true,
+                'fulfillment_model' => $listing->fulfillment_type,
+                'global_system_type' => GlobalSystemType::ExpressFbn->value,
+                'status' => $listing->status?->value,
+                'max_order_quantity' => $listing->max_order_quantity,
+                'total_sold' => $listing->total_sold,
+                'rating_avg' => $listing->rating_avg,
+                'rating_count' => $listing->rating_count,
+                'is_global_shipping' => (bool) $listing->is_global_shipping,
+                'is_wishlisted' => $isWishlisted,
+            ];
+        }
+
         return [
             'listing_id' => $listing->id,
             'listing_ref' => $this->identifiers->buildListingRef($listing),
@@ -169,8 +213,18 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function sellerShape(VendorListing $listing): array
+    private function sellerShape(VendorListing|AdminProductListing $listing): array
     {
+        if ($listing instanceof AdminProductListing) {
+            return [
+                'id' => null,
+                'store_name' => 'Nawy',
+                'rating_avg' => $listing->rating_avg,
+                'rating_count' => $listing->rating_count,
+                'is_admin_listing' => true,
+            ];
+        }
+
         return [
             'id' => $listing->vendor->id,
             'store_name' => $listing->vendor->store_name,
@@ -194,7 +248,7 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function productShape($product, VendorListing $listing): array
+    private function productShape($product, VendorListing|AdminProductListing $listing): array
     {
         return [
             'id' => $product->id,
@@ -277,6 +331,42 @@ class ListingDetailController extends Controller
         ];
     }
 
+    private function productAttributesForListing($product, $productVariant, $country): array
+    {
+        $variants = $product->variants->loadMissing('variantAttributes.attribute', 'variantAttributes.attributeValue');
+        $listingsByVariant = $this->variantListingsMap($product, $country);
+
+        return $this->productAttributesShape($variants, $productVariant, $listingsByVariant);
+    }
+
+    private function variantListingsMap($product, $country): array
+    {
+        $variantIds = $product->variants->pluck('id')->all();
+
+        if ($this->appContext->isNawyNow()) {
+            $listings = AdminProductListing::whereIn('product_variant_id', $variantIds)
+                ->where('country_id', $country->id)
+                ->where('status', 'active')
+                ->orderBy('price')
+                ->get()
+                ->groupBy('product_variant_id');
+        } else {
+            $listings = VendorListing::whereIn('product_variant_id', $variantIds)
+                ->where('country_id', $country->id)
+                ->where('status', VendorListingStatus::Active)
+                ->orderBy('price')
+                ->get()
+                ->groupBy('product_variant_id');
+        }
+
+        return $listings
+            ->map(fn($group) => [
+                'listing_id' => $group->first()->id,
+                'listing_ref' => $this->identifiers->buildListingRef($group->first()),
+            ])
+            ->all();
+    }
+
     private function variantShape($variant): array
     {
         return [
@@ -298,11 +388,13 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function otherSellerShape(VendorListing $listing, $country): array
+    private function otherSellerShape(VendorListing $listing, $country, bool $isSelected = false): array
     {
         return [
             'listing_id' => $listing->id,
+            'is_selected' => $isSelected,
             'listing_ref' => $this->identifiers->buildListingRef($listing),
+            'url' => route('customer.listing.show', [$country->site_code, $listing->product_variant_id . '--' . $listing->id]),
             'seller_name' => $listing->vendor->store_name,
             'seller_rating' => $listing->vendor->store_rating_avg,
             'price' => $listing->price,
@@ -352,7 +444,7 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function frequentlyBoughtTogetherShape($product, VendorListing $listing, $country): array
+    private function frequentlyBoughtTogetherShape($product, VendorListing|AdminProductListing $listing, $country): array
     {
         $relatedProducts = $product->frequentlyBoughtTogether()
             ->with(['images', 'variants'])
@@ -426,7 +518,7 @@ class ListingDetailController extends Controller
         return $items;
     }
 
-    private function fbtItemShape(VendorListing $listing, $product, $country): array
+    private function fbtItemShape(VendorListing|AdminProductListing $listing, $product, $country): array
     {
         $primaryImage = $product->images->firstWhere('is_primary', true) ?? $product->images->first();
 

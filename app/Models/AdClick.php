@@ -14,6 +14,7 @@ class AdClick extends Model
         'ad_impression_id',
         'ad_campaign_id',
         'vendor_listing_id',
+        'admin_product_listing_id',
         'customer_id',
         'session_id',
         'ip_address',
@@ -38,6 +39,18 @@ class AdClick extends Model
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class);
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
+    }
+
+    public function getListingAttribute(): VendorListing|AdminProductListing|null
+    {
+        return $this->admin_product_listing_id
+            ? $this->adminProductListing
+            : $this->vendorListing;
     }
 
     public function customer(): BelongsTo

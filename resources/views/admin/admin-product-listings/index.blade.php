@@ -10,8 +10,24 @@
     @php
         $columns = [
             ['title' => __('admin.admin_product_listings.product_col'), 'data' => 'product_name', 'name' => 'product_name'],
-            ['title' => __('admin.admin_product_listings.country_col'), 'data' => 'country', 'name' => 'country', 'searchable' => false],
+            ['title' => __('admin.admin_product_listings.variant_col'), 'data' => 'variant_name', 'name' => 'variant_name', 'searchable' => false],
+            ['title' => __('admin.admin_product_listings.sku_col'), 'data' => 'platform_sku', 'name' => 'platform_sku'],
+            ['title' => __('admin.admin_product_listings.country_col'), 'data' => 'country', 'name' => 'country'],
+            ['title' => __('common.currency'), 'data' => 'currency', 'name' => 'currency', 'searchable' => false],
             ['title' => __('admin.admin_product_listings.price_col'), 'data' => 'price', 'name' => 'price', 'searchable' => false],
+            ['title' => __('admin.admin_product_listings.compare_at_price_col'), 'data' => 'compare_at_price', 'name' => 'compare_at_price', 'searchable' => false],
+            [
+                'title' => __('admin.admin_product_listings.status_col'),
+                'data' => 'status',
+                'name' => 'status',
+                'searchable' => false,
+                'render' => 'Renderers.badge({
+                    active:       { label: "' . __('admin.admin_product_listings.active') . '",       color: "success" },
+                    paused:       { label: "' . __('admin.admin_product_listings.paused') . '",       color: "warning" },
+                    out_of_stock: { label: "' . __('admin.admin_product_listings.out_of_stock') . '", color: "orange"  },
+                    archived:     { label: "' . __('admin.admin_product_listings.archived') . '",     color: "gray"    }
+                })'
+            ],
             [
                 'title' => __('admin.admin_product_listings.fulfillment_col'),
                 'data' => 'fulfillment_type',
@@ -23,7 +39,6 @@
                     mixed:   { label: "' . __('admin.admin_product_listings.mixed') . '",   color: "gray"    }
                 })'
             ],
-            ['title' => __('admin.admin_product_listings.payment_col'), 'data' => 'payment_options', 'name' => 'payment_options', 'searchable' => false],
             [
                 'title' => __('admin.admin_product_listings.now_nawy_col'),
                 'data' => 'featured_in_nawy',
@@ -33,22 +48,38 @@
                 'className' => 'text-center',
                 'render' => 'function (data, type, row) {
                     if (type !== "display") return data;
-                    return \'<button type="button" class="nawy-featured-toggle relative inline-flex h-5 w-9 items-center rounded-full transition-colors \' + (data ? "bg-primary-600" : "bg-gray-200") + \'" data-url="\' + row.toggle_featured_url + \'">\' +
-                        \'<span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform \' + (data ? "translate-x-4" : "translate-x-1") + \'"></span>\' +
-                        \'</button>\';
+                    return data ? "⭐" : "";
                 }'
             ],
             [
-                'title' => __('admin.admin_product_listings.status_col'),
-                'data' => 'status',
-                'name' => 'status',
+                'title' => __('admin.admin_product_listings.rating_col'),
+                'data' => 'rating_avg',
+                'name' => 'rating_avg',
                 'searchable' => false,
-                'render' => 'Renderers.badge({
-                    active:   { label: "' . __('admin.admin_product_listings.active') . '",   color: "success" },
-                    paused:   { label: "' . __('admin.admin_product_listings.paused') . '",   color: "warning" },
-                    archived: { label: "' . __('admin.admin_product_listings.archived') . '", color: "gray"    }
-                })'
+                'className' => 'text-center',
+                'render' => 'function (data, type, row) {
+                    if (type !== "display") return data;
+                    if (!data) return "—";
+                    return data + " (" + (row.rating_count || 0) + ")";
+                }'
             ],
+            ['title' => __('admin.admin_product_listings.total_sold_col'), 'data' => 'total_sold', 'name' => 'total_sold', 'searchable' => false, 'className' => 'text-center'],
+            ['title' => __('admin.admin_product_listings.warehouse_col'), 'data' => 'warehouse_name', 'name' => 'warehouse_name', 'searchable' => false],
+            [
+                'title' => __('admin.admin_product_listings.shipping_col'),
+                'data' => 'shipping',
+                'name' => 'shipping',
+                'orderable' => false,
+                'searchable' => false,
+                'render' => 'function (data, type, row) {
+                    if (type !== "display") return data ? data.label : "";
+                    if (!data) return "<span class=\\"text-xs text-gray-400\\">—</span>";
+                    var pill = "<span class=\\"inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold\\" style=\\"background-color:" + data.color + ";color:" + data.text_color + ";\\">" + data.label + "</span>";
+                    if (data.is_inherited) pill += " <span class=\\"text-[10px] uppercase tracking-wide text-gray-400\\">(default)</span>";
+                    return pill;
+                }'
+            ],
+            ['title' => __('admin.admin_product_listings.created_at_col'), 'data' => 'created_at', 'name' => 'created_at', 'searchable' => false],
             [
                 'title' => '',
                 'data' => 'actions',
@@ -59,8 +90,8 @@
                 'render' => 'Renderers.actions([
                     { type: "link",   label: "' . __('common.view') . '",   url: ":show_url" },
                     { type: "link",   label: "' . __('common.edit') . '",   url: ":edit_url" },
-                    { type: "button", label: "' . __('admin.admin_product_listings.archive') . '", id: "archive", class: "btn-danger", condition: (row) => row.status !== "archived" },
-                    { type: "button", label: "' . __('admin.admin_product_listings.activate') . '", id: "activate", class: "btn-success", condition: (row) => row.status === "archived" }
+                    { type: "button", label: "' . __('admin.admin_product_listings.activate') . '", id: "activate", class: "btn-success", condition: (row) => row.status !== "active" },
+                    { type: "button", label: "' . __('admin.admin_product_listings.archive') . '", id: "archive", class: "btn-danger", condition: (row) => row.status !== "archived" }
                 ])'
             ],
         ];
@@ -97,9 +128,16 @@
                 'options' => [
                     'active' => __('admin.admin_product_listings.active'),
                     'paused' => __('admin.admin_product_listings.paused'),
+                    'out_of_stock' => __('admin.admin_product_listings.out_of_stock'),
                     'archived' => __('admin.admin_product_listings.archived'),
                 ],
             ],
+        ];
+
+        $bulkActions = [
+            ['id' => 'bulk-activate', 'label' => __('admin.admin_product_listings.bulk_activate'), 'class' => 'btn-success', 'confirmMessage' => __('admin.admin_product_listings.confirm_bulk_activate')],
+            ['id' => 'bulk-pause', 'label' => __('admin.admin_product_listings.bulk_pause'), 'class' => 'btn-ghost', 'confirmMessage' => __('admin.admin_product_listings.confirm_bulk_pause')],
+            ['id' => 'bulk-archive', 'label' => __('admin.admin_product_listings.bulk_archive'), 'class' => 'btn-danger', 'confirmMessage' => __('admin.admin_product_listings.confirm_bulk_archive')],
         ];
     @endphp
 
@@ -149,9 +187,10 @@
         </div>
 
         <x-table.datatable id="nawy-listings-table" url="{{ route('admin.admin-product-listings.datatable') }}"
-            :columns="$columns" :filters="$filters"
+            :columns="$columns" :filters="$filters" :bulk-actions="$bulkActions"
+            bulk-url="{{ route('admin.admin-product-listings.bulk') }}"
             :create-action="['url' => route('admin.admin-product-listings.create'), 'label' => __('admin.admin_product_listings.new_listing')]"
-            :selectable="false" :page-length="25" />
+            :selectable="true" :page-length="25" />
     </div>
 @endsection
 
@@ -211,6 +250,27 @@
                     window.Toast && window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.archiveFailed);
                 });
         };
+
+        window.tableActions['bulk-activate'] = function (ids, tableId) {
+            postBulkStatus(ids, tableId, 'active');
+        };
+        window.tableActions['bulk-pause'] = function (ids, tableId) {
+            postBulkStatus(ids, tableId, 'paused');
+        };
+        window.tableActions['bulk-archive'] = function (ids, tableId) {
+            postBulkStatus(ids, tableId, 'archived');
+        };
+
+        function postBulkStatus(ids, tableId, status) {
+            $.ajax({ url: '{{ route('admin.admin-product-listings.bulk') }}', method: 'POST', data: { action: status, ids: ids } })
+                .done(function (res) {
+                    window.Toast && window.Toast.success(res.message);
+                    window.reloadDataTable(tableId);
+                })
+                .fail(function (xhr) {
+                    window.Toast && window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.failedToUpdate);
+                });
+        }
 
         window.tableActions.activate = async function (id, row) {
             const confirmed = window.confirmDialog

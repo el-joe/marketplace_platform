@@ -353,12 +353,69 @@ function selectVariant(data) {
     }
     if (skuEl) skuEl.textContent = data.sku ? `SKU: ${data.sku}` : '';
 
+    fetchCustomerUrlPreview(data.productId, data.variantId);
+
     // Show form, hide placeholder
     document.getElementById('listing-form-placeholder')?.classList.add('hidden');
     document.getElementById('listing-form-container')?.classList.remove('hidden');
 
     // New listings default to global_system_type = merchant_fbp (FBP)
     document.getElementById('vendor-covers-delivery-field')?.classList.remove('hidden');
+
+    const fulfillmentSelect = document.querySelector('select[name="fulfillment_model"]');
+    loadShippingMethods(data.variantId, fulfillmentSelect?.value);
+}
+
+function fetchCustomerUrlPreview(productId, variantId) {
+    const wrap = document.getElementById('customer-url-preview-wrap');
+    const input = document.getElementById('customer-url-preview');
+    const summaryEl = document.getElementById('customer-url-attribute-summary');
+    const template = window.LISTINGS_CREATE?.urlInfoUrlTemplate;
+    if (!wrap || !input || !template || !variantId) return;
+
+    const url = template.replace('__VARIANT__', variantId);
+
+    fetch(url, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            input.value = data.preview_url ?? '';
+            if (summaryEl) summaryEl.textContent = data.attribute_summary || '—';
+            wrap.classList.remove('hidden');
+        })
+        .catch(() => {});
+}
+
+async function loadShippingMethods(variantId, fulfillmentModel) {
+    const cfg = window.LISTINGS_CREATE;
+    const select = document.getElementById('primary-shipping-method-select');
+    if (!select || !cfg || !variantId) return;
+
+    select.disabled = true;
+    select.innerHTML = '<option value="">جاري التحميل...</option>';
+
+    try {
+        const params = new URLSearchParams({ variant_id: variantId });
+        if (fulfillmentModel) params.set('fulfillment_model', fulfillmentModel);
+
+        const res = await fetch(`${cfg.availableShippingMethodsUrl}?${params.toString()}`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+        });
+        const methods = await res.json();
+
+        const defaultOption = '<option value="">Use category default</option>';
+        if (!methods.length) {
+            select.innerHTML = defaultOption;
+        } else {
+            select.innerHTML = defaultOption + methods.map(m =>
+                `<option value="${m.id}">${escapeHtml(m.name)}${m.is_default ? ' (default)' : ''}</option>`
+            ).join('');
+        }
+    } catch {
+        select.innerHTML = '<option value="">خطأ في تحميل طرق الشحن</option>';
+    }
+    select.disabled = false;
 }
 
 function initChangeProduct() {
@@ -366,6 +423,7 @@ function initChangeProduct() {
         document.getElementById('listing-form-placeholder')?.classList.remove('hidden');
         document.getElementById('listing-form-container')?.classList.add('hidden');
         document.getElementById('form-product-variant-id').value = '';
+        document.getElementById('customer-url-preview-wrap')?.classList.add('hidden');
         document.getElementById('product-search-input').value = '';
         document.getElementById('product-search-results').innerHTML =
             '<p class="text-xs text-gray-400 text-center py-6">ابدأ الكتابة للبحث...</p>';
@@ -432,6 +490,12 @@ function initCreateForm() {
 
     // Trigger immediately to populate for the pre-selected vendor country
     if (countrySelect?.value) reloadWarehouses();
+
+    // Reload available shipping methods when fulfillment model changes (variant already selected)
+    fulfillmentSelect?.addEventListener('change', () => {
+        const variantId = document.getElementById('form-product-variant-id')?.value;
+        if (variantId) loadShippingMethods(variantId, fulfillmentSelect.value);
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -707,6 +771,20 @@ function initDetailPage() {
 // Boot
 // ─────────────────────────────────────────────────────────────────────────────
 
+function initCopyButtons() {
+    document.querySelectorAll('.js-copy').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const value = btn.dataset.value;
+            if (!value) return;
+            navigator.clipboard.writeText(value).then(() => {
+                const original = btn.textContent;
+                btn.textContent = 'تم النسخ!';
+                setTimeout(() => { btn.textContent = original; }, 1500);
+            }).catch(() => toast('فشل النسخ.', 'error'));
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initListingsDataTable();
     initPriceModal();
@@ -714,4 +792,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initChangeProduct();
     initCreateForm();
     initDetailPage();
+    initCopyButtons();
 });

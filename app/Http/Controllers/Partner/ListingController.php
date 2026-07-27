@@ -13,6 +13,7 @@ use App\Models\Country;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductVariant;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
@@ -314,6 +315,61 @@ class ListingController extends Controller
         }));
     }
 
+    /**
+     * Read-only slug/URL preview for a product variant. Vendors cannot edit
+     * slugs — they are product-level and managed by admins only.
+     */
+    public function slugPreview(string $product, string $variant): JsonResponse
+    {
+        $productModel = Product::query()->whereNull('deleted_at')->findOrFail($product);
+
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->where('product_id', $product)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+
+        return response()->json([
+            'variant_slug' => $variantModel->slug,
+            'product_slug' => $productModel->slug,
+            'preview_url' => "/products/{$productModel->slug}/{$variantModel->slug}?listing=preview",
+            'attribute_summary' => $variantModel->attributeSummary(),
+        ]);
+    }
+
+    /**
+     * Read-only "customer URL" info for a product variant, shown live in the
+     * create/edit form so vendors can confirm which variant they picked
+     * before the listing (and its final URL) is saved.
+     */
+    public function variantUrlInfo(string $variant): JsonResponse
+    {
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->whereNull('deleted_at')
+            ->with('product')
+            ->firstOrFail();
+
+        $attributes = $variantModel->variantAttributeValues()
+            ->with('attribute')
+            ->get()
+            ->map(fn ($value) => [
+                'name' => $value->attribute?->name_en,
+                'value' => $value->value_en,
+            ]);
+
+        return response()->json([
+            'variant_id' => $variantModel->id,
+            'variant_name' => $variantModel->variant_name,
+            'product_slug' => $variantModel->product?->slug,
+            'product_name_en' => $variantModel->product?->name_en,
+            'attribute_summary' => $attributes
+                ->map(fn ($attr) => "{$attr['name']}: {$attr['value']}")
+                ->implode(' | '),
+            'preview_url' => "/products/{$variantModel->id}/(new listing — ID assigned after save)",
+        ]);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Warehouses by Country (AJAX — for create form)
     // ─────────────────────────────────────────────────────────────────────────
@@ -362,6 +418,28 @@ class ListingController extends Controller
         ]));
     }
 
+    public function availableShippingMethods(Request $request): JsonResponse
+    {
+        $request->validate([
+            'variant_id' => ['required', 'uuid', 'exists:product_variants,id'],
+            'fulfillment_model' => ['nullable', 'in:fbm,fbn,cross_dock'],
+        ]);
+
+        $methods = $this->shippingResolver->resolveForVariant(
+            $request->variant_id,
+            $request->fulfillment_model ?? 'fbm',
+        );
+
+        return response()->json($methods->map(fn($m) => [
+            'id' => $m->id,
+            'name' => $m->name,
+            'code' => $m->code,
+            'badge_label_en' => $m->badge_label_en,
+            'badge_color_hex' => $m->badge_color_hex,
+            'is_default' => (bool) $m->pivot->is_default,
+        ])->values());
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Show
     // ─────────────────────────────────────────────────────────────────────────
@@ -386,8 +464,11 @@ class ListingController extends Controller
             ->get();
 
         $availableShippingMethods = $this->shippingResolver->resolveForListing($listing);
+        $defaultShippingMethod = $listing->primary_shipping_method_id
+            ? null
+            : $this->shippingResolver->resolvePrimary($listing);
 
-        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods'));
+        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods', 'defaultShippingMethod'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -467,6 +548,7 @@ class ListingController extends Controller
             'declared_width_cm' => ['nullable', 'numeric', 'min:0.1'],
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
+            'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
         ]);
 
         $warehouse = Warehouse::findOrFail($request->warehouse_id);
@@ -500,6 +582,16 @@ class ListingController extends Controller
                 ], 422);
             }
             $resolvedVariantId = $defaultVariant->id;
+        }
+
+        if ($request->filled('primary_shipping_method_id')) {
+            $availableMethods = $this->shippingResolver->resolveForVariant($resolvedVariantId, $request->fulfillment_model);
+            if (!$availableMethods->contains('id', $request->primary_shipping_method_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'طريقة الشحن المختارة غير متاحة لهذه الفئة.',
+                ], 422);
+            }
         }
 
         $vendorId = $this->vendorId();
@@ -566,6 +658,7 @@ class ListingController extends Controller
                 'declared_height_cm' => $height,
                 'handling_class' => $request->handling_class,
                 'weight_class' => $weightClass,
+                'primary_shipping_method_id' => $request->primary_shipping_method_id ?: null,
             ]);
 
             // Create warehouse inventory record
@@ -634,7 +727,9 @@ class ListingController extends Controller
             'refurbished' => 'مُجدَّد',
         ];
 
-        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions'));
+        $availableShippingMethods = $this->shippingResolver->resolveForListing($listing);
+
+        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions', 'availableShippingMethods'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -667,7 +762,15 @@ class ListingController extends Controller
             'declared_width_cm' => ['nullable', 'numeric', 'min:0.1'],
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
+            'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
         ]);
+
+        if (!empty($validated['primary_shipping_method_id'])) {
+            $availableMethods = $this->shippingResolver->resolveForListing($listing);
+            if (!$availableMethods->contains('id', $validated['primary_shipping_method_id'])) {
+                return back()->withErrors(['primary_shipping_method_id' => 'طريقة الشحن المختارة غير متاحة لهذه الفئة.'])->withInput();
+            }
+        }
 
         $billable = $this->weightService->billableWeightGrams(
             (int) $validated['declared_weight_grams'],
@@ -694,6 +797,7 @@ class ListingController extends Controller
                 'declared_weight_grams' => (int) $validated['declared_weight_grams'],
                 'declared_length_cm' => $validated['declared_length_cm'] ?? null,
                 'declared_width_cm' => $validated['declared_width_cm'] ?? null,
+                'primary_shipping_method_id' => $validated['primary_shipping_method_id'] ?? null,
                 'declared_height_cm' => $validated['declared_height_cm'] ?? null,
                 'handling_class' => $validated['handling_class'],
                 'weight_class' => $weightClass,

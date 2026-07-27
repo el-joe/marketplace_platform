@@ -33,6 +33,7 @@ $(function () {
     initAutoInvite();
     initManualInvite();
     initCancelModal();
+    initAddProduct();
 
     if (status === 'live') {
         startLiveMonitor();
@@ -87,11 +88,21 @@ function initSubmissionsTable() {
                     const suspect = row.is_suspect
                         ? `<span class="ml-1 text-amber-500" title="${T().possibleFakeDiscount || 'Possible fake discount'}">⚠</span>`
                         : '';
+                    const subtitle = row.type === 'admin'
+                        ? (row.platform_sku || '')
+                        : (row.vendor_store_name || '');
                     return `<div class="flex items-center gap-2">${img}<div>
                         <span class="font-medium text-gray-900 text-sm">${row.product_name}${suspect}</span>
-                        <div class="text-xs text-gray-400">${row.vendor_store_name}</div>
+                        <div class="text-xs text-gray-400">${subtitle}</div>
                     </div></div>`;
                 },
+            },
+            {
+                data: 'type',
+                title: T().typeLabel || 'Type',
+                render: (d, t, row) => row.type === 'admin'
+                    ? `<span class="badge badge-info">${T().typeAdmin || 'Admin'}</span>`
+                    : `<span class="badge badge-gray">${(T().typeVendorPrefix || 'Vendor')}${row.vendor_store_name ? ' ' + row.vendor_store_name : ''}</span>`,
             },
             {
                 data: 'flash_price_formatted',
@@ -643,6 +654,95 @@ function initManualInvite() {
                 window.Toast.error(msg);
             },
         });
+    });
+}
+
+// ─── Add product (manual submission) ─────────────────────────────────────────
+
+function initAddProduct() {
+    const modal = document.getElementById('add-product-modal');
+    if (!modal) return;
+
+    $(document).on('change', 'input[name="submission-type"]', function () {
+        const isAdmin = $('input[name="submission-type"]:checked').val() === 'admin';
+        $('#vendor-listing-fields').toggleClass('hidden', isAdmin);
+        $('#admin-listing-fields').toggleClass('hidden', !isAdmin);
+    });
+
+    // Vendor listing selector is scoped to the chosen vendor.
+    $(document).on('change', '#add-product-vendor', function () {
+        const vendorId = $(this).val();
+        const $listingSelect = $('#add-product-vendor-listing');
+        $listingSelect.val(null).trigger('change');
+        $listingSelect.prop('disabled', !vendorId);
+
+        const cfg = JSON.parse($listingSelect.attr('data-config') || '{}');
+        $listingSelect.attr('data-config', JSON.stringify({ ...cfg, vendor_id: vendorId }));
+    });
+
+    document.getElementById('btn-confirm-add-product')?.addEventListener('click', submitAddProduct);
+}
+
+function resetAddProductForm() {
+    document.querySelector('input[name="submission-type"][value="vendor"]').checked = true;
+    $('#vendor-listing-fields').removeClass('hidden');
+    $('#admin-listing-fields').addClass('hidden');
+    $('#add-product-vendor, #add-product-vendor-listing, #add-product-admin-listing').val(null).trigger('change');
+    $('#add-product-vendor-listing').prop('disabled', true);
+    document.getElementById('add-product-original-price').value = '';
+    document.getElementById('add-product-flash-price').value = '';
+    document.getElementById('add-product-max-qty').value = '';
+    document.getElementById('add-product-max-qty-customer').value = '';
+    document.getElementById('add-product-admin-notes').value = '';
+}
+
+$(document).on('click', '[data-modal-open="add-product-modal"]', resetAddProductForm);
+
+function submitAddProduct() {
+    const submissionType = $('input[name="submission-type"]:checked').val();
+    const btn = document.getElementById('btn-confirm-add-product');
+
+    const data = {
+        submission_type: submissionType,
+        original_price: document.getElementById('add-product-original-price').value,
+        flash_price: document.getElementById('add-product-flash-price').value,
+        max_quantity_total: document.getElementById('add-product-max-qty').value,
+        max_quantity_per_customer: document.getElementById('add-product-max-qty-customer').value || null,
+        admin_notes: document.getElementById('add-product-admin-notes').value,
+        _token: $('meta[name="csrf-token"]').attr('content'),
+    };
+
+    if (submissionType === 'admin') {
+        data.admin_product_listing_id = $('#add-product-admin-listing').val();
+    } else {
+        data.vendor_id = $('#add-product-vendor').val();
+        data.vendor_listing_id = $('#add-product-vendor-listing').val();
+    }
+
+    btn.disabled = true;
+    btn.textContent = T().adding || 'Adding…';
+
+    $.ajax({
+        url: window.URLS.submissionsStore,
+        method: 'POST',
+        data,
+        success(res) {
+            btn.disabled = false;
+            btn.textContent = T().addProduct || 'Add Product';
+            $('#add-product-modal').modal('close');
+            window.Toast.success(res.message || T().submissionCreatedMessage || 'Submission added.');
+            if ($.fn.DataTable.isDataTable('#submissions-table')) {
+                $('#submissions-table').DataTable().ajax.reload(null, false);
+            }
+        },
+        error(xhr) {
+            btn.disabled = false;
+            btn.textContent = T().addProduct || 'Add Product';
+            const msg = xhr.responseJSON?.message
+                || Object.values(xhr.responseJSON?.errors || {})[0]?.[0]
+                || T().submissionCreateFailed || 'Failed to add submission.';
+            window.Toast.error(msg);
+        },
     });
 }
 

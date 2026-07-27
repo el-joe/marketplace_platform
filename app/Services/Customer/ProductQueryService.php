@@ -158,6 +158,11 @@ class ProductQueryService
 
     public function baseQuery(Country $country)
     {
+        $buyBoxListingSubquery = 'SELECT vl_b.id FROM vendor_listings vl_b '
+            .'JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id '
+            .'WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL '
+            ."ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1";
+
         return Product::query()
             ->select(
                 'products.*',
@@ -169,6 +174,49 @@ class ProductQueryService
                 DB::raw('COALESCE(SUM(wi.quantity_available), 0) as total_stock'),
                 DB::raw('COALESCE(SUM(vl.rating_avg * vl.rating_count) / NULLIF(SUM(vl.rating_count), 0), 0) as rating_avg'),
                 DB::raw('COALESCE(SUM(vl.rating_count), 0) as rating_count'),
+            )
+            ->selectRaw("({$buyBoxListingSubquery}) as buy_box_listing_id", [$country->id, 'active'])
+            ->selectRaw(
+                '(SELECT pv_b.slug FROM vendor_listings vl_b '
+                .'JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id '
+                .'WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL '
+                ."ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1"
+                .') as buy_box_variant_slug',
+                [$country->id, 'active'],
+            )
+            ->selectRaw(
+                '(SELECT pv_b.variant_name FROM vendor_listings vl_b '
+                .'JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id '
+                .'WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL '
+                ."ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1"
+                .') as buy_box_variant_name',
+                [$country->id, 'active'],
+            )
+            ->selectRaw(
+                '(SELECT pv_b.id FROM vendor_listings vl_b '
+                .'JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id '
+                .'WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL '
+                ."ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1"
+                .') as buy_box_variant_id',
+                [$country->id, 'active'],
+            )
+            ->selectRaw(
+                '(SELECT pi.path FROM vendor_listings vl_b '
+                .'JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id '
+                .'JOIN product_images pi ON pi.product_variant_id = pv_b.id '
+                .'WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL '
+                ."ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC, pi.position ASC LIMIT 1"
+                .') as buy_box_variant_image_path',
+                [$country->id, 'active'],
+            )
+            ->selectRaw(
+                '(SELECT pi.disk FROM vendor_listings vl_b '
+                .'JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id '
+                .'JOIN product_images pi ON pi.product_variant_id = pv_b.id '
+                .'WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL '
+                ."ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC, pi.position ASC LIMIT 1"
+                .') as buy_box_variant_image_disk',
+                [$country->id, 'active'],
             )
             ->join('product_country_settings as pcs', function ($j) use ($country) {
                 $j->on('pcs.product_id', '=', 'products.id')

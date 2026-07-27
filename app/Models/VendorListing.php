@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\GlobalSystemType;
 use App\Enums\VendorListingStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class VendorListing extends Model
@@ -124,8 +126,35 @@ class VendorListing extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function marketplaceShippingRule(): HasOne
+    {
+        return $this->hasOne(MarketplaceShippingRule::class);
+    }
+
     public function primaryShippingMethod(): BelongsTo
     {
         return $this->belongsTo(ShippingMethod::class, 'primary_shipping_method_id');
+    }
+
+    /**
+     * Restricts the query to the single best listing per (product_variant_id, country_id)
+     * using the platform-wide "best listing" ordering: active status, score, rating, price.
+     */
+    public function scopeBestPerVariant(Builder $query, string $countryId): Builder
+    {
+        return $query->whereRaw('id = (
+            SELECT id FROM vendor_listings vl2
+            WHERE vl2.product_variant_id = vendor_listings.product_variant_id
+              AND vl2.country_id = ?
+              AND vl2.status IN (\'active\', \'out_of_stock\')
+              AND vl2.deleted_at IS NULL
+            ORDER BY
+                CASE WHEN vl2.status = \'active\' THEN 0 ELSE 1 END ASC,
+                vl2.score IS NULL, vl2.score DESC,
+                vl2.rating_avg IS NULL, vl2.rating_avg DESC,
+                vl2.rating_count DESC,
+                vl2.price ASC
+            LIMIT 1
+        )', [$countryId]);
     }
 }

@@ -19,6 +19,7 @@ use App\Models\ProductVariant;
 use App\Models\ProductVariantAttribute;
 use App\Models\VendorListing;
 use App\Services\ProductService;
+use App\Services\VariantSlugService;
 use App\Traits\HasDataTable;
 use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
@@ -36,8 +37,10 @@ class ProductController extends Controller
     use HasDataTable;
     use HasExport;
 
-    public function __construct(private readonly ProductService $productService)
-    {
+    public function __construct(
+        private readonly ProductService $productService,
+        private readonly VariantSlugService $variantSlugService,
+    ) {
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -303,6 +306,8 @@ class ProductController extends Controller
             ->orderBy('position')
             ->get();
 
+        $this->attachBestListingUrls($variants);
+
         $images = ProductImage::query()->from('product_images as pi')
             ->where('pi.product_id', $product)
             ->orderBy('pi.position')
@@ -534,6 +539,171 @@ class ProductController extends Controller
         }
 
         return response()->json(['data' => $variants]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Variant slug management
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function regenerateVariantSlug(string $product, string $variant): JsonResponse
+    {
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->where('product_id', $product)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+
+        $newSlug = $this->variantSlugService->buildSlug($variantModel);
+
+        if ($newSlug === '') {
+            return response()->json(['message' => 'Unable to build a slug: variant has no attribute values.'], 422);
+        }
+
+        $exists = ProductVariant::query()
+            ->where('product_id', $product)
+            ->where('slug', $newSlug)
+            ->where('id', '!=', $variantModel->id)
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => "The slug '{$newSlug}' is already in use by another variant."], 422);
+        }
+
+        ProductVariant::query()->where('id', $variantModel->id)->update([
+            'slug' => $newSlug,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['success' => true, 'new_slug' => $newSlug]);
+    }
+
+    public function slugPreview(string $product, string $variant): JsonResponse
+    {
+        $productModel = Product::query()->whereNull('deleted_at')->findOrFail($product);
+
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->where('product_id', $product)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+
+        return response()->json([
+            'variant_slug' => $variantModel->slug,
+            'product_slug' => $productModel->slug,
+            'preview_url' => "/products/{$productModel->slug}/{$variantModel->slug}?listing=preview",
+            'attribute_summary' => $variantModel->attributeSummary(),
+        ]);
+    }
+
+    public function variantUrlInfo(string $variant): JsonResponse
+    {
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->whereNull('deleted_at')
+            ->with('product')
+            ->firstOrFail();
+
+        $attributes = $variantModel->variantAttributeValues()
+            ->with('attribute')
+            ->get()
+            ->map(fn ($value) => [
+                'name' => $value->attribute?->name_en,
+                'value' => $value->value_en,
+            ]);
+
+        return response()->json([
+            'variant_id' => $variantModel->id,
+            'variant_name' => $variantModel->variant_name,
+            'product_slug' => $variantModel->product?->slug,
+            'product_name_en' => $variantModel->product?->name_en,
+            'attribute_summary' => $attributes
+                ->map(fn ($attr) => "{$attr['name']}: {$attr['value']}")
+                ->implode(' | '),
+            'preview_url' => "/products/{$variantModel->id}/(new listing — ID assigned after save)",
+        ]);
+    }
+
+    public function variantDetail(string $product, string $variant): JsonResponse
+    {
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->where('product_id', $product)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+
+        $attributes = $variantModel->variantAttributeValues()
+            ->with('attribute')
+            ->get()
+            ->map(fn($value) => [
+                'name' => $value->attribute?->name_en,
+                'value' => $value->value_en,
+            ])
+            ->values();
+
+        $imagesCount = $variantModel->images()->count();
+        $vendorListingCount = $variantModel->vendorListings()->whereNull('deleted_at')->count();
+        $adminListingCount = $variantModel->adminProductListings()->whereNull('deleted_at')->count();
+
+        $bestListingId = $this->cheapestActiveVendorListingId($variantModel->id);
+
+        return response()->json([
+            'data' => [
+                'variant_id' => $variantModel->id,
+                'slug' => $variantModel->slug,
+                'sku' => $variantModel->sku,
+                'attributes' => $attributes,
+                'attribute_summary' => $attributes
+                    ->map(fn ($attr) => "{$attr['name']}: {$attr['value']}")
+                    ->implode(' | '),
+                'images_count' => $imagesCount,
+                'vendor_listing_count' => $vendorListingCount,
+                'admin_listing_count' => $adminListingCount,
+                'listing_count' => $vendorListingCount + $adminListingCount,
+                'best_listing_id' => $bestListingId,
+                'customer_url' => $bestListingId
+                    ? "/products/{$variantModel->id}/{$bestListingId}"
+                    : null,
+            ],
+        ]);
+    }
+
+    /**
+     * Attach `best_listing_id` and `customer_url` to each variant: the cheapest
+     * active VendorListing for that variant across all countries (admin sees all).
+     */
+    private function attachBestListingUrls(\Illuminate\Support\Collection $variants): void
+    {
+        if ($variants->isEmpty()) {
+            return;
+        }
+
+        $bestListingIds = VendorListing::query()
+            ->whereIn('product_variant_id', $variants->pluck('id'))
+            ->where('status', \App\Enums\VendorListingStatus::Active)
+            ->whereNull('deleted_at')
+            ->orderBy('price')
+            ->get(['id', 'product_variant_id'])
+            ->groupBy('product_variant_id')
+            ->map(fn ($listings) => $listings->first()->id);
+
+        $variants->each(function (ProductVariant $variant) use ($bestListingIds) {
+            $bestListingId = $bestListingIds->get($variant->id);
+            $variant->best_listing_id = $bestListingId;
+            $variant->customer_url = $bestListingId
+                ? "/products/{$variant->id}/{$bestListingId}"
+                : null;
+        });
+    }
+
+    private function cheapestActiveVendorListingId(string $variantId): ?string
+    {
+        return VendorListing::query()
+            ->where('product_variant_id', $variantId)
+            ->where('status', \App\Enums\VendorListingStatus::Active)
+            ->whereNull('deleted_at')
+            ->orderBy('price')
+            ->value('id');
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -837,8 +1007,11 @@ class ProductController extends Controller
         foreach ($variants as $i => $v) {
             $variantId = isset($v['id']) && $v['id'] !== '' ? (string) $v['id'] : null;
 
+            $resolvedSku = $this->resolveVariantSku($v['sku'] ?? null, $variantId);
+
             $payload = [
-                'sku' => $this->resolveVariantSku($v['sku'] ?? null, $variantId),
+                'sku' => $resolvedSku,
+                'slug' => $this->resolveVariantSlug($productId, $v['slug'] ?? null, $variantId, $resolvedSku),
                 'barcode' => $v['barcode'] ?: null,
                 'weight_grams' => isset($v['weight_grams']) && $v['weight_grams'] !== '' ? (int) $v['weight_grams'] : null,
                 'is_default' => isset($v['is_default']) && (bool) $v['is_default'],
@@ -886,6 +1059,48 @@ class ProductController extends Controller
         }
 
         return $sku;
+    }
+
+    private function resolveVariantSlug(string $productId, ?string $requestedSlug, ?string $ignoreVariantId, string $fallbackBase): string
+    {
+        $requestedSlug = trim((string) $requestedSlug);
+
+        if ($requestedSlug !== '') {
+            $slug = Str::slug($requestedSlug);
+
+            $exists = ProductVariant::query()
+                ->where('product_id', $productId)
+                ->whereNull('deleted_at')
+                ->where('slug', $slug)
+                ->when($ignoreVariantId, fn($q) => $q->where('id', '!=', $ignoreVariantId))
+                ->exists();
+
+            if ($exists) {
+                throw ValidationException::withMessages([
+                    'variants' => ["The slug '{$slug}' is already in use for this product. Please provide a unique slug."],
+                ]);
+            }
+
+            return $slug;
+        }
+
+        $base = Str::slug($fallbackBase) ?: 'variant';
+        $slug = $base;
+        $counter = 1;
+
+        while (
+            ProductVariant::query()
+                ->where('product_id', $productId)
+                ->whereNull('deleted_at')
+                ->where('slug', $slug)
+                ->when($ignoreVariantId, fn($q) => $q->where('id', '!=', $ignoreVariantId))
+                ->exists()
+        ) {
+            $slug = "{$base}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
     }
 
     private function generateUniqueVariantSku(): string

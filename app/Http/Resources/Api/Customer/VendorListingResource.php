@@ -3,7 +3,6 @@
 namespace App\Http\Resources\Api\Customer;
 
 use App\Models\Country;
-use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,11 +16,22 @@ class VendorListingResource extends JsonResource
     public function toArray(Request $request): array
     {
         $listing = $this->resource;
-        $product = $listing->productVariant->product;
+        $variant = $listing->productVariant;
+        $product = $variant->product;
+        $primaryImage = $variant->images->firstWhere('is_primary', true)
+            ?? $variant->images->first()
+            ?? $product->images->firstWhere('is_primary', true)
+            ?? $product->images->first();
+
+        $url = route('customer.listing.show', [$this->country->site_code,$variant->id .'--' . $listing->id]);
 
         return [
             'listing_id' => $listing->id,
-            'listing_ref' => app(ListingIdentifierService::class)->buildListingRef($listing),
+            'listing_type' => 'vendor',
+            'variant_id' => $variant->id,
+            'variant_name' => $variant->variant_name ?? $variant->sku,
+            'product_url' => $url, // ✓ correct UUID format
+            'primary_image' => $primaryImage?->url,
             'price' => (int) $listing->price,
             'compare_at_price' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,
             'currency' => $listing->currency ?? $this->country->currency_code,

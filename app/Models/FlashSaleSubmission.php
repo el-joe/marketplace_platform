@@ -47,6 +47,7 @@ class FlashSaleSubmission extends Model
     protected $fillable = [
         'flash_sale_id',
         'vendor_listing_id',
+        'admin_product_listing_id',
         'vendor_id',
         'status',
         'flash_price',
@@ -102,6 +103,11 @@ class FlashSaleSubmission extends Model
         return $this->belongsTo(VendorListing::class, 'vendor_listing_id');
     }
 
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class, 'admin_product_listing_id');
+    }
+
     public function reviewedByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'reviewed_by_admin_id');
@@ -149,14 +155,22 @@ class FlashSaleSubmission extends Model
         return number_format($this->getRevenueAttribute() / 100, 2) . ' ' . ($this->flash_price_currency ?? '');
     }
 
+    /** Returns whichever listing FK is set (vendor_listing_id XOR admin_product_listing_id). */
+    public function listing(): VendorListing|AdminProductListing|null
+    {
+        return $this->vendor_listing_id !== null
+            ? $this->vendorListing
+            : $this->adminProductListing;
+    }
+
     public function getProductNameAttribute(): string
     {
-        return $this->vendorListing?->productVariant?->product?->name_en ?? 'Unknown';
+        return $this->listing()?->productVariant?->product?->name_en ?? 'Unknown';
     }
 
     public function getPrimaryImageUrlAttribute(): ?string
     {
-        return $this->vendorListing?->productVariant?->product?->images
+        return $this->listing()?->productVariant?->product?->images
                 ?->where('is_primary', true)->first()?->url;
     }
 

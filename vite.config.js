@@ -62,7 +62,7 @@ export default defineConfig({
                 'resources/js/admin/analytics.js',
                 'resources/js/admin/activity-log.js',
                 'resources/js/admin/payment-methods.js',
-                'resources/js/admin/shipping-methods.js',
+                'resources/js/admin/shipping-settings.js',
                 'resources/js/admin/shipping-method-show.js',
                 'resources/js/admin/shipping-weight-slabs.js',
                 'resources/js/admin/app-contexts.js',
@@ -74,6 +74,7 @@ export default defineConfig({
                 'resources/js/admin/packaging-supplies.js',
                 'resources/js/admin/notifications.js',
                 'resources/js/admin/wishlist-overview.js',
+                'resources/js/admin/cost-references.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
                 'resources/js/portal/registration.js',

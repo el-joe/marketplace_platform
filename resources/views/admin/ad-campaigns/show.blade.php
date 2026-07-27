@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @push('styles')
-    @vite(['resources/js/admin/ad-campaigns.js'])
+    @vite(['resources/js/admin/ad-campaigns.js', 'resources/js/components/select2.js'])
 @endpush
 
 @push('scripts')
@@ -59,6 +59,13 @@
             slotsBaseRate: @json(__('admin.ad_campaigns.slots_base_rate')),
             slotsBookingDays: @json(__('admin.ad_campaigns.slots_booking_days')),
             slotsAvailable: @json(__('admin.ad_campaigns.slots_available')),
+            addProduct: @json(__('admin.ad_campaigns.add_product')),
+            removeProductConfirm: @json(__('admin.ad_campaigns.remove_product_confirm')),
+            productAdded: @json(__('admin.ad_campaigns.product_added')),
+            productRemoved: @json(__('admin.ad_campaigns.product_removed')),
+            failedToAddProduct: @json(__('admin.ad_campaigns.failed_to_add_product')),
+            failedToRemoveProduct: @json(__('admin.ad_campaigns.failed_to_remove_product')),
+            remove: @json(__('common.remove')),
         });
     </script>
 @endpush
@@ -317,40 +324,29 @@
         {{-- ═══════════ TAB: PRODUCTS ═══════════ --}}
         <div x-show="activeTab === 'products'" x-transition>
             <x-card title="{{ __('admin.ad_campaigns.promoted_products') }}">
-                @if($campaign->products->isEmpty())
-                    <p class="text-sm text-gray-400 py-6 text-center">{{ __('admin.ad_campaigns.no_products_assigned') }}</p>
-                @else
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-100 text-start">
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.product_listing') }}</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.variant') }}</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.active') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                @foreach($campaign->products as $product)
-                                    <tr>
-                                        <td class="py-2 pr-4">
-                                            <span class="font-medium">{{ $product->vendorListing?->id ?? $product->vendor_listing_id }}</span>
-                                        </td>
-                                        <td class="py-2 pr-4 text-gray-500">
-                                            {{ $product->product_variant_id ?? '—' }}
-                                        </td>
-                                        <td class="py-2">
-                                            @if($product->is_active)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">{{ __('admin.ad_campaigns.active') }}</span>
-                                            @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{{ __('admin.ad_campaigns.inactive') }}</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
+                <div class="flex items-center justify-end mb-4">
+                    <button type="button" id="add-campaign-product-btn" class="btn btn-primary btn-sm">
+                        {{ __('admin.ad_campaigns.add_product') }}
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="campaign-products-table" class="w-full text-sm" style="width:100%"
+                        data-datatable-url="{{ route('admin.ad-campaigns.products.datatable', $campaign) }}"
+                        data-store-url="{{ route('admin.ad-campaigns.products.store', $campaign) }}"
+                        data-destroy-url-template="{{ route('admin.ad-campaigns.products.destroy', [$campaign, '__ID__']) }}">
+                        <thead>
+                            <tr class="border-b border-gray-100 text-start">
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.listing_type') }}</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.product_listing') }}</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.variant') }}</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.product_price') }}</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.active') }}</th>
+                                <th class="py-2 text-xs font-medium text-gray-500 uppercase"></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </x-card>
         </div>
 
@@ -591,6 +587,40 @@
         <div class="flex justify-end gap-3 mt-5">
             <button type="button" class="btn btn-secondary" onclick="$('#resume-modal').modal('close')">{{ __('common.cancel') }}</button>
             <button type="button" id="confirm-resume-btn" class="btn btn-success">{{ __('admin.ad_campaigns.resume') }}</button>
+        </div>
+    </x-modal>
+
+    <x-modal id="add-campaign-product-modal" title="{{ __('admin.ad_campaigns.add_product') }}" size="md">
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.ad_campaigns.listing_source') }}</label>
+            <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+                <button type="button" id="cp-type-vendor-btn" data-type="vendor"
+                    class="cp-type-btn px-4 py-1.5 text-sm font-medium bg-primary-600 text-white">{{ __('admin.ad_campaigns.vendor_listing_option') }}</button>
+                <button type="button" id="cp-type-admin-btn" data-type="admin"
+                    class="cp-type-btn px-4 py-1.5 text-sm font-medium bg-white text-gray-600">{{ __('admin.ad_campaigns.admin_listing_option') }}</button>
+            </div>
+            <input type="hidden" id="cp-type-input" value="vendor">
+        </div>
+
+        <div id="cp-vendor-field" class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.ad_campaigns.vendor_listing_option') }}</label>
+            <select id="cp-vendor-listing-select" class="form-input w-full"
+                data-async-select
+                data-config='{"url": "{{ route('admin.ad-campaigns.listings.vendor-search', $campaign) }}", "param": "q", "minLength": 1, "placeholder": "{{ __('admin.ad_campaigns.search_vendor_listing_placeholder') }}"}'>
+            </select>
+        </div>
+
+        <div id="cp-admin-field" class="mb-4 hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.ad_campaigns.admin_listing_option') }}</label>
+            <select id="cp-admin-listing-select" class="form-input w-full"
+                data-async-select
+                data-config='{"url": "{{ route('admin.ad-campaigns.listings.admin-search') }}", "param": "q", "minLength": 1, "placeholder": "{{ __('admin.ad_campaigns.search_admin_listing_placeholder') }}"}'>
+            </select>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-5">
+            <button type="button" class="btn btn-secondary" onclick="$('#add-campaign-product-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-add-campaign-product-btn" class="btn btn-primary">{{ __('admin.save') }}</button>
         </div>
     </x-modal>
 

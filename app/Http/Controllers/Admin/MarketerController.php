@@ -776,7 +776,12 @@ class MarketerController extends Controller
 
     public function showCampaign(MarketerCampaign $campaign): View
     {
-        $campaign->load(['marketer', 'products.vendorListing.productVariant.product', 'campaignable']);
+        $campaign->load([
+            'marketer',
+            'products.vendorListing.productVariant.product',
+            'products.adminProductListing.productVariant.product',
+            'campaignable',
+        ]);
 
         // For travel campaigns, also eager-load the agency on the already-loaded campaignable
         if ($campaign->campaignable instanceof TravelPackage) {
@@ -790,6 +795,133 @@ class MarketerController extends Controller
             ],
             'campaign' => $campaign,
         ]);
+    }
+
+    // ── Campaign products ─────────────────────────────────────────────────────
+
+    public function campaignProductsDatatable(Request $request, MarketerCampaign $campaign): JsonResponse
+    {
+        $columns = [
+            [],
+            [],
+            [],
+            ['orderable_column' => 'marketer_campaign_products.position'],
+            [],
+        ];
+
+        $query = \App\Models\MarketerCampaignProduct::query()
+            ->with([
+                'vendorListing.productVariant.product',
+                'adminProductListing.productVariant.product',
+            ])
+            ->where('campaign_id', $campaign->id)
+            ->orderBy('position');
+
+        return $this->dataTableResponse(
+            $request,
+            $query,
+            $columns,
+            function (\App\Models\MarketerCampaignProduct $p) {
+                $isAdmin = (bool) $p->admin_product_listing_id;
+                $listing = $p->listing;
+
+                return [
+                    'id' => $p->id,
+                    'listing_type' => $isAdmin ? 'admin' : 'vendor',
+                    'product_name' => $listing?->productVariant?->product?->name_en ?? '—',
+                    'platform_sku' => $isAdmin ? ($listing?->platform_sku ?? '—') : '—',
+                    'price_formatted' => $listing ? number_format($listing->price / 100, 2) . ' ' . $listing->currency : '—',
+                    'position' => $p->position,
+                ];
+            }
+        );
+    }
+
+    public function storeCampaignProduct(Request $request, MarketerCampaign $campaign): JsonResponse
+    {
+        $validated = $request->validate([
+            'listing_type' => ['required', 'in:vendor,admin'],
+            'vendor_listing_id' => ['required_if:listing_type,vendor', 'nullable', 'exists:vendor_listings,id'],
+            'admin_product_listing_id' => ['required_if:listing_type,admin', 'nullable', 'exists:admin_product_listings,id'],
+        ]);
+
+        $isAdmin = $validated['listing_type'] === 'admin';
+
+        $exists = \App\Models\MarketerCampaignProduct::where('campaign_id', $campaign->id)
+            ->when(
+                $isAdmin,
+                fn($q) => $q->where('admin_product_listing_id', $validated['admin_product_listing_id']),
+                fn($q) => $q->where('vendor_listing_id', $validated['vendor_listing_id'])
+            )
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['success' => false, 'message' => 'This listing is already in the campaign.'], 422);
+        }
+
+        $position = (int) (\App\Models\MarketerCampaignProduct::where('campaign_id', $campaign->id)->max('position') ?? 0) + 1;
+
+        $product = \App\Models\MarketerCampaignProduct::create([
+            'campaign_id' => $campaign->id,
+            'vendor_listing_id' => $isAdmin ? null : $validated['vendor_listing_id'],
+            'admin_product_listing_id' => $isAdmin ? $validated['admin_product_listing_id'] : null,
+            'position' => $position,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Product added to campaign.', 'data' => ['id' => $product->id]]);
+    }
+
+    public function destroyCampaignProduct(MarketerCampaign $campaign, \App\Models\MarketerCampaignProduct $product): JsonResponse
+    {
+        abort_if($product->campaign_id !== $campaign->id, 404);
+
+        $product->delete();
+
+        return response()->json(['success' => true, 'message' => 'Product removed from campaign.']);
+    }
+
+    public function searchVendorListingsForCampaign(Request $request): JsonResponse
+    {
+        $q = $request->input('q', '');
+
+        $listings = VendorListing::where('status', 'active')
+            ->when($q !== '', fn($query) => $query->whereHas(
+                'productVariant.product',
+                fn($p) => $p->where('name_en', 'like', "%{$q}%")
+            ))
+            ->with('productVariant.product')
+            ->limit(20)
+            ->get()
+            ->map(fn(VendorListing $l) => [
+                'id' => $l->id,
+                'text' => ($l->productVariant?->product?->name_en ?? 'Unknown') . ' — ' . $l->vendor?->store_name,
+                'price' => $l->price,
+                'currency' => $l->currency,
+            ]);
+
+        return response()->json(['results' => $listings]);
+    }
+
+    public function searchAdminListingsForCampaign(Request $request): JsonResponse
+    {
+        $q = $request->input('q', '');
+
+        $listings = \App\Models\AdminProductListing::active()
+            ->when($q !== '', fn($query) => $query->where(
+                fn($w) => $w->where('platform_sku', 'like', "%{$q}%")
+                    ->orWhereHas('productVariant.product', fn($p) => $p->where('name_en', 'like', "%{$q}%"))
+            ))
+            ->with('productVariant.product')
+            ->limit(20)
+            ->get()
+            ->map(fn(\App\Models\AdminProductListing $l) => [
+                'id' => $l->id,
+                'text' => ($l->productVariant?->product?->name_en ?? 'Unknown') . ' (' . $l->platform_sku . ')',
+                'price' => $l->price,
+                'currency' => $l->currency,
+            ]);
+
+        return response()->json(['results' => $listings]);
     }
 
     // ════════════════════════════════════════════════════════════════════════

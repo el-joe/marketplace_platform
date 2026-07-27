@@ -2,9 +2,11 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\AdminProductListingStatus;
 use App\Enums\ProductStatus;
 use App\Enums\VendorGlobalStatus;
 use App\Enums\VendorListingStatus;
+use App\Models\AdminProductListing;
 use App\Models\Country;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -21,6 +23,17 @@ class ListingIdentifierService
         'productVariant.variantAttributes.attribute',
         'productVariant.variantAttributes.attributeValue',
         'vendor:id,store_name,store_rating_avg,store_rating_count',
+        'primaryShippingMethod',
+    ];
+
+    private const ADMIN_EAGER_LOADS = [
+        'productVariant.product.images',
+        'productVariant.product.category',
+        'productVariant.product.brand',
+        'productVariant.product.highlights',
+        'productVariant.product.specifications',
+        'productVariant.variantAttributes.attribute',
+        'productVariant.variantAttributes.attributeValue',
         'primaryShippingMethod',
     ];
 
@@ -57,7 +70,9 @@ class ListingIdentifierService
         return VendorListing::whereHas('productVariant', fn ($q) => $q->where('sku', $identifier))
             ->where('country_id', $country->id)
             ->when($activeOnly, fn ($q) => $q->where('status', VendorListingStatus::Active->value))
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
             ->with(self::EAGER_LOADS)
             ->first();
@@ -83,9 +98,48 @@ class ListingIdentifierService
         return VendorListing::whereHas('productVariant', fn ($q) => $q->where('product_id', $product->id))
             ->where('country_id', $country->id)
             ->where('status', VendorListingStatus::Active->value)
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
             ->with(self::EAGER_LOADS)
+            ->first();
+    }
+
+    /**
+     * Resolve an AdminProductListing (nawy_now context) from any identifier type:
+     * admin listing UUID, platform_sku, or product_slug (via product_variant -> product).
+     * Only active listings that are featured_in_nawy are returned.
+     */
+    public function resolveAdminListing(string $identifier, string $countryId): ?AdminProductListing
+    {
+        $base = fn () => AdminProductListing::where('country_id', $countryId)
+            ->where('status', AdminProductListingStatus::Active->value)
+            ->where('featured_in_nawy', true);
+
+        $listing = $base()->where('id', $identifier)->with(self::ADMIN_EAGER_LOADS)->first();
+
+        if (!$listing) {
+            $listing = $base()->where('platform_sku', $identifier)->with(self::ADMIN_EAGER_LOADS)->first();
+        }
+
+        if ($listing) {
+            return $listing;
+        }
+
+        $product = Product::where('slug', $identifier)->where('status', ProductStatus::Active->value)->first();
+
+        if (!$product) {
+            return null;
+        }
+
+        return $base()
+            ->whereHas('productVariant', fn ($q) => $q->where('product_id', $product->id))
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
+            ->orderBy('price')
+            ->with(self::ADMIN_EAGER_LOADS)
             ->first();
     }
 
@@ -130,7 +184,9 @@ class ListingIdentifierService
             ->where('status', VendorListingStatus::Active->value)
             ->whereHas('vendor', fn ($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
             ->with(['vendor:id,store_name,store_rating_avg', 'primaryShippingMethod'])
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
             ->limit(10)
             ->get();
@@ -148,7 +204,9 @@ class ListingIdentifierService
                     'productVariant.variantAttributes.attributeValue',
                     'primaryShippingMethod',
                 ])
-                ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+                ->orderByRaw('score IS NULL, score DESC')
+                ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+                ->orderByDesc('rating_count')
                 ->orderBy('price')
                 ->first())
             ->filter()
@@ -161,7 +219,7 @@ class ListingIdentifierService
      * Build the canonical listing URL identifier string.
      * Format: "{product_variant_sku}--{listing_id_short}"
      */
-    public function buildListingRef(VendorListing $listing): string
+    public function buildListingRef(VendorListing|AdminProductListing $listing): string
     {
         $sku = $listing->productVariant->sku;
         $shortId = substr(str_replace('-', '', $listing->id), 0, 8);
@@ -185,6 +243,6 @@ class ListingIdentifierService
             return null;
         }
 
-        return ['sku' => $parts[0], 'listing_id_prefix' => $parts[1]];
+        return ['product_variant_id' => $parts[0], 'listing_id_prefix' => $parts[1]];
     }
 }

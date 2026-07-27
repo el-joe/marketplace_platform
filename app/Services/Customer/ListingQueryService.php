@@ -123,7 +123,9 @@ class ListingQueryService
             'newest' => $builder->orderByDesc('created_at'),
             'best_selling' => $builder->orderByDesc('total_sold'),
             default => $builder
-                ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+                ->orderByRaw('score IS NULL, score DESC')
+                ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+                ->orderByDesc('rating_count')
                 ->orderBy('price'),
         };
     }
@@ -143,7 +145,8 @@ class ListingQueryService
         $builder = $this->baseCategoryQuery($country, $categoryIds)
             ->with([
                 'vendor:id,store_name,store_rating_avg',
-                'productVariant:id,sku,product_id',
+                'productVariant:id,sku,slug,variant_name,product_id',
+                'productVariant.images',
                 'productVariant.product.images',
                 'productVariant.product.category:id,name_en,name_ar,slug',
                 'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
@@ -174,10 +177,10 @@ class ListingQueryService
                 'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
                 'productVariant:id,sku',
             ])
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
-            ->orderByDesc('total_sold')
-            ->orderByDesc('rating_avg')
             ->limit($limit)
             ->get();
     }
@@ -204,12 +207,13 @@ class ListingQueryService
             ->with([
                 'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
                 'vendor:id,store_name,store_rating_avg',
-                'productVariant:id,sku,product_id',
+                'productVariant:id,sku,slug,variant_name,product_id',
+                'productVariant.images',
             ])
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
-            ->orderByDesc('total_sold')
-            ->orderByDesc('rating_avg')
             ->get()
             ->groupBy('product_variant_id');
 
@@ -242,14 +246,25 @@ class ListingQueryService
         bool $isWishlisted = false,
         bool $isSponsored = false,
     ): array {
+        $variant = $listing->productVariant;
+        $variantImage = $variant->images->first()?->url ?? $product->images->first()?->url ?? null;
+
+        $url = route('customer.listing.show', [$country->site_code, $variant->id .'--' . $listing->id]);
         return [
             'listing_id' => $listing->id,
+            'listing_type' => $listing->global_system_type === GlobalSystemType::ExpressFbn ? 'admin' : 'vendor',
             'listing_ref' => app(\App\Services\Customer\ListingIdentifierService::class)->buildListingRef($listing),
-            'sku' => $listing->productVariant->sku,
+            'sku' => $variant->sku,
             'vendor_sku' => $listing->vendor_sku,
             'product_id' => $product->id,
             'product_slug' => $product->slug,
             'slug' => $product->slug,
+            'variant_id' => $variant->id,
+            'variant_slug' => $variant->slug,
+            'product_url' => $url,
+            'variant_name' => $variant->variant_name ?? $variant->sku,
+            'variant_image' => $variantImage,
+            'primary_image' => $variantImage,
             'name_en' => $product->name_en,
             'name_ar' => $product->name_ar,
             'thumbnail' => $product->images->first()?->url ?? null,

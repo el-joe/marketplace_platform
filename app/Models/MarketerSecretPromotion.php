@@ -17,6 +17,7 @@ class MarketerSecretPromotion extends Model
     protected $fillable = [
         'vendor_id',
         'vendor_listing_id',
+        'admin_product_listing_id',
         'marketer_id',
         'product_value',
         'total_commission_pct',
@@ -55,6 +56,18 @@ class MarketerSecretPromotion extends Model
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class, 'vendor_listing_id');
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
+    }
+
+    public function getListingAttribute(): VendorListing|AdminProductListing|null
+    {
+        return $this->admin_product_listing_id
+            ? $this->adminProductListing
+            : $this->vendorListing;
     }
 
     public function marketer(): BelongsTo
@@ -122,21 +135,21 @@ class MarketerSecretPromotion extends Model
     public function getProductValueFormattedAttribute(): string
     {
         return number_format($this->product_value / 100, 2)
-            . ' ' . ($this->vendorListing?->currency ?? '');
+            . ' ' . ($this->listing?->currency ?? '');
     }
 
     public function getListingPriceFormattedAttribute(): string
     {
-        return number_format(($this->vendorListing?->price ?? 0) / 100, 2)
-            . ' ' . ($this->vendorListing?->currency ?? '');
+        return number_format(($this->listing?->price ?? 0) / 100, 2)
+            . ' ' . ($this->listing?->currency ?? '');
     }
 
     public function getMarginPctAttribute(): float
     {
-        if (!$this->product_value || !$this->vendorListing) {
+        if (!$this->product_value || !$this->listing) {
             return 0.0;
         }
-        $listingPrice = $this->vendorListing->price;
+        $listingPrice = $this->listing->price;
         $cost = $this->product_value;
 
         return round((($listingPrice - $cost) / $listingPrice) * 100, 2);
@@ -144,14 +157,14 @@ class MarketerSecretPromotion extends Model
 
     public function getAdminEarningsFormatAttribute(): string
     {
-        $perSale = ($this->vendorListing?->price ?? 0) * $this->admin_share_pct / 100;
+        $perSale = ($this->listing?->price ?? 0) * $this->admin_share_pct / 100;
 
-        return number_format($perSale / 100, 2) . ' ' . ($this->vendorListing?->currency ?? '');
+        return number_format($perSale / 100, 2) . ' ' . ($this->listing?->currency ?? '');
     }
 
     public function getMarketerEarningsFormatAttribute(): string
     {
-        $perSale = ($this->vendorListing?->price ?? 0) * $this->marketer_share_pct / 100;
+        $perSale = ($this->listing?->price ?? 0) * $this->marketer_share_pct / 100;
 
         return number_format($perSale / 100, 2);
     }

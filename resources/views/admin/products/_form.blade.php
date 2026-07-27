@@ -315,8 +315,10 @@
                                 <tr>
                                     <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.variant_column') }}</th>
                                     <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">{{ __('admin.sku') }}</th>
+                                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">{{ __('admin.products.slug_column') }}</th>
                                     <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">{{ __('admin.products.barcode') }}</th>
                                     <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">{{ __('admin.products.weight_grams_column') }}</th>
+                                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider w-56">{{ __('admin.products.customer_url_column') ?? 'Customer URL' }}</th>
                                     <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">{{ __('admin.products.default_column') }}</th>
                                     <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">{{ __('admin.products.active_column') }}</th>
                                     <th class="px-4 py-3 w-10"></th>
@@ -327,13 +329,31 @@
                                 @foreach($variants ?? [] as $vi => $variant)
                                 <tr class="variant-row hover:bg-gray-50">
                                     <td class="px-4 py-3 font-medium text-gray-800">
-                                        {{ $variant->name ?? __('admin.products.default_variant') }}
+                                        <button type="button" class="view-variant-detail hover:underline hover:text-primary-700 text-start"
+                                            data-variant-id="{{ $variant->id }}"
+                                            title="{{ __('admin.products.view_variant_detail') ?? 'View attributes, listings & UUID' }}">
+                                            {{ $variant->name ?? __('admin.products.default_variant') }}
+                                        </button>
                                         <input type="hidden" name="variants[{{ $vi }}][id]" value="{{ $variant->id }}" />
                                     </td>
                                     <td class="px-4 py-3">
                                         <input type="text" name="variants[{{ $vi }}][sku]"
                                             value="{{ $variant->sku }}"
                                             class="form-input text-sm py-1.5 w-full" />
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-1">
+                                            <input type="text" name="variants[{{ $vi }}][slug]"
+                                                value="{{ $variant->slug }}" maxlength="255"
+                                                title="{{ __('admin.products.slug_help') }}"
+                                                class="form-input text-sm py-1.5 w-full variant-slug-input" />
+                                            <button type="button"
+                                                class="regenerate-variant-slug flex-shrink-0 p-1.5 text-gray-400 hover:text-primary-600 transition-colors"
+                                                data-variant-id="{{ $variant->id }}"
+                                                title="{{ __('admin.products.regenerate_slug') }}">
+                                                <x-heroicon name="arrow-path" class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <input type="text" name="variants[{{ $vi }}][barcode]"
@@ -344,6 +364,34 @@
                                         <input type="number" name="variants[{{ $vi }}][weight_grams]"
                                             value="{{ $variant->weight_grams }}" min="0"
                                             class="form-input text-sm py-1.5 w-full" />
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        @if($variant->customer_url)
+                                            <div class="flex items-center gap-1.5">
+                                                <a href="{{ $variant->customer_url }}" target="_blank"
+                                                    class="font-mono text-xs text-primary-700 hover:underline truncate max-w-[10rem]"
+                                                    title="{{ $variant->customer_url }}">
+                                                    {{ $variant->customer_url }}
+                                                </a>
+                                                <button type="button" class="copy-variant-url flex-shrink-0 p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                                                    data-url="{{ $variant->customer_url }}"
+                                                    title="{{ __('admin.products.copy_url') ?? 'Copy URL' }}">
+                                                    <x-heroicon name="clipboard-document-list" class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        @else
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-mono text-xs text-gray-400 truncate max-w-[8rem]" title="{{ $variant->id }}">{{ $variant->id }}</span>
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
+                                                    {{ __('admin.products.no_active_listing') ?? 'No active listing' }}
+                                                </span>
+                                                <button type="button" class="copy-variant-url flex-shrink-0 p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                                                    data-url="{{ $variant->id }}"
+                                                    title="{{ __('admin.products.copy_id') ?? 'Copy variant ID' }}">
+                                                    <x-heroicon name="clipboard-document-list" class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <input type="radio" name="variants_default" value="{{ $vi }}"
@@ -371,6 +419,58 @@
                             {{ __('admin.products.no_variants_yet', ['action' => __('admin.products.generate_combinations')]) }}
                         </div>
                     </div>
+                    <p class="text-xs text-gray-400">{{ __('admin.products.slug_help') }}</p>
+                </div>
+            </div>
+
+            {{-- Variant detail (read-only) panel --}}
+            <div
+                x-data="variantDetailPanel()"
+                x-show="open"
+                x-cloak
+                @click.self="open = false"
+                @open-variant-detail.window="onOpen($event.detail)"
+                class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+            >
+                <div @click.stop class="bg-white rounded-xl shadow-xl w-full max-w-md p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('admin.products.variant_column') }}</h3>
+                        <button type="button" @click="open = false" class="text-gray-400 hover:text-gray-600">
+                            <x-heroicon name="x-mark" class="w-5 h-5" />
+                        </button>
+                    </div>
+                    <div x-show="loading" class="text-sm text-gray-400">{{ __('admin.loading') ?? 'Loading…' }}</div>
+                    <dl x-show="!loading" class="text-sm space-y-2">
+                        <div class="flex justify-between gap-4 items-center">
+                            <dt class="text-gray-500">{{ __('admin.products.variant_id') ?? 'Variant UUID' }}</dt>
+                            <dd class="flex items-center gap-1.5">
+                                <span class="font-mono text-xs text-gray-800 truncate max-w-[10rem]" x-text="data.variant_id"></span>
+                                <button type="button" class="copy-variant-url p-1 text-gray-400 hover:text-primary-600" :data-url="data.variant_id" title="{{ __('admin.products.copy_id') ?? 'Copy variant ID' }}">
+                                    <x-heroicon name="clipboard-document-list" class="w-4 h-4" />
+                                </button>
+                            </dd>
+                        </div>
+                        <div class="flex justify-between gap-4"><dt class="text-gray-500">{{ __('admin.products.slug_column') }}</dt><dd class="font-mono text-gray-800" x-text="data.slug"></dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-gray-500">{{ __('admin.sku') }}</dt><dd class="font-mono text-gray-800" x-text="data.sku"></dd></div>
+                        <div>
+                            <dt class="text-gray-500 mb-1">{{ __('admin.products.variant_attributes') }}</dt>
+                            <dd class="text-gray-700" x-text="data.attribute_summary || '—'"></dd>
+                        </div>
+                        <div class="flex justify-between gap-4"><dt class="text-gray-500">{{ __('admin.products.images') ?? 'Images' }}</dt><dd class="text-gray-800" x-text="data.images_count"></dd></div>
+                        <div class="flex justify-between gap-4"><dt class="text-gray-500">{{ __('admin.products.listings') ?? 'Listings' }}</dt><dd class="text-gray-800" x-text="`${data.listing_count} (${data.vendor_listing_count} vendor / ${data.admin_listing_count} admin)`"></dd></div>
+                        <div class="pt-2 border-t border-gray-100">
+                            <dt class="text-gray-500 mb-1">{{ __('admin.products.customer_url_column') ?? 'Customer URL' }}</dt>
+                            <dd class="flex items-center gap-1.5" x-show="data.customer_url">
+                                <a :href="data.customer_url" target="_blank" class="font-mono text-xs text-primary-700 hover:underline truncate max-w-[14rem]" x-text="data.customer_url"></a>
+                                <button type="button" class="copy-variant-url p-1 text-gray-400 hover:text-primary-600" :data-url="data.customer_url" title="{{ __('admin.products.copy_url') ?? 'Copy URL' }}">
+                                    <x-heroicon name="clipboard-document-list" class="w-4 h-4" />
+                                </button>
+                            </dd>
+                            <dd x-show="!data.customer_url" class="text-xs text-amber-700 italic">
+                                {{ __('admin.products.pending_listing_hint') ?? 'No active listing yet — create a vendor listing to make this variant shoppable.' }}
+                            </dd>
+                        </div>
+                    </dl>
                 </div>
             </div>
 
@@ -738,6 +838,8 @@
             generateVariantsFailed: @json(__('admin.products.generate_variants_failed')),
             skuAutoGeneratePlaceholder: @json(__('admin.products.sku_auto_generate_placeholder')),
             removeLabel: @json(__('admin.products.remove')),
+            regenerateSlugSuccess: @json(__('admin.products.regenerate_slug_success')),
+            regenerateSlugFailed: @json(__('admin.products.regenerate_slug_failed')),
             productTitlePlaceholder: @json(__('admin.products.product_title_placeholder')),
             productSlugPlaceholder: @json(__('admin.products.product_slug_placeholder')),
             seoSearchPreviewPlaceholder: @json(__('admin.product_form.seo_placeholder.search_preview_placeholder')),
@@ -750,6 +852,65 @@
             validationError: @json(__('admin.products.validation_error')),
             saveFailedRetry: @json(__('admin.products.save_failed_retry')),
             saveChangesBtn: @json(__('admin.product_form.save_changes')),
+            urlCopied: @json(__('admin.products.url_copied') ?? 'Copied to clipboard'),
+            urlCopyFailed: @json(__('admin.products.url_copy_failed') ?? 'Could not copy to clipboard'),
+            pendingUrlHint: @json(__('admin.products.pending_url_hint') ?? 'Save the product to generate a URL'),
+        });
+
+        $(document).on('click', '.copy-variant-url', function () {
+            const T = window.TRANSLATIONS || {};
+            const value = $(this).attr('data-url');
+            if (!value) return;
+
+            const done = () => window.Toast && window.Toast.success(T.urlCopied || 'Copied to clipboard');
+            const fail = () => window.Toast && window.Toast.error(T.urlCopyFailed || 'Could not copy to clipboard');
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(value).then(done).catch(fail);
+            } else {
+                const tmp = document.createElement('textarea');
+                tmp.value = value;
+                tmp.style.position = 'fixed';
+                tmp.style.opacity = '0';
+                document.body.appendChild(tmp);
+                tmp.select();
+                try {
+                    document.execCommand('copy');
+                    done();
+                } catch (e) {
+                    fail();
+                } finally {
+                    document.body.removeChild(tmp);
+                }
+            }
+        });
+
+        function variantDetailPanel() {
+            return {
+                open: false,
+                loading: false,
+                data: { variant_id: '', slug: '', sku: '', attributes: [], attribute_summary: '', customer_url: null, images_count: 0, listing_count: 0, vendor_listing_count: 0, admin_listing_count: 0 },
+                onOpen(detail) {
+                    this.open = true;
+                    this.loading = true;
+                    fetch(detail.url, { headers: { 'Accept': 'application/json' } })
+                        .then((res) => res.json())
+                        .then((res) => {
+                            this.data = res.data;
+                        })
+                        .finally(() => {
+                            this.loading = false;
+                        });
+                },
+            };
+        }
+
+        $(document).on('click', '.view-variant-detail', function () {
+            const variantId = $(this).data('variant-id');
+            const basePath = window.location.pathname.replace(/\/(create|[^/]+\/edit).*/, '');
+            window.dispatchEvent(new CustomEvent('open-variant-detail', {
+                detail: { url: basePath + '/variants/' + variantId },
+            }));
         });
     </script>
 

@@ -57,7 +57,7 @@ function initWarrantyClaimsTable() {
         processing: true,
         serverSide: true,
         language: dtLanguage,
-        order: [[5, 'desc']],
+        order: [[6, 'desc']],
         ajax: {
             url: tableEl.dataset.url,
             type: 'POST',
@@ -77,6 +77,7 @@ function initWarrantyClaimsTable() {
             { data: 'customer', orderable: false },
             { data: 'product', orderable: false },
             { data: 'vendor', orderable: false },
+            { data: 'listing_type', orderable: false },
             { data: 'status' },
             { data: 'created_at' },
             { data: 'actions', orderable: false },

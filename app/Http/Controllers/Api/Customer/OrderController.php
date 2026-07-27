@@ -32,6 +32,7 @@ class OrderController extends Controller
 
         $query = Order::where('customer_id', $customer->id)
             ->withCount('subOrders')
+            ->with('subOrders.shippingMethod')
             ->orderByDesc('placed_at');
 
         if ($request->filled('status')) {
@@ -66,8 +67,10 @@ class OrderController extends Controller
 
         $order->load([
             'subOrders.items.warrantyPurchase',
+            'subOrders.items.shippingMethod',
             'subOrders.vendor:id,store_name',
             'subOrders.carrier',
+            'subOrders.shippingMethod',
             'statusHistories',
         ]);
 
@@ -85,7 +88,7 @@ class OrderController extends Controller
 
         $subOrder = SubOrder::where('order_id', $order->id)
             ->where('sub_order_number', $subOrderNumber)
-            ->with(['vendor:id,store_name', 'carrier', 'items', 'shipments.trackingEvents'])
+            ->with(['vendor:id,store_name', 'carrier', 'shippingMethod', 'items.shippingMethod', 'shipments.trackingEvents'])
             ->first();
 
         if (! $subOrder) {

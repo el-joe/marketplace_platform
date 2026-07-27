@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Customer\MiscController as ApiMiscController;
 use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Api\Customer\OrderController as ApiOrderController;
 use App\Http\Controllers\Api\Customer\OtpController as ApiOtpController;
+use App\Http\Controllers\Api\Customer\ProductDetailController;
 use App\Http\Controllers\Api\Customer\QrCodeController;
 use App\Http\Controllers\Api\Customer\ReturnRequestController as ApiReturnRequestController;
 use App\Http\Controllers\Api\Customer\ReviewController as ApiReviewController;
@@ -73,9 +74,6 @@ Route::prefix('v1/{country}')
         // ── Product catalog (public) ──────────────────────────────────────────
         Route::prefix('products')->name('customer.products.')->group(function (): void {
             Route::get('/', [ProductController::class, 'index'])->name('index');
-
-            // Legacy: product detail moved to /l/{identifier}. Keep old URLs working.
-            Route::get('{identifier}', [ListingDetailController::class, 'show'])->name('show.redirect');
         });
 
         // ── Listing detail (public) ───────────────────────────────────────────
@@ -443,12 +441,32 @@ Route::prefix('v1/{country}')
             ->name('customer.products.reviews');
     });
 
+// ── Product detail by variant + listing UUID (public, country-agnostic path —
+// country resolved from the authenticated customer or the X-Country-Id header) ──
+Route::get('v1/products/{variantId}/{listingId}', [ProductDetailController::class, 'show'])
+    ->whereUuid(['variantId', 'listingId'])
+    ->name('customer.products.show');
+
+// ── Backward-compat: old slug-only product URLs (must come AFTER the UUID
+// route above so they never intercept valid /products/{variantId}/{listingId} calls) ──
+Route::get('v1/products/{productSlug}/{variantSlug}', [ProductDetailController::class, 'redirectBySlugAndVariant'])
+    ->name('customer.products.redirect-by-slug-variant');
+
+Route::get('v1/products/{productSlug}', [ProductDetailController::class, 'redirectBySlug'])
+    ->name('customer.products.redirect-by-slug');
+
 // ── Nawy Now curated feed (public, country-agnostic path — country_id is a query param) ──
 Route::prefix('v1/nawy')->name('customer.nawy.')->group(function (): void {
     Route::get('feed', [NawyController::class, 'feed'])->name('feed');
     Route::get('categories', [NawyController::class, 'categories'])->name('categories');
     Route::get('{id}', [NawyController::class, 'show'])->name('show');
 });
+
+Route::get('v1/nawy-categories', [NawyController::class, 'nawyCategories'])
+    ->name('customer.nawy-categories.index');
+
+Route::get('v1/nawy-home', [NawyController::class, 'home'])
+    ->name('customer.nawy-home.index');
 
 // ── Dual-mode categories (marketplace / nawy_now via X-Listing-Type header) ──
 Route::prefix('v1')->middleware('auth:customer')->name('customer.dual-categories.')->group(function (): void {

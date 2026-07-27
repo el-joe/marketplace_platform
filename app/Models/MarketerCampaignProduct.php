@@ -12,6 +12,7 @@ class MarketerCampaignProduct extends \Illuminate\Database\Eloquent\Model
     protected $fillable = [
         'campaign_id',
         'vendor_listing_id',
+        'admin_product_listing_id',
         'position',
         'commission_override',
     ];
@@ -32,5 +33,17 @@ class MarketerCampaignProduct extends \Illuminate\Database\Eloquent\Model
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class);
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
+    }
+
+    public function getListingAttribute(): VendorListing|AdminProductListing|null
+    {
+        return $this->admin_product_listing_id
+            ? $this->adminProductListing
+            : $this->vendorListing;
     }
 }

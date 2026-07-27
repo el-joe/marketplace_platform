@@ -65,8 +65,13 @@ function initAsyncSelect2($scope) {
                 dataType: 'json',
                 delay: config.delay ?? 300,
                 data: function (params) {
-                    const query = {};
-                    query[config.param || 'q'] = params.term;
+                    // Re-read data-config on every request (not just at init) so callers can
+                    // update extra static filter params (e.g. vendor_id) after initialization.
+                    let liveConfig = config;
+                    try { liveConfig = JSON.parse($el.attr('data-config') || '{}'); } catch (_) { }
+                    const { url, param, minLength, delay, placeholder, ...extra } = liveConfig;
+                    const query = { ...extra };
+                    query[param || 'q'] = params.term;
                     query.page = params.page || 1;
                     return query;
                 },

@@ -13,9 +13,9 @@ use App\Http\Resources\Customer\CartResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\CountryShippingSetting;
 use App\Models\Coupon;
 use App\Services\BannerService;
-use App\Services\CartItemEnrichmentService;
 use App\Services\Customer\CartService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\SavingsBenefitsService;
@@ -29,14 +29,14 @@ class CartController extends Controller
         private readonly CartService $cartService,
         private readonly ListingIdentifierService $listingIdentifierService,
         private readonly BannerService $bannerService,
-        private readonly CartItemEnrichmentService $cartItemEnrichmentService,
         private readonly SavingsBenefitsService $savingsBenefitsService,
-    ) {}
+    ) {
+    }
 
     private function resolveCart(Request $request): Cart
     {
         $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
+        $country = $request->attributes->get('country');
 
         if ($customer) {
             return $this->cartService->getOrCreateCart(
@@ -74,19 +74,10 @@ class CartController extends Controller
     {
         $cart = $this->resolveCart($request);
 
-        $customer = auth('customer')->user();
         $country = $request->attributes->get('country');
 
-        $cartItems = CartItem::where('cart_id', $cart->id)->get();
-
-        $shippingGroups = $cartItems->isEmpty()
-            ? []
-            : $this->cartItemEnrichmentService->groupByShippingMethod(
-                $this->cartItemEnrichmentService->enrich($cartItems, $customer, $country)
-            );
-
         return $this->cartResponse($cart, [
-            'shipping_groups' => $shippingGroups,
+            'shipping_groups' => $this->buildShippingGroups($cart, $country?->id),
             'cart_banner' => $this->resolveCartBanner($request),
             'savings_and_benefits' => $this->savingsBenefitsService->get(
                 (int) $cart->estimated_total,
@@ -94,6 +85,96 @@ class CartController extends Controller
                 $cart->currency,
             ),
         ]);
+    }
+
+    /**
+     * Groups cart items by their selected_shipping_method_id so the app can
+     * render a Noon-style cart with items grouped under their delivery
+     * method. Items with no selection yet fall into a shared "unassigned"
+     * group (null method).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildShippingGroups(Cart $cart, ?string $countryId): array
+    {
+        $items = CartItem::where('cart_id', $cart->id)
+            ->with([
+                'vendorListing.vendor',
+                'adminProductListing',
+                'selectedShippingMethod',
+                'vendorListing.productVariant.product',
+                'vendorListing.productVariant.images',
+                'adminProductListing.productVariant.product',
+                'adminProductListing.productVariant.images',
+            ])
+            ->get();
+
+        if ($items->isEmpty()) {
+            return [];
+        }
+
+        $groups = $items->groupBy('selected_shipping_method_id');
+
+        return $groups->map(function ($groupItems) use ($countryId) {
+            $method = $groupItems->first()->selectedShippingMethod;
+
+            $groupSubtotal = $groupItems->sum(fn ($item) => $item->unit_price * $item->quantity);
+
+            $threshold = ($method && $countryId)
+                ? CountryShippingSetting::where('country_id', $countryId)
+                    ->where('shipping_method_id', $method->id)
+                    ->value('free_shipping_threshold')
+                : null;
+
+            $isFreeShipping = $threshold !== null && $groupSubtotal >= $threshold;
+
+            return [
+                'shipping_method' => $method ? [
+                    'id' => $method->id,
+                    'name' => $method->name,
+                    'code' => $method->code,
+                    'badge_label_en' => $method->badge_label_en,
+                    'badge_label_ar' => $method->badge_label_ar,
+                    'badge_color_hex' => $method->badge_color_hex,
+                    'delivery_label_en' => $method->delivery_label_en,
+                    'delivery_label_ar' => $method->delivery_label_ar,
+                    'is_express_type' => (bool) $method->is_express_type,
+                ] : null,
+                'is_free_shipping' => $isFreeShipping,
+                'group_subtotal' => $groupSubtotal,
+                'items_count' => $groupItems->count(),
+                'items' => $groupItems->map(function ($item) use ($method) {
+                    $isVendor = (bool) $item->vendor_listing_id;
+                    $listing = $isVendor ? $item->vendorListing : $item->adminProductListing;
+                    $variant = $listing?->productVariant;
+                    $product = $variant?->product;
+                    $primaryImage = $variant?->images?->firstWhere('is_primary', true) ?? $variant?->images?->first();
+
+                    return [
+                        'id' => $item->id,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'line_total' => $item->unit_price * $item->quantity,
+                        'product_url' => "/products/{$variant?->id}/" . ($isVendor ? $item->vendor_listing_id : $item->admin_product_listing_id),
+                        'product_name_en' => $product?->name_en,
+                        'product_name_ar' => $product?->name_ar,
+                        'variant_name' => $variant?->variant_name,
+                        'primary_image' => $primaryImage?->path,
+                        'listing_id' => $isVendor ? $item->vendor_listing_id : $item->admin_product_listing_id,
+                        'listing_type' => $isVendor ? 'vendor' : 'admin',
+                        'vendor' => $isVendor ? [
+                            'id' => $item->vendorListing->vendor->id,
+                            'store_name' => $item->vendorListing->vendor->store_name,
+                        ] : null,
+                        'selected_shipping_method' => [
+                            'id' => $method?->id,
+                            'name' => $method?->name,
+                            'code' => $method?->code,
+                        ],
+                    ];
+                })->values(),
+            ];
+        })->values()->all();
     }
 
     private function resolveCartBanner(Request $request): ?BannerResource
@@ -109,9 +190,16 @@ class CartController extends Controller
     public function addItem(AddCartItemRequest $request): JsonResponse
     {
         $cart = $this->resolveCart($request);
+        $countryId = $request->attributes->get('country')->id;
+
+        $isAdmin = $request->input('listing_type') === 'admin';
 
         try {
-            $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity, $request->shipping_method_id);
+            if ($isAdmin) {
+                $item = $this->cartService->addAdminItem($cart, $request->admin_product_listing_id, $request->quantity, $request->shipping_method_id, $countryId);
+            } else {
+                $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity, $request->shipping_method_id, $countryId);
+            }
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
@@ -121,20 +209,23 @@ class CartController extends Controller
             'vendorListing.productVariant.product.images',
             'vendorListing.primaryShippingMethod',
             'vendorListing.warehouseInventories',
+            'adminProductListing.productVariant.product.images',
+            'selectedShippingMethod',
         ]);
 
         return $this->cartResponse($cart, [
-            'item'        => new CartItemResource($item),
-            'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
+            'item' => new CartItemResource($item),
+            'listing_ref' => $isAdmin ? null : $this->listingIdentifierService->buildListingRef($item->vendorListing),
         ], 'Item added to cart', 201);
     }
 
     public function addItems(AddCartItemsRequest $request): JsonResponse
     {
         $cart = $this->resolveCart($request);
+        $countryId = $request->attributes->get('country')->id;
 
         try {
-            $this->cartService->addItems($cart, $request->items);
+            $this->cartService->addItems($cart, $request->items, $countryId);
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
@@ -145,9 +236,10 @@ class CartController extends Controller
     public function updateItem(UpdateCartItemRequest $request, string $id): JsonResponse
     {
         $cart = $this->resolveCart($request);
+        $countryId = $request->attributes->get('country')->id;
 
         try {
-            $item = $this->cartService->updateItem($cart, $id, $request->quantity, $request->shipping_method_id);
+            $item = $this->cartService->updateItem($cart, $id, $request->quantity, $request->shipping_method_id, $request->has('shipping_method_id'), $countryId);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return ApiResponse::error('Cart item not found.', [], 404);
         } catch (\DomainException $e) {
@@ -159,11 +251,12 @@ class CartController extends Controller
             'vendorListing.productVariant.product.images',
             'vendorListing.primaryShippingMethod',
             'vendorListing.warehouseInventories',
+            'selectedShippingMethod',
         ]);
 
         return ApiResponse::success([
-            'cart'        => new CartResource($cart),
-            'item'        => new CartItemResource($item),
+            'cart' => new CartResource($cart),
+            'item' => new CartItemResource($item),
             'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
         ], 'Cart item updated');
     }
@@ -275,8 +368,8 @@ class CartController extends Controller
     public function mergeCart(Request $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $token    = $request->input('guest_cart_token');
+        $country = $request->attributes->get('country');
+        $token = $request->input('guest_cart_token');
 
         if (!$token) {
             return ApiResponse::error('guest_cart_token is required.', [], 422);

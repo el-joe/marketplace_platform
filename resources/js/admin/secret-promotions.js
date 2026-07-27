@@ -74,6 +74,7 @@ function initTable() {
         },
         columns: [
             { data: 'product' },
+            { data: 'listing_type', orderable: false },
             { data: 'vendor' },
             { data: 'marketer',      orderable: false },
             { data: 'listing_price' },
@@ -89,7 +90,13 @@ function initTable() {
         ],
         order: [[0, 'asc']],
         columnDefs: [
-            { targets: [4, 5, 8], className: 'bg-amber-50 text-amber-800' },
+            { targets: [5, 6, 9], className: 'bg-amber-50 text-amber-800' },
+            {
+                targets: 1,
+                render: (data) => data === 'admin'
+                    ? '<span class="badge bg-amber-100 text-amber-800 border border-amber-200">Admin</span>'
+                    : '<span class="badge bg-blue-100 text-blue-800 border border-blue-200">Vendor</span>',
+            },
         ],
     });
 }
@@ -205,6 +212,48 @@ function bindCalculatorInputs() {
     });
 }
 
+/* ─── Listing type toggle (Vendor / Admin) ──────────────────────────────── */
+function setListingType(type) {
+    document.getElementById('listing-type-input').value = type;
+
+    document.getElementById('listing-type-vendor-btn')?.classList.toggle('bg-blue-600', type === 'vendor');
+    document.getElementById('listing-type-vendor-btn')?.classList.toggle('text-white', type === 'vendor');
+    document.getElementById('listing-type-vendor-btn')?.classList.toggle('bg-white', type !== 'vendor');
+    document.getElementById('listing-type-vendor-btn')?.classList.toggle('text-gray-600', type !== 'vendor');
+
+    document.getElementById('listing-type-admin-btn')?.classList.toggle('bg-blue-600', type === 'admin');
+    document.getElementById('listing-type-admin-btn')?.classList.toggle('text-white', type === 'admin');
+    document.getElementById('listing-type-admin-btn')?.classList.toggle('bg-white', type !== 'admin');
+    document.getElementById('listing-type-admin-btn')?.classList.toggle('text-gray-600', type !== 'admin');
+
+    document.getElementById('vendor-listing-fields')?.classList.toggle('hidden', type !== 'vendor');
+    document.getElementById('admin-listing-fields')?.classList.toggle('hidden', type !== 'admin');
+
+    resetListingPreview();
+}
+
+function initListingTypeToggle() {
+    document.getElementById('listing-type-vendor-btn')?.addEventListener('click', () => setListingType('vendor'));
+    document.getElementById('listing-type-admin-btn')?.addEventListener('click', () => setListingType('admin'));
+
+    $(document).on('select2:select', '#admin-listing-select', function (e) {
+        const item = e.params.data;
+        listingPriceCents = parseInt(item.price) || 0;
+
+        $('#listing-preview').css('display', 'flex');
+        $('#listing-preview-name').text(item.text || 'Unknown');
+        $('#listing-preview-price').text(fmtMoney(listingPriceCents / 100));
+        $('#listing-preview-img').attr('src', item.image || '').toggle(!!item.image);
+
+        const currencyBadge = document.getElementById('product-value-currency');
+        if (currencyBadge) currencyBadge.textContent = item.currency || '—';
+
+        recalculateSplit();
+    });
+
+    $(document).on('select2:clear', '#admin-listing-select', resetListingPreview);
+}
+
 /* ─── Vendor → Listings loader ───────────────────────────────────────────── */
 function loadListingsForVendor(vendorId, preselect = null) {
     const T = window.TRANSLATIONS || {};
@@ -273,6 +322,8 @@ function resetCreateForm() {
     document.getElementById('promo-id').value      = '';
     document.getElementById('vendor-select').value = '';
     document.getElementById('marketer-select').value = '';
+    $('#admin-listing-select').val(null).trigger('change');
+    setListingType('vendor');
     document.getElementById('valid-until-input').value = '';
     document.getElementById('product-value-input').value = '';
     document.getElementById('total-pct-input').value = '';
@@ -327,9 +378,13 @@ function initCreateModal() {
             return;
         }
 
+        const listingType = document.getElementById('listing-type-input').value;
+
         const payload = {
-            vendor_id:          document.getElementById('vendor-select').value,
-            vendor_listing_id:  document.getElementById('listing-select').value,
+            listing_type:       listingType,
+            vendor_id:          listingType === 'vendor' ? document.getElementById('vendor-select').value : null,
+            vendor_listing_id:  listingType === 'vendor' ? document.getElementById('listing-select').value : null,
+            admin_product_listing_id: listingType === 'admin' ? document.getElementById('admin-listing-select').value : null,
             marketer_id:        document.getElementById('marketer-select').value || null,
             product_value:      parseFloat(document.getElementById('product-value-input').value) || 0,
             total_commission_pct: totalPct,
@@ -372,10 +427,22 @@ function initRowActions() {
         document.getElementById('promo-modal-title').textContent = window.TRANSLATIONS?.editSecretPromotion || 'Edit Secret Promotion';
         document.getElementById('promo-save-btn').textContent = window.TRANSLATIONS?.updatePromotion || 'Update promotion';
 
-        // Pre-fill vendor + trigger listing load
-        const $vendorSel = $('#vendor-select');
-        $vendorSel.val(data.vendorId ?? data.vendor_id);
-        loadListingsForVendor(data.vendorId ?? data.vendor_id, data.listingId ?? data.listing_id);
+        const isAdminListing = (data.listingType ?? data.listing_type) === 'admin';
+        setListingType(isAdminListing ? 'admin' : 'vendor');
+
+        if (isAdminListing) {
+            const adminListingId = data.adminProductListingId ?? data.admin_product_listing_id;
+            const $adminSel = $('#admin-listing-select');
+            if (adminListingId && data.listingName) {
+                const opt = new Option(data.listingName, adminListingId, true, true);
+                $adminSel.append(opt).trigger('change');
+            }
+        } else {
+            // Pre-fill vendor + trigger listing load
+            const $vendorSel = $('#vendor-select');
+            $vendorSel.val(data.vendorId ?? data.vendor_id);
+            loadListingsForVendor(data.vendorId ?? data.vendor_id, data.listingId ?? data.listing_id);
+        }
 
         $('#marketer-select').val(data.marketerId ?? data.marketer_id ?? '');
         document.getElementById('valid-until-input').value    = data.validUntil ?? data.valid_until ?? '';
@@ -455,6 +522,7 @@ $(function () {
     initTable();
     initFilters();
     bindCalculatorInputs();
+    initListingTypeToggle();
     initCreateModal();
     initRowActions();
 });

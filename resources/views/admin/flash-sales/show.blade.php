@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @push('styles')
-    @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
+    @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/components/select2.js'])
 @endpush
 
 @push('scripts')
@@ -46,6 +46,10 @@
             eligibleCount:     '{{ route('admin.flash-sales.eligible-vendor-count', $flashSale->id) }}',
             submissionStats:   '{{ route('admin.flash-sales.submission-stats', $flashSale->id) }}',
             submissionsDt:     '{{ route('admin.flash-sales.submissions.datatable', $flashSale->id) }}',
+            submissionsStore:  '{{ route('admin.flash-sales.submissions.store', $flashSale->id) }}',
+            searchVendorListings: '{{ route('admin.flash-sales.search.vendor-listings') }}',
+            searchVendors:        '{{ route('admin.flash-sales.search.vendors') }}',
+            searchAdminListings:  '{{ route('admin.flash-sales.search.admin-listings') }}',
             invitationsDt:     '{{ route('admin.flash-sales.invitations.datatable', $flashSale->id) }}',
             resendInvitation:  '{{ url('/flash-sales/' . $flashSale->id . '/invitations') }}',
             bulkReview:        '{{ route('admin.flash-sales.submissions.bulk-review', $flashSale->id) }}',
@@ -118,6 +122,14 @@
             ended: @json(__('admin.flash_sales.ended')),
             analyticsUnavailable: @json(__('admin.flash_sales.analytics_unavailable')),
             noDailyData: @json(__('admin.flash_sales.no_daily_data')),
+            addProducts: @json(__('admin.flash_sales.add_products')),
+            selectVendorFirst: @json(__('admin.flash_sales.select_vendor_first')),
+            addProduct: @json(__('admin.flash_sales.add_product')),
+            adding: @json(__('admin.flash_sales.adding')),
+            submissionCreatedMessage: @json(__('admin.flash_sales.submission_created_message')),
+            submissionCreateFailed: @json(__('admin.flash_sales.submission_create_failed')),
+            typeAdmin: @json(__('admin.flash_sales.type_admin')),
+            typeVendorPrefix: @json(__('admin.flash_sales.type_vendor_prefix')),
         });
     </script>
 
@@ -211,6 +223,11 @@
                             @if(auth('admin')->user()->can('flash_sales.review_submissions'))
                                 <button type="button" id="btn-bulk-reject" class="btn btn-danger btn-sm hidden">
                                     {{ __('admin.flash_sales.bulk_reject') }}
+                                </button>
+                            @endif
+                            @if(auth('admin')->user()->can('flash_sales.edit'))
+                                <button type="button" data-modal-open="add-product-modal" class="btn btn-primary btn-sm">
+                                    {{ __('admin.flash_sales.add_products') }}
                                 </button>
                             @endif
                         </div>
@@ -740,6 +757,85 @@
         <x-slot:footer>
             <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
             <button type="button" id="btn-confirm-manual-invite" class="btn btn-primary">{{ __('admin.flash_sales.send_invitations') }}</button>
+        </x-slot:footer>
+    </x-modal>
+
+    {{-- Add Product (manual submission) modal --}}
+    <x-modal id="add-product-modal" title="{{ __('admin.flash_sales.add_products') }}" size="md">
+        <div class="space-y-4">
+            <div>
+                <label class="form-label">{{ __('admin.flash_sales.submission_type') }}</label>
+                <div class="flex gap-4">
+                    <label class="inline-flex items-center gap-1.5 text-sm">
+                        <input type="radio" name="submission-type" value="vendor" id="submission-type-vendor" checked>
+                        {{ __('admin.flash_sales.submission_type_vendor') }}
+                    </label>
+                    <label class="inline-flex items-center gap-1.5 text-sm">
+                        <input type="radio" name="submission-type" value="admin" id="submission-type-admin">
+                        {{ __('admin.flash_sales.submission_type_admin') }}
+                    </label>
+                </div>
+            </div>
+
+            {{-- Vendor listing fields --}}
+            <div id="vendor-listing-fields" class="space-y-3">
+                <div>
+                    <label class="form-label">{{ __('admin.flash_sales.vendor_label') }}</label>
+                    <select id="add-product-vendor" data-async-select
+                        data-config='{{ json_encode(["url" => route("admin.flash-sales.search.vendors"), "param" => "q", "minLength" => 0, "delay" => 300]) }}'
+                        class="form-select w-full">
+                        <option value=""></option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">{{ __('admin.flash_sales.vendor_listing_label') }}</label>
+                    <select id="add-product-vendor-listing" data-async-select disabled
+                        data-config='{{ json_encode(["url" => route("admin.flash-sales.search.vendor-listings"), "param" => "q", "minLength" => 0, "delay" => 300]) }}'
+                        class="form-select w-full">
+                        <option value=""></option>
+                    </select>
+                </div>
+            </div>
+
+            {{-- Admin listing fields --}}
+            <div id="admin-listing-fields" class="space-y-3 hidden">
+                <div>
+                    <label class="form-label">{{ __('admin.flash_sales.admin_listing_label') }}</label>
+                    <select id="add-product-admin-listing" data-async-select
+                        data-config='{{ json_encode(["url" => route("admin.flash-sales.search.admin-listings"), "param" => "q", "minLength" => 0, "delay" => 300]) }}'
+                        class="form-select w-full">
+                        <option value=""></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="form-label">{{ __('admin.flash_sales.original_price_label') }}</label>
+                    <input type="number" id="add-product-original-price" class="form-input w-full" min="0">
+                </div>
+                <div>
+                    <label class="form-label">{{ __('admin.flash_sales.flash_price_label') }}</label>
+                    <input type="number" id="add-product-flash-price" class="form-input w-full" min="0">
+                </div>
+                <div>
+                    <label class="form-label">{{ __('admin.flash_sales.max_quantity_total_label') }}</label>
+                    <input type="number" id="add-product-max-qty" class="form-input w-full" min="1">
+                </div>
+                <div>
+                    <label class="form-label">{{ __('admin.flash_sales.max_quantity_per_customer_label') }}</label>
+                    <input type="number" id="add-product-max-qty-customer" class="form-input w-full" min="1">
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label">{{ __('admin.flash_sales.admin_notes_label') }}</label>
+                <textarea id="add-product-admin-notes" rows="2" class="form-textarea w-full"></textarea>
+            </div>
+        </div>
+        <x-slot:footer>
+            <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
+            <button type="button" id="btn-confirm-add-product" class="btn btn-primary">{{ __('admin.flash_sales.add_product') }}</button>
         </x-slot:footer>
     </x-modal>
 

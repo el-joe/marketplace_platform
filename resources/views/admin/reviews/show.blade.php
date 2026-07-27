@@ -83,6 +83,15 @@
                             <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.submitted') }}</p>
                             <span>{{ $review->created_at->format('d M Y H:i') }}</span>
                         </div>
+                        @if($review->adminProductListing)
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.listing') }}</p>
+                                <a href="{{ route('admin.admin-product-listings.show', $review->adminProductListing->id) }}"
+                                    class="text-primary-600 hover:underline" target="_blank">
+                                    {{ __('admin.reviews_section.view_admin_listing') }}
+                                </a>
+                            </div>
+                        @endif
                         <div>
                             <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.moderated_by') }}</p>
                             <span>{{ $review->moderatedByAdmin?->name ?? '—' }}</span>

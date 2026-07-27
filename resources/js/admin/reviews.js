@@ -52,6 +52,7 @@ function initIndexPage() {
             data(d) {
                 d.status = document.getElementById('filter-status')?.value ?? '';
                 d.country_id = document.getElementById('filter-country')?.value ?? '';
+                d.listing_type = document.getElementById('filter-listing-type')?.value ?? '';
                 d.date_from = document.getElementById('filter-date-from')?.value ?? '';
                 d.date_to = document.getElementById('filter-date-to')?.value ?? '';
                 d.verified_only = document.getElementById('filter-verified')?.checked ? 1 : 0;
@@ -78,7 +79,7 @@ function initIndexPage() {
     });
 
     // ── Filter wiring ──────────────────────────────────────────────────────────
-    ['filter-status', 'filter-country', 'filter-date-from', 'filter-date-to', 'filter-verified', 'filter-ai-flagged'].forEach(id => {
+    ['filter-status', 'filter-country', 'filter-listing-type', 'filter-date-from', 'filter-date-to', 'filter-verified', 'filter-ai-flagged'].forEach(id => {
         document.getElementById(id)?.addEventListener('change', () => dt.ajax.reload());
     });
 
@@ -89,7 +90,7 @@ function initIndexPage() {
     });
 
     document.getElementById('clear-filters')?.addEventListener('click', () => {
-        ['filter-status', 'filter-country', 'filter-date-from', 'filter-date-to'].forEach(id => {
+        ['filter-status', 'filter-country', 'filter-listing-type', 'filter-date-from', 'filter-date-to'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });

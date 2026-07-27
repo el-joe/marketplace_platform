@@ -38,6 +38,7 @@
                     @foreach([
                         ['id' => 'general',    'label' => __('admin.general'),    'icon' => 'information-circle'],
                         ['id' => 'attributes', 'label' => __('admin.categories.attributes_tab'), 'icon' => 'tag'],
+                        ['id' => 'shipping',   'label' => __('admin.categories.shipping_methods_tab'), 'icon' => 'truck'],
                         ['id' => 'seo',        'label' => __('admin.categories.seo_tab'),        'icon' => 'magnifying-glass'],
                     ] as $tab)
                     <button
@@ -223,88 +224,6 @@
                     })();
                 </script>
 
-                {{-- Delivery Options (edit mode only — requires a category ID) --}}
-                @if($isEdit)
-                <div class="border border-gray-200 rounded-xl overflow-hidden mt-1"
-                    x-data="categoryShippingMethods('{{ route('admin.categories.shipping-methods', $category->id) }}', '{{ route('admin.categories.shipping-methods.update', $category->id) }}')">
-                    <button type="button" @click="toggle"
-                        class="w-full flex items-center justify-between p-4 bg-gray-50 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
-                        <span>🚚 {{ __('admin.categories.delivery_options') }}</span>
-                        <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}"
-                            fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
-                        </svg>
-                    </button>
-                    <div x-show="open" x-cloak class="p-4 space-y-3">
-                        <p class="text-xs text-gray-500 mb-3">
-                            {{ __('admin.categories.delivery_options_hint') }}
-                            <strong>{{ __('admin.categories.default_delivery') }}</strong> {{ __('admin.categories.delivery_options_hint_2') }}
-                        </p>
-                        <div id="shipping-methods-matrix">
-                            <template x-if="loading">
-                                <div class="text-center text-sm text-gray-400 py-4">{{ __('common.loading') }}</div>
-                            </template>
-                            <template x-if="!loading && methods.length === 0">
-                                <div class="text-center text-sm text-gray-400 py-4">{{ __('admin.categories.no_shipping_methods_configured') }}</div>
-                            </template>
-                            <template x-if="!loading && methods.length > 0">
-                                <div class="divide-y divide-gray-100">
-                                    <template x-for="m in methods" :key="m.id">
-                                        <div class="grid gap-3 items-center py-2.5"
-                                            style="grid-template-columns: auto 1fr auto auto auto">
-                                            {{-- Enable toggle --}}
-                                            <input type="checkbox" class="rounded border-gray-300 text-primary-600 cursor-pointer"
-                                                :checked="m.enabled"
-                                                @change="m.enabled = $event.target.checked">
-                                            {{-- Badge + name --}}
-                                            <div class="flex items-center gap-2 min-w-0">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap"
-                                                    :style="'background:' + m.badge_color_hex + '; color:' + m.badge_text_color_hex"
-                                                    x-text="m.badge_label_en || m.name"></span>
-                                                <span class="text-sm font-medium text-gray-700 truncate" x-text="m.name"></span>
-                                                <span class="text-xs text-gray-400 whitespace-nowrap" x-text="m.delivery_label_en"></span>
-                                            </div>
-                                            {{-- Default radio --}}
-                                            <label class="flex items-center gap-1 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
-                                                <input type="radio" name="sm_default_method"
-                                                    :value="m.id"
-                                                    x-model="defaultMethodId"
-                                                    class="text-primary-600">
-                                                {{ __('admin.categories.default_delivery') }}
-                                            </label>
-                                            {{-- FBN --}}
-                                            <label class="flex items-center gap-1 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
-                                                <input type="checkbox" class="rounded border-gray-300 text-primary-600"
-                                                    :checked="m.is_available_for_express_fbn"
-                                                    @change="m.is_available_for_express_fbn = $event.target.checked">
-                                                FBN
-                                            </label>
-                                            {{-- FBP --}}
-                                            <label class="flex items-center gap-1 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
-                                                <input type="checkbox" class="rounded border-gray-300 text-primary-600"
-                                                    :checked="m.is_available_for_merchant_fbp"
-                                                    @change="m.is_available_for_merchant_fbp = $event.target.checked">
-                                                FBP
-                                            </label>
-                                        </div>
-                                    </template>
-                                </div>
-                            </template>
-                        </div>
-                        <div class="flex items-center gap-3 mt-3">
-                            <button type="button" @click="save"
-                                :disabled="saving"
-                                class="btn btn-primary btn-sm"
-                                :class="{'opacity-60 cursor-not-allowed': saving}">
-                                <span x-text="saving ? window.TRANSLATIONS.savingEllipsis : window.TRANSLATIONS.saveDeliveryOptions"></span>
-                            </button>
-                            <span x-show="savedMsg" x-cloak class="text-xs text-green-600 font-medium">✓ <span x-text="window.TRANSLATIONS.saved"></span></span>
-                            <span x-show="errorMsg" x-cloak class="text-xs text-red-600 font-medium" x-text="errorMsg"></span>
-                        </div>
-                    </div>
-                </div>
-                @endif
-
                 {{-- Sort Order --}}
                 <x-form.input
                     name="sort_order"
@@ -386,6 +305,18 @@
                         </div>
                         @endforeach
                     </div>
+                @endif
+            </div>
+
+            {{-- TAB: Shipping Methods --}}
+            <div
+                x-show="activeTab === 'shipping'"
+                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-4"
+            >
+                @if(!$isEdit)
+                    <p class="text-sm text-gray-400 italic">{{ __('admin.categories.save_category_first_for_shipping') }}</p>
+                @else
+                    @include('admin.categories._shipping_methods_tab', ['category' => $category])
                 @endif
             </div>
 
@@ -487,77 +418,5 @@ Object.assign(window.TRANSLATIONS, {
     saveFailedRetry: @json(__('admin.products.save_failed_retry')),
     saveChangesBtn: @json(__('admin.categories.save_changes_btn')),
 });
-
-function categoryShippingMethods(getUrl, postUrl) {
-    return {
-        open: false,
-        loaded: false,
-        loading: false,
-        saving: false,
-        savedMsg: false,
-        errorMsg: '',
-        methods: [],
-        defaultMethodId: null,
-
-        toggle() {
-            this.open = !this.open;
-            if (this.open && !this.loaded) this.load();
-        },
-
-        async load() {
-            this.loading = true;
-            try {
-                const r = await fetch(getUrl, {
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await r.json();
-                this.methods = data.methods.map(m => ({...m}));
-                this.defaultMethodId = this.methods.find(m => m.is_default)?.id ?? null;
-                this.loaded = true;
-            } catch (e) {
-                this.errorMsg = window.TRANSLATIONS.failedLoadMethods;
-            } finally {
-                this.loading = false;
-            }
-        },
-
-        async save() {
-            this.saving = true;
-            this.savedMsg = false;
-            this.errorMsg = '';
-            try {
-                const r = await fetch(postUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    body: JSON.stringify({
-                        methods: this.methods.map(m => ({
-                            shipping_method_id: m.id,
-                            enabled: m.enabled,
-                            is_default: m.id === this.defaultMethodId,
-                            is_available_for_express_fbn: m.is_available_for_express_fbn,
-                            is_available_for_merchant_fbp: m.is_available_for_merchant_fbp,
-                        }))
-                    }),
-                });
-                const data = await r.json();
-                if (!r.ok) {
-                    this.errorMsg = data.message || window.TRANSLATIONS.saveFailed;
-                } else {
-                    this.savedMsg = true;
-                    setTimeout(() => { this.savedMsg = false; }, 3000);
-                }
-            } catch (e) {
-                this.errorMsg = window.TRANSLATIONS.networkError;
-            } finally {
-                this.saving = false;
-            }
-        },
-    };
-}
 </script>
 @endif

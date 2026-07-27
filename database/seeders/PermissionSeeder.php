@@ -25,6 +25,12 @@ class PermissionSeeder extends Seeder
             'products.publish',
             'products.cost_data.view',
             'products.cost_data.edit',
+            // Catalog – Admin Listings
+            'admin_listings.view',
+            'admin_listings.create',
+            'admin_listings.edit',
+            'admin_listings.delete',
+            'admin_listings.toggle_status',
             // Catalog – Categories
             'categories.view',
             'categories.create',

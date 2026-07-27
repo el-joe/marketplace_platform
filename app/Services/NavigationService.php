@@ -70,8 +70,8 @@ class NavigationService
                         'label' => __('admin.nav.nawy_listings'),
                         'route' => 'admin.admin-product-listings.index',
                         'icon' => 'sparkles',
-                        'permission' => 'products.view',
-                        'badge' => null,
+                        'permission' => 'admin_listings.view',
+                        'badge' => $this->cachedBadge('out_of_stock_admin_listings', fn() => $this->countOutOfStockAdminListings(), 60),
                     ],
                     [
                         'label' => __('admin.nav.categories'),
@@ -765,6 +765,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.shipping_settings'),
+                        'route' => 'admin.shipping-settings.index',
+                        'icon' => 'cog-6-tooth',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.document_types'),
                         'route' => 'admin.vendor-document-types.index',
                         'icon' => 'document-check',
@@ -946,6 +953,17 @@ class NavigationService
     {
         $count = Cache::remember("nav.badge.{$key}", $ttl ?? self::BADGE_CACHE_TTL, $resolver);
         return $count > 0 ? (int) $count : null;
+    }
+
+    protected function countOutOfStockAdminListings(): int
+    {
+        try {
+            return (int) \App\Models\AdminProductListing::query()
+                ->where('status', \App\Enums\AdminProductListingStatus::OutOfStock)
+                ->count();
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 
     protected function countActiveWarrantyPlans(): int

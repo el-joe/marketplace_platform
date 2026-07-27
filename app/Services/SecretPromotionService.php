@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\AdminProductListingStatus;
 use App\Enums\SecretPromotionStatus;
 use App\Enums\VendorListingStatus;
 use App\Models\Admin;
+use App\Models\AdminProductListing;
 use App\Models\Marketer;
 use App\Models\MarketerConversion;
 use App\Models\MarketerSecretPromotion;
@@ -18,14 +20,23 @@ class SecretPromotionService
 
     public function create(array $data, Admin $admin): MarketerSecretPromotion
     {
+        $isAdminListing = ($data['listing_type'] ?? 'vendor') === 'admin';
+
         $this->validateCommissionSplit($data);
-        $this->validateListing($data['vendor_listing_id'], $data['vendor_id'] ?? null);
-        $this->validateNoDuplicate($data['vendor_listing_id'], $data['marketer_id'] ?? null);
+
+        if ($isAdminListing) {
+            $this->validateAdminListing($data['admin_product_listing_id']);
+            $this->validateNoDuplicate(null, $data['marketer_id'] ?? null, null, $data['admin_product_listing_id']);
+        } else {
+            $this->validateListing($data['vendor_listing_id'], $data['vendor_id'] ?? null);
+            $this->validateNoDuplicate($data['vendor_listing_id'], $data['marketer_id'] ?? null);
+        }
 
         $minFloor = (float) setting('min_marketer_commission', 5.0);
         $promo = MarketerSecretPromotion::create([
-            'vendor_id' => $data['vendor_id'],
-            'vendor_listing_id' => $data['vendor_listing_id'],
+            'vendor_id' => $isAdminListing ? null : $data['vendor_id'],
+            'vendor_listing_id' => $isAdminListing ? null : $data['vendor_listing_id'],
+            'admin_product_listing_id' => $isAdminListing ? $data['admin_product_listing_id'] : null,
             'marketer_id' => $data['marketer_id'] ?: null,
             'product_value' => (int) round($data['product_value'] * 100),
             'total_commission_pct' => $data['total_commission_pct'],
@@ -41,8 +52,10 @@ class SecretPromotionService
 
         app(ActivityLoggerService::class)->log(
             description: 'Secret promotion created for '
-            . ($promo->vendor?->store_name ?? 'unknown vendor')
-            . ' — ' . ($promo->vendorListing?->productVariant?->product?->name_en ?? 'unknown listing'),
+            . ($promo->vendor?->store_name ?? 'admin listing')
+            . ' — ' . ($promo->vendorListing?->productVariant?->product?->name_en
+                ?? $promo->adminProductListing?->productVariant?->product?->name_en
+                ?? 'unknown listing'),
             subject: $promo,
             causer: $admin,
             event: 'created',
@@ -61,20 +74,34 @@ class SecretPromotionService
             ]);
         }
 
+        $isAdminListing = ($data['listing_type'] ?? 'vendor') === 'admin';
+
         $this->validateCommissionSplit($data);
-        $this->validateListing($data['vendor_listing_id'], $data['vendor_id'] ?? null);
+
+        if ($isAdminListing) {
+            $this->validateAdminListing($data['admin_product_listing_id']);
+        } else {
+            $this->validateListing($data['vendor_listing_id'], $data['vendor_id'] ?? null);
+        }
 
         // Allow duplicate check only if listing/marketer changed
-        if (
-            $data['vendor_listing_id'] !== $promo->vendor_listing_id
-            || ($data['marketer_id'] ?? null) !== $promo->marketer_id
-        ) {
-            $this->validateNoDuplicate($data['vendor_listing_id'], $data['marketer_id'] ?? null, $promo->id);
+        $listingChanged = $isAdminListing
+            ? ($data['admin_product_listing_id'] !== $promo->admin_product_listing_id)
+            : ($data['vendor_listing_id'] !== $promo->vendor_listing_id);
+
+        if ($listingChanged || ($data['marketer_id'] ?? null) !== $promo->marketer_id) {
+            $this->validateNoDuplicate(
+                $isAdminListing ? null : $data['vendor_listing_id'],
+                $data['marketer_id'] ?? null,
+                $promo->id,
+                $isAdminListing ? $data['admin_product_listing_id'] : null
+            );
         }
 
         $promo->update([
-            'vendor_id' => $data['vendor_id'],
-            'vendor_listing_id' => $data['vendor_listing_id'],
+            'vendor_id' => $isAdminListing ? null : $data['vendor_id'],
+            'vendor_listing_id' => $isAdminListing ? null : $data['vendor_listing_id'],
+            'admin_product_listing_id' => $isAdminListing ? $data['admin_product_listing_id'] : null,
             'marketer_id' => $data['marketer_id'] ?: null,
             'product_value' => (int) round($data['product_value'] * 100),
             'total_commission_pct' => $data['total_commission_pct'],
@@ -216,6 +243,7 @@ class SecretPromotionService
         $new = MarketerSecretPromotion::create([
             'vendor_id' => $promo->vendor_id,
             'vendor_listing_id' => $promo->vendor_listing_id,
+            'admin_product_listing_id' => $promo->admin_product_listing_id,
             'marketer_id' => $promo->marketer_id,
             'product_value' => $promo->product_value,
             'total_commission_pct' => $promo->total_commission_pct,
@@ -365,10 +393,18 @@ class SecretPromotionService
         }
     }
 
-    private function validateNoDuplicate(string $listingId, ?string $marketerId, ?string $excludeId = null): void
-    {
+    private function validateNoDuplicate(
+        ?string $listingId,
+        ?string $marketerId,
+        ?string $excludeId = null,
+        ?string $adminListingId = null
+    ): void {
         $query = MarketerSecretPromotion::active()
-            ->where('vendor_listing_id', $listingId)
+            ->when(
+                $adminListingId,
+                fn($q) => $q->where('admin_product_listing_id', $adminListingId),
+                fn($q) => $q->where('vendor_listing_id', $listingId)
+            )
             ->where(fn($q) => $marketerId
                 ? $q->where('marketer_id', $marketerId)
                 : $q->whereNull('marketer_id'));
@@ -379,7 +415,25 @@ class SecretPromotionService
 
         if ($query->exists()) {
             throw ValidationException::withMessages([
-                'vendor_listing_id' => 'An active promotion already exists for this listing and marketer.',
+                $adminListingId ? 'admin_product_listing_id' : 'vendor_listing_id' =>
+                    'An active promotion already exists for this listing and marketer.',
+            ]);
+        }
+    }
+
+    private function validateAdminListing(string $listingId): void
+    {
+        $listing = AdminProductListing::find($listingId);
+
+        if (!$listing) {
+            throw ValidationException::withMessages([
+                'admin_product_listing_id' => 'Listing not found.',
+            ]);
+        }
+
+        if ($listing->status !== AdminProductListingStatus::Active) {
+            throw ValidationException::withMessages([
+                'admin_product_listing_id' => 'Cannot create secret promotion for an inactive listing.',
             ]);
         }
     }

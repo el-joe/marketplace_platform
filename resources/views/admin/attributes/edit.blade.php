@@ -19,6 +19,7 @@
             updateValue: '{{ url('attributes/' . $attribute->id . '/values') }}/:value_id',
             destroyValue: '{{ url('attributes/' . $attribute->id . '/values') }}/:value_id',
             reorderValues: '{{ route('admin.attributes.values.reorder', $attribute->id) }}',
+            regenerateVariantSlugs: '{{ url('attributes/' . $attribute->id . '/values') }}/:value_id/regenerate-variant-slugs',
         };
     </script>
 @endsection

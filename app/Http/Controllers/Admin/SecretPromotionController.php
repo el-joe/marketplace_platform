@@ -54,7 +54,7 @@ class SecretPromotionController extends Controller
     public function datatable(Request $request): JsonResponse
     {
         $columns = [
-            ['searchable_columns' => ['products.name_en']],
+            ['searchable_columns' => ['products.name_en', 'admin_products.name_en']],
             ['searchable_columns' => ['vendors.store_name']],
             ['searchable_columns' => ['marketers.name', 'marketers.email']],
             [],
@@ -73,13 +73,17 @@ class SecretPromotionController extends Controller
             ->with([
                 'vendor',
                 'vendorListing.productVariant.product.images',
+                'adminProductListing.productVariant.product.images',
                 'marketer',
                 'approvedBy',
             ])
-            ->join('vendors', 'vendors.id', '=', 'marketer_secret_promotions.vendor_id')
-            ->join('vendor_listings', 'vendor_listings.id', '=', 'marketer_secret_promotions.vendor_listing_id')
+            ->leftJoin('vendors', 'vendors.id', '=', 'marketer_secret_promotions.vendor_id')
+            ->leftJoin('vendor_listings', 'vendor_listings.id', '=', 'marketer_secret_promotions.vendor_listing_id')
             ->leftJoin('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
             ->leftJoin('products', 'products.id', '=', 'product_variants.product_id')
+            ->leftJoin('admin_product_listings', 'admin_product_listings.id', '=', 'marketer_secret_promotions.admin_product_listing_id')
+            ->leftJoin('product_variants as admin_product_variants', 'admin_product_variants.id', '=', 'admin_product_listings.product_variant_id')
+            ->leftJoin('products as admin_products', 'admin_products.id', '=', 'admin_product_variants.product_id')
             ->leftJoin('marketers', 'marketers.id', '=', 'marketer_secret_promotions.marketer_id')
             ->select('marketer_secret_promotions.*')
             ->when($request->status, fn($q, $v) => $q->where('marketer_secret_promotions.status', $v))
@@ -111,11 +115,14 @@ class SecretPromotionController extends Controller
                 $isExpiringSoon = $p->valid_until
                     && $p->valid_until->between(today(), today()->addDays(7));
 
+                $isAdminListing = (bool) $p->admin_product_listing_id;
+
                 return [
                     'id' => $p->id,
-                    'vendor_store_name' => $p->vendor?->store_name ?? '—',
-                    'listing_product_name' => $p->vendorListing?->productVariant?->product?->name_en ?? '—',
-                    'listing_variant' => $p->vendorListing?->productVariant?->variant_name ?? '',
+                    'listing_type' => $isAdminListing ? 'admin' : 'vendor',
+                    'vendor_store_name' => $p->vendor?->store_name ?? ($isAdminListing ? 'Admin listing' : '—'),
+                    'listing_product_name' => $p->listing?->productVariant?->product?->name_en ?? '—',
+                    'listing_variant' => $p->listing?->productVariant?->variant_name ?? '',
                     'listing_price_formatted' => $p->listing_price_formatted,
                     'product_value_formatted' => $p->product_value_formatted,
                     'margin_pct' => $p->margin_pct,
@@ -336,6 +343,44 @@ class SecretPromotionController extends Controller
                     'id' => $l->id,
                     'text' => $product?->name_en ?? 'Unknown',
                     'variant' => $l->productVariant?->variant_name,
+                    'price' => $l->price,
+                    'currency' => $l->currency,
+                    'image' => $imageUrl,
+                ];
+            });
+
+        return response()->json(['results' => $listings]);
+    }
+
+    // ── Get admin product listings (AJAX Select2 search) ─────────────────────
+
+    public function getListingsForAdmin(Request $request): JsonResponse
+    {
+        $q = $request->input('q', '');
+
+        $listings = \App\Models\AdminProductListing::active()
+            ->when($q !== '', fn($query) => $query->where(
+                fn($w) => $w->where('platform_sku', 'like', "%{$q}%")
+                    ->orWhereHas('productVariant.product', fn($p) => $p->where('name_en', 'like', "%{$q}%"))
+            ))
+            ->with([
+                'productVariant.product',
+                'productVariant.product.images' => fn($qi) => $qi->where('is_primary', 1),
+            ])
+            ->limit(20)
+            ->get()
+            ->map(function (\App\Models\AdminProductListing $l) {
+                $product = $l->productVariant?->product;
+                $image = $product?->images?->first();
+                $imageUrl = $image
+                    ? Storage::disk($image->disk)->url($image->path)
+                    : null;
+
+                return [
+                    'id' => $l->id,
+                    'text' => ($product?->name_en ?? 'Unknown') . ' (' . $l->platform_sku . ')',
+                    'variant' => $l->productVariant?->variant_name,
+                    'platform_sku' => $l->platform_sku,
                     'price' => $l->price,
                     'currency' => $l->currency,
                     'image' => $imageUrl,

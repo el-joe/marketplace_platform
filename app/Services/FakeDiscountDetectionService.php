@@ -22,11 +22,15 @@ class FakeDiscountDetectionService
      */
     public function analyze(FlashSaleSubmission $submission): array
     {
-        $listingId     = $submission->vendor_listing_id;
         $flashPrice    = (int) $submission->flash_price;
         $originalPrice = (int) $submission->original_price;
 
-        $history = FlashSalePriceHistory::where('vendor_listing_id', $listingId)
+        $history = FlashSalePriceHistory::query()
+            ->when(
+                $submission->admin_product_listing_id !== null,
+                fn($q) => $q->where('admin_product_listing_id', $submission->admin_product_listing_id),
+                fn($q) => $q->where('vendor_listing_id', $submission->vendor_listing_id)
+            )
             ->where('recorded_at', '>=', now()->subDays(30))
             ->orderBy('recorded_at')
             ->get();

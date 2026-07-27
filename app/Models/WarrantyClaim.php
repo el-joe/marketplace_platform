@@ -85,6 +85,18 @@ class WarrantyClaim extends Model
         return $this->belongsTo(Vendor::class);
     }
 
+    public function adminListing(): \Illuminate\Database\Eloquent\Relations\HasOneThrough
+    {
+        return $this->hasOneThrough(
+            AdminProductListing::class,
+            ProductVariant::class,
+            'product_id',
+            'product_variant_id',
+            'product_id',
+            'id'
+        );
+    }
+
     public function resolvedByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'resolved_by_admin_id');

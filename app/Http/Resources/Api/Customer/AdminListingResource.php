@@ -16,11 +16,24 @@ class AdminListingResource extends JsonResource
     public function toArray(Request $request): array
     {
         $listing = $this->resource;
-        $product = $listing->productVariant->product;
+        $variant = $listing->productVariant;
+        $product = $variant->product;
+        $primaryImage = $variant->images->firstWhere('is_primary', true)
+            ?? $variant->images->first()
+            ?? $product->images->firstWhere('is_primary', true)
+            ?? $product->images->first();
+
+        $url = route('customer.listing.show', [$this->country->site_code, $variant->id .'--' . $listing->id]);
 
         return [
             'listing_id' => $listing->id,
+            'listing_type' => 'admin',
+            'variant_id' => $variant->id,
+            'variant_name' => $variant->variant_name ?? $variant->sku,
+            'product_url' => $url, // ✓ correct UUID format
+            'primary_image' => $primaryImage?->url,
             'price' => (int) $listing->getRawOriginal('price'),
+            'compare_at_price' => null,
             'currency' => $listing->currency ?? $this->country->currency_code,
             'payment_options' => $listing->payment_options,
             'fulfillment_type' => $listing->fulfillment_type,
@@ -28,6 +41,8 @@ class AdminListingResource extends JsonResource
             'status' => $listing->status?->value,
             'rating_avg' => (float) $listing->rating_avg,
             'rating_count' => (int) $listing->rating_count,
+            'nawy_category_id' => $listing->nawy_category_id,
+            'featured_in_nawy' => (bool) $listing->featured_in_nawy,
             'product' => [
                 'id' => $product->id,
                 'slug' => $product->slug,
