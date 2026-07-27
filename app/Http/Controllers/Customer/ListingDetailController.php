@@ -92,6 +92,8 @@ class ListingDetailController extends Controller
             ->limit(5)
             ->get();
 
+        $productAttributes = $this->productAttributesShape($product, $listing->productVariant, $country);
+
         return ApiResponse::success(new ListingDetailResource([
             'listing' => $this->listingShape($listing, $country, $isWishlisted),
             'seller' => $this->sellerShape($listing),
@@ -100,6 +102,7 @@ class ListingDetailController extends Controller
             'coupons' => $coupons,
             'payment_options' => $paymentOptions,
             'product' => $this->productShape($product, $listing),
+            'product_attributes' => $productAttributes,
             'variant' => $this->variantShape($listing->productVariant),
             'other_sellers' => $siblings['same_variant']->map(fn(VendorListing $l) => $this->otherSellerShape($l, $country))->values()->all(),
             'other_variants' => $siblings['other_variants']->map(fn(VendorListing $l) => $this->otherVariantShape($l))->values()->all(),
@@ -129,7 +132,7 @@ class ListingDetailController extends Controller
                 return null;
             }
 
-            return VendorListing::whereHas('productVariant', fn($q) => $q->where('sku', $parsed['sku']))
+            return VendorListing::whereHas('productVariant', fn($q) => $q->where('id', $parsed['product_variant_id']))
                 ->where('id', 'like', $parsed['listing_id_prefix'] . '%')
                 ->where('country_id', $country->id)
                 ->where('status', 'active')
@@ -319,6 +322,44 @@ class ListingDetailController extends Controller
                 ->map(fn($va) => ($va->attribute?->name_en) . ': ' . ($va->attributeValue?->value_en ?? $va->value_text_en))
                 ->implode(', '),
         ];
+    }
+
+    private function productAttributesShape($product, $productVariant): ?array
+    {
+        $variants = $product->variants->loadMissing('variantAttributes.attribute', 'variantAttributes.attributeValue');
+
+        $selectedAttributes = $productVariant->variantAttributes;
+
+        return $variants
+            ->flatMap(fn($variant) => $variant->variantAttributes)
+            ->filter(fn($va) => $va->attribute !== null)
+            ->groupBy('attribute_id')
+            ->map(function ($group) use ($productVariant) {
+                $attribute = $group->first()->attribute;
+
+                return [
+                    'attribute_id' => $attribute->id,
+                    'name' => [
+                        'ar' => $attribute->name_ar,
+                        'en' => $attribute->name_en,
+                    ],
+                    'values' => $group
+                        ->unique(fn($va) => $va->attribute_value_id ?? $va->value_text_en)
+                        ->map(fn($va) => [
+                            'attribute_value_id' => $va->attributeValue?->id,
+                            'value' => [
+                                'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
+                                'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
+                            ],
+                            'color_hex' => $va->attributeValue?->color_hex,
+                        ])
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->sortBy(fn($group) => $group['name']['en'])
+            ->values()
+            ->all();
     }
 
     private function variantShape($variant): array

@@ -243,6 +243,6 @@ class ListingIdentifierService
             return null;
         }
 
-        return ['sku' => $parts[0], 'listing_id_prefix' => $parts[1]];
+        return ['product_variant_id' => $parts[0], 'listing_id_prefix' => $parts[1]];
     }
 }

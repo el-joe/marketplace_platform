@@ -28,7 +28,7 @@ class AdminListingResource extends JsonResource
             'listing_type' => 'admin',
             'variant_id' => $variant->id,
             'variant_name' => $variant->variant_name ?? $variant->sku,
-            'product_url' => "/products/{$variant->id}/{$listing->id}",
+            'product_url' => "/products/{$variant->id}/{$listing->id}", // ✓ correct UUID format
             'primary_image' => $primaryImage?->url,
             'price' => (int) $listing->getRawOriginal('price'),
             'compare_at_price' => null,

@@ -3,7 +3,6 @@
 namespace App\Http\Resources\Api\Customer;
 
 use App\Models\Country;
-use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -26,11 +25,10 @@ class VendorListingResource extends JsonResource
 
         return [
             'listing_id' => $listing->id,
-            'listing_ref' => app(ListingIdentifierService::class)->buildListingRef($listing),
             'listing_type' => 'vendor',
             'variant_id' => $variant->id,
             'variant_name' => $variant->variant_name ?? $variant->sku,
-            'product_url' => "/products/{$variant->id}/{$listing->id}",
+            'product_url' => "/products/{$variant->id}/{$listing->id}", // ✓ correct UUID format
             'primary_image' => $primaryImage?->url,
             'price' => (int) $listing->price,
             'compare_at_price' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,

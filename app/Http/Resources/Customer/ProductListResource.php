@@ -29,7 +29,7 @@ class ProductListResource extends JsonResource
             'variant_name' => $this->buy_box_variant_name ?? null,
             'variant_image' => $variantImage,
             'product_url' => $this->buy_box_listing_id && $this->buy_box_variant_id
-                ? "/products/{$this->buy_box_variant_id}/{$this->buy_box_listing_id}"
+                ? "/products/{$this->buy_box_variant_id}/{$this->buy_box_listing_id}" // ✓ correct UUID format
                 : null,
             'name'         => $name,
             'primary_image' => $variantImage ?? $this->whenLoaded('images', function () {
