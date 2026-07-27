@@ -24,7 +24,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CartCardOfferController;
 use App\Http\Controllers\Admin\FbtController;
 use App\Http\Controllers\Admin\CouponController;
-use App\Http\Controllers\Admin\GiftCardController;
+use App\Http\Controllers\Admin\AdminGiftCardController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\DisputeController;
 use App\Http\Controllers\Admin\ReturnController;
@@ -613,14 +613,15 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
 
     // ─── Gift Cards ──────────────────────────────────────────────────────────────
     Route::prefix('gift-cards')->name('gift-cards.')->middleware('admin.permission:gift_cards.view')->group(function () {
-        Route::get('/create', [GiftCardController::class, 'create'])->name('create');
-        Route::post('/datatable', [GiftCardController::class, 'datatable'])->name('datatable');
-        Route::get('/', [GiftCardController::class, 'index'])->name('index');
-        Route::post('/', [GiftCardController::class, 'store'])->name('store');
-        Route::get('/{giftCard}', [GiftCardController::class, 'show'])->name('show');
-        Route::post('/{giftCard}/cancel', [GiftCardController::class, 'cancel'])->name('cancel');
-        Route::post('/{giftCard}/extend', [GiftCardController::class, 'extend'])->name('extend');
-        Route::post('/{giftCard}/adjust', [GiftCardController::class, 'adjust'])->name('adjust');
+        Route::get('/batches/create', [AdminGiftCardController::class, 'batchCreate'])->middleware('admin.permission:gift_cards.create')->name('batches.create');
+        Route::post('/batches', [AdminGiftCardController::class, 'batchStore'])->middleware('admin.permission:gift_cards.create')->name('batches.store');
+        Route::post('/batches/{batch}/datatable', [AdminGiftCardController::class, 'batchDatatable'])->name('batches.datatable');
+        Route::post('/batches/{batch}/activate', [AdminGiftCardController::class, 'activateBatch'])->middleware('admin.permission:gift_cards.edit')->name('batches.activate');
+        Route::get('/batches/{batch}', [AdminGiftCardController::class, 'batchShow'])->name('batches.show');
+        Route::get('/batches', [AdminGiftCardController::class, 'batchIndex'])->name('batches.index');
+        Route::post('/expire-stale', [AdminGiftCardController::class, 'expireStale'])->middleware('admin.permission:gift_cards.edit')->name('expire-stale');
+        Route::post('/datatable', [AdminGiftCardController::class, 'datatable'])->name('datatable');
+        Route::get('/', [AdminGiftCardController::class, 'cardIndex'])->name('index');
     });
 
     // ─── Support Tickets ──────────────────────────────────────────────────────────
@@ -728,6 +729,9 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             ->middleware('admin.permission:notifications.view');
         Route::post('/{customer}/devices/revoke-all', [CustomerController::class, 'revokeAllDevices'])->name('devices.revoke-all')
             ->middleware('admin.permission:customers.edit');
+        Route::post('/{customer}/wallet/transactions/datatable', [CustomerController::class, 'walletTransactions'])->name('wallet.transactions.datatable');
+        Route::post('/{customer}/wallet/adjust', [CustomerController::class, 'adjustWallet'])->name('wallet.adjust')
+            ->middleware('admin.permission:wallet.manual_adjust');
     });
 
     // ─── Wishlist Overview (read-only) ────────────────────────────────────────

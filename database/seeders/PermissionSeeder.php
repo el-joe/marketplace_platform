@@ -115,6 +115,7 @@ class PermissionSeeder extends Seeder
             'customers.view',
             'customers.edit',
             'customers.suspend',
+            'wallet.manual_adjust',
             'wishlists.view',
             // Notifications
             'notifications.view',

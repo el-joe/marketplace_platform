@@ -62,6 +62,7 @@
                     'tickets'         => __('admin.customers_section.tab_tickets'),
                     'payment_methods' => __('admin.customers_section.tab_payment_methods'),
                     'wallet'          => __('admin.customers_section.tab_wallet'),
+                    'wallet_credits'  => __('admin.customers_section.tab_wallet_credits'),
                     'warranty'        => __('admin.customers_section.tab_warranty_claims'),
                     'gift_cards'      => __('admin.customers_section.tab_gift_cards'),
                     'notifications'   => __('admin.customers_section.tab_notifications'),
@@ -423,6 +424,79 @@
                             @endforeach
                         </div>
                     @endif
+                </x-card>
+            </div>
+
+            {{-- ── Wallet & Credits ────────────────────────────────────────── --}}
+            <div x-show="tab === 'wallet_credits'">
+                <x-card title="{{ __('admin.customers_section.wallet_summary') }}">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                        <div class="rounded-lg border border-gray-200 p-3">
+                            <p class="text-gray-500 text-xs mb-1">{{ __('admin.customers_section.current_balance_label') }}</p>
+                            <p class="font-bold text-gray-900" id="wallet-current-balance">
+                                {{ number_format($walletStats['balance']) }} {{ strtoupper($walletStats['currency_code'] ?? '') }}
+                            </p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 p-3">
+                            <p class="text-gray-500 text-xs mb-1">{{ __('admin.customers_section.total_credited') }}</p>
+                            <p class="font-bold text-success-700">{{ number_format($walletStats['total_credited']) }}</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 p-3">
+                            <p class="text-gray-500 text-xs mb-1">{{ __('admin.customers_section.total_debited') }}</p>
+                            <p class="font-bold text-danger-700">{{ number_format($walletStats['total_debited']) }}</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 p-3">
+                            <p class="text-gray-500 text-xs mb-1">{{ __('admin.customers_section.transaction_count') }}</p>
+                            <p class="font-bold text-gray-900">{{ number_format($walletStats['transaction_count']) }}</p>
+                        </div>
+                    </div>
+                </x-card>
+
+                @if(auth('admin')->user()->can('wallet.manual_adjust'))
+                <x-card title="{{ __('admin.customers_section.manual_wallet_adjustment') }}" class="mt-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.direction_label') }} <span class="text-danger-500">*</span></label>
+                            <select id="wallet-adjust-direction" class="form-input w-full">
+                                <option value="credit">{{ __('admin.customers_section.credit_option') }}</option>
+                                <option value="debit">{{ __('admin.customers_section.debit_option') }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.amount_label') }} <span class="text-danger-500">*</span></label>
+                            <input type="number" id="wallet-adjust-amount" class="form-input w-full" min="1" step="1">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.note_label') }} <span class="text-danger-500">*</span></label>
+                            <textarea id="wallet-adjust-note" class="form-input w-full resize-none" rows="3" placeholder="{{ __('admin.customers_section.note_required_hint') }}"></textarea>
+                        </div>
+                        <button type="button" id="wallet-adjust-submit-btn"
+                            class="btn btn-primary btn-sm"
+                            data-url="{{ route('admin.customers.wallet.adjust', $customer->id) }}">
+                            {{ __('admin.customers_section.submit_adjustment') }}
+                        </button>
+                    </div>
+                </x-card>
+                @endif
+
+                <x-card title="{{ __('admin.customers_section.wallet_transactions') }}" class="mt-4">
+                    <div class="overflow-x-auto">
+                        <table id="wallet-transactions-datatable" class="w-full text-sm"
+                            data-url="{{ route('admin.customers.wallet.transactions.datatable', $customer->id) }}">
+                            <thead>
+                                <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                    <th class="py-2 pr-4">{{ __('admin.customers_section.date_column') }}</th>
+                                    <th class="py-2 pr-4">{{ __('admin.customers_section.type_col') }}</th>
+                                    <th class="py-2 pr-4">{{ __('admin.customers_section.direction_column') }}</th>
+                                    <th class="py-2 pr-4">{{ __('admin.customers_section.amount_column') }}</th>
+                                    <th class="py-2 pr-4">{{ __('admin.customers_section.balance_after_column') }}</th>
+                                    <th class="py-2 pr-4">{{ __('admin.customers_section.reference_column') }}</th>
+                                    <th class="py-2 pr-4">{{ __('admin.customers_section.note_column') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </x-card>
             </div>
 
@@ -1044,6 +1118,10 @@
             revokeAllDevices: @json(__('admin.customers_section.log_out_all_devices')),
             revokeDevicesConfirm: @json(__('admin.customers_section.log_out_all_devices_confirm')),
             devicesRevoked: @json(__('admin.customers_section.devices_revoked_success')),
+            walletAdjusted: @json(__('admin.customers_section.wallet_adjusted')),
+            enterValidAmount: @json(__('admin.customers_section.enter_valid_amount')),
+            enterNote: @json(__('admin.customers_section.enter_note')),
+            submitAdjustment: @json(__('admin.customers_section.submit_adjustment')),
         });
     </script>
     @vite(['resources/js/admin/customers.js'])

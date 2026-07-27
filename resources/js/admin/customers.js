@@ -460,6 +460,92 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
+     * SHOW PAGE — Wallet & Credits tab
+     * ─────────────────────────────────────────────────────────────────────── */
+
+    const walletTransactionsTable = document.getElementById('wallet-transactions-datatable');
+    if (walletTransactionsTable) {
+        let walletDtInitialized = false;
+        const walletTabBtn = document.querySelector('[\\@click="tab = \'wallet_credits\'"]');
+
+        function initWalletDataTable() {
+            if (walletDtInitialized) return;
+            walletDtInitialized = true;
+            $(walletTransactionsTable).DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: walletTransactionsTable.dataset.url,
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                },
+                columns: [
+                    { data: 'created_at' },
+                    { data: 'type', orderable: false },
+                    { data: 'direction', orderable: false },
+                    { data: 'amount' },
+                    { data: 'balance_after' },
+                    { data: 'reference', orderable: false },
+                    { data: 'note', orderable: false },
+                ],
+                order: [[0, 'desc']],
+                pageLength: 25,
+                language: { search: '', searchPlaceholder: window.TRANSLATIONS?.searchPlaceholder || 'Search…' },
+            });
+        }
+
+        if (walletTabBtn) {
+            walletTabBtn.addEventListener('click', initWalletDataTable);
+        } else {
+            // Fallback: table may already be visible (e.g. deep-linked tab)
+            initWalletDataTable();
+        }
+    }
+
+    document.getElementById('wallet-adjust-submit-btn')?.addEventListener('click', async function () {
+        const url = this.dataset.url;
+        if (!url) return;
+
+        const direction = document.getElementById('wallet-adjust-direction')?.value;
+        const amount = parseInt(document.getElementById('wallet-adjust-amount')?.value, 10);
+        const note = document.getElementById('wallet-adjust-note')?.value?.trim();
+
+        if (!amount || amount < 1) {
+            window.Toast?.error(window.TRANSLATIONS?.enterValidAmount || 'Please enter a valid amount (at least 1).');
+            return;
+        }
+        if (!note) {
+            window.Toast?.error(window.TRANSLATIONS?.enterNote || 'Please enter a note explaining this adjustment.');
+            return;
+        }
+
+        setLoading(this, true, window.TRANSLATIONS?.submitAdjustment || 'Submit Adjustment');
+
+        try {
+            const data = await postJson(url, { direction, amount, note });
+            window.Toast?.success(window.TRANSLATIONS?.walletAdjusted || 'Wallet adjusted successfully.');
+
+            const balanceEl = document.getElementById('wallet-current-balance');
+            if (balanceEl && typeof data.new_balance !== 'undefined') {
+                const currencySuffix = balanceEl.textContent.trim().split(' ').slice(1).join(' ');
+                balanceEl.textContent = `${Number(data.new_balance).toLocaleString()} ${currencySuffix}`.trim();
+            }
+
+            document.getElementById('wallet-adjust-amount').value = '';
+            document.getElementById('wallet-adjust-note').value = '';
+
+            if ($.fn.DataTable.isDataTable('#wallet-transactions-datatable')) {
+                $('#wallet-transactions-datatable').DataTable().draw(false);
+            }
+        } catch (err) {
+            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || window.TRANSLATIONS?.actionFailed || 'Action failed.';
+            window.Toast?.error(msg);
+        } finally {
+            setLoading(this, false, window.TRANSLATIONS?.submitAdjustment || 'Submit Adjustment');
+        }
+    });
+
+    /* ─────────────────────────────────────────────────────────────────────────
      * COPYABLE FIELDS
      * ─────────────────────────────────────────────────────────────────────── */
 

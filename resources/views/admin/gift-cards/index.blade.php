@@ -16,41 +16,25 @@
                 'render' => 'function(data){ return "<code class=\"font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded\">" + data + "</code>"; }',
             ],
             [
-                'title' => __('admin.gift_cards_section.denomination'),
-                'data' => 'denomination',
-                'name' => 'denomination',
+                'title' => __('admin.gift_cards_section.amount'),
+                'data' => 'amount',
+                'name' => 'amount',
                 'searchable' => false,
                 'className' => 'text-end',
-                'render' => 'function(data, type, row){ return Number(data).toFixed(2) + " " + row.currency; }',
+                'render' => 'function(data, type, row){ return Number(data).toFixed(2) + " " + row.currency_code; }',
             ],
-            [
-                'title' => __('admin.gift_cards_section.balance'),
-                'data' => 'balance',
-                'name' => 'balance',
-                'searchable' => false,
-                'className' => 'text-end',
-                'render' => 'function(data, type, row){ return Number(data).toFixed(2) + " " + row.currency; }',
-            ],
-            ['title' => __('admin.gift_cards_section.currency'), 'data' => 'currency', 'name' => 'currency', 'searchable' => false],
+            ['title' => __('admin.gift_cards_section.currency_code'), 'data' => 'currency_code', 'name' => 'currency_code', 'searchable' => false],
             [
                 'title' => __('admin.gift_cards_section.status'),
                 'data' => 'status',
                 'name' => 'status',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            active:              { label: "' . __('admin.gift_cards_section.active') . '",              color: "success" },
-                            redeemed:            { label: "' . __('admin.gift_cards_section.redeemed') . '",            color: "blue"    },
-                            expired:             { label: "' . __('admin.gift_cards_section.expired') . '",             color: "gray"    },
-                            cancelled:           { label: "' . __('admin.gift_cards_section.cancelled') . '",           color: "red"     },
-                            pending_activation:  { label: "' . __('admin.gift_cards_section.pending_activation') . '",  color: "amber"   }
+                            inactive: { label: "' . __('admin.gift_cards_section.inactive') . '", color: "gray"    },
+                            active:   { label: "' . __('admin.gift_cards_section.active') . '",   color: "success" },
+                            redeemed: { label: "' . __('admin.gift_cards_section.redeemed') . '", color: "blue"    },
+                            expired:  { label: "' . __('admin.gift_cards_section.expired') . '",  color: "amber"   }
                         })',
-            ],
-            [
-                'title' => __('admin.gift_cards_section.recipient'),
-                'data' => 'recipient_name',
-                'name' => 'recipient_name',
-                'searchable' => false,
-                'render' => 'function(data, type, row){ return data || row.recipient_email || "—"; }',
             ],
             [
                 'title' => __('admin.gift_cards_section.expiry'),
@@ -67,65 +51,37 @@
                 'searchable' => false,
                 'className' => 'text-end',
                 'render' => 'function(data, type, row) {
-                            return Renderers.actions([{ type: "link", label: "' . __('admin.gift_cards_section.view') . '", url: row.show_url }])(data, type, row);
+                            return row.batch_url
+                                ? Renderers.actions([{ type: "link", label: "' . __('admin.gift_cards_section.view') . '", url: row.batch_url }])(data, type, row)
+                                : "";
                         }',
             ],
         ];
 
         $filters = [
-            ['type' => 'text', 'name' => 'search', 'label' => __('admin.gift_cards_section.code_recipient'), 'placeholder' => __('admin.gift_cards_section.search_placeholder')],
+            ['type' => 'text', 'name' => 'search', 'label' => __('admin.gift_cards_section.code'), 'placeholder' => __('admin.gift_cards_section.search_placeholder')],
             [
                 'type' => 'select',
                 'name' => 'status',
                 'label' => __('admin.gift_cards_section.status'),
                 'options' => [
                     '' => __('admin.gift_cards_section.all'),
+                    'inactive' => __('admin.gift_cards_section.inactive'),
                     'active' => __('admin.gift_cards_section.active'),
                     'redeemed' => __('admin.gift_cards_section.redeemed'),
                     'expired' => __('admin.gift_cards_section.expired'),
-                    'cancelled' => __('admin.gift_cards_section.cancelled'),
-                    'pending_activation' => __('admin.gift_cards_section.pending_activation'),
                 ],
             ],
-            ['type' => 'text', 'name' => 'currency', 'label' => __('admin.gift_cards_section.currency'), 'placeholder' => 'AED'],
-            ['type' => 'date_range', 'name' => 'date', 'label' => __('admin.gift_cards_section.date_range')],
+            ['type' => 'text', 'name' => 'currency_code', 'label' => __('admin.gift_cards_section.currency_code'), 'placeholder' => 'SAR'],
         ];
     @endphp
 
-    <div class="border-b border-gray-200 flex gap-6 mb-4" x-data="{ tab: 'all' }" id="gift-cards-tabs">
-        <a href="#" data-status="" class="gc-tab pb-3 border-b-2 border-blue-600 text-blue-600 text-sm font-medium">{{ __('admin.gift_cards_section.all') }}</a>
-        <a href="#" data-status="active" class="gc-tab pb-3 border-b-2 border-transparent text-gray-500 text-sm font-medium">{{ __('admin.gift_cards_section.active') }}</a>
-        <a href="#" data-status="redeemed" class="gc-tab pb-3 border-b-2 border-transparent text-gray-500 text-sm font-medium">{{ __('admin.gift_cards_section.redeemed') }}</a>
-        <a href="#" data-status="expired" class="gc-tab pb-3 border-b-2 border-transparent text-gray-500 text-sm font-medium">{{ __('admin.gift_cards_section.expired') }}</a>
-        <a href="#" data-status="cancelled" class="gc-tab pb-3 border-b-2 border-transparent text-gray-500 text-sm font-medium">{{ __('admin.gift_cards_section.cancelled') }}</a>
+    <div class="flex items-center justify-end mb-4">
+        <a href="{{ route('admin.gift-cards.batches.index') }}" class="btn btn-secondary">
+            {{ __('admin.gift_cards_section.batches_title') }}
+        </a>
     </div>
 
     <x-table.datatable id="gift-cards-table" url="{{ route('admin.gift-cards.datatable') }}" :columns="$columns"
-        :filters="$filters"
-        :create-action="['url' => route('admin.gift-cards.create'), 'label' => __('admin.gift_cards_section.add_gift_card')]"
-        :page-length="25" :order="[[6, 'desc']]" />
+        :filters="$filters" :page-length="25" :order="[[4, 'desc']]" />
 @endsection
-
-@push('scripts')
-    <script>
-        document.querySelectorAll('.gc-tab').forEach(function (tab) {
-            tab.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelectorAll('.gc-tab').forEach(function (t) {
-                    t.classList.remove('border-blue-600', 'text-blue-600');
-                    t.classList.add('border-transparent', 'text-gray-500');
-                });
-                tab.classList.add('border-blue-600', 'text-blue-600');
-                tab.classList.remove('border-transparent', 'text-gray-500');
-
-                var status = tab.getAttribute('data-status');
-                var statusFilter = document.querySelector('[name="status"]');
-                if (statusFilter) {
-                    statusFilter.value = status;
-                    statusFilter.dispatchEvent(new Event('change'));
-                }
-                window.reloadDataTable && window.reloadDataTable('gift-cards-table');
-            });
-        });
-    </script>
-@endpush

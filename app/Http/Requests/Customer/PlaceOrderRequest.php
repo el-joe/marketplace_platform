@@ -20,6 +20,7 @@ class PlaceOrderRequest extends FormRequest
             'payment_method'     => ['required', Rule::in(['card', 'wallet', 'cod', 'bnpl', 'bank_transfer'])],
             'coupon_code'        => ['nullable', 'string', 'max:50'],
             'gift_card_code'     => ['nullable', 'string', 'max:20'],
+            'wallet_amount_to_use' => ['nullable', 'integer', 'min:1'],
             'customer_notes'     => ['nullable', 'string', 'max:500'],
             'idempotency_key'    => ['required', 'string', 'max:100'],
             'gateway_token'      => ['required_if:payment_method,card', 'nullable', 'string'],

@@ -2,13 +2,22 @@
 
 namespace App\Services;
 
+use App\Exceptions\GiftCardAlreadyRedeemedException;
+use App\Exceptions\GiftCardCurrencyMismatchException;
+use App\Exceptions\GiftCardExpiredException;
+use App\Exceptions\GiftCardNotFoundException;
+use App\Exceptions\InvalidGiftCardPinException;
 use App\Jobs\SendGiftCardNotificationJob;
 use App\Models\Admin;
 use App\Models\Customer;
+use App\Models\CustomerWallet;
 use App\Models\GiftCard;
 use App\Models\GiftCardTransaction;
 use App\Models\Order;
+use App\Models\WalletTransaction;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class GiftCardService
@@ -212,5 +221,88 @@ class GiftCardService
         }
 
         return $giftCard;
+    }
+
+    /**
+     * Redeem a code+PIN gift card into the customer's wallet.
+     */
+    public function redeemByCode(Customer $customer, string $code, string $pin): array
+    {
+        $giftCard = GiftCard::where('code', strtoupper(trim($code)))
+            ->lockForUpdate()
+            ->first();
+
+        if (! $giftCard) {
+            throw new GiftCardNotFoundException();
+        }
+
+        if (! Hash::check($pin, $giftCard->pin_hash)) {
+            throw new InvalidGiftCardPinException();
+        }
+
+        if (! $giftCard->is_redeemable) {
+            if ($giftCard->status !== 'active') {
+                throw new GiftCardAlreadyRedeemedException();
+            }
+
+            throw new GiftCardExpiredException();
+        }
+
+        if ($giftCard->currency_code !== $customer->country?->currency_code) {
+            throw new GiftCardCurrencyMismatchException();
+        }
+
+        return DB::transaction(function () use ($giftCard, $customer) {
+            $giftCard->update([
+                'status' => 'redeemed',
+                'redeemed_by_customer_id' => $customer->id,
+                'redeemed_at' => now(),
+            ]);
+
+            $wallet = CustomerWallet::firstOrCreate(
+                ['customer_id' => $customer->id],
+                ['balance' => 0, 'currency_code' => $giftCard->currency_code]
+            );
+
+            $wallet->credit($giftCard->amount);
+            $wallet->refresh();
+
+            WalletTransaction::create([
+                'customer_id' => $customer->id,
+                'type' => 'gift_card_redeem',
+                'direction' => 'credit',
+                'amount' => $giftCard->amount,
+                'balance_after' => $wallet->balance,
+                'currency_code' => $giftCard->currency_code,
+                'reference_type' => GiftCard::class,
+                'reference_id' => $giftCard->id,
+            ]);
+
+            return [
+                'new_balance' => $wallet->balance,
+                'credited_amount' => $giftCard->amount,
+                'currency_code' => $giftCard->currency_code,
+            ];
+        });
+    }
+
+    public function getWalletBalance(Customer $customer): array
+    {
+        $wallet = CustomerWallet::firstOrCreate(
+            ['customer_id' => $customer->id],
+            ['balance' => 0, 'currency_code' => $customer->country?->currency_code]
+        );
+
+        return [
+            'balance' => $wallet->balance,
+            'currency_code' => $wallet->currency_code,
+        ];
+    }
+
+    public function getTransactionHistory(Customer $customer, int $perPage = 20): LengthAwarePaginator
+    {
+        return WalletTransaction::where('customer_id', $customer->id)
+            ->latest('created_at')
+            ->paginate($perPage);
     }
 }

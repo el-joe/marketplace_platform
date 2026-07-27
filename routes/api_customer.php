@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Customer\CategoryController as ApiCategoryController;
+use App\Http\Controllers\Api\Customer\CustomerWalletController;
 use App\Http\Controllers\Api\Customer\DeviceTokenController as ApiDeviceTokenController;
 use App\Http\Controllers\Api\Customer\GiftCardController as ApiGiftCardController;
 use App\Http\Controllers\Api\Customer\ListingController as ApiListingController;
@@ -509,6 +510,14 @@ Route::prefix('v1/wallet')->middleware('auth:customer')->name('customer.api.wall
 Route::prefix('v1/gift-cards')->middleware('auth:customer')->name('customer.api.gift-cards.')->group(function (): void {
     Route::post('validate', [ApiGiftCardController::class, 'validate'])->name('validate');
     Route::get('mine', [ApiGiftCardController::class, 'mine'])->name('mine');
+});
+
+// ── Gift-card wallet (CustomerWallet/GiftCardService-backed; distinct from the
+//    owner_type/owner_id Wallet system above) ──
+Route::prefix('v1/gift-card-wallet')->middleware('auth:customer')->name('customer.api.gift-card-wallet.')->group(function (): void {
+    Route::get('/', [CustomerWalletController::class, 'balance'])->name('balance');
+    Route::post('redeem-gift-card', [CustomerWalletController::class, 'redeemGiftCard'])->name('redeem-gift-card');
+    Route::get('transactions', [CustomerWalletController::class, 'transactions'])->name('transactions');
 });
 
 // ── Warranty (country-agnostic path, scoped to customer_id) ──

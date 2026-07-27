@@ -7,6 +7,7 @@ use App\Enums\WalletOwnerType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -163,6 +164,11 @@ class Customer extends Authenticatable implements JWTSubject
     public function wallets(): HasMany
     {
         return $this->hasMany(Wallet::class, 'owner_id')->where('owner_type', WalletOwnerType::Customer);
+    }
+
+    public function customerWallet(): HasOne
+    {
+        return $this->hasOne(CustomerWallet::class, 'customer_id');
     }
 
     public function warrantyClaims(): HasMany

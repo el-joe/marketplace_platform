@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\CustomerStatus;
+use App\Exceptions\InsufficientWalletBalanceException;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\Country;
 use App\Models\Customer;
+use App\Models\CustomerWallet;
 use App\Models\Notification;
+use App\Models\WalletTransaction;
 use App\Traits\HasDataTable;
 use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
@@ -214,6 +218,16 @@ class CustomerController extends Controller
 
         $wallets = $customer->wallets()->get();
 
+        $customerWallet = $customer->customerWallet;
+
+        $walletStats = [
+            'balance' => $customerWallet->balance ?? 0,
+            'currency_code' => $customerWallet->currency_code ?? null,
+            'total_credited' => WalletTransaction::forCustomer($customer->id)->credits()->sum('amount'),
+            'total_debited' => WalletTransaction::forCustomer($customer->id)->debits()->sum('amount'),
+            'transaction_count' => WalletTransaction::forCustomer($customer->id)->count(),
+        ];
+
         $warrantyClaims = $customer->warrantyClaims()
             ->with('product')
             ->latest()
@@ -245,6 +259,7 @@ class CustomerController extends Controller
             'tickets',
             'activityLog',
             'wallets',
+            'walletStats',
             'warrantyClaims',
             'giftCards',
             'notifications',
@@ -472,6 +487,128 @@ class CustomerController extends Controller
                 'placed_at' => $row->placed_at ? \Carbon\Carbon::parse($row->placed_at)->format('d M Y') : '—',
             ];
         });
+    }
+
+    // ─── Wallet Transactions DataTable ────────────────────────────────────────
+
+    public function walletTransactions(Request $request, Customer $customer): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('customers.view'), 403);
+
+        $query = WalletTransaction::query()->forCustomer($customer->id);
+
+        $columns = [
+            ['searchable_columns' => [], 'orderable_column' => 'created_at'],
+            ['searchable_columns' => ['type'], 'orderable_column' => 'type'],
+            ['searchable_columns' => [], 'orderable_column' => 'direction'],
+            ['searchable_columns' => [], 'orderable_column' => 'amount'],
+            ['searchable_columns' => [], 'orderable_column' => 'balance_after'],
+            ['searchable_columns' => ['reference_type', 'reference_id'], 'orderable_column' => null],
+            ['searchable_columns' => ['note'], 'orderable_column' => null],
+        ];
+
+        $typeColors = [
+            'gift_card_redeem' => 'warning',
+            'order_payment' => 'danger',
+            'order_refund' => 'success',
+            'admin_credit' => 'primary',
+            'admin_debit' => 'warning',
+            'expiry_deduction' => 'gray',
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function (WalletTransaction $row) use ($typeColors) {
+            $color = $typeColors[$row->type] ?? 'gray';
+
+            return [
+                'created_at' => $row->created_at->format('d M Y, H:i'),
+                'type' => '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-' . $color . '-100 text-' . $color . '-700">'
+                    . e(ucwords(str_replace('_', ' ', $row->type))) . '</span>',
+                'direction' => $row->direction === 'credit'
+                    ? '<span class="text-success-600">&uarr;</span>'
+                    : '<span class="text-danger-600">&darr;</span>',
+                'amount' => number_format($row->amount) . ' ' . strtoupper($row->currency_code ?? ''),
+                'balance_after' => number_format($row->balance_after) . ' ' . strtoupper($row->currency_code ?? ''),
+                'reference' => $row->reference_type
+                    ? e(class_basename($row->reference_type)) . ' #' . e((string) $row->reference_id)
+                    : '—',
+                'note' => e($row->note ?? '—'),
+            ];
+        });
+    }
+
+    // ─── Adjust Wallet (Manual Credit/Debit) ──────────────────────────────────
+
+    public function adjustWallet(Request $request, Customer $customer): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('wallet.manual_adjust'), 403);
+
+        $validated = $request->validate([
+            'direction' => 'required|in:credit,debit',
+            'amount' => 'required|integer|min:1',
+            'note' => 'required|string|max:1000',
+        ]);
+
+        $direction = $validated['direction'];
+        $amount = (int) $validated['amount'];
+        $note = $validated['note'];
+
+        try {
+            $newBalance = DB::transaction(function () use ($customer, $direction, $amount, $note, $admin) {
+                $wallet = CustomerWallet::query()
+                    ->where('customer_id', $customer->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$wallet) {
+                    $wallet = CustomerWallet::create([
+                        'customer_id' => $customer->id,
+                        'balance' => 0,
+                        'currency_code' => 'EGP',
+                    ]);
+                }
+
+                if ($direction === 'debit') {
+                    $wallet->debit($amount);
+                } else {
+                    $wallet->credit($amount);
+                }
+
+                WalletTransaction::create([
+                    'customer_id' => $customer->id,
+                    'type' => $direction === 'debit' ? 'admin_debit' : 'admin_credit',
+                    'direction' => $direction,
+                    'amount' => $amount,
+                    'balance_after' => $wallet->balance,
+                    'currency_code' => $wallet->currency_code,
+                    'note' => $note,
+                ]);
+
+                Activity::create([
+                    'log_name' => 'customers',
+                    'description' => 'Wallet manually ' . ($direction === 'debit' ? 'debited' : 'credited') . ' by admin',
+                    'subject_type' => Customer::class,
+                    'subject_id' => $customer->id,
+                    'causer_type' => get_class($admin),
+                    'causer_id' => $admin->id,
+                    'event' => 'wallet_' . $direction,
+                    'properties' => json_encode([
+                        'amount' => $amount,
+                        'direction' => $direction,
+                        'note' => $note,
+                        'new_balance' => $wallet->balance,
+                    ]),
+                    'ip_address' => $request->ip(),
+                ]);
+
+                return $wallet->balance;
+            });
+        } catch (InsufficientWalletBalanceException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['success' => true, 'new_balance' => $newBalance]);
     }
 
     // ─── Export Data (GDPR) ───────────────────────────────────────────────────

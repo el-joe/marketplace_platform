@@ -2,53 +2,78 @@
 
 namespace App\Models;
 
-use App\Enums\WalletTransactionType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use RuntimeException;
 
 class WalletTransaction extends Model
 {
     use HasUuids;
 
-    public $timestamps = false;
+    protected $table = 'wallet_transactions';
+
+    public const UPDATED_AT = null;
 
     protected $fillable = [
-        'wallet_id',
+        'customer_id',
         'type',
+        'direction',
         'amount',
         'balance_after',
-        'source_type',
-        'source_id',
-        'description',
-        'performed_by_admin_id',
-        'created_at',
+        'currency_code',
+        'reference_type',
+        'reference_id',
+        'note',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
-        'type'                 => WalletTransactionType::class,
-        'amount'         => 'integer',
-        'balance_after'  => 'integer',
-        'created_at'           => 'datetime',
+        'amount' => 'integer',
+        'balance_after' => 'integer',
+        'created_at' => 'datetime',
     ];
 
-    protected static function boot(): void
+    public static function boot(): void
     {
         parent::boot();
 
-        // Append-only: prevent updates and deletes
-        static::updating(fn() => false);
-        static::deleting(fn() => false);
+        static::updating(function () {
+            throw new RuntimeException('WalletTransaction records are append-only and cannot be updated.');
+        });
+
+        static::deleting(function () {
+            throw new RuntimeException('WalletTransaction records are append-only and cannot be deleted.');
+        });
     }
 
-    public function wallet(): BelongsTo
+    public function update(array $attributes = [], array $options = []): bool
     {
-        return $this->belongsTo(Wallet::class);
+        throw new RuntimeException('WalletTransaction records are append-only and cannot be updated.');
     }
 
-    public function admin(): BelongsTo
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(Admin::class, 'performed_by_admin_id');
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function reference(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function scopeCredits($query)
+    {
+        return $query->where('direction', 'credit');
+    }
+
+    public function scopeDebits($query)
+    {
+        return $query->where('direction', 'debit');
+    }
+
+    public function scopeForCustomer($query, string $customerId)
+    {
+        return $query->where('customer_id', $customerId);
     }
 }

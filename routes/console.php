@@ -65,6 +65,9 @@ Schedule::job(new GenerateCodSettlementsJob)->dailyAt('23:30')->name('generate-c
 // Expire pending vendor campaign invitations past their deadline
 Schedule::job(new ExpireVendorCampaignInvitationsJob)->dailyAt('00:15')->name('expire-vendor-campaign-invitations');
 
+// Mark active gift cards past their expiry date as expired
+Schedule::command('gift-cards:expire')->dailyAt('00:05')->name('expire-gift-cards');
+
 // Recalculate best-seller rankings per category/country
 Schedule::job(new RecalculateBestSellerRankingsJob, 'rankings')
     ->everySixHours()

@@ -42,6 +42,7 @@ class Order extends Model
         'cod_fee',
         'warranty_total',
         'total',
+        'wallet_amount_used',
         'coupon_id',
         'coupon_code_used',
         'affiliate_promo_code_id',

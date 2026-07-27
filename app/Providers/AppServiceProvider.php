@@ -14,6 +14,7 @@ use App\View\Components\Form\Select;
 use App\Events\SubOrderPlaced;
 use App\Listeners\InvalidateVendorDashboardCache;
 use App\Listeners\RecordMarketerConversion;
+use App\Services\GiftCardService;
 use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\AppContextService;
 use App\Services\Shared\PageBuilderService;
@@ -101,6 +102,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(MarketerFCMService::class);
         $this->app->singleton(CarrierFCMService::class);
         $this->app->singleton(DeliveryFCMService::class);
+        $this->app->singleton(GiftCardService::class);
         $this->app->singleton(AppContextService::class, fn () => new AppContextService());
 
         // Replace Laravel's built-in DatabaseChannel with our custom one that

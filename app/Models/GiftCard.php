@@ -6,55 +6,72 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class GiftCard extends Model
 {
     use HasUuids;
 
+    protected $table = 'gift_cards';
+
     protected $fillable = [
+        'gift_card_batch_id',
         'code',
-        'denomination',
-        'currency',
-        'balance',
+        'pin_hash',
+        'amount',
+        'currency_code',
         'status',
-        'purchased_by_customer_id',
-        'recipient_email',
-        'recipient_phone',
-        'recipient_name',
-        'personal_message',
-        'created_by_admin_id',
-        'activated_at',
+        'redeemed_by_customer_id',
+        'redeemed_at',
         'expires_at',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
+    protected $hidden = [
+        'pin_hash',
+    ];
+
     protected $casts = [
-        'denomination' => 'integer',
-        'balance' => 'integer',
-        'activated_at' => 'datetime',
+        'amount' => 'integer',
+        'redeemed_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
 
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(GiftCardBatch::class, 'gift_card_batch_id');
+    }
+
+    public function redeemedByCustomer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'redeemed_by_customer_id');
+    }
+
+    public function getIsExpiredAttribute(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    public function getIsRedeemableAttribute(): bool
+    {
+        return $this->status === 'active' && !$this->is_expired;
+    }
+
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('status', 'active')
-            ->where('expires_at', '>', now())
-            ->where('balance', '>', 0);
+        return $query->where('status', 'active');
     }
 
-    public function purchasedByCustomer(): BelongsTo
+    public function scopeExpired(Builder $query): Builder
     {
-        return $this->belongsTo(Customer::class, 'purchased_by_customer_id');
+        return $query->where('expires_at', '<', now())->where('status', '!=', 'expired');
     }
 
-    public function createdByAdmin(): BelongsTo
+    public static function generateCode(): string
     {
-        return $this->belongsTo(Admin::class, 'created_by_admin_id');
-    }
+        do {
+            $code = strtoupper(Str::random(16));
+        } while (static::where('code', $code)->exists());
 
-    public function transactions(): HasMany
-    {
-        return $this->hasMany(GiftCardTransaction::class);
+        return $code;
     }
 }
