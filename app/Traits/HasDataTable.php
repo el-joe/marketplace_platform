@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -105,7 +106,7 @@ trait HasDataTable
      *       'date_to'    => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
      *   ]);
      */
-    protected function applyFilters(Builder|QueryBuilder $query, Request $request, array $scopes): Builder|QueryBuilder
+    protected function applyFilters(Builder|QueryBuilder|Relation $query, Request $request, array $scopes): Builder|QueryBuilder|Relation
     {
         foreach ($scopes as $param => $scope) {
             $value = $request->input($param);
