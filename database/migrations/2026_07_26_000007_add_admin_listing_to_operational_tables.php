@@ -11,7 +11,7 @@ return new class extends Migration {
         // ── virtual_tryon_sessions ──────────────────────────────────────────
         Schema::table('virtual_tryon_sessions', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->restrictOnDelete();
         });
 
         DB::statement('ALTER TABLE virtual_tryon_sessions MODIFY vendor_listing_id CHAR(36) NULL');
@@ -37,7 +37,7 @@ return new class extends Migration {
         // ── inventory_transfer_items ────────────────────────────────────────
         Schema::table('inventory_transfer_items', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->restrictOnDelete();
         });
 
         DB::statement('ALTER TABLE inventory_transfer_items MODIFY vendor_listing_id CHAR(36) NULL');
@@ -54,7 +54,7 @@ return new class extends Migration {
         // ── fbn_inbound_requests ────────────────────────────────────────────
         Schema::table('fbn_inbound_requests', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->restrictOnDelete();
         });
 
         DB::statement('ALTER TABLE fbn_inbound_requests MODIFY vendor_id CHAR(36) NULL');
@@ -78,12 +78,16 @@ return new class extends Migration {
 
         // ── vendor_campaign_offer_products ──────────────────────────────────
         Schema::table('vendor_campaign_offer_products', function (Blueprint $table) {
+            $table->dropForeign(['vendor_campaign_offer_id']);
+            $table->dropForeign(['vendor_listing_id']);
             $table->dropUnique('v_c_o_products_unique');
         });
 
         Schema::table('vendor_campaign_offer_products', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
             $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            $table->foreign('vendor_listing_id')->references('id')->on('vendor_listings')->cascadeOnDelete();
+            $table->foreign('vendor_campaign_offer_id')->references('id')->on('vendor_campaign_offers')->cascadeOnDelete();
         });
 
         DB::statement('ALTER TABLE vendor_campaign_offer_products MODIFY vendor_listing_id CHAR(36) NULL');

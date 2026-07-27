@@ -239,6 +239,9 @@ function renderVariantRows(variants) {
   <td class="px-4 py-3"><input type="text" name="variants[${i}][slug]" value="${esc(v.slug || '')}" maxlength="255" class="form-input text-sm py-1.5 w-full variant-slug-input" /></td>
   <td class="px-4 py-3"><input type="text" name="variants[${i}][barcode]" value="${esc(v.barcode)}" class="form-input text-sm py-1.5 w-full" /></td>
   <td class="px-4 py-3"><input type="number" name="variants[${i}][weight_grams]" value="${esc(v.weight_grams)}" min="0" class="form-input text-sm py-1.5 w-full" /></td>
+  <td class="px-4 py-3">
+    <span class="text-xs text-gray-400 italic">${esc(T.pendingUrlHint || 'Save the product to generate a URL')}</span>
+  </td>
   <td class="px-4 py-3 text-center">
     <input type="radio" name="variants_default" value="${i}" class="text-primary-600 border-gray-300 variant-default-radio" ${v.is_default ? 'checked' : ''} />
     <input type="hidden" name="variants[${i}][is_default]" value="${v.is_default ? '1' : '0'}" class="default-flag" />

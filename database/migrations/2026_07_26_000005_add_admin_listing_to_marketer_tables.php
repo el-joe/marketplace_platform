@@ -35,7 +35,7 @@ return new class extends Migration {
 
         Schema::table('marketer_secret_promotions', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->restrictOnDelete();
         });
 
         DB::statement(<<<'SQL'
@@ -62,7 +62,7 @@ return new class extends Migration {
 
         Schema::table('marketer_sample_items', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->restrictOnDelete();
         });
 
         DB::statement(<<<'SQL'

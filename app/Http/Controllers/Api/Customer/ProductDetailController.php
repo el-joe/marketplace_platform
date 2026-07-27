@@ -2,213 +2,220 @@
 
 namespace App\Http\Controllers\Api\Customer;
 
+use App\Enums\AdminProductListingStatus;
+use App\Enums\AttributeType;
+use App\Enums\ProductStatus;
 use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Customer\ListingDetailController;
 use App\Http\Responses\ApiResponse;
 use App\Models\AdminProductListing;
 use App\Models\Attribute;
-use App\Models\Country;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\VendorListing;
 use App\Services\AppContextService;
-use App\Services\VariantSlugService;
+use App\Services\VariantResolutionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class ProductDetailController extends Controller
 {
     public function __construct(
-        private readonly VariantSlugService $variantSlugService,
+        private readonly VariantResolutionService $variantResolutionService,
         private readonly AppContextService $appContext,
     ) {
     }
 
-    /**
-     * $productSlug and $variantSlug arrive already resolved to models via the
-     * Route::bind bindings registered in AppServiceProvider (parameter names
-     * must match the route segment names for implicit substitution to apply).
-     */
-    public function show(Product $productSlug, ProductVariant $variantSlug, Request $request): JsonResponse
+    public function show(string $variantId, string $listingId, Request $request): JsonResponse
     {
-        $product = $productSlug->loadMissing(['brand', 'category']);
-        $variant = $variantSlug;
-
-        $country = $this->resolveCountry($request);
-
-        if (!$country) {
-            return ApiResponse::error('Country not found or not active.', [], 404);
-        }
-
-        $isNawyNow = $this->appContext->isNawyNow();
-
-        [$listing, $listingType] = $this->resolveListing($product, $variant, $country, $isNawyNow, $request);
-
-        return ApiResponse::success([
-            'product' => $this->productShape($product),
-            'variant' => $this->variantShape($variant),
-            'listing' => $listing ? $this->listingShape($listing, $listingType, $country) : null,
-            'attributes' => $this->buildAttributeMatrix($product, $variant, $country, $isNawyNow),
-            'other_sellers' => $isNawyNow ? [] : $this->buildOtherSellers($variant, $country),
-            'images' => $this->buildImages($product, $variant),
-        ]);
-    }
-
-    public function resolveVariant(Product $productSlug, Request $request): JsonResponse
-    {
-        $product = $productSlug;
-
-        $data = $request->validate([
-            'current_variant_slug' => ['required', 'string'],
-            'changed_attribute_id' => ['required', 'uuid'],
-            'new_attribute_value_id' => ['required', 'uuid'],
-            'country_id' => ['nullable', 'uuid'],
-        ]);
-
-        $country = $data['country_id'] ?? null
-            ? Country::find($data['country_id'])
-            : $this->resolveCountry($request);
-
-        if (!$country) {
-            return ApiResponse::error('Country not found or not active.', [], 404);
-        }
-
-        $currentVariant = $this->variantSlugService->resolveVariant($product, $data['current_variant_slug']);
-
-        if (!$currentVariant) {
-            return ApiResponse::error('Variant not found', [], 404);
-        }
-
-        $currentAttributeValueIds = $currentVariant->variantAttributeValues()
-            ->get()
-            ->pluck('id', 'attribute_id')
-            ->map(fn ($id) => (string) $id)
-            ->all();
-
-        $targetVariant = $this->variantSlugService->resolveVariantAfterAttributeChange(
-            $product,
-            $currentAttributeValueIds,
-            $data['changed_attribute_id'],
-            $data['new_attribute_value_id'],
-        );
-
-        if (!$targetVariant) {
-            return ApiResponse::success([
-                'available' => false,
-                'target_variant_slug' => null,
-                'target_listing_id' => null,
-            ]);
-        }
-
-        $isNawyNow = $this->appContext->isNawyNow();
-
-        $targetListing = $isNawyNow
-            ? $this->variantSlugService->bestAdminListing($targetVariant, $country->id)
-            : $this->variantSlugService->bestVendorListing($targetVariant, $country->id);
-
-        if (!$targetListing) {
-            return ApiResponse::success([
-                'available' => false,
-                'target_variant_slug' => null,
-                'target_listing_id' => null,
-            ]);
-        }
-
-        return ApiResponse::success([
-            'available' => true,
-            'target_variant_slug' => $targetVariant->slug,
-            'target_listing_id' => $targetListing->id,
-            'target_url' => "/products/{$product->slug}/{$targetVariant->slug}?listing={$targetListing->id}",
-        ]);
-    }
-
-    /**
-     * GET /products/{productSlug} — old-style URL without a variant slug.
-     * Resolves the product's default variant and best listing, then 301s to
-     * the canonical /products/{productSlug}/{variantSlug} URL. Falls back to
-     * the legacy identifier-based listing lookup (UUID, SKU, listing ref) for
-     * anything that isn't a bare product slug, since this and the pre-existing
-     * catch-all identifier route occupy the same single-segment URL shape.
-     */
-    public function redirectLegacy(string $identifier, Request $request, ListingDetailController $listingDetailController): JsonResponse|\Illuminate\Http\RedirectResponse
-    {
-        $product = Product::where('slug', $identifier)
-            ->where('status', 'active')
-            ->first();
-
-        if (!$product) {
-            return $listingDetailController->show($request, $request->route('country'), $identifier);
-        }
-
-        $variant = $product->variants()
+        $variant = ProductVariant::with(['product.brand', 'product.category'])
+            ->where('id', $variantId)
             ->where('is_active', true)
-            ->orderByDesc('is_default')
-            ->orderBy('position')
+            ->whereNull('deleted_at')
             ->first();
 
         if (!$variant) {
             return ApiResponse::error('Product not found.', [], 404);
         }
 
-        $country = $this->resolveCountry($request);
+        $product = $variant->product;
 
-        if (!$country) {
+        if (!$product || $product->status !== ProductStatus::Active) {
+            return ApiResponse::error('Product not found.', [], 404);
+        }
+
+        $countryId = $this->resolveCountryId($request);
+
+        if (!$countryId) {
+            return ApiResponse::error('Country not found or not active.', [], 404);
+        }
+
+        $isNawyNow = $this->appContext->isNawyNow();
+
+        [$listing, $listingType] = $this->resolveListing($variantId, $listingId, $countryId, $isNawyNow);
+
+        if (!$listing) {
+            return ApiResponse::error('Listing not found', [], 404);
+        }
+
+        return ApiResponse::success([
+            'product' => $this->productShape($product),
+            'variant' => $this->variantShape($variant),
+            'listing' => $this->listingShape($listing, $listingType),
+            'images' => $this->buildImages($product, $variant),
+            'attributes' => $this->buildAttributeMatrix($product, $variant, $countryId, $isNawyNow),
+            'other_sellers' => $isNawyNow ? [] : $this->buildOtherSellers($variantId, $countryId, $listing),
+            'current_url' => "/products/{$variant->id}/{$listing->id}",
+        ]);
+    }
+
+    /**
+     * Backward-compat redirect for old URLs that identified a product by slug only.
+     */
+    public function redirectBySlug(string $productSlug, Request $request): mixed
+    {
+        $product = Product::where('slug', $productSlug)
+            ->where('status', ProductStatus::Active)
+            ->first();
+
+        if (!$product) {
+            return ApiResponse::error('Product not found.', [], 404);
+        }
+
+        $variant = $this->resolveDefaultVariant($product->id);
+
+        if (!$variant) {
+            return ApiResponse::error('Product not found.', [], 404);
+        }
+
+        return $this->redirectToVariantListing($variant, $request);
+    }
+
+    /**
+     * Backward-compat redirect for old URLs that identified a product + variant by slug.
+     */
+    public function redirectBySlugAndVariant(string $productSlug, string $variantSlug, Request $request): mixed
+    {
+        $product = Product::where('slug', $productSlug)
+            ->where('status', ProductStatus::Active)
+            ->first();
+
+        if (!$product) {
+            return ApiResponse::error('Product not found.', [], 404);
+        }
+
+        $variant = ProductVariant::where('product_id', $product->id)
+            ->where('variant_name', $variantSlug)
+            ->where('is_active', true)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$variant) {
+            $variant = $this->resolveDefaultVariant($product->id);
+        }
+
+        if (!$variant) {
+            return ApiResponse::error('Product not found.', [], 404);
+        }
+
+        return $this->redirectToVariantListing($variant, $request);
+    }
+
+    private function resolveDefaultVariant(string $productId): ?ProductVariant
+    {
+        $variant = ProductVariant::where('product_id', $productId)
+            ->where('is_default', 1)
+            ->where('is_active', true)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($variant) {
+            return $variant;
+        }
+
+        return ProductVariant::where('product_id', $productId)
+            ->where('is_active', true)
+            ->whereNull('deleted_at')
+            ->orderBy('position')
+            ->first();
+    }
+
+    private function redirectToVariantListing(ProductVariant $variant, Request $request): mixed
+    {
+        $countryId = $this->resolveCountryId($request);
+
+        if (!$countryId) {
             return ApiResponse::error('Country not found or not active.', [], 404);
         }
 
         $isNawyNow = $this->appContext->isNawyNow();
 
         $listing = $isNawyNow
-            ? $this->variantSlugService->bestAdminListing($variant, $country->id)
-            : $this->variantSlugService->bestVendorListing($variant, $country->id);
+            ? $this->variantResolutionService->bestAdminListing($variant->id, $countryId)
+            : $this->variantResolutionService->bestVendorListing($variant->id, $countryId);
 
-        $countrySegment = $request->route('country');
-        $url = "/api/customer/v1/{$countrySegment}/products/{$product->slug}/{$variant->slug}"
-            . ($listing ? "?listing={$listing->id}" : '');
+        if (!$listing) {
+            return ApiResponse::error('Listing not found', [], 404);
+        }
 
-        return redirect()->away($url, 301);
+        $redirectUrl = "/products/{$variant->id}/{$listing->id}";
+
+        if ($request->wantsJson() || $request->header('X-Requested-From') === 'mobile-app') {
+            return ApiResponse::success(['redirect_url' => $redirectUrl]);
+        }
+
+        return redirect($redirectUrl, 301);
     }
 
     /**
-     * @return array{0: VendorListing|AdminProductListing|null, 1: string|null}
+     * @return array{0: VendorListing|AdminProductListing|null, 1: string}
      */
-    private function resolveListing(
-        Product $product,
-        ProductVariant $variant,
-        Country $country,
-        bool $isNawyNow,
-        Request $request,
-    ): array {
-        $listingId = $request->query('listing');
-
-        if ($listingId) {
-            $resolved = $this->variantSlugService->resolveByListingId($product, $listingId);
-
-            if ($resolved && $resolved['variant']->id === $variant->id) {
-                return [$resolved['listing'], $resolved['type']];
-            }
-        }
-
+    private function resolveListing(string $variantId, string $listingId, string $countryId, bool $isNawyNow): array
+    {
         if ($isNawyNow) {
-            $listing = $this->variantSlugService->bestAdminListing($variant, $country->id);
+            $listing = AdminProductListing::where('id', $listingId)
+                ->where('product_variant_id', $variantId)
+                ->where('status', AdminProductListingStatus::Active)
+                ->first();
+
+            if (!$listing) {
+                $listing = $this->variantResolutionService->bestAdminListing($variantId, $countryId);
+            }
 
             return [$listing, 'admin'];
         }
 
-        $listing = $this->variantSlugService->bestVendorListing($variant, $country->id);
+        $listing = VendorListing::where('id', $listingId)
+            ->where('product_variant_id', $variantId)
+            ->whereIn('status', [VendorListingStatus::Active, VendorListingStatus::OutOfStock])
+            ->first();
+
+        if (!$listing) {
+            $listing = $this->variantResolutionService->bestVendorListing($variantId, $countryId);
+        }
 
         return [$listing, 'vendor'];
+    }
+
+    private function resolveCountryId(Request $request): ?string
+    {
+        $customer = auth('customer')->user();
+
+        if ($customer) {
+            return $customer->country_id;
+        }
+
+        return $request->header('X-Country-Id');
     }
 
     private function productShape(Product $product): array
     {
         return [
             'id' => $product->id,
-            'slug' => $product->slug,
             'name_en' => $product->name_en,
             'name_ar' => $product->name_ar,
+            'slug' => $product->slug,
             'description_en' => $product->description_en,
             'description_ar' => $product->description_ar,
             'short_desc_en' => $product->short_desc_en,
@@ -217,20 +224,14 @@ class ProductDetailController extends Controller
                 'id' => $product->brand->id,
                 'name_en' => $product->brand->name_en,
                 'name_ar' => $product->brand->name_ar,
-                'logo' => $product->brand->logo_url,
+                'logo_path' => $product->brand->logo_url,
             ] : null,
             'category' => $product->category ? [
                 'id' => $product->category->id,
                 'name_en' => $product->category->name_en,
                 'name_ar' => $product->category->name_ar,
+                'slug' => $product->category->slug,
             ] : null,
-            'variants' => $product->variants()
-                ->where('is_active', true)
-                ->get()
-                ->map(fn (ProductVariant $variant) => [
-                    'id' => $variant->id,
-                    'slug' => $variant->slug,
-                ])->values()->all(),
         ];
     }
 
@@ -238,187 +239,189 @@ class ProductDetailController extends Controller
     {
         return [
             'id' => $variant->id,
-            'slug' => $variant->slug,
             'sku' => $variant->sku,
             'variant_name' => $variant->variant_name,
-            'images' => $variant->images()
-                ->orderBy('position')
-                ->get()
-                ->map(fn ($image) => [
-                    'id' => $image->id,
-                    'url' => $image->url,
-                    'is_primary' => (bool) $image->is_primary,
-                ])->values()->all(),
+            'weight_grams' => $variant->weight_grams,
+            'length_cm' => $variant->length_cm,
+            'width_cm' => $variant->width_cm,
+            'height_cm' => $variant->height_cm,
         ];
     }
 
-    private function listingShape(VendorListing|AdminProductListing $listing, string $listingType, Country $country): array
+    private function listingShape(VendorListing|AdminProductListing $listing, string $listingType): array
     {
-        $sellerInfo = $listingType === 'vendor'
-            ? [
-                'seller_type' => 'vendor',
-                'seller_name' => $listing->vendor?->store_name,
-                'seller_slug' => $listing->vendor?->store_slug,
-            ]
-            : [
-                'seller_type' => 'admin',
-                'seller_name' => 'Nawy Now',
-                'seller_slug' => null,
-            ];
-
-        return [
-            'listing_id' => $listing->id,
+        $shape = [
+            'id' => $listing->id,
             'listing_type' => $listingType,
-            'price' => (int) $listing->price,
-            'compare_at_price' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,
-            'currency' => $listing->currency ?? $country->currency_code,
-            'shipping_cost' => $listingType === 'admin' ? (int) $listing->shipping_cost : null,
+            'price' => $listing->price,
+            'compare_at_price' => $listing->compare_at_price,
+            'currency' => $listing->currency,
+            'shipping_cost' => $listingType === 'admin' ? $listing->shipping_cost : null,
             'fulfillment_type' => $listingType === 'admin' ? $listing->fulfillment_type : $listing->fulfillment_model,
             'payment_options' => $listingType === 'admin' ? $listing->payment_options : null,
-            'rating_avg' => (float) $listing->rating_avg,
-            'rating_count' => (int) $listing->rating_count,
-            'status' => $listing->status?->value,
-        ] + $sellerInfo;
+            'status' => $listing->status instanceof \BackedEnum ? $listing->status->value : $listing->status,
+            'rating_avg' => $listing->rating_avg,
+            'rating_count' => $listing->rating_count,
+        ];
+
+        if ($listingType === 'vendor') {
+            $listing->loadMissing('vendor');
+
+            $shape['vendor'] = $listing->vendor ? [
+                'id' => $listing->vendor->id,
+                'name_en' => $listing->vendor->store_name,
+                'name_ar' => $listing->vendor->store_name,
+                'slug' => $listing->vendor->store_slug,
+                'rating_avg' => $listing->vendor->store_rating_avg,
+            ] : null;
+        }
+
+        return $shape;
     }
 
     /**
-     * The per-attribute-value availability lookup below runs a resolveVariantAfterAttributeChange
-     * + best-listing query for every value of every variant attribute, which gets expensive on
-     * products with many attributes/values. That part depends only on product + country + selling
-     * context (nawy_now vs. vendor), not on which variant is currently selected, so it's cached
-     * separately (TTL 5 min) and invalidated whenever a listing's status/price changes
-     * (see VendorListingObserver / AdminProductListingObserver). The "is_selected" / selected-value
-     * fields below depend on the current variant and are computed fresh on every request.
+     * Builds the swatch/attribute matrix. For every variant-type attribute of the
+     * product's category, collects the union of values across all active variants
+     * of the product, and resolves what variant/listing each value would lead to.
      */
-    private function buildAttributeMatrix(Product $product, ProductVariant $variant, Country $country, bool $isNawyNow): array
+    private function buildAttributeMatrix(Product $product, ProductVariant $variant, string $countryId, bool $isNawyNow): array
     {
-        $cacheKey = sprintf(
-            'product.%s.variant_matrix.%s.%s',
-            $product->id,
-            $country->id,
-            $isNawyNow ? 'admin' : 'vendor',
-        );
+        $attributes = Attribute::query()
+            ->join('category_attributes', 'category_attributes.attribute_id', '=', 'attributes.id')
+            ->where('category_attributes.category_id', $product->category_id)
+            ->where('attributes.is_variant_attribute', true)
+            ->orderBy('attributes.sort_order')
+            ->orderBy('category_attributes.sort_order')
+            ->select('attributes.*')
+            ->get();
 
-        $cachedAttributes = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($product, $country, $isNawyNow) {
-            $attributes = Attribute::query()
-                ->join('category_attributes', 'category_attributes.attribute_id', '=', 'attributes.id')
-                ->where('category_attributes.category_id', $product->category_id)
-                ->where('attributes.is_variant_attribute', true)
-                ->orderBy('attributes.sort_order')
-                ->select('attributes.*')
-                ->with('values')
-                ->get();
+        if ($attributes->isEmpty()) {
+            return [];
+        }
 
-            return $attributes->map(function (Attribute $attribute) use ($product, $country, $isNawyNow) {
-                $values = $attribute->values->map(function ($value) use ($attribute, $product, $country, $isNawyNow) {
-                    $targetVariant = $this->variantSlugService->resolveVariantAfterAttributeChange(
-                        $product,
-                        [],
-                        $attribute->id,
-                        $value->id,
-                    );
+        $currentMap = $this->variantResolutionService->getVariantAttributeMap($variant->id);
 
-                    $targetListing = null;
+        $allVariants = ProductVariant::where('product_id', $product->id)
+            ->where('is_active', true)
+            ->whereNull('deleted_at')
+            ->with(['variantAttributes.attribute', 'variantAttributes.attributeValue'])
+            ->get();
 
-                    if ($targetVariant) {
-                        $targetListing = $isNawyNow
-                            ? $this->variantSlugService->bestAdminListing($targetVariant, $country->id)
-                            : $this->variantSlugService->bestVendorListing($targetVariant, $country->id);
+        $matrix = [];
+
+        foreach ($attributes as $attribute) {
+            $valuesById = [];
+
+            foreach ($allVariants as $otherVariant) {
+                foreach ($otherVariant->variantAttributes as $variantAttribute) {
+                    if ($variantAttribute->attribute_id === $attribute->id && $variantAttribute->attributeValue) {
+                        $valuesById[$variantAttribute->attribute_value_id] = $variantAttribute->attributeValue;
                     }
+                }
+            }
 
-                    return [
-                        'attribute_value_id' => $value->id,
-                        'value_en' => $value->value_en,
-                        'value_ar' => $value->value_ar,
-                        'slug' => $value->slug,
-                        'code_hex' => $attribute->type?->value === 'color' ? $value->code_hex : null,
-                        'is_available' => $targetVariant !== null && $targetListing !== null,
-                        'target_variant_slug' => $targetVariant?->slug,
-                        'target_listing_id' => $targetListing?->id,
-                    ];
-                })->values()->all();
+            $selectedValueId = $currentMap[$attribute->id] ?? null;
+
+            $values = collect($valuesById)->map(function ($attributeValue) use (
+                $attribute,
+                $selectedValueId,
+                $product,
+                $variant,
+                $countryId,
+                $isNawyNow,
+            ) {
+                $isSelected = $selectedValueId !== null && (string) $attributeValue->id === (string) $selectedValueId;
+
+                $targetVariant = $this->variantResolutionService->resolveVariantAfterChange(
+                    $product->id,
+                    $variant->id,
+                    $attribute->id,
+                    $attributeValue->id,
+                );
+
+                $targetListing = null;
+
+                if ($targetVariant) {
+                    $targetListing = $isNawyNow
+                        ? $this->variantResolutionService->bestAdminListing($targetVariant->id, $countryId)
+                        : $this->variantResolutionService->bestVendorListing($targetVariant->id, $countryId);
+                }
 
                 return [
-                    'attribute_id' => $attribute->id,
-                    'attribute_code' => $attribute->code,
-                    'attribute_name_en' => $attribute->name_en,
-                    'attribute_name_ar' => $attribute->name_ar,
-                    'type' => $attribute->type?->value,
-                    'values' => $values,
+                    'attribute_value_id' => $attributeValue->id,
+                    'value_en' => $attributeValue->value_en,
+                    'value_ar' => $attributeValue->value_ar,
+                    'code_hex' => $attribute->type === AttributeType::Color ? $attributeValue->color_hex : null,
+                    'is_selected' => $isSelected,
+                    'is_available' => $targetVariant !== null && $targetListing !== null,
+                    'target_variant_id' => $targetVariant?->id,
+                    'target_listing_id' => $targetListing?->id,
+                    'target_url' => ($targetVariant && $targetListing)
+                        ? "/products/{$targetVariant->id}/{$targetListing->id}"
+                        : null,
                 ];
             })->values()->all();
-        });
 
-        $selectedValueIds = $variant->variantAttributeValues()
-            ->get()
-            ->pluck('id', 'attribute_id')
-            ->map(fn ($id) => (string) $id)
-            ->all();
+            $matrix[] = [
+                'attribute_id' => $attribute->id,
+                'attribute_code' => $attribute->code,
+                'attribute_name_en' => $attribute->name_en,
+                'attribute_name_ar' => $attribute->name_ar,
+                'type' => $attribute->type?->value,
+                'selected_value_id' => $selectedValueId,
+                'values' => $values,
+            ];
+        }
 
-        return array_map(function (array $attribute) use ($selectedValueIds) {
-            $selectedValueId = $selectedValueIds[$attribute['attribute_id']] ?? null;
-
-            $attribute['selected_value_id'] = $selectedValueId;
-            $attribute['values'] = array_map(function (array $value) use ($selectedValueId) {
-                $value['is_selected'] = $selectedValueId !== null && (string) $value['attribute_value_id'] === $selectedValueId;
-
-                return $value;
-            }, $attribute['values']);
-
-            $selectedValue = collect($attribute['values'])->firstWhere('attribute_value_id', $selectedValueId);
-            $attribute['selected_value_slug'] = $selectedValue['slug'] ?? null;
-
-            return $attribute;
-        }, $cachedAttributes);
+        return $matrix;
     }
 
-    private function buildOtherSellers(ProductVariant $variant, Country $country): array
+    private function buildOtherSellers(string $variantId, string $countryId, VendorListing|AdminProductListing $currentListing): array
     {
-        return $variant->vendorListings()
-            ->where('country_id', $country->id)
-            ->where('status', VendorListingStatus::Active->value)
-            ->with('vendor')
-            ->orderBy('price')
+        return VendorListing::where('product_variant_id', $variantId)
+            ->where('country_id', $countryId)
+            ->whereIn('status', [VendorListingStatus::Active, VendorListingStatus::OutOfStock])
+            ->with('vendor:id,store_name,store_slug,store_rating_avg')
+            ->orderByRaw("CASE WHEN status = ? THEN 0 ELSE 1 END", [VendorListingStatus::Active->value])
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderBy('rating_count', 'desc')
+            ->orderBy('price', 'asc')
             ->limit(10)
             ->get()
             ->map(fn (VendorListing $listing) => [
                 'listing_id' => $listing->id,
                 'vendor_name' => $listing->vendor?->store_name,
                 'vendor_slug' => $listing->vendor?->store_slug,
-                'price' => (int) $listing->price,
-                'currency' => $listing->currency ?? $country->currency_code,
+                'price' => $listing->price,
+                'currency' => $listing->currency,
                 'shipping_cost' => null,
-                'rating_avg' => (float) $listing->rating_avg,
+                'status' => $listing->status instanceof \BackedEnum ? $listing->status->value : $listing->status,
+                'rating_avg' => $listing->rating_avg,
+                'is_current_listing' => (string) $listing->id === (string) $currentListing->id,
             ])->values()->all();
     }
 
     private function buildImages(Product $product, ProductVariant $variant): array
     {
-        $variantImages = $variant->images()->orderBy('position')->get();
-        $productImages = $product->images()->orderBy('position')->get();
+        $variantImages = ProductImage::where('product_variant_id', $variant->id)
+            ->orderBy('position')
+            ->get();
+
+        $productImages = ProductImage::where('product_id', $product->id)
+            ->whereNull('product_variant_id')
+            ->orderBy('position')
+            ->get();
 
         return $variantImages->concat($productImages)
-            ->map(fn ($image) => [
+            ->map(fn (ProductImage $image) => [
                 'id' => $image->id,
-                'url' => $image->url,
+                'path' => $image->path,
+                'disk' => $image->disk,
+                'alt_text_en' => $image->alt_text_en,
+                'alt_text_ar' => $image->alt_text_ar,
+                'position' => $image->position,
                 'is_primary' => (bool) $image->is_primary,
             ])->values()->all();
-    }
-
-    private function resolveCountry(Request $request): ?Country
-    {
-        $country = $request->attributes->get('country');
-
-        if ($country instanceof Country) {
-            return $country;
-        }
-
-        $customerId = auth('customer')->id();
-
-        if ($customerId) {
-            return auth('customer')->user()?->country;
-        }
-
-        return null;
     }
 }

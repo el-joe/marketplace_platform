@@ -109,6 +109,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/', 'store')->name('store')->middleware('vendor.can:listings.create');
         Route::get('/product-search', 'productSearch')->name('product-search')->middleware('vendor.can:listings.view');
         Route::get('/products/{product}/variants/{variant}/slug-preview', 'slugPreview')->name('slug-preview')->middleware('vendor.can:listings.view');
+        Route::get('/variants/{variant}/url-info', 'variantUrlInfo')->name('variants.url-info')->middleware('vendor.can:listings.view');
         Route::get('/warehouses-by-country', 'warehousesByCountry')->name('warehouses-by-country')->middleware('vendor.can:listings.view');
         Route::get('/{listing}/edit', 'edit')->name('edit')->middleware('vendor.can:listings.edit');
         Route::put('/{listing}', 'update')->name('update')->middleware('vendor.can:listings.edit');

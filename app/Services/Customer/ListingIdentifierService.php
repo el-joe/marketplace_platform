@@ -70,7 +70,9 @@ class ListingIdentifierService
         return VendorListing::whereHas('productVariant', fn ($q) => $q->where('sku', $identifier))
             ->where('country_id', $country->id)
             ->when($activeOnly, fn ($q) => $q->where('status', VendorListingStatus::Active->value))
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
             ->with(self::EAGER_LOADS)
             ->first();
@@ -96,7 +98,9 @@ class ListingIdentifierService
         return VendorListing::whereHas('productVariant', fn ($q) => $q->where('product_id', $product->id))
             ->where('country_id', $country->id)
             ->where('status', VendorListingStatus::Active->value)
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
             ->with(self::EAGER_LOADS)
             ->first();
@@ -131,6 +135,9 @@ class ListingIdentifierService
 
         return $base()
             ->whereHas('productVariant', fn ($q) => $q->where('product_id', $product->id))
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
             ->with(self::ADMIN_EAGER_LOADS)
             ->first();
@@ -177,7 +184,9 @@ class ListingIdentifierService
             ->where('status', VendorListingStatus::Active->value)
             ->whereHas('vendor', fn ($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
             ->with(['vendor:id,store_name,store_rating_avg', 'primaryShippingMethod'])
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
             ->limit(10)
             ->get();
@@ -195,7 +204,9 @@ class ListingIdentifierService
                     'productVariant.variantAttributes.attributeValue',
                     'primaryShippingMethod',
                 ])
-                ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+                ->orderByRaw('score IS NULL, score DESC')
+                ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+                ->orderByDesc('rating_count')
                 ->orderBy('price')
                 ->first())
             ->filter()

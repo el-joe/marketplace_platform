@@ -192,6 +192,7 @@ class ListingController extends Controller
             ->where('admin_product_listings.featured_in_nawy', 1)
             ->leftJoin('categories', 'categories.id', '=', 'admin_product_listings.nawy_category_id')
             ->with([
+                'productVariant.images',
                 'productVariant.product.images',
                 'productVariant.product.category',
                 'nawyCategory',
@@ -222,6 +223,7 @@ class ListingController extends Controller
             ->where('status', VendorListingStatus::Active->value)
             ->whereNull('deleted_at')
             ->with([
+                'productVariant.images',
                 'productVariant.product.images',
                 'productVariant.product.category',
             ]);

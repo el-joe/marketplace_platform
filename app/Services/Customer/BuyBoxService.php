@@ -34,7 +34,9 @@ class BuyBoxService
             ->whereHas('warehouseInventories', function ($q) {
                 $q->where('quantity_available', '>', 0);
             })
-            ->orderByDesc('score')
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
             ->get();
     }

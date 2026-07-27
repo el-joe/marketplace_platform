@@ -147,6 +147,8 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             ->name('variants.show');
         Route::get('/{product}/variants/{variant}/slug-preview', [ProductController::class, 'slugPreview'])
             ->name('variants.slug-preview');
+        Route::get('/variants/{variant}/url-info', [ProductController::class, 'variantUrlInfo'])
+            ->name('variants.url-info');
         Route::patch('/{product}/variants/{variant}/regenerate-slug', [ProductController::class, 'regenerateVariantSlug'])
             ->name('variants.regenerate-slug')
             ->middleware('admin.permission:products.edit');

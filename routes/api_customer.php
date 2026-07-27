@@ -74,23 +74,6 @@ Route::prefix('v1/{country}')
         // ── Product catalog (public) ──────────────────────────────────────────
         Route::prefix('products')->name('customer.products.')->group(function (): void {
             Route::get('/', [ProductController::class, 'index'])->name('index');
-
-            // GET /products/{productSlug}/{variantSlug}?listing={listing_id} — product + variant detail
-            // {productSlug} and {variantSlug} are resolved to Product/ProductVariant models
-            // via the Route::bind bindings registered in AppServiceProvider::boot().
-            Route::get('{productSlug}/{variantSlug}', [ProductDetailController::class, 'show'])->name('show');
-
-            // POST /products/{productSlug}/resolve-variant — resolve target variant/listing after an attribute change.
-            // Rate limited: prevents brute-force enumeration of variant/attribute combinations.
-            Route::post('{productSlug}/resolve-variant', [ProductDetailController::class, 'resolveVariant'])
-                ->middleware('throttle:60,1')
-                ->name('resolve-variant');
-
-            // Legacy: bare product slug (no variant) redirects 301 to the canonical variant URL.
-            // Also carries forward the old /products/{identifier} → /l/{identifier} fallback for
-            // non-product identifiers (listing UUID, SKU, listing_ref). Must stay registered AFTER
-            // {productSlug}/{variantSlug} and {productSlug}/resolve-variant so those take priority.
-            Route::get('{identifier}', [ProductDetailController::class, 'redirectLegacy'])->name('show.redirect');
         });
 
         // ── Listing detail (public) ───────────────────────────────────────────
@@ -457,6 +440,20 @@ Route::prefix('v1/{country}')
         Route::get('products/{slug}/reviews', [ReviewController::class, 'indexByProduct'])
             ->name('customer.products.reviews');
     });
+
+// ── Product detail by variant + listing UUID (public, country-agnostic path —
+// country resolved from the authenticated customer or the X-Country-Id header) ──
+Route::get('v1/products/{variantId}/{listingId}', [ProductDetailController::class, 'show'])
+    ->whereUuid(['variantId', 'listingId'])
+    ->name('customer.products.show');
+
+// ── Backward-compat: old slug-only product URLs (must come AFTER the UUID
+// route above so they never intercept valid /products/{variantId}/{listingId} calls) ──
+Route::get('v1/products/{productSlug}/{variantSlug}', [ProductDetailController::class, 'redirectBySlugAndVariant'])
+    ->name('customer.products.redirect-by-slug-variant');
+
+Route::get('v1/products/{productSlug}', [ProductDetailController::class, 'redirectBySlug'])
+    ->name('customer.products.redirect-by-slug');
 
 // ── Nawy Now curated feed (public, country-agnostic path — country_id is a query param) ──
 Route::prefix('v1/nawy')->name('customer.nawy.')->group(function (): void {

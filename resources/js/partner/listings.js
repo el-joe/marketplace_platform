@@ -366,10 +366,11 @@ function selectVariant(data) {
 function fetchCustomerUrlPreview(productId, variantId) {
     const wrap = document.getElementById('customer-url-preview-wrap');
     const input = document.getElementById('customer-url-preview');
-    const template = window.LISTINGS_CREATE?.slugPreviewUrlTemplate;
-    if (!wrap || !input || !template || !productId || !variantId) return;
+    const summaryEl = document.getElementById('customer-url-attribute-summary');
+    const template = window.LISTINGS_CREATE?.urlInfoUrlTemplate;
+    if (!wrap || !input || !template || !variantId) return;
 
-    const url = template.replace('__PRODUCT__', productId).replace('__VARIANT__', variantId);
+    const url = template.replace('__VARIANT__', variantId);
 
     fetch(url, {
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -377,6 +378,7 @@ function fetchCustomerUrlPreview(productId, variantId) {
         .then((res) => res.json())
         .then((data) => {
             input.value = data.preview_url ?? '';
+            if (summaryEl) summaryEl.textContent = data.attribute_summary || '—';
             wrap.classList.remove('hidden');
         })
         .catch(() => {});
@@ -729,6 +731,20 @@ function initDetailPage() {
 // Boot
 // ─────────────────────────────────────────────────────────────────────────────
 
+function initCopyButtons() {
+    document.querySelectorAll('.js-copy').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const value = btn.dataset.value;
+            if (!value) return;
+            navigator.clipboard.writeText(value).then(() => {
+                const original = btn.textContent;
+                btn.textContent = 'تم النسخ!';
+                setTimeout(() => { btn.textContent = original; }, 1500);
+            }).catch(() => toast('فشل النسخ.', 'error'));
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initListingsDataTable();
     initPriceModal();
@@ -736,4 +752,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initChangeProduct();
     initCreateForm();
     initDetailPage();
+    initCopyButtons();
 });

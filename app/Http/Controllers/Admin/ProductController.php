@@ -306,6 +306,8 @@ class ProductController extends Controller
             ->orderBy('position')
             ->get();
 
+        $this->attachBestListingUrls($variants);
+
         $images = ProductImage::query()->from('product_images as pi')
             ->where('pi.product_id', $product)
             ->orderBy('pi.position')
@@ -594,6 +596,34 @@ class ProductController extends Controller
         ]);
     }
 
+    public function variantUrlInfo(string $variant): JsonResponse
+    {
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->whereNull('deleted_at')
+            ->with('product')
+            ->firstOrFail();
+
+        $attributes = $variantModel->variantAttributeValues()
+            ->with('attribute')
+            ->get()
+            ->map(fn ($value) => [
+                'name' => $value->attribute?->name_en,
+                'value' => $value->value_en,
+            ]);
+
+        return response()->json([
+            'variant_id' => $variantModel->id,
+            'variant_name' => $variantModel->variant_name,
+            'product_slug' => $variantModel->product?->slug,
+            'product_name_en' => $variantModel->product?->name_en,
+            'attribute_summary' => $attributes
+                ->map(fn ($attr) => "{$attr['name']}: {$attr['value']}")
+                ->implode(' | '),
+            'preview_url' => "/products/{$variantModel->id}/(new listing — ID assigned after save)",
+        ]);
+    }
+
     public function variantDetail(string $product, string $variant): JsonResponse
     {
         $variantModel = ProductVariant::query()
@@ -615,17 +645,65 @@ class ProductController extends Controller
         $vendorListingCount = $variantModel->vendorListings()->whereNull('deleted_at')->count();
         $adminListingCount = $variantModel->adminProductListings()->whereNull('deleted_at')->count();
 
+        $bestListingId = $this->cheapestActiveVendorListingId($variantModel->id);
+
         return response()->json([
             'data' => [
+                'variant_id' => $variantModel->id,
                 'slug' => $variantModel->slug,
                 'sku' => $variantModel->sku,
                 'attributes' => $attributes,
+                'attribute_summary' => $attributes
+                    ->map(fn ($attr) => "{$attr['name']}: {$attr['value']}")
+                    ->implode(' | '),
                 'images_count' => $imagesCount,
                 'vendor_listing_count' => $vendorListingCount,
                 'admin_listing_count' => $adminListingCount,
                 'listing_count' => $vendorListingCount + $adminListingCount,
+                'best_listing_id' => $bestListingId,
+                'customer_url' => $bestListingId
+                    ? "/products/{$variantModel->id}/{$bestListingId}"
+                    : null,
             ],
         ]);
+    }
+
+    /**
+     * Attach `best_listing_id` and `customer_url` to each variant: the cheapest
+     * active VendorListing for that variant across all countries (admin sees all).
+     */
+    private function attachBestListingUrls(\Illuminate\Support\Collection $variants): void
+    {
+        if ($variants->isEmpty()) {
+            return;
+        }
+
+        $bestListingIds = VendorListing::query()
+            ->whereIn('product_variant_id', $variants->pluck('id'))
+            ->where('status', \App\Enums\VendorListingStatus::Active)
+            ->whereNull('deleted_at')
+            ->orderBy('price')
+            ->get(['id', 'product_variant_id'])
+            ->groupBy('product_variant_id')
+            ->map(fn ($listings) => $listings->first()->id);
+
+        $variants->each(function (ProductVariant $variant) use ($bestListingIds) {
+            $bestListingId = $bestListingIds->get($variant->id);
+            $variant->best_listing_id = $bestListingId;
+            $variant->customer_url = $bestListingId
+                ? "/products/{$variant->id}/{$bestListingId}"
+                : null;
+        });
+    }
+
+    private function cheapestActiveVendorListingId(string $variantId): ?string
+    {
+        return VendorListing::query()
+            ->where('product_variant_id', $variantId)
+            ->where('status', \App\Enums\VendorListingStatus::Active)
+            ->whereNull('deleted_at')
+            ->orderBy('price')
+            ->value('id');
     }
 
     // ──────────────────────────────────────────────────────────────────────────

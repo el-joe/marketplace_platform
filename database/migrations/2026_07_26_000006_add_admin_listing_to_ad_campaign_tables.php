@@ -10,7 +10,7 @@ return new class extends Migration {
     {
         Schema::table('ad_campaign_products', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->restrictOnDelete();
         });
 
         DB::statement('ALTER TABLE ad_campaign_products MODIFY vendor_id CHAR(36) NULL');
@@ -27,7 +27,7 @@ return new class extends Migration {
 
         Schema::table('ad_clicks', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->restrictOnDelete();
         });
 
         DB::statement('ALTER TABLE ad_clicks MODIFY vendor_listing_id CHAR(36) NULL');

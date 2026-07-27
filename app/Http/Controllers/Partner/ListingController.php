@@ -337,6 +337,39 @@ class ListingController extends Controller
         ]);
     }
 
+    /**
+     * Read-only "customer URL" info for a product variant, shown live in the
+     * create/edit form so vendors can confirm which variant they picked
+     * before the listing (and its final URL) is saved.
+     */
+    public function variantUrlInfo(string $variant): JsonResponse
+    {
+        $variantModel = ProductVariant::query()
+            ->where('id', $variant)
+            ->whereNull('deleted_at')
+            ->with('product')
+            ->firstOrFail();
+
+        $attributes = $variantModel->variantAttributeValues()
+            ->with('attribute')
+            ->get()
+            ->map(fn ($value) => [
+                'name' => $value->attribute?->name_en,
+                'value' => $value->value_en,
+            ]);
+
+        return response()->json([
+            'variant_id' => $variantModel->id,
+            'variant_name' => $variantModel->variant_name,
+            'product_slug' => $variantModel->product?->slug,
+            'product_name_en' => $variantModel->product?->name_en,
+            'attribute_summary' => $attributes
+                ->map(fn ($attr) => "{$attr['name']}: {$attr['value']}")
+                ->implode(' | '),
+            'preview_url' => "/products/{$variantModel->id}/(new listing — ID assigned after save)",
+        ]);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Warehouses by Country (AJAX — for create form)
     // ─────────────────────────────────────────────────────────────────────────

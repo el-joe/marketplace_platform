@@ -9,6 +9,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('marketplace_shipping_rules', function (Blueprint $table) {
+            $table->dropForeign(['vendor_listing_id']);
             $table->dropUnique('marketplace_shipping_rules_vendor_listing_id_unique');
         });
 
@@ -20,6 +21,7 @@ return new class extends Migration {
             $table->unique('vendor_listing_id', 'uq_msr_vendor_listing');
             $table->unique('admin_product_listing_id', 'uq_msr_admin_listing');
 
+            $table->foreign('vendor_listing_id')->references('id')->on('vendor_listings')->cascadeOnDelete();
             $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->cascadeOnDelete();
         });
 
@@ -32,6 +34,7 @@ return new class extends Migration {
 
         Schema::table('marketplace_shipping_rules', function (Blueprint $table) {
             $table->dropForeign(['admin_product_listing_id']);
+            $table->dropForeign(['vendor_listing_id']);
             $table->dropUnique('uq_msr_admin_listing');
             $table->dropUnique('uq_msr_vendor_listing');
             $table->dropColumn('admin_product_listing_id');
@@ -41,6 +44,7 @@ return new class extends Migration {
 
         Schema::table('marketplace_shipping_rules', function (Blueprint $table) {
             $table->unique('vendor_listing_id', 'marketplace_shipping_rules_vendor_listing_id_unique');
+            $table->foreign('vendor_listing_id')->references('id')->on('vendor_listings')->cascadeOnDelete();
         });
     }
 };

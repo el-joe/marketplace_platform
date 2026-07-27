@@ -40,6 +40,17 @@
             </div>
         </div>
 
+        @php $customerUrl = "/products/{$listing->productVariant->id}/{$listing->id}"; @endphp
+        <div class="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+            <p class="text-xs font-semibold text-green-700 uppercase tracking-wide flex-shrink-0">Customer URL</p>
+            <input type="text" readonly value="{{ $customerUrl }}"
+                   class="flex-1 border border-green-200 bg-white rounded-lg px-3 py-1.5 text-xs font-mono text-gray-700 focus:outline-none">
+            <button type="button" class="js-copy inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 border border-green-300 rounded-lg hover:bg-green-100 flex-shrink-0"
+                    data-value="{{ $customerUrl }}">
+                Copy URL
+            </button>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
 
             {{-- ── Main column ─────────────────────────────────────────────── --}}
@@ -615,5 +626,21 @@
                 },
             };
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.js-copy').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var value = btn.dataset.value;
+                    if (!value) return;
+                    navigator.clipboard.writeText(value).then(function () {
+                        var original = btn.textContent;
+                        btn.textContent = 'Copied!';
+                        setTimeout(function () { btn.textContent = original; }, 1500);
+                    }).catch(function () {
+                        if (window.Toast) window.Toast.error('Copy failed.');
+                    });
+                });
+            });
+        });
     </script>
 @endpush

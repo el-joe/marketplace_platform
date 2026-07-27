@@ -9,6 +9,7 @@
         window.LISTINGS_CREATE = {
             productSearchUrl: '{{ route('partner.listings.product-search') }}',
             slugPreviewUrlTemplate: '{{ route('partner.listings.slug-preview', ['product' => '__PRODUCT__', 'variant' => '__VARIANT__']) }}',
+            urlInfoUrlTemplate: '{{ route('partner.listings.variants.url-info', ['variant' => '__VARIANT__']) }}',
             warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
@@ -95,6 +96,11 @@
 
                         <div id="customer-url-preview-wrap" class="hidden mt-4">
                             <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('partner.listings.customer_url') ?? 'Customer URL' }}</label>
+                            <p class="text-xs text-gray-400 mb-1">{{ __('partner.listings.customer_url_hint') ?? 'This is the URL customers will see for your listing.' }}</p>
+                            <p class="text-xs text-gray-500 mb-1">
+                                {{ __('partner.listings.attribute_summary') ?? 'Variant' }}:
+                                <span id="customer-url-attribute-summary" class="font-medium text-gray-700">—</span>
+                            </p>
                             <input type="text" id="customer-url-preview" readonly
                                 class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-xs font-mono text-gray-500 focus:outline-none">
                         </div>

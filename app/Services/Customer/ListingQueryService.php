@@ -123,7 +123,9 @@ class ListingQueryService
             'newest' => $builder->orderByDesc('created_at'),
             'best_selling' => $builder->orderByDesc('total_sold'),
             default => $builder
-                ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+                ->orderByRaw('score IS NULL, score DESC')
+                ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+                ->orderByDesc('rating_count')
                 ->orderBy('price'),
         };
     }
@@ -175,10 +177,10 @@ class ListingQueryService
                 'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
                 'productVariant:id,sku',
             ])
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
-            ->orderByDesc('total_sold')
-            ->orderByDesc('rating_avg')
             ->limit($limit)
             ->get();
     }
@@ -208,10 +210,10 @@ class ListingQueryService
                 'productVariant:id,sku,slug,variant_name,product_id',
                 'productVariant.images',
             ])
-            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
+            ->orderByDesc('rating_count')
             ->orderBy('price')
-            ->orderByDesc('total_sold')
-            ->orderByDesc('rating_avg')
             ->get()
             ->groupBy('product_variant_id');
 
@@ -256,10 +258,12 @@ class ListingQueryService
             'product_id' => $product->id,
             'product_slug' => $product->slug,
             'slug' => $product->slug,
+            'variant_id' => $variant->id,
             'variant_slug' => $variant->slug,
-            'product_url' => "/products/{$product->slug}/{$variant->slug}?listing={$listing->id}",
+            'product_url' => "/products/{$variant->id}/{$listing->id}",
             'variant_name' => $variant->variant_name ?? $variant->sku,
             'variant_image' => $variantImage,
+            'primary_image' => $variantImage,
             'name_en' => $product->name_en,
             'name_ar' => $product->name_ar,
             'thumbnail' => $product->images->first()?->url ?? null,

@@ -57,6 +57,21 @@
                     </div>
                 </div>
                 <p class="text-xs text-gray-400 mt-4">البلد: {{ $listing->country?->name_ar ?: $listing->country?->name_en }} ({{ $listing->currency }})</p>
+
+                @php $customerUrl = "/products/{$variant->id}/{$listing->id}"; @endphp
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('partner.listings.customer_url') ?? 'Customer URL' }}</label>
+                    <p class="text-xs text-gray-400 mb-1">{{ __('partner.listings.customer_url_hint') ?? 'This is the URL customers will see for your listing.' }}</p>
+                    <p class="text-xs text-gray-500 mb-1">{{ $variant->attributeSummary() }}</p>
+                    <div class="flex items-center gap-2">
+                        <input type="text" readonly value="{{ $customerUrl }}"
+                            class="flex-1 border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-xs font-mono text-gray-500 focus:outline-none">
+                        <button type="button" class="js-copy px-3 py-2 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                data-value="{{ $customerUrl }}">
+                            {{ __('partner.listings.copy_url') ?? 'Copy URL' }}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 

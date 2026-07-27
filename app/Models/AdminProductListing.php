@@ -180,6 +180,27 @@ class AdminProductListing extends Model
         return $query->where('featured_in_nawy', true);
     }
 
+    /**
+     * Restricts the query to the single best listing per (product_variant_id, country_id)
+     * using the platform-wide "best listing" ordering: score, rating, price.
+     */
+    public function scopeBestPerVariant(Builder $query, string $countryId): Builder
+    {
+        return $query->whereRaw('id = (
+            SELECT id FROM admin_product_listings apl2
+            WHERE apl2.product_variant_id = admin_product_listings.product_variant_id
+              AND apl2.country_id = ?
+              AND apl2.status = \'active\'
+              AND apl2.deleted_at IS NULL
+            ORDER BY
+                apl2.score IS NULL, apl2.score DESC,
+                apl2.rating_avg IS NULL, apl2.rating_avg DESC,
+                apl2.rating_count DESC,
+                apl2.price ASC
+            LIMIT 1
+        )', [$countryId]);
+    }
+
     /** Whether COD is an allowed payment method for this listing. */
     public function allowsCod(): bool
     {
