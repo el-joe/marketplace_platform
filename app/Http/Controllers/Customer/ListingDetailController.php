@@ -107,7 +107,11 @@ class ListingDetailController extends Controller
             'product' => $this->productShape($product, $listing),
             'product_attributes' => $productAttributes,
             'variant' => $this->variantShape($listing->productVariant),
-            'other_sellers' => $siblings['same_variant']->map(fn(VendorListing $l) => $this->otherSellerShape($l, $country))->values()->all(),
+            'other_sellers' => ($listing instanceof VendorListing ? $siblings['same_variant']->push($listing) : $siblings['same_variant'])
+                ->sortBy('price')
+                ->map(fn(VendorListing $l) => $this->otherSellerShape($l, $country, $l->id === $listing->id))
+                ->values()
+                ->all(),
             'other_variants' => $siblings['other_variants']->map(fn(VendorListing $l) => $this->otherVariantShape($l))->values()->all(),
             'reviews' => [
                 'rating_avg' => (float) $listing->rating_avg,
@@ -384,10 +388,11 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function otherSellerShape(VendorListing $listing, $country): array
+    private function otherSellerShape(VendorListing $listing, $country, bool $isSelected = false): array
     {
         return [
             'listing_id' => $listing->id,
+            'is_selected' => $isSelected,
             'listing_ref' => $this->identifiers->buildListingRef($listing),
             'url' => route('customer.listing.show', [$country->site_code, $listing->product_variant_id . '--' . $listing->id]),
             'seller_name' => $listing->vendor->store_name,
