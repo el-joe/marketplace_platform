@@ -11,9 +11,12 @@ class SellerListingResource extends JsonResource
     {
         $stock = $this->warehouseInventories->sum('quantity_available');
 
+        $country = $request->attributes->get('country');
+
         return [
             'id'                 => $this->id,
             'product_variant_id' => $this->product_variant_id,
+            'url'               => $country ? route('customer.listing.show', [$country->site_code, $this->product_variant_id . '--' . $this->id]) : null,
             'seller_name'       => $this->vendor?->store_name,
             'seller_slug'       => $this->vendor?->store_slug,
             'price'             => round($this->price / 100, 2),

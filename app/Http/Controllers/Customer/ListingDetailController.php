@@ -389,6 +389,7 @@ class ListingDetailController extends Controller
         return [
             'listing_id' => $listing->id,
             'listing_ref' => $this->identifiers->buildListingRef($listing),
+            'url' => route('customer.listing.show', [$country->site_code, $listing->product_variant_id . '--' . $listing->id]),
             'seller_name' => $listing->vendor->store_name,
             'seller_rating' => $listing->vendor->store_rating_avg,
             'price' => $listing->price,
