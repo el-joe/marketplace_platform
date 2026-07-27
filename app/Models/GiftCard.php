@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class GiftCard extends Model
@@ -46,6 +47,11 @@ class GiftCard extends Model
         return $this->belongsTo(Customer::class, 'redeemed_by_customer_id');
     }
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(GiftCardTransaction::class, 'gift_card_id');
+    }
+
     public function getIsExpiredAttribute(): bool
     {
         return $this->expires_at !== null && $this->expires_at->isPast();
@@ -61,12 +67,14 @@ class GiftCard extends Model
         return $query->where('status', 'active');
     }
 
-    public function scopeExpired(Builder $query): Builder
+    public function scopeExpiredStale(Builder $query): Builder
     {
-        return $query->where('expires_at', '<', now())->where('status', '!=', 'expired');
+        return $query->where('status', 'active')
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<', now());
     }
 
-    public static function generateCode(): string
+    public static function generateUniqueCode(): string
     {
         do {
             $code = strtoupper(Str::random(16));

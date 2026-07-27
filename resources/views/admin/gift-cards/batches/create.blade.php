@@ -61,7 +61,7 @@
                     </div>
                     <div>
                         <label for="expires_at" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.expires_at') }}</label>
-                        <input type="text" id="expires_at" name="expires_at" value="{{ old('expires_at') }}" data-flatpickr class="form-input" placeholder="YYYY-MM-DD">
+                        <input type="text" id="expires_at" name="expires_at" value="{{ old('expires_at') }}" data-flatpickr data-enable-time="true" class="form-input" placeholder="YYYY-MM-DD HH:MM">
                     </div>
                 </div>
 

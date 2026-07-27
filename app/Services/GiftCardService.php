@@ -6,6 +6,7 @@ use App\Exceptions\GiftCardAlreadyRedeemedException;
 use App\Exceptions\GiftCardCurrencyMismatchException;
 use App\Exceptions\GiftCardExpiredException;
 use App\Exceptions\GiftCardNotFoundException;
+use App\Exceptions\InsufficientWalletBalanceException;
 use App\Exceptions\InvalidGiftCardPinException;
 use App\Jobs\SendGiftCardNotificationJob;
 use App\Models\Admin;
@@ -240,15 +241,21 @@ class GiftCardService
             throw new InvalidGiftCardPinException();
         }
 
-        if (! $giftCard->is_redeemable) {
-            if ($giftCard->status !== 'active') {
-                throw new GiftCardAlreadyRedeemedException();
-            }
+        if ($giftCard->status === 'redeemed') {
+            throw new GiftCardAlreadyRedeemedException();
+        }
 
+        if ($giftCard->status === 'expired' || $giftCard->is_expired) {
             throw new GiftCardExpiredException();
         }
 
-        if ($giftCard->currency_code !== $customer->country?->currency_code) {
+        if ($giftCard->status !== 'active') {
+            throw new GiftCardNotFoundException();
+        }
+
+        $customerCurrency = $customer->country?->currency_code;
+
+        if ($giftCard->currency_code !== $customerCurrency) {
             throw new GiftCardCurrencyMismatchException();
         }
 
@@ -265,21 +272,38 @@ class GiftCardService
             );
 
             $wallet->credit($giftCard->amount);
-            $wallet->refresh();
+            $newBalance = $wallet->balance;
 
             WalletTransaction::create([
+                'wallet_id' => null,
                 'customer_id' => $customer->id,
                 'type' => 'gift_card_redeem',
                 'direction' => 'credit',
                 'amount' => $giftCard->amount,
-                'balance_after' => $wallet->balance,
+                'balance_after' => $newBalance,
                 'currency_code' => $giftCard->currency_code,
                 'reference_type' => GiftCard::class,
                 'reference_id' => $giftCard->id,
+                'source_type' => 'gift_card',
+                'source_id' => $giftCard->id,
+                'description' => 'Gift card redeemed',
+                'note' => null,
+                'performed_by_admin_id' => null,
+            ]);
+
+            GiftCardTransaction::create([
+                'gift_card_id' => $giftCard->id,
+                'order_id' => null,
+                'amount' => $giftCard->amount,
+                'balance_after' => $newBalance,
+                'type' => 'redemption',
+                'performed_by_customer_id' => $customer->id,
+                'performed_by_admin_id' => null,
+                'notes' => 'Redeemed by customer',
             ]);
 
             return [
-                'new_balance' => $wallet->balance,
+                'new_balance' => $newBalance,
                 'credited_amount' => $giftCard->amount,
                 'currency_code' => $giftCard->currency_code,
             ];
@@ -304,5 +328,74 @@ class GiftCardService
         return WalletTransaction::where('customer_id', $customer->id)
             ->latest('created_at')
             ->paginate($perPage);
+    }
+
+    public function applyWalletToOrder(Customer $customer, Order $order, int $walletAmountToUse): void
+    {
+        if ($walletAmountToUse <= 0) {
+            throw new \InvalidArgumentException('Wallet amount must be greater than zero.');
+        }
+
+        $wallet = CustomerWallet::where('customer_id', $customer->id)->firstOrFail();
+
+        if ($wallet->balance < $walletAmountToUse) {
+            throw new InsufficientWalletBalanceException();
+        }
+
+        if ($walletAmountToUse > $order->total) {
+            throw new \InvalidArgumentException('Wallet amount exceeds order total.');
+        }
+
+        DB::transaction(function () use ($customer, $order, $wallet, $walletAmountToUse) {
+            $wallet->debit($walletAmountToUse);
+
+            WalletTransaction::create([
+                'wallet_id' => null,
+                'customer_id' => $customer->id,
+                'type' => 'order_payment',
+                'direction' => 'debit',
+                'amount' => $walletAmountToUse,
+                'balance_after' => $wallet->balance,
+                'currency_code' => $wallet->currency_code,
+                'reference_type' => Order::class,
+                'reference_id' => $order->id,
+                'source_type' => 'order',
+                'source_id' => $order->id,
+                'description' => 'Wallet used for order payment',
+                'note' => null,
+                'performed_by_admin_id' => null,
+            ]);
+
+            $order->update(['wallet_amount_used' => $walletAmountToUse]);
+        });
+    }
+
+    public function refundToWallet(Customer $customer, Order $order, int $refundAmount): void
+    {
+        DB::transaction(function () use ($customer, $order, $refundAmount) {
+            $wallet = CustomerWallet::firstOrCreate(
+                ['customer_id' => $customer->id],
+                ['balance' => 0, 'currency_code' => $customer->country?->currency_code]
+            );
+
+            $wallet->credit($refundAmount);
+
+            WalletTransaction::create([
+                'wallet_id' => null,
+                'customer_id' => $customer->id,
+                'type' => 'order_refund',
+                'direction' => 'credit',
+                'amount' => $refundAmount,
+                'balance_after' => $wallet->balance,
+                'currency_code' => $wallet->currency_code,
+                'reference_type' => Order::class,
+                'reference_id' => $order->id,
+                'source_type' => 'order',
+                'source_id' => $order->id,
+                'description' => 'Refund credited to wallet',
+                'note' => null,
+                'performed_by_admin_id' => null,
+            ]);
+        });
     }
 }

@@ -26,9 +26,8 @@ class GiftCardBatch extends Model
 
     protected $casts = [
         'amount' => 'integer',
+        'quantity' => 'integer',
         'expires_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     public function giftCards(): HasMany
@@ -44,5 +43,15 @@ class GiftCardBatch extends Model
     public function scopeForCurrency(Builder $query, string $currency): Builder
     {
         return $query->where('currency_code', $currency);
+    }
+
+    public function getRedeemedCountAttribute(): int
+    {
+        return $this->giftCards()->where('status', 'redeemed')->count();
+    }
+
+    public function getActiveCountAttribute(): int
+    {
+        return $this->giftCards()->where('status', 'active')->count();
     }
 }

@@ -37,7 +37,6 @@ use App\Models\WarehouseInventory;
 use App\Models\WarrantyPurchase;
 use App\Services\Customer\CartService;
 use App\Services\Customer\CheckoutCalculationService;
-use App\Services\Customer\CheckoutWalletService;
 use App\Services\Customer\CityShippingSurchargeService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\WarehouseShippingSurchargeService;
@@ -65,7 +64,6 @@ class CheckoutController extends Controller
         private readonly WarehouseShippingSurchargeService $warehouseShippingSurchargeService,
         private readonly AffiliatePromoCodeService $affiliatePromoCodeService,
         private readonly ShippingSubsidyService $shippingSubsidyService,
-        private readonly CheckoutWalletService $checkoutWalletService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -255,9 +253,16 @@ class CheckoutController extends Controller
         $items = CheckoutItemResource::collection(collect($cartItems)->values());
 
         $wallet = CustomerWallet::where('customer_id', $customer->id)->first();
+        $orderCurrency = $cart->currency ?? $customer->country?->currency_code;
         $walletBalance = $wallet->balance ?? 0;
-        $walletCurrency = $wallet->currency_code ?? $cart->currency;
-        $walletApplicable = $wallet !== null && $wallet->currency_code === $cart->currency;
+        $walletCurrency = $wallet->currency_code ?? $orderCurrency;
+        $walletApplicable = $wallet !== null && $wallet->currency_code === $orderCurrency && $wallet->balance > 0;
+
+        $walletInfo = [
+            'balance' => $wallet?->balance ?? 0,
+            'currency_code' => $wallet?->currency_code ?? $orderCurrency,
+            'applicable' => $walletApplicable,
+        ];
 
         $vendorDeliveryResponse = collect($vendorShipping['per_vendor'])->map(fn ($v, $vendorId) => [
             'vendor_id' => $vendorId,
@@ -288,6 +293,7 @@ class CheckoutController extends Controller
             'wallet_balance' => $walletBalance,
             'wallet_currency' => $walletCurrency,
             'wallet_applicable' => $walletApplicable,
+            'wallet' => $walletInfo,
             'items' => $items,
         ], 'Checkout preview ready');
     }
@@ -651,10 +657,15 @@ class CheckoutController extends Controller
                     $this->giftCardService->redeem($giftCard, $giftCardAppliedCents, $order, $customer);
                 }
 
-                if (! empty($validated['wallet_amount_to_use'])) {
-                    $walletAmountToUse = min((int) $validated['wallet_amount_to_use'], $order->total);
-                    $this->checkoutWalletService->applyWalletToOrder($customer, $order, $walletAmountToUse);
+                $walletAmountRequested = $validated['wallet_amount_used'] ?? $validated['wallet_amount_to_use'] ?? 0;
+                if ($walletAmountRequested > 0) {
+                    $walletAmountToUse = min((int) $walletAmountRequested, $order->total);
+                    $this->giftCardService->applyWalletToOrder($customer, $order, $walletAmountToUse);
                     $order->refresh();
+
+                    if ($walletAmountToUse >= $order->total) {
+                        $order->update(['payment_method' => 'wallet']);
+                    }
                 }
 
                 if ($coupon) {

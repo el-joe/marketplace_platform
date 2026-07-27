@@ -21,6 +21,7 @@ class PlaceOrderRequest extends FormRequest
             'coupon_code'        => ['nullable', 'string', 'max:50'],
             'gift_card_code'     => ['nullable', 'string', 'max:20'],
             'wallet_amount_to_use' => ['nullable', 'integer', 'min:1'],
+            'wallet_amount_used' => ['nullable', 'integer', 'min:0'],
             'customer_notes'     => ['nullable', 'string', 'max:500'],
             'idempotency_key'    => ['required', 'string', 'max:100'],
             'gateway_token'      => ['required_if:payment_method,card', 'nullable', 'string'],

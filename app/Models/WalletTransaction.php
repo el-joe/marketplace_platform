@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use RuntimeException;
 
 class WalletTransaction extends Model
@@ -17,6 +16,7 @@ class WalletTransaction extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
+        'wallet_id',
         'customer_id',
         'type',
         'direction',
@@ -25,16 +25,19 @@ class WalletTransaction extends Model
         'currency_code',
         'reference_type',
         'reference_id',
+        'source_type',
+        'source_id',
+        'description',
         'note',
+        'performed_by_admin_id',
     ];
 
     protected $casts = [
         'amount' => 'integer',
         'balance_after' => 'integer',
-        'created_at' => 'datetime',
     ];
 
-    public static function boot(): void
+    protected static function boot(): void
     {
         parent::boot();
 
@@ -47,19 +50,9 @@ class WalletTransaction extends Model
         });
     }
 
-    public function update(array $attributes = [], array $options = []): bool
-    {
-        throw new RuntimeException('WalletTransaction records are append-only and cannot be updated.');
-    }
-
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function reference(): MorphTo
-    {
-        return $this->morphTo();
     }
 
     public function scopeCredits($query)

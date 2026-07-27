@@ -10,9 +10,11 @@
         <button type="button" id="expire-stale-btn" class="btn btn-secondary btn-sm">
             {{ __('admin.gift_cards_section.expire_stale') }}
         </button>
-        <a href="{{ route('admin.gift-cards.batches.create') }}" class="btn btn-primary btn-sm">
-            {{ __('admin.gift_cards_section.add_batch') }}
-        </a>
+        @if(auth('admin')->user()->can('gift_cards.create'))
+            <a href="{{ route('admin.gift-cards.batches.create') }}" class="btn btn-primary btn-sm">
+                {{ __('admin.gift_cards_section.add_batch') }}
+            </a>
+        @endif
     </div>
 </div>
 

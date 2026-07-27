@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class CustomerWallet extends Model
 {
@@ -38,7 +39,8 @@ class CustomerWallet extends Model
 
     public function credit(int $amount): void
     {
-        $this->increment('balance', $amount);
+        DB::table('customer_wallets')->where('id', $this->id)->increment('balance', $amount);
+        $this->refresh();
     }
 
     public function debit(int $amount): void
@@ -47,6 +49,7 @@ class CustomerWallet extends Model
             throw new InsufficientWalletBalanceException();
         }
 
-        $this->decrement('balance', $amount);
+        DB::table('customer_wallets')->where('id', $this->id)->decrement('balance', $amount);
+        $this->refresh();
     }
 }

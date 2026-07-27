@@ -18,7 +18,7 @@
             <a href="#" class="btn btn-secondary btn-sm">
                 {{ __('admin.gift_cards_section.export_csv') }}
             </a>
-            @if($batch->inactive_count > 0)
+            @if($batch->inactive_count > 0 && auth('admin')->user()->can('gift_cards.edit'))
             <button type="button" id="activate-batch-btn" class="btn btn-primary btn-sm">
                 {{ __('admin.gift_cards_section.activate_batch') }}
             </button>
