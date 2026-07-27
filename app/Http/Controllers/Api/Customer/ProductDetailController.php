@@ -59,6 +59,8 @@ class ProductDetailController extends Controller
             return ApiResponse::error('Listing not found', [], 404);
         }
 
+        $url = route('customer.listing.show', [$request->attributes->get('country')->site_code, $variant->id .'--' . $listing->id]);
+
         return ApiResponse::success([
             'product' => $this->productShape($product),
             'variant' => $this->variantShape($variant),
@@ -66,7 +68,7 @@ class ProductDetailController extends Controller
             'images' => $this->buildImages($product, $variant),
             'attributes' => $this->buildAttributeMatrix($product, $variant, $countryId, $isNawyNow),
             'other_sellers' => $isNawyNow ? [] : $this->buildOtherSellers($variantId, $countryId, $listing),
-            'current_url' => "/products/{$variant->id}/{$listing->id}",
+            'current_url' => $url,
         ]);
     }
 
@@ -159,13 +161,14 @@ class ProductDetailController extends Controller
             return ApiResponse::error('Listing not found', [], 404);
         }
 
-        $redirectUrl = "/products/{$variant->id}/{$listing->id}";
+        $url = route('customer.listing.show', [$request->attributes->get('country')->site_code, $variant->id .'--' . $listing->id]);
+
 
         if ($request->wantsJson() || $request->header('X-Requested-From') === 'mobile-app') {
-            return ApiResponse::success(['redirect_url' => $redirectUrl]);
+            return ApiResponse::success(['redirect_url' => $url]);
         }
 
-        return redirect($redirectUrl, 301);
+        return redirect($url, 301);
     }
 
     /**
@@ -347,6 +350,8 @@ class ProductDetailController extends Controller
                         : $this->variantResolutionService->bestVendorListing($targetVariant->id, $countryId);
                 }
 
+                $url = route('customer.listing.show', [request()->attributes->get('country')->site_code,$targetVariant->id .'--' . $targetListing->id]);
+
                 return [
                     'attribute_value_id' => $attributeValue->id,
                     'value_en' => $attributeValue->value_en,
@@ -356,8 +361,9 @@ class ProductDetailController extends Controller
                     'is_available' => $targetVariant !== null && $targetListing !== null,
                     'target_variant_id' => $targetVariant?->id,
                     'target_listing_id' => $targetListing?->id,
+                    'url' => $url,
                     'target_url' => ($targetVariant && $targetListing)
-                        ? "/products/{$targetVariant->id}/{$targetListing->id}"
+                        ? $url
                         : null,
                 ];
             })->values()->all();

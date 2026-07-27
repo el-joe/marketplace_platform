@@ -23,12 +23,14 @@ class AdminListingResource extends JsonResource
             ?? $product->images->firstWhere('is_primary', true)
             ?? $product->images->first();
 
+        $url = route('customer.listing.show', [$this->country->site_code, $variant->id .'--' . $listing->id]);
+
         return [
             'listing_id' => $listing->id,
             'listing_type' => 'admin',
             'variant_id' => $variant->id,
             'variant_name' => $variant->variant_name ?? $variant->sku,
-            'product_url' => "/products/{$variant->id}/{$listing->id}", // ✓ correct UUID format
+            'product_url' => $url, // ✓ correct UUID format
             'primary_image' => $primaryImage?->url,
             'price' => (int) $listing->getRawOriginal('price'),
             'compare_at_price' => null,

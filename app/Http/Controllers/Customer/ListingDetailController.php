@@ -21,11 +21,14 @@ use App\Services\Customer\ReviewService;
 use App\Services\ListingShippingResolver;
 use App\Services\WarrantyPlanService;
 use App\Support\Bilingual;
+use App\Support\Concerns\BuildsProductAttributeSelector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ListingDetailController extends Controller
 {
+    use BuildsProductAttributeSelector;
+
     public function __construct(
         private readonly ListingIdentifierService $identifiers,
         private readonly ListingShippingResolver $shipping,
@@ -92,7 +95,7 @@ class ListingDetailController extends Controller
             ->limit(5)
             ->get();
 
-        $productAttributes = $this->productAttributesShape($product, $listing->productVariant, $country);
+        $productAttributes = $this->productAttributesForListing($product, $listing->productVariant, $country);
 
         return ApiResponse::success(new ListingDetailResource([
             'listing' => $this->listingShape($listing, $country, $isWishlisted),
@@ -324,64 +327,12 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function productAttributesShape($product, $productVariant, $country): array
+    private function productAttributesForListing($product, $productVariant, $country): array
     {
         $variants = $product->variants->loadMissing('variantAttributes.attribute', 'variantAttributes.attributeValue');
-
-        $comboFor = fn($variant) => $variant->variantAttributes
-            ->filter(fn($va) => $va->attribute_value_id)
-            ->pluck('attribute_value_id', 'attribute_id')
-            ->all();
-
-        $variantCombos = $variants->mapWithKeys(fn($variant) => [$variant->id => $comboFor($variant)]);
-        $selectedCombo = $comboFor($productVariant);
         $listingsByVariant = $this->variantListingsMap($product, $country);
 
-        return $variants
-            ->flatMap(fn($variant) => $variant->variantAttributes)
-            ->filter(fn($va) => $va->attribute !== null)
-            ->groupBy('attribute_id')
-            ->map(function ($group, $attributeId) use ($selectedCombo, $variantCombos, $listingsByVariant) {
-                $attribute = $group->first()->attribute;
-
-                return [
-                    'attribute_id' => $attribute->id,
-                    'name' => [
-                        'ar' => $attribute->name_ar,
-                        'en' => $attribute->name_en,
-                    ],
-                    'values' => $group
-                        ->unique(fn($va) => $va->attribute_value_id ?? $va->value_text_en)
-                        ->map(function ($va) use ($attributeId, $selectedCombo, $variantCombos, $listingsByVariant) {
-                            $candidateCombo = $selectedCombo;
-                            $candidateCombo[$attributeId] = $va->attribute_value_id;
-
-                            $matchedVariantId = $variantCombos->search(fn($combo) => $combo == $candidateCombo);
-                            $matchedVariantId = $matchedVariantId === false ? null : $matchedVariantId;
-                            $listing = $matchedVariantId ? ($listingsByVariant[$matchedVariantId] ?? null) : null;
-
-                            return [
-                                'attribute_value_id' => $va->attributeValue?->id,
-                                'slug' => $va->attributeValue?->slug,
-                                'value' => [
-                                    'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
-                                    'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
-                                ],
-                                'color_hex' => $va->attributeValue?->color_hex,
-                                'selected' => ($selectedCombo[$attributeId] ?? null) === $va->attribute_value_id,
-                                'disabled' => $listing === null,
-                                'variant_id' => $matchedVariantId,
-                                'listing_id' => $listing['listing_id'] ?? null,
-                                'listing_ref' => $listing['listing_ref'] ?? null,
-                            ];
-                        })
-                        ->values()
-                        ->all(),
-                ];
-            })
-            ->sortBy(fn($group) => $group['name']['en'])
-            ->values()
-            ->all();
+        return $this->productAttributesShape($variants, $productVariant, $listingsByVariant);
     }
 
     private function variantListingsMap($product, $country): array

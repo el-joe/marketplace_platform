@@ -13,6 +13,9 @@ class ProductDetailResource extends JsonResource
     /** @var array<string, mixed> */
     public array $enrichment = [];
 
+    /** @var array<int, array<string, mixed>> */
+    public array $productAttributes = [];
+
     /** @var array<int, array{stars: int, count: int, percentage: int}> */
     public array $ratingBreakdown = [];
 
@@ -93,6 +96,7 @@ class ProductDetailResource extends JsonResource
                     'variant_id'     => $img->product_variant_id,
                 ])
             ),
+            'product_attributes' => $this->productAttributes,
             'variants'         => $this->whenLoaded('variants', fn() =>
                 $this->variants->filter(fn($v) => $v->is_active)->map(fn($v) => [
                     'id'           => $v->id,

@@ -17,11 +17,14 @@ use App\Services\Customer\ProductQueryService;
 use App\Services\Customer\ProductViewService;
 use App\Services\Customer\ReviewService;
 use App\Services\Customer\SponsoredProductService;
+use App\Support\Concerns\BuildsProductAttributeSelector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    use BuildsProductAttributeSelector;
+
     public function __construct(
         private readonly ProductQueryService $products,
         private readonly ListingQueryService $listings,
@@ -29,6 +32,7 @@ class ProductController extends Controller
         private readonly ProductViewService $viewService,
         private readonly SponsoredProductService $sponsored,
         private readonly ReviewService $reviewService,
+        private readonly \App\Services\Customer\ListingIdentifierService $identifiers,
     ) {
     }
 
@@ -147,9 +151,24 @@ class ProductController extends Controller
             referrerUrl: $request->header('Referer'),
         );
 
+        $selectedVariant = $listings->first()?->productVariant
+            ?? $product->variants->firstWhere('is_default', true)
+            ?? $product->variants->first();
+
+        $listingsByVariant = $listings
+            ->groupBy('product_variant_id')
+            ->map(fn($group) => [
+                'listing_id' => $group->first()->id,
+                'listing_ref' => $this->identifiers->buildListingRef($group->first()),
+            ])
+            ->all();
+
         $resource = new ProductDetailResource($product);
         $resource->isWishlisted = $isWishlisted;
         $resource->ratingBreakdown = $this->reviewService->ratingBreakdown($product);
+        $resource->productAttributes = $selectedVariant
+            ? $this->productAttributesShape($product->variants, $selectedVariant, $listingsByVariant)
+            : [];
 
         return ApiResponse::success($resource->toArray($request));
     }
