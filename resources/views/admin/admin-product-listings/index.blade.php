@@ -65,6 +65,20 @@
             ],
             ['title' => __('admin.admin_product_listings.total_sold_col'), 'data' => 'total_sold', 'name' => 'total_sold', 'searchable' => false, 'className' => 'text-center'],
             ['title' => __('admin.admin_product_listings.warehouse_col'), 'data' => 'warehouse_name', 'name' => 'warehouse_name', 'searchable' => false],
+            [
+                'title' => __('admin.admin_product_listings.shipping_col'),
+                'data' => 'shipping',
+                'name' => 'shipping',
+                'orderable' => false,
+                'searchable' => false,
+                'render' => 'function (data, type, row) {
+                    if (type !== "display") return data ? data.label : "";
+                    if (!data) return "<span class=\\"text-xs text-gray-400\\">—</span>";
+                    var pill = "<span class=\\"inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold\\" style=\\"background-color:" + data.color + ";color:" + data.text_color + ";\\">" + data.label + "</span>";
+                    if (data.is_inherited) pill += " <span class=\\"text-[10px] uppercase tracking-wide text-gray-400\\">(default)</span>";
+                    return pill;
+                }'
+            ],
             ['title' => __('admin.admin_product_listings.created_at_col'), 'data' => 'created_at', 'name' => 'created_at', 'searchable' => false],
             [
                 'title' => '',

@@ -43,6 +43,7 @@ use App\Services\GiftCardService;
 use App\Services\PaymentService;
 use App\Services\ShippingSubsidyService;
 use App\Services\WarrantyPlanService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -466,12 +467,28 @@ class CheckoutController extends Controller
                     'marketer_campaign_id' => $attribution['campaign_id'] ?? null,
                 ]);
 
-                $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id);
+                $shippingMethodCache = [];
+                $resolveShippingMethod = function (?string $shippingMethodId) use (&$shippingMethodCache) {
+                    if (! $shippingMethodId) {
+                        return null;
+                    }
+
+                    if (! array_key_exists($shippingMethodId, $shippingMethodCache)) {
+                        $shippingMethodCache[$shippingMethodId] = ShippingMethod::find($shippingMethodId);
+                    }
+
+                    return $shippingMethodCache[$shippingMethodId];
+                };
+
+                $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id.'|'.($item->selected_shipping_method_id ?? $validated['shipping_method_id']));
                 $subOrders = [];
                 $idx = 0;
 
-                foreach ($grouped as $vendorId => $items) {
+                foreach ($grouped as $groupKey => $items) {
                     $idx++;
+                    $vendorId = $items->first()->vendorListing->vendor_id;
+                    $subOrderShippingMethodId = $items->first()->selected_shipping_method_id ?? $validated['shipping_method_id'];
+                    $subOrderShippingMethod = $resolveShippingMethod($subOrderShippingMethodId);
                     $vendorSubtotal = (int) $items->sum(fn ($i) => $i->unit_price * $i->quantity);
                     $firstListing = $items->first()->vendorListing;
 
@@ -541,7 +558,10 @@ class CheckoutController extends Controller
                         'gateway_fee' => 0,
                         'gateway_fee_rate' => 0,
                         'vendor_payout' => $vendorSubtotal - $totalCommission,
-                        'shipping_method_id' => $validated['shipping_method_id'],
+                        'shipping_method_id' => $subOrderShippingMethodId,
+                        'estimated_delivery_date' => $subOrderShippingMethod
+                            ? $this->calculateEstimatedDeliveryDate($subOrderShippingMethod)
+                            : null,
                         'sla_ship_deadline' => now()->addHours(24),
                     ]);
 
@@ -551,12 +571,20 @@ class CheckoutController extends Controller
                         $lineSubtotal = $cartItem->unit_price * $cartItem->quantity;
                         $lineTax = (int) round($cartItem->unit_price * $cartItem->quantity * ((float) $country->vat_rate / 100));
 
+                        $itemShippingMethod = $resolveShippingMethod($cartItem->selected_shipping_method_id);
+                        $itemShippingMethodSnapshot = $itemShippingMethod
+                            ? $this->buildShippingMethodSnapshot($itemShippingMethod)
+                            : null;
+
+                        $productSnapshot = $this->buildProductSnapshot($listing);
+                        $productSnapshot['shipping_method'] = $itemShippingMethodSnapshot;
+
                         $orderItem = OrderItem::create([
                             'order_id' => $order->id,
                             'sub_order_id' => $subOrder->id,
                             'product_variant_id' => $listing->product_variant_id,
                             'vendor_listing_id' => $listing->id,
-                            'product_snapshot' => $this->buildProductSnapshot($listing),
+                            'product_snapshot' => $productSnapshot,
                             'vendor_id' => $listing->vendor_id,
                             'sku' => $listing->productVariant->sku,
                             'quantity' => $cartItem->quantity,
@@ -570,6 +598,8 @@ class CheckoutController extends Controller
                             'commission_fixed' => $commission['commission_fixed'],
                             'commission_category_id' => $commission['commission_category_id'],
                             'commission_amount' => $commission['commission_amount'],
+                            'shipping_method_id' => $cartItem->selected_shipping_method_id,
+                            'shipping_method_snapshot' => $itemShippingMethodSnapshot,
                             'fulfillment_status' => 'pending',
                             'return_eligible_until' => null,
                         ]);
@@ -909,5 +939,40 @@ class CheckoutController extends Controller
             'brand_name' => $product->brand?->name_en,
             'category_name' => $product->category?->name_en,
         ];
+    }
+
+    private function buildShippingMethodSnapshot(ShippingMethod $method): array
+    {
+        return [
+            'id' => $method->id,
+            'name' => $method->name,
+            'code' => $method->code,
+            'badge_label_en' => $method->badge_label_en,
+            'badge_label_ar' => $method->badge_label_ar,
+            'badge_color_hex' => $method->badge_color_hex,
+            'delivery_label_en' => $method->delivery_label_en,
+            'delivery_label_ar' => $method->delivery_label_ar,
+            'min_delivery_days' => $method->min_delivery_days,
+            'max_delivery_days' => $method->max_delivery_days,
+        ];
+    }
+
+    private function calculateEstimatedDeliveryDate(ShippingMethod $method): ?string
+    {
+        if (! $method->min_delivery_days) {
+            return null;
+        }
+
+        $handlingDays = (int) ceil(($method->handling_time_hours ?? 0) / 24);
+        $date = now()->startOfDay()->addDays($handlingDays);
+
+        if ($method->order_cutoff_time) {
+            $cutoff = Carbon::createFromTimeString($method->order_cutoff_time);
+            if (now()->format('H:i:s') > $cutoff->format('H:i:s')) {
+                $date = $date->addDay();
+            }
+        }
+
+        return $date->addDays($method->min_delivery_days)->toDateString();
     }
 }

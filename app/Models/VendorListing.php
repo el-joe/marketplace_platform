@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class VendorListing extends Model
@@ -123,6 +124,11 @@ class VendorListing extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function marketplaceShippingRule(): HasOne
+    {
+        return $this->hasOne(MarketplaceShippingRule::class);
     }
 
     public function primaryShippingMethod(): BelongsTo

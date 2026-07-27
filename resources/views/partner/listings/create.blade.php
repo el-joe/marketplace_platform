@@ -11,6 +11,7 @@
             slugPreviewUrlTemplate: '{{ route('partner.listings.slug-preview', ['product' => '__PRODUCT__', 'variant' => '__VARIANT__']) }}',
             urlInfoUrlTemplate: '{{ route('partner.listings.variants.url-info', ['variant' => '__VARIANT__']) }}',
             warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
+            availableShippingMethodsUrl: '{{ route('partner.listings.available-shipping-methods') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
         };
@@ -280,6 +281,16 @@
                                 <option value="special_tech">يحتاج تقنية خاصة / Requires Special Handling</option>
                             </select>
                         </div>
+                    </div>
+
+                    {{-- Preferred Shipping Method --}}
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-3">
+                        <h4 class="font-semibold text-gray-800 text-sm mb-1">{{ __('partner.listings.preferred_shipping_method') ?? 'Primary Shipping Method (optional — overrides category default)' }}</h4>
+                        <select name="primary_shipping_method_id" id="primary-shipping-method-select"
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                            <option value="">{{ __('partner.listings.shipping_method_default_option') ?? 'Use category default' }}</option>
+                        </select>
+                        <p class="text-xs text-gray-400">{{ __('partner.listings.preferred_shipping_method_hint') ?? "If not set, the category default method will be used automatically" }}</p>
                     </div>
 
                     {{-- Warehouse & Initial Stock --}}

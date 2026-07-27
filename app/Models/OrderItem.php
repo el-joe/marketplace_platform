@@ -16,6 +16,7 @@ class OrderItem extends Model
     {
         return [
             'product_snapshot' => 'array',
+            'shipping_method_snapshot' => 'array',
             'return_eligible_until' => 'date',
             'fulfillment_status' => OrderItemFulfillmentStatus::class,
         ];
@@ -45,7 +46,14 @@ class OrderItem extends Model
         'fulfillment_status',
         'return_eligible_until',
         'warranty_purchase_id',
+        'shipping_method_id',
+        'shipping_method_snapshot',
     ];
+
+    public function shippingMethod(): BelongsTo
+    {
+        return $this->belongsTo(ShippingMethod::class);
+    }
 
     public function order(): BelongsTo
     {

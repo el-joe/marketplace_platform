@@ -418,6 +418,28 @@ class ListingController extends Controller
         ]));
     }
 
+    public function availableShippingMethods(Request $request): JsonResponse
+    {
+        $request->validate([
+            'variant_id' => ['required', 'uuid', 'exists:product_variants,id'],
+            'fulfillment_model' => ['nullable', 'in:fbm,fbn,cross_dock'],
+        ]);
+
+        $methods = $this->shippingResolver->resolveForVariant(
+            $request->variant_id,
+            $request->fulfillment_model ?? 'fbm',
+        );
+
+        return response()->json($methods->map(fn($m) => [
+            'id' => $m->id,
+            'name' => $m->name,
+            'code' => $m->code,
+            'badge_label_en' => $m->badge_label_en,
+            'badge_color_hex' => $m->badge_color_hex,
+            'is_default' => (bool) $m->pivot->is_default,
+        ])->values());
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Show
     // ─────────────────────────────────────────────────────────────────────────
@@ -442,8 +464,11 @@ class ListingController extends Controller
             ->get();
 
         $availableShippingMethods = $this->shippingResolver->resolveForListing($listing);
+        $defaultShippingMethod = $listing->primary_shipping_method_id
+            ? null
+            : $this->shippingResolver->resolvePrimary($listing);
 
-        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods'));
+        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods', 'defaultShippingMethod'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -523,6 +548,7 @@ class ListingController extends Controller
             'declared_width_cm' => ['nullable', 'numeric', 'min:0.1'],
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
+            'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
         ]);
 
         $warehouse = Warehouse::findOrFail($request->warehouse_id);
@@ -556,6 +582,16 @@ class ListingController extends Controller
                 ], 422);
             }
             $resolvedVariantId = $defaultVariant->id;
+        }
+
+        if ($request->filled('primary_shipping_method_id')) {
+            $availableMethods = $this->shippingResolver->resolveForVariant($resolvedVariantId, $request->fulfillment_model);
+            if (!$availableMethods->contains('id', $request->primary_shipping_method_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'طريقة الشحن المختارة غير متاحة لهذه الفئة.',
+                ], 422);
+            }
         }
 
         $vendorId = $this->vendorId();
@@ -622,6 +658,7 @@ class ListingController extends Controller
                 'declared_height_cm' => $height,
                 'handling_class' => $request->handling_class,
                 'weight_class' => $weightClass,
+                'primary_shipping_method_id' => $request->primary_shipping_method_id ?: null,
             ]);
 
             // Create warehouse inventory record
@@ -690,7 +727,9 @@ class ListingController extends Controller
             'refurbished' => 'مُجدَّد',
         ];
 
-        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions'));
+        $availableShippingMethods = $this->shippingResolver->resolveForListing($listing);
+
+        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions', 'availableShippingMethods'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -723,7 +762,15 @@ class ListingController extends Controller
             'declared_width_cm' => ['nullable', 'numeric', 'min:0.1'],
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
+            'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
         ]);
+
+        if (!empty($validated['primary_shipping_method_id'])) {
+            $availableMethods = $this->shippingResolver->resolveForListing($listing);
+            if (!$availableMethods->contains('id', $validated['primary_shipping_method_id'])) {
+                return back()->withErrors(['primary_shipping_method_id' => 'طريقة الشحن المختارة غير متاحة لهذه الفئة.'])->withInput();
+            }
+        }
 
         $billable = $this->weightService->billableWeightGrams(
             (int) $validated['declared_weight_grams'],
@@ -750,6 +797,7 @@ class ListingController extends Controller
                 'declared_weight_grams' => (int) $validated['declared_weight_grams'],
                 'declared_length_cm' => $validated['declared_length_cm'] ?? null,
                 'declared_width_cm' => $validated['declared_width_cm'] ?? null,
+                'primary_shipping_method_id' => $validated['primary_shipping_method_id'] ?? null,
                 'declared_height_cm' => $validated['declared_height_cm'] ?? null,
                 'handling_class' => $validated['handling_class'],
                 'weight_class' => $weightClass,

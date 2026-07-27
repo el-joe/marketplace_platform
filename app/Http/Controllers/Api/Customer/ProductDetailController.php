@@ -15,6 +15,7 @@ use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\VendorListing;
 use App\Services\AppContextService;
+use App\Services\ShippingMethodResolverService;
 use App\Services\VariantResolutionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class ProductDetailController extends Controller
     public function __construct(
         private readonly VariantResolutionService $variantResolutionService,
         private readonly AppContextService $appContext,
+        private readonly ShippingMethodResolverService $shippingMethodResolver,
     ) {
     }
 
@@ -61,6 +63,16 @@ class ProductDetailController extends Controller
 
         $url = route('customer.listing.show', [$request->attributes->get('country')->site_code, $variant->id .'--' . $listing->id]);
 
+        $shippingListingType = $listingType === 'vendor' ? 'vendor_listing' : 'admin_listing';
+
+        $shippingMethods = $this->shippingMethodResolver->getAvailableForListing($listing->id, $shippingListingType, $countryId);
+
+        $shippingMethodsData = $shippingMethods->map(fn ($method) =>
+            $this->shippingMethodResolver->buildMethodResponse($method, $countryId, $method->is_default)
+        )->values()->all();
+
+        $selectedShippingMethodId = $this->resolveSelectedShippingMethodId($request, $shippingMethods);
+
         return ApiResponse::success([
             'product' => $this->productShape($product),
             'variant' => $this->variantShape($variant),
@@ -68,8 +80,22 @@ class ProductDetailController extends Controller
             'images' => $this->buildImages($product, $variant),
             'attributes' => $this->buildAttributeMatrix($product, $variant, $countryId, $isNawyNow),
             'other_sellers' => $isNawyNow ? [] : $this->buildOtherSellers($variantId, $countryId, $listing),
+            'shipping_methods' => $shippingMethodsData,
+            'selected_shipping_method_id' => $selectedShippingMethodId,
             'current_url' => $url,
         ]);
+    }
+
+    private function resolveSelectedShippingMethodId(Request $request, \Illuminate\Support\Collection $shippingMethods): ?string
+    {
+        $requestedId = $request->query('shipping_method_id');
+
+        if ($requestedId && $shippingMethods->contains('id', $requestedId)) {
+            return $requestedId;
+        }
+
+        return $shippingMethods->firstWhere('is_default', true)?->id
+            ?? $shippingMethods->first()?->id;
     }
 
     /**

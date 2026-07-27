@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
-use App\Jobs\RecomputeListingShippingMethodsJob;
 use App\Models\Activity;
 use App\Models\Attribute;
 use App\Models\Category;
-use App\Models\ShippingMethod;
 use App\Services\CategoryService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
@@ -370,84 +368,6 @@ class CategoryController extends Controller
         $this->service->syncAttributes($categoryModel, $request->input('attributes', []));
 
         return response()->json(['success' => true, 'message' => __('admin.categories.attributes_synced')]);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Shipping Methods Configuration
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function shippingMethods(Category $category): JsonResponse
-    {
-        $existing = DB::table('category_shipping_methods')
-            ->where('category_id', $category->id)
-            ->get()
-            ->keyBy('shipping_method_id');
-
-        $methods = ShippingMethod::query()
-            ->where('is_active', true)
-            ->orderBy('display_priority')
-            ->get()
-            ->map(function (ShippingMethod $sm) use ($existing) {
-                $row = $existing->get($sm->id);
-                return [
-                    'id'                           => $sm->id,
-                    'name'                         => $sm->name,
-                    'code'                         => $sm->code,
-                    'badge_label_en'               => $sm->badge_label_en,
-                    'badge_color_hex'              => $sm->badge_color_hex ?? '#1a1a2e',
-                    'badge_text_color_hex'         => $sm->badge_text_color_hex ?? '#FFFFFF',
-                    'delivery_label_en'            => $sm->delivery_label_en,
-                    'enabled'                      => $row !== null,
-                    'is_default'                   => $row?->is_default ?? false,
-                    'is_available_for_express_fbn' => $row?->is_available_for_express_fbn ?? true,
-                    'is_available_for_merchant_fbp'=> $row?->is_available_for_merchant_fbp ?? false,
-                ];
-            });
-
-        return response()->json(['methods' => $methods]);
-    }
-
-    public function updateShippingMethods(Request $request, Category $category): JsonResponse
-    {
-        $request->validate([
-            'methods'                                  => 'required|array|min:1',
-            'methods.*.shipping_method_id'             => 'required|uuid|exists:shipping_methods,id',
-            'methods.*.enabled'                        => 'required|boolean',
-            'methods.*.is_default'                     => 'required|boolean',
-            'methods.*.is_available_for_express_fbn'   => 'required|boolean',
-            'methods.*.is_available_for_merchant_fbp'  => 'required|boolean',
-        ]);
-
-        $defaults = collect($request->methods)->where('is_default', true);
-        if ($defaults->count() !== 1) {
-            return response()->json(['message' => __('admin.categories.default_method_required')], 422);
-        }
-
-        DB::transaction(function () use ($request, $category) {
-            foreach ($request->methods as $item) {
-                DB::table('category_shipping_methods')->upsert(
-                    [
-                        'id'                            => (string) Str::uuid(),
-                        'category_id'                   => $category->id,
-                        'shipping_method_id'            => $item['shipping_method_id'],
-                        'is_default'                    => (bool) $item['is_default'],
-                        'is_available_for_express_fbn'  => (bool) $item['is_available_for_express_fbn'],
-                        'is_available_for_merchant_fbp' => (bool) $item['is_available_for_merchant_fbp'],
-                        'created_at'                    => now(),
-                        'updated_at'                    => now(),
-                    ],
-                    ['category_id', 'shipping_method_id'],
-                    ['is_default', 'is_available_for_express_fbn', 'is_available_for_merchant_fbp', 'updated_at']
-                );
-            }
-        });
-
-        // Dispatch job to recompute listings (created in Prompt 3)
-        if (class_exists(RecomputeListingShippingMethodsJob::class)) {
-            dispatch(new RecomputeListingShippingMethodsJob([$category->id]));
-        }
-
-        return response()->json(['success' => true, 'message' => __('admin.categories.delivery_options_saved')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

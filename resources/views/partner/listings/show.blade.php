@@ -186,7 +186,17 @@
                     </div>
                     <div>
                         <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.shipping_method') }}</span>
-                        <span id="display-shipping-method" class="font-medium">{{ $listing->primaryShippingMethod?->name ?? __('partner.listings.show.not_set') }}</span>
+                        @if($listing->primaryShippingMethod)
+                            <span id="display-shipping-method"
+                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                                style="background-color: {{ $listing->primaryShippingMethod->badge_color_hex ?? '#eef2ff' }}22; color: {{ $listing->primaryShippingMethod->badge_color_hex ?? '#4f46e5' }};">
+                                {{ $listing->primaryShippingMethod->badge_label_en ?? $listing->primaryShippingMethod->name }}
+                            </span>
+                        @else
+                            <span id="display-shipping-method" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                {{ __('partner.listings.show.category_default') ?? 'Category default' }}{{ $defaultShippingMethod ? ' — ' . $defaultShippingMethod->name : '' }}
+                            </span>
+                        @endif
                     </div>
                 </div>
 

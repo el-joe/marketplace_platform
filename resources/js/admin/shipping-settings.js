@@ -49,7 +49,7 @@ function initRatesTable() {
         serverSide: true,
         order: [[0, 'asc']],
         ajax: {
-            url: '/shipping-methods/rates/datatable',
+            url: '/shipping-settings/rates/datatable',
             type: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken(),
@@ -178,7 +178,7 @@ function initRateModal() {
 
         const id = $('#rate-id').val();
         const method = $('#rate-http').val();
-        const url = id ? `/shipping-methods/rates/${id}` : '/shipping-methods/rates';
+        const url = id ? `/shipping-settings/rates/${id}` : '/shipping-settings/rates';
 
         const payload = {
             shipping_method_id: $form.find('[name="shipping_method_id"]').val(),
@@ -223,7 +223,7 @@ function initDeleteRate() {
         const id = $('#delete-rate-id').val();
 
         try {
-            await sendJson(`/shipping-methods/rates/${id}`, 'DELETE');
+            await sendJson(`/shipping-settings/rates/${id}`, 'DELETE');
             toast(window.TRANSLATIONS?.shippingRateDeleted || 'Shipping rate deleted.');
             $deleteModal.modal('close');
             ratesTable?.draw();
@@ -240,128 +240,10 @@ function initToggleRate() {
         const id = $(this).data('id');
 
         try {
-            await sendJson(`/shipping-methods/rates/${id}/toggle`, 'POST');
+            await sendJson(`/shipping-settings/rates/${id}/toggle`, 'POST');
             ratesTable?.draw();
         } catch {
             toast(window.TRANSLATIONS?.failedToUpdateRateStatus || 'Failed to update rate status.', 'error');
-        }
-    });
-}
-
-// ─── Shipping Method Modal ────────────────────────────────────────────────────
-
-function initMethodModal() {
-    const $modal = $('#method-modal');
-    const $form = $('#method-form');
-
-    $('#btn-add-method').on('click', function () {
-        $form[0].reset();
-        $('#method-id').val('');
-        $('#method-http').val('POST');
-        $form.find('[name="code"]').prop('readonly', false);
-        $form.find('[data-code-locked-note]').hide();
-        $modal.modal('open');
-    });
-
-    $(document).on('click', '.btn-edit-method', function () {
-        const row = $(this).data('row');
-
-        $form[0].reset();
-        $('#method-id').val(row.id);
-        $('#method-http').val('PUT');
-
-        $form.find('[name="name"]').val(row.name);
-        $form.find('[name="code"]').val(row.code);
-        $form.find('[name="description"]').val(row.description ?? '');
-        $form.find('[name="min_delivery_days"]').val(row.min_delivery_days);
-        $form.find('[name="max_delivery_days"]').val(row.max_delivery_days);
-        $form.find('[name="order_cutoff_time"]').val(row.order_cutoff_time ? row.order_cutoff_time.slice(0, 5) : '');
-        $form.find('[name="handling_time_hours"]').val(row.handling_time_hours ?? '');
-        $form.find('[name="display_priority"]').val(row.display_priority ?? '');
-        $form.find('[name="badge_label_en"]').val(row.badge_label_en ?? '').trigger('input');
-        $form.find('[name="badge_label_ar"]').val(row.badge_label_ar ?? '');
-        $form.find('[name="badge_color_hex"]').val(row.badge_color_hex ?? '#e5e7eb').trigger('input');
-        $form.find('[name="badge_text_color_hex"]').val(row.badge_text_color_hex ?? '#111827').trigger('input');
-        $form.find('[name="delivery_label_en"]').val(row.delivery_label_en ?? '');
-        $form.find('[name="delivery_label_ar"]').val(row.delivery_label_ar ?? '');
-
-        // code is immutable after creation
-        $form.find('[name="code"]').prop('readonly', true);
-        $form.find('[data-code-locked-note]').show();
-
-        const $expressToggle = $form.find('[name="is_express_type"]');
-        const $priceToggle = $form.find('[name="show_estimated_price"]');
-        const $toggle = $form.find('[name="is_active"]');
-        $expressToggle.prop('checked', !!row.is_express_type).trigger('change');
-        $priceToggle.prop('checked', !!row.show_estimated_price).trigger('change');
-        $toggle.prop('checked', !!row.is_active).trigger('change');
-
-        $modal.modal('open');
-    });
-
-    $form.on('submit', async function (e) {
-        e.preventDefault();
-
-        const id = $('#method-id').val();
-        const method = $('#method-http').val();
-        const url = id ? `/shipping-methods/methods/${id}` : '/shipping-methods/methods';
-
-        const payload = {
-            name: $form.find('[name="name"]').val(),
-            description: $form.find('[name="description"]').val() || null,
-            min_delivery_days: parseInt($form.find('[name="min_delivery_days"]').val()),
-            max_delivery_days: parseInt($form.find('[name="max_delivery_days"]').val()),
-            order_cutoff_time: $form.find('[name="order_cutoff_time"]').val() || null,
-            handling_time_hours: $form.find('[name="handling_time_hours"]').val() || null,
-            display_priority: $form.find('[name="display_priority"]').val() || null,
-            badge_label_en: $form.find('[name="badge_label_en"]').val() || null,
-            badge_label_ar: $form.find('[name="badge_label_ar"]').val() || null,
-            badge_color_hex: $form.find('[name="badge_color_hex"]').val() || null,
-            badge_text_color_hex: $form.find('[name="badge_text_color_hex"]').val() || null,
-            delivery_label_en: $form.find('[name="delivery_label_en"]').val() || null,
-            delivery_label_ar: $form.find('[name="delivery_label_ar"]').val() || null,
-            is_express_type: $form.find('[name="is_express_type"]').is(':checked') ? 1 : 0,
-            show_estimated_price: $form.find('[name="show_estimated_price"]').is(':checked') ? 1 : 0,
-            is_active: $form.find('[name="is_active"]').is(':checked') ? 1 : 0,
-        };
-
-        if (!id) {
-            payload.code = $form.find('[name="code"]').val();
-        }
-
-        try {
-            await sendJson(url, method, payload);
-            toast(id ? (window.TRANSLATIONS?.shippingMethodUpdated || 'Shipping method updated.') : (window.TRANSLATIONS?.shippingMethodCreated || 'Shipping method created.'));
-            $modal.modal('close');
-            setTimeout(() => window.location.reload(), 500);
-        } catch (err) {
-            if (err.errors) {
-                window.injectValidationErrors?.($form, err.errors);
-            } else {
-                toast(err.message ?? (window.TRANSLATIONS?.saveFailed || 'Save failed.'), 'error');
-            }
-        }
-    });
-}
-
-// ─── Toggle Shipping Method ───────────────────────────────────────────────────
-
-function initToggleMethod() {
-    $(document).on('click', '.btn-toggle-method', async function () {
-        const $btn = $(this);
-        const id = $btn.data('id');
-
-        try {
-            const res = await sendJson(`/shipping-methods/methods/${id}/toggle`, 'POST');
-            const active = res.is_active;
-
-            $btn
-                .data('active', active ? '1' : '0')
-                .text(active ? (window.TRANSLATIONS?.active || 'Active') : (window.TRANSLATIONS?.inactive || 'Inactive'))
-                .toggleClass('bg-success-50 text-success-700 hover:bg-success-100', active)
-                .toggleClass('bg-gray-100 text-gray-500 hover:bg-gray-200', !active);
-        } catch {
-            toast(window.TRANSLATIONS?.failedToUpdateStatus || 'Failed to update status.', 'error');
         }
     });
 }
@@ -408,7 +290,7 @@ function initCarrierModal() {
 
         const id = $('#carrier-id').val();
         const method = $('#carrier-http').val();
-        const url = id ? `/shipping-methods/carriers/${id}` : '/shipping-methods/carriers';
+        const url = id ? `/shipping-settings/carriers/${id}` : '/shipping-settings/carriers';
 
         const credentials = $('#carrier-credentials').val().trim();
         const payload = {
@@ -451,7 +333,7 @@ function initToggleCarrier() {
         const id = $btn.data('id');
 
         try {
-            const res = await sendJson(`/shipping-methods/carriers/${id}/toggle`, 'POST');
+            const res = await sendJson(`/shipping-settings/carriers/${id}/toggle`, 'POST');
             const active = res.is_active;
 
             $btn
@@ -477,7 +359,7 @@ function initTestCarrier() {
         $btn.prop('disabled', true).text(window.TRANSLATIONS?.testingEllipsis || 'Testing…');
 
         try {
-            const res = await sendJson('/shipping-methods/carriers/test', 'POST', { code });
+            const res = await sendJson('/shipping-settings/carriers/test', 'POST', { code });
             const data = res.data ?? {};
 
             $status.text(data.success
@@ -503,7 +385,7 @@ function initCountrySettings() {
         const active = $btn.data('active') === '1' || $btn.data('active') === 1;
 
         try {
-            await sendJson('/shipping-methods/country-settings', 'POST', {
+            await sendJson('/shipping-settings/country-settings', 'POST', {
                 country_id: countryId,
                 shipping_method_id: methodId,
                 is_active: active ? 0 : 1,
@@ -531,7 +413,7 @@ function initCountrySettings() {
         clearTimeout(thresholdTimeout);
         thresholdTimeout = setTimeout(async () => {
             try {
-                await sendJson('/shipping-methods/country-settings', 'POST', {
+                await sendJson('/shipping-settings/country-settings', 'POST', {
                     country_id: countryId,
                     shipping_method_id: methodId,
                     free_shipping_threshold: cents || null,
@@ -552,8 +434,6 @@ $(function () {
     initRateModal();
     initDeleteRate();
     initToggleRate();
-    initMethodModal();
-    initToggleMethod();
     initCarrierModal();
     initToggleCarrier();
     initTestCarrier();

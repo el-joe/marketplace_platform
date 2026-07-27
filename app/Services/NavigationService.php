@@ -765,6 +765,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.shipping_settings'),
+                        'route' => 'admin.shipping-settings.index',
+                        'icon' => 'cog-6-tooth',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.document_types'),
                         'route' => 'admin.vendor-document-types.index',
                         'icon' => 'document-check',

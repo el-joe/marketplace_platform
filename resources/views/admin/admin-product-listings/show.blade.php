@@ -167,11 +167,38 @@
                             </div>
                             <div>
                                 <dt class="text-gray-400 text-xs uppercase tracking-wide">Primary Shipping Method</dt>
-                                <dd class="mt-1 text-gray-800">{{ $listing->primaryShippingMethod?->name ?? '—' }}</dd>
+                                <dd class="mt-1">
+                                    @if($listing->primaryShippingMethod)
+                                        <x-shipping-method-badge :method="$listing->primaryShippingMethod" />
+                                    @else
+                                        <span class="text-gray-800">Inherits category default:</span>
+                                        <x-shipping-method-badge :method="$categoryDefaultShippingMethod" fallback-text="— none configured —" />
+                                    @endif
+                                </dd>
                             </div>
                             <div>
                                 <dt class="text-gray-400 text-xs uppercase tracking-wide">Global Shipping</dt>
                                 <dd class="mt-1 text-gray-800">{{ $listing->is_global_shipping ? 'Yes' : 'No' }}</dd>
+                            </div>
+                            <div class="col-span-2 sm:col-span-4">
+                                <dt class="text-gray-400 text-xs uppercase tracking-wide">Available Shipping Methods</dt>
+                                <dd class="mt-2">
+                                    @if($availableShippingMethods->isEmpty())
+                                        <span class="text-xs text-gray-400">No methods available for this listing's category/country.</span>
+                                    @else
+                                        <ul class="flex flex-wrap gap-3">
+                                            @foreach($availableShippingMethods as $method)
+                                                <li class="flex items-center gap-1.5 text-sm text-gray-700">
+                                                    <x-shipping-method-badge :method="$method" />
+                                                    <span>{{ $method->name }}</span>
+                                                    @if($method->is_default)
+                                                        <span class="text-[10px] uppercase tracking-wide text-gray-400">(default)</span>
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </dd>
                             </div>
                         </dl>
                     </div>

@@ -111,6 +111,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/products/{product}/variants/{variant}/slug-preview', 'slugPreview')->name('slug-preview')->middleware('vendor.can:listings.view');
         Route::get('/variants/{variant}/url-info', 'variantUrlInfo')->name('variants.url-info')->middleware('vendor.can:listings.view');
         Route::get('/warehouses-by-country', 'warehousesByCountry')->name('warehouses-by-country')->middleware('vendor.can:listings.view');
+        Route::get('/available-shipping-methods', 'availableShippingMethods')->name('available-shipping-methods')->middleware('vendor.can:listings.view');
         Route::get('/{listing}/edit', 'edit')->name('edit')->middleware('vendor.can:listings.edit');
         Route::put('/{listing}', 'update')->name('update')->middleware('vendor.can:listings.edit');
         Route::post('/{listing}/resubmit', 'resubmit')->name('resubmit')->middleware('vendor.can:listings.create');

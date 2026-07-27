@@ -361,6 +361,9 @@ function selectVariant(data) {
 
     // New listings default to global_system_type = merchant_fbp (FBP)
     document.getElementById('vendor-covers-delivery-field')?.classList.remove('hidden');
+
+    const fulfillmentSelect = document.querySelector('select[name="fulfillment_model"]');
+    loadShippingMethods(data.variantId, fulfillmentSelect?.value);
 }
 
 function fetchCustomerUrlPreview(productId, variantId) {
@@ -382,6 +385,37 @@ function fetchCustomerUrlPreview(productId, variantId) {
             wrap.classList.remove('hidden');
         })
         .catch(() => {});
+}
+
+async function loadShippingMethods(variantId, fulfillmentModel) {
+    const cfg = window.LISTINGS_CREATE;
+    const select = document.getElementById('primary-shipping-method-select');
+    if (!select || !cfg || !variantId) return;
+
+    select.disabled = true;
+    select.innerHTML = '<option value="">جاري التحميل...</option>';
+
+    try {
+        const params = new URLSearchParams({ variant_id: variantId });
+        if (fulfillmentModel) params.set('fulfillment_model', fulfillmentModel);
+
+        const res = await fetch(`${cfg.availableShippingMethodsUrl}?${params.toString()}`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+        });
+        const methods = await res.json();
+
+        const defaultOption = '<option value="">Use category default</option>';
+        if (!methods.length) {
+            select.innerHTML = defaultOption;
+        } else {
+            select.innerHTML = defaultOption + methods.map(m =>
+                `<option value="${m.id}">${escapeHtml(m.name)}${m.is_default ? ' (default)' : ''}</option>`
+            ).join('');
+        }
+    } catch {
+        select.innerHTML = '<option value="">خطأ في تحميل طرق الشحن</option>';
+    }
+    select.disabled = false;
 }
 
 function initChangeProduct() {
@@ -456,6 +490,12 @@ function initCreateForm() {
 
     // Trigger immediately to populate for the pre-selected vendor country
     if (countrySelect?.value) reloadWarehouses();
+
+    // Reload available shipping methods when fulfillment model changes (variant already selected)
+    fulfillmentSelect?.addEventListener('change', () => {
+        const variantId = document.getElementById('form-product-variant-id')?.value;
+        if (variantId) loadShippingMethods(variantId, fulfillmentSelect.value);
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();

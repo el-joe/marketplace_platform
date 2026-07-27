@@ -199,7 +199,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.primary_shipping_method') }}</label>
                 <select name="primary_shipping_method_id" data-select2-init
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option value="">{{ __('admin.admin_product_listings.no_shipping_method') }}</option>
+                    <option value="">{{ isset($listing) ? __('admin.admin_product_listings.shipping_method_use_category_default') : __('admin.admin_product_listings.no_shipping_method') }}</option>
                     @foreach($shippingMethods as $method)
                         <option value="{{ $method->id }}" {{ $val('primary_shipping_method_id') === $method->id ? 'selected' : '' }}>
                             {{ $method->name }}

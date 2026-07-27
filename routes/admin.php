@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ProductCostController;
 use App\Http\Controllers\Admin\ProductHighlightController;
 use App\Http\Controllers\Admin\BestsellerController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CategoryShippingMethodController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\WarrantyPlanController;
@@ -57,6 +58,7 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\FinancialReportController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ShippingMethodController;
+use App\Http\Controllers\Admin\ShippingSettingController;
 use App\Http\Controllers\Admin\ShippingWeightSlabController;
 use App\Http\Controllers\Admin\DeliveryAgentController;
 use App\Http\Controllers\Admin\DeliveryZoneController;
@@ -244,8 +246,14 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         Route::post('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggle-featured');
         Route::post('/{category}/sync-attributes', [CategoryController::class, 'syncAttributes'])->name('sync-attributes');
-        Route::get('/{category}/shipping-methods', [CategoryController::class, 'shippingMethods'])->name('shipping-methods');
-        Route::post('/{category}/shipping-methods', [CategoryController::class, 'updateShippingMethods'])->name('shipping-methods.update');
+
+        Route::prefix('{category}/shipping-methods')->name('shipping-methods.')->group(function () {
+            Route::get('/', [CategoryShippingMethodController::class, 'index'])->name('index');
+            Route::post('/', [CategoryShippingMethodController::class, 'store'])->name('store');
+            Route::put('/{csm}', [CategoryShippingMethodController::class, 'update'])->name('update');
+            Route::delete('/{csm}', [CategoryShippingMethodController::class, 'destroy'])->name('destroy');
+            Route::post('/reorder', [CategoryShippingMethodController::class, 'reorder'])->name('reorder');
+        });
 
 
         Route::get('/search', function (Request $request) {
@@ -1066,32 +1074,36 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{type}/toggle', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:settings.edit');
     });
 
-    // ─── Shipping Methods ─────────────────────────────────────────────────────
+    // ─── Shipping Methods (resource CRUD) ─────────────────────────────────────
     Route::prefix('shipping-methods')->name('shipping-methods.')->middleware('admin.permission:settings.view')->group(function () {
         Route::get('/', [ShippingMethodController::class, 'index'])->name('index');
+        Route::get('/create', [ShippingMethodController::class, 'create'])->name('create')->middleware('admin.permission:settings.edit');
+        Route::post('/', [ShippingMethodController::class, 'store'])->name('store')->middleware('admin.permission:settings.edit');
+        Route::get('/{shipping_method}/edit', [ShippingMethodController::class, 'edit'])->name('edit')->middleware('admin.permission:settings.edit');
+        Route::put('/{shipping_method}', [ShippingMethodController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
+        Route::delete('/{shipping_method}', [ShippingMethodController::class, 'destroy'])->name('destroy')->middleware('admin.permission:settings.edit');
+    });
 
-        // Shipping method CRUD
-        Route::post('/methods', [ShippingMethodController::class, 'storeMethod'])->name('methods.store')->middleware('admin.permission:settings.edit');
-        Route::get('/methods/{method}', [ShippingMethodController::class, 'showMethod'])->name('methods.show');
-        Route::put('/methods/{method}', [ShippingMethodController::class, 'updateMethod'])->name('methods.update')->middleware('admin.permission:settings.edit');
-        Route::post('/methods/{method}/toggle', [ShippingMethodController::class, 'toggleMethod'])->name('methods.toggle')->middleware('admin.permission:settings.edit');
+    // ─── Shipping Settings: Carriers / Rates / Country Settings ───────────────
+    Route::prefix('shipping-settings')->name('shipping-settings.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [ShippingSettingController::class, 'index'])->name('index');
 
         // Carriers — test MUST come before {carrier} wildcard
-        Route::post('/carriers/test', [ShippingMethodController::class, 'testCarrier'])->name('carriers.test');
-        Route::post('/carriers', [ShippingMethodController::class, 'storeCarrier'])->name('carriers.store')->middleware('admin.permission:settings.edit');
-        Route::put('/carriers/{carrier}', [ShippingMethodController::class, 'updateCarrier'])->name('carriers.update')->middleware('admin.permission:settings.edit');
-        Route::post('/carriers/{carrier}/toggle', [ShippingMethodController::class, 'toggleCarrier'])->name('carriers.toggle')->middleware('admin.permission:settings.edit');
+        Route::post('/carriers/test', [ShippingSettingController::class, 'testCarrier'])->name('carriers.test');
+        Route::post('/carriers', [ShippingSettingController::class, 'storeCarrier'])->name('carriers.store')->middleware('admin.permission:settings.edit');
+        Route::put('/carriers/{carrier}', [ShippingSettingController::class, 'updateCarrier'])->name('carriers.update')->middleware('admin.permission:settings.edit');
+        Route::post('/carriers/{carrier}/toggle', [ShippingSettingController::class, 'toggleCarrier'])->name('carriers.toggle')->middleware('admin.permission:settings.edit');
 
         // Rates — datatable + store MUST come before {rate} wildcard
-        Route::post('/rates/datatable', [ShippingMethodController::class, 'ratesDatatable'])->name('rates.datatable');
-        Route::post('/rates', [ShippingMethodController::class, 'storeRate'])->name('rates.store')->middleware('admin.permission:settings.edit');
-        Route::put('/rates/{rate}', [ShippingMethodController::class, 'updateRate'])->name('rates.update')->middleware('admin.permission:settings.edit');
-        Route::delete('/rates/{rate}', [ShippingMethodController::class, 'destroyRate'])->name('rates.destroy')->middleware('admin.permission:settings.edit');
-        Route::post('/rates/{rate}/toggle', [ShippingMethodController::class, 'toggleRate'])->name('rates.toggle')->middleware('admin.permission:settings.edit');
+        Route::post('/rates/datatable', [ShippingSettingController::class, 'ratesDatatable'])->name('rates.datatable');
+        Route::post('/rates', [ShippingSettingController::class, 'storeRate'])->name('rates.store')->middleware('admin.permission:settings.edit');
+        Route::put('/rates/{rate}', [ShippingSettingController::class, 'updateRate'])->name('rates.update')->middleware('admin.permission:settings.edit');
+        Route::delete('/rates/{rate}', [ShippingSettingController::class, 'destroyRate'])->name('rates.destroy')->middleware('admin.permission:settings.edit');
+        Route::post('/rates/{rate}/toggle', [ShippingSettingController::class, 'toggleRate'])->name('rates.toggle')->middleware('admin.permission:settings.edit');
 
         // Country Settings
-        Route::post('/country-settings', [ShippingMethodController::class, 'upsertCountrySetting'])->name('country-settings.upsert')->middleware('admin.permission:settings.edit');
-        Route::get('/country-settings', [ShippingMethodController::class, 'countrySettings'])->name('country-settings.index');
+        Route::post('/country-settings', [ShippingSettingController::class, 'upsertCountrySetting'])->name('country-settings.upsert')->middleware('admin.permission:settings.edit');
+        Route::get('/country-settings', [ShippingSettingController::class, 'countrySettings'])->name('country-settings.index');
     });
 
     // ─── Shipping Weight Slabs ────────────────────────────────────────────────
@@ -1416,6 +1428,17 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{adminProductListing}/reviews', [\App\Http\Controllers\Admin\AdminListingReviewController::class, 'index'])
             ->name('reviews.index');
         Route::get('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'show'])->name('show');
+    });
+
+    // ─── Vendor Listings ──────────────────────────────────────────────────────
+    Route::prefix('vendor-listings')->name('vendor-listings.')
+        ->middleware('admin.permission:vendors.view')
+        ->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\VendorListingController::class, 'index'])->name('index');
+        Route::post('/datatable', [\App\Http\Controllers\Admin\VendorListingController::class, 'datatable'])->name('datatable');
+        Route::get('/{vendorListing}/edit', [\App\Http\Controllers\Admin\VendorListingController::class, 'edit'])->name('edit');
+        Route::put('/{vendorListing}', [\App\Http\Controllers\Admin\VendorListingController::class, 'update'])->name('update');
+        Route::get('/{vendorListing}', [\App\Http\Controllers\Admin\VendorListingController::class, 'show'])->name('show');
     });
 
     // ─── Travel Agencies & Packages ───────────────────────────────────────────

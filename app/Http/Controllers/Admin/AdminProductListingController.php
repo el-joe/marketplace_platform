@@ -14,6 +14,7 @@ use App\Models\ProductCostReference;
 use App\Models\ProductVariant;
 use App\Models\ShippingMethod;
 use App\Models\Warehouse;
+use App\Services\ShippingMethodResolverService;
 use App\Models\WarehouseInventory;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
@@ -96,18 +97,25 @@ class AdminProductListingController extends Controller
             ['orderable_column' => 'admin_product_listings.rating_avg'],
             ['orderable_column' => 'admin_product_listings.total_sold'],
             ['orderable_column' => 'wh.name'],
+            [],
             ['orderable_column' => 'admin_product_listings.created_at'],
             [],
         ];
 
         $query = AdminProductListing::query()
+            ->with(['primaryShippingMethod'])
             ->join('product_variants as pv', 'pv.id', '=', 'admin_product_listings.product_variant_id')
             ->join('products as p', 'p.id', '=', 'pv.product_id')
             ->join('countries as co', 'co.id', '=', 'admin_product_listings.country_id')
             ->leftJoin('warehouses as wh', 'wh.id', '=', 'admin_product_listings.warehouse_id')
+            ->leftJoin('category_shipping_methods as csm', function ($join) {
+                $join->on('csm.category_id', '=', 'p.category_id')->where('csm.is_default', true);
+            })
+            ->leftJoin('shipping_methods as dsm', 'dsm.id', '=', 'csm.shipping_method_id')
             ->whereNull('p.deleted_at')
             ->select([
                 'admin_product_listings.id',
+                'admin_product_listings.primary_shipping_method_id',
                 'admin_product_listings.price',
                 'admin_product_listings.compare_at_price',
                 'admin_product_listings.currency',
@@ -126,6 +134,10 @@ class AdminProductListingController extends Controller
                 'pv.variant_name as variant_name',
                 'co.name_en as country_name',
                 'wh.name as warehouse_name',
+                'dsm.name as default_shipping_method_name',
+                'dsm.badge_label_en as default_shipping_badge_label',
+                'dsm.badge_color_hex as default_shipping_badge_color',
+                'dsm.badge_text_color_hex as default_shipping_badge_text_color',
             ]);
 
         $query = $this->applyFilters($query, $request, [
@@ -138,8 +150,21 @@ class AdminProductListingController extends Controller
         $paymentLabels = ['cod_only' => 'COD only', 'electronic_only' => 'Electronic only', 'both' => 'COD + Electronic'];
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) use ($paymentLabels) {
+            $effectiveMethod = $row->primaryShippingMethod ?? ($row->default_shipping_method_name ? (object) [
+                'name' => $row->default_shipping_method_name,
+                'badge_label_en' => $row->default_shipping_badge_label,
+                'badge_color_hex' => $row->default_shipping_badge_color,
+                'badge_text_color_hex' => $row->default_shipping_badge_text_color,
+            ] : null);
+
             return [
                 'id' => $row->id,
+                'shipping' => $effectiveMethod ? [
+                    'label' => $effectiveMethod->badge_label_en ?: $effectiveMethod->name,
+                    'color' => $effectiveMethod->badge_color_hex ?? '#e5e7eb',
+                    'text_color' => $effectiveMethod->badge_text_color_hex ?? '#374151',
+                    'is_inherited' => $row->primaryShippingMethod === null,
+                ] : null,
                 'product_name' => e($row->product_name),
                 'variant_name' => e($row->variant_name),
                 'variant_sku' => e($row->variant_sku),
@@ -232,7 +257,8 @@ class AdminProductListingController extends Controller
             'listing'         => $adminProductListing,
             'countries'       => Country::where('is_active', true)->orderBy('name_en')->get(),
             'warehouses'      => Warehouse::where('is_active', true)->orderBy('name')->get(),
-            'shippingMethods' => ShippingMethod::where('is_active', true)->orderBy('name')->get(),
+            'shippingMethods' => app(ShippingMethodResolverService::class)
+                ->getAvailableForListing($adminProductListing->id, 'admin_product_listing', $adminProductListing->country_id),
             'nawyCategories'  => $this->nawyCategories(),
             'selectedVariant' => $adminProductListing->productVariant()->with('product')->first(),
             'breadcrumbs'     => [
@@ -327,10 +353,16 @@ class AdminProductListingController extends Controller
         $canViewCost = auth('admin')->user()?->hasPermissionTo('products.cost_data.view') ?? false;
         $costReference = $canViewCost ? ProductCostReference::where('product_id', $productId)->first() : null;
 
+        $availableShippingMethods = app(ShippingMethodResolverService::class)
+            ->getAvailableForListing($adminProductListing->id, 'admin_product_listing', $adminProductListing->country_id);
+
         return view('admin.admin-product-listings.show', [
             'listing' => $adminProductListing,
             'costReference' => $costReference,
             'canViewCost' => $canViewCost,
+            'availableShippingMethods' => $availableShippingMethods,
+            'categoryDefaultShippingMethod' => $adminProductListing->productVariant->product->category
+                ?->defaultShippingMethod()->first(),
             'warehouses' => Warehouse::where('is_active', true)->orderBy('name')->get(),
             'statuses' => collect(AdminProductListingStatus::cases())
                 ->mapWithKeys(fn($status) => [$status->value => Str::headline($status->value)]),

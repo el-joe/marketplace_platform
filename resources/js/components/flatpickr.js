@@ -10,6 +10,7 @@
  *   data-mode="range|multiple|single"
  *   data-min-date="2024-01-01"
  *   data-max-date="today"
+ *   data-time-only="true"   // hides the calendar, HH:MM picker only
  */
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -32,7 +33,8 @@ async function initDatePicker(el) {
     const $el = $(el);
     const lang = document.documentElement.lang || 'en';
     const locale = await loadLocale(lang);
-    const enableTime = $el.data('enable-time') === true || $el.data('enable-time') === 'true';
+    const timeOnly = $el.data('time-only') === true || $el.data('time-only') === 'true';
+    const enableTime = timeOnly || $el.data('enable-time') === true || $el.data('enable-time') === 'true';
     const mode = $el.data('mode') || 'single';
     const minDate = $el.data('min-date') || null;
     const maxDate = $el.data('max-date') || null;
@@ -44,11 +46,12 @@ async function initDatePicker(el) {
 
     flatpickr(el, {
         enableTime,
+        noCalendar: timeOnly,
         mode,
         minDate: minDate || undefined,
         maxDate: maxDate || undefined,
         ...(locale ? { locale } : {}),
-        dateFormat: enableTime ? 'Y-m-d H:i' : 'Y-m-d',
+        dateFormat: timeOnly ? 'H:i' : (enableTime ? 'Y-m-d H:i' : 'Y-m-d'),
         time_24hr: true,
         allowInput: false,
         disableMobile: false,

@@ -63,4 +63,9 @@ class ShippingMethod extends Model
     {
         return $this->hasMany(SubOrder::class);
     }
+
+    public function categoryShippingMethods(): HasMany
+    {
+        return $this->hasMany(CategoryShippingMethod::class);
+    }
 }

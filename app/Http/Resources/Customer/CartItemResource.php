@@ -44,6 +44,13 @@ class CartItemResource extends JsonResource
             ] : null,
             'in_stock'      => $listing ? $available >= $this->quantity : false,
             'price_changed' => (bool) ($this->price_changed ?? false),
+            'selected_shipping_method' => $this->selectedShippingMethod ? [
+                'id'              => $this->selectedShippingMethod->id,
+                'name'            => $this->selectedShippingMethod->name,
+                'code'            => $this->selectedShippingMethod->code,
+                'badge_label_en'  => $this->selectedShippingMethod->badge_label_en,
+                'badge_color_hex' => $this->selectedShippingMethod->badge_color_hex,
+            ] : null,
         ];
     }
 }
