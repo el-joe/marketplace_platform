@@ -2222,14 +2222,14 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"address_id\": 1,\n  \"quantity\": 1\n}",
+							"raw": "{\n\t\"address_id\": \"55555555-5555-5555-5555-555555555555\",\n\t\"shipping_method_id\": \"33333333-3333-3333-3333-333333333333\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"description": "| Key | Type | Required | Description |\n|---|---|---|---|\n| address_id | integer | No | exists:addresses,id |\n| quantity | integer | No | min:1 |\n"
+						"description": "| Key | Type | Required | Description |\n|---|---|---|---|\n| address_id | string (uuid) | Yes | exists:addresses,id |\n| shipping_method_id | string (uuid) | Yes | exists:shipping_methods,id |\n"
 					},
 					"response": [
 						{
@@ -2264,7 +2264,7 @@
 								},
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"address_id\": 1,\n  \"quantity\": 1\n}",
+									"raw": "{\n\t\"address_id\": \"55555555-5555-5555-5555-555555555555\",\n\t\"shipping_method_id\": \"33333333-3333-3333-3333-333333333333\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -2283,7 +2283,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"min_days\": 2,\n    \"max_days\": 5,\n    \"fee\": 3000\n  }\n}"
+							"body": "{\n\t\"success\": true,\n\t\"data\": {\n\t\t\"fee\": 3000,\n\t\t\"cod_fee\": null,\n\t\t\"is_exceptional\": false,\n\t\t\"is_free_shipping\": false,\n\t\t\"currency\": \"EGP\",\n\t\t\"method_details\": {\n\t\t\t\"id\": \"33333333-3333-3333-3333-333333333333\",\n\t\t\t\"code\": \"standard\",\n\t\t\t\"name\": \"Standard Delivery\",\n\t\t\t\"delivery_days_min\": 2,\n\t\t\t\"delivery_days_max\": 5\n\t\t}\n\t}\n}"
 						},
 						{
 							"name": "401 Unauthorized",
@@ -2317,7 +2317,7 @@
 								},
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"address_id\": 1,\n  \"quantity\": 1\n}",
+									"raw": "{\n\t\"address_id\": \"55555555-5555-5555-5555-555555555555\",\n\t\"shipping_method_id\": \"33333333-3333-3333-3333-333333333333\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -12792,7 +12792,7 @@
 								"shipping-methods"
 							]
 						},
-						"description": "GET request with no body or query/path parameters."
+						"description": "GET request with no body or query/path parameters.\n\n\u26a0 Backend note: `CheckoutController::shippingMethods` referenced by this route (routes/api_customer.php) is not implemented \u2014 the controller has no such method. This endpoint currently errors instead of returning 200. Flagging for backend follow-up; the example below reflects the intended shape (aligned with ShippingMethodResolverService::buildMethodResponse) once implemented."
 					},
 					"response": [
 						{
@@ -12829,7 +12829,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"ship-method-uuid\",\n      \"label_en\": \"Standard\",\n      \"label_ar\": \"\\u0639\\u0627\\u062f\\u064a\",\n      \"min_delivery_days\": 2,\n      \"max_delivery_days\": 5,\n      \"fee\": 3000\n    }\n  ]\n}"
+							"body": "{\n\t\"success\": true,\n\t\"data\": [\n\t\t{\n\t\t\t\"id\": \"33333333-3333-3333-3333-333333333333\",\n\t\t\t\"name\": \"Standard Delivery\",\n\t\t\t\"code\": \"standard\",\n\t\t\t\"badge_label_en\": null,\n\t\t\t\"badge_label_ar\": null,\n\t\t\t\"badge_color_hex\": \"#1B2B6B\",\n\t\t\t\"badge_text_color_hex\": \"#FFFFFF\",\n\t\t\t\"delivery_label_en\": \"Standard\",\n\t\t\t\"delivery_label_ar\": \"\\u0639\\u0627\\u062f\\u064a\",\n\t\t\t\"is_express_type\": false,\n\t\t\t\"is_default\": true,\n\t\t\t\"min_delivery_days\": 2,\n\t\t\t\"max_delivery_days\": 5,\n\t\t\t\"estimated_delivery_text_en\": \"Delivered in 2\\u20135 days\",\n\t\t\t\"estimated_delivery_text_ar\": \"\\u064a\\u0635\\u0644 \\u062e\\u0644\\u0627\\u0644 2\\u20135 \\u064a\\u0648\\u0645\",\n\t\t\t\"show_estimated_price\": true,\n\t\t\t\"free_shipping_threshold\": 50000,\n\t\t\t\"is_free_for_order\": null\n\t\t},\n\t\t{\n\t\t\t\"id\": \"44444444-4444-4444-4444-444444444444\",\n\t\t\t\"name\": \"Express Delivery\",\n\t\t\t\"code\": \"express\",\n\t\t\t\"badge_label_en\": \"Express\",\n\t\t\t\"badge_label_ar\": \"\\u0633\\u0631\\u064a\\u0639\",\n\t\t\t\"badge_color_hex\": \"#F97316\",\n\t\t\t\"badge_text_color_hex\": \"#FFFFFF\",\n\t\t\t\"delivery_label_en\": \"Express\",\n\t\t\t\"delivery_label_ar\": \"\\u0633\\u0631\\u064a\\u0639\",\n\t\t\t\"is_express_type\": true,\n\t\t\t\"is_default\": false,\n\t\t\t\"min_delivery_days\": 1,\n\t\t\t\"max_delivery_days\": 1,\n\t\t\t\"estimated_delivery_text_en\": \"Delivered in 1 day(s)\",\n\t\t\t\"estimated_delivery_text_ar\": \"\\u064a\\u0635\\u0644 \\u062e\\u0644\\u0627\\u0644 1 \\u064a\\u0648\\u0645\",\n\t\t\t\"show_estimated_price\": true,\n\t\t\t\"free_shipping_threshold\": null,\n\t\t\t\"is_free_for_order\": null\n\t\t}\n\t]\n}"
 						},
 						{
 							"name": "401 Unauthorized",
@@ -22457,7 +22457,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"product-uuid\",\n    \"slug\": \"sample-product\",\n    \"price\": 15000,\n    \"currency\": \"EGP\"\n  }\n}"
+							"body": "{\n\t\"success\": true,\n\t\"data\": {\n\t\t\"id\": \"product-uuid\",\n\t\t\"slug\": \"sample-product\",\n\t\t\"price\": 15000,\n\t\t\"currency\": \"EGP\",\n\t\t\"shipping_methods\": [\n\t\t\t{\n\t\t\t\t\"id\": \"33333333-3333-3333-3333-333333333333\",\n\t\t\t\t\"name\": \"Standard Delivery\",\n\t\t\t\t\"code\": \"standard\",\n\t\t\t\t\"badge_label_en\": null,\n\t\t\t\t\"badge_label_ar\": null,\n\t\t\t\t\"badge_color_hex\": \"#1B2B6B\",\n\t\t\t\t\"badge_text_color_hex\": \"#FFFFFF\",\n\t\t\t\t\"delivery_label_en\": \"Standard\",\n\t\t\t\t\"delivery_label_ar\": \"\\u0639\\u0627\\u062f\\u064a\",\n\t\t\t\t\"is_express_type\": false,\n\t\t\t\t\"is_default\": true,\n\t\t\t\t\"min_delivery_days\": 2,\n\t\t\t\t\"max_delivery_days\": 5,\n\t\t\t\t\"estimated_delivery_text_en\": \"Delivered in 2\\u20135 days\",\n\t\t\t\t\"estimated_delivery_text_ar\": \"\\u064a\\u0635\\u0644 \\u062e\\u0644\\u0627\\u0644 2\\u20135 \\u064a\\u0648\\u0645\",\n\t\t\t\t\"show_estimated_price\": true,\n\t\t\t\t\"free_shipping_threshold\": 50000,\n\t\t\t\t\"is_free_for_order\": null\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"id\": \"44444444-4444-4444-4444-444444444444\",\n\t\t\t\t\"name\": \"Express Delivery\",\n\t\t\t\t\"code\": \"express\",\n\t\t\t\t\"badge_label_en\": \"Express\",\n\t\t\t\t\"badge_label_ar\": \"\\u0633\\u0631\\u064a\\u0639\",\n\t\t\t\t\"badge_color_hex\": \"#F97316\",\n\t\t\t\t\"badge_text_color_hex\": \"#FFFFFF\",\n\t\t\t\t\"delivery_label_en\": \"Express\",\n\t\t\t\t\"delivery_label_ar\": \"\\u0633\\u0631\\u064a\\u0639\",\n\t\t\t\t\"is_express_type\": true,\n\t\t\t\t\"is_default\": false,\n\t\t\t\t\"min_delivery_days\": 1,\n\t\t\t\t\"max_delivery_days\": 1,\n\t\t\t\t\"estimated_delivery_text_en\": \"Delivered in 1 day(s)\",\n\t\t\t\t\"estimated_delivery_text_ar\": \"\\u064a\\u0635\\u0644 \\u062e\\u0644\\u0627\\u0644 1 \\u064a\\u0648\\u0645\",\n\t\t\t\t\"show_estimated_price\": true,\n\t\t\t\t\"free_shipping_threshold\": null,\n\t\t\t\t\"is_free_for_order\": null\n\t\t\t}\n\t\t],\n\t\t\"selected_shipping_method_id\": \"33333333-3333-3333-3333-333333333333\"\n\t}\n}"
 						},
 						{
 							"name": "404 Not Found",
@@ -27600,14 +27600,14 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"address_id\": 1,\n  \"quantity\": 1\n}",
+							"raw": "{\n\t\"address_id\": \"55555555-5555-5555-5555-555555555555\",\n\t\"shipping_method_id\": \"33333333-3333-3333-3333-333333333333\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"description": "| Key | Type | Required | Description |\n|---|---|---|---|\n| address_id | integer | No | exists:addresses,id |\n| quantity | integer | No | min:1 |\n"
+						"description": "| Key | Type | Required | Description |\n|---|---|---|---|\n| address_id | string (uuid) | Yes | exists:addresses,id |\n| shipping_method_id | string (uuid) | Yes | exists:shipping_methods,id |\n"
 					},
 					"response": [
 						{
@@ -27641,7 +27641,7 @@
 								},
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"address_id\": 1,\n  \"quantity\": 1\n}",
+									"raw": "{\n\t\"address_id\": \"55555555-5555-5555-5555-555555555555\",\n\t\"shipping_method_id\": \"33333333-3333-3333-3333-333333333333\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -27660,7 +27660,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"min_days\": 2,\n    \"max_days\": 5,\n    \"fee\": 3000\n  }\n}"
+							"body": "{\n\t\"success\": true,\n\t\"data\": {\n\t\t\"fee\": 3000,\n\t\t\"cod_fee\": null,\n\t\t\"is_exceptional\": false,\n\t\t\"is_free_shipping\": false,\n\t\t\"currency\": \"EGP\",\n\t\t\"method_details\": {\n\t\t\t\"id\": \"33333333-3333-3333-3333-333333333333\",\n\t\t\t\"code\": \"standard\",\n\t\t\t\"name\": \"Standard Delivery\",\n\t\t\t\"delivery_days_min\": 2,\n\t\t\t\"delivery_days_max\": 5\n\t\t}\n\t}\n}"
 						},
 						{
 							"name": "401 Unauthorized",
@@ -27693,7 +27693,7 @@
 								},
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"address_id\": 1,\n  \"quantity\": 1\n}",
+									"raw": "{\n\t\"address_id\": \"55555555-5555-5555-5555-555555555555\",\n\t\"shipping_method_id\": \"33333333-3333-3333-3333-333333333333\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
