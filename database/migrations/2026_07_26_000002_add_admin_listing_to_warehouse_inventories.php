@@ -15,14 +15,14 @@ return new class extends Migration {
 
         DB::statement('ALTER TABLE warehouse_inventories MODIFY vendor_listing_id CHAR(36) NULL');
 
-        DB::statement(<<<'SQL'
-            ALTER TABLE warehouse_inventories
-            ADD CONSTRAINT chk_wi_listing_xor CHECK (
-                (vendor_listing_id IS NOT NULL AND admin_product_listing_id IS NULL)
-                OR
-                (vendor_listing_id IS NULL AND admin_product_listing_id IS NOT NULL)
-            )
-        SQL);
+        // DB::statement(<<<'SQL'
+        //     ALTER TABLE warehouse_inventories
+        //     ADD CONSTRAINT chk_wi_listing_xor CHECK (
+        //         (vendor_listing_id IS NOT NULL AND admin_product_listing_id IS NULL)
+        //         OR
+        //         (vendor_listing_id IS NULL AND admin_product_listing_id IS NOT NULL)
+        //     )
+        // SQL);
     }
 
     public function down(): void
