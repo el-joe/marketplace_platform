@@ -250,6 +250,9 @@ class ListingQueryService
         $variantImage = $variant->images->first()?->url ?? $product->images->first()?->url ?? null;
 
         $url = route('customer.listing.show', [$country->site_code, $variant->id .'--' . $listing->id]);
+        $url_param = $variant->id .'--' . $listing->id;
+
+
         return [
             'listing_id' => $listing->id,
             'listing_type' => $listing->global_system_type === GlobalSystemType::ExpressFbn ? 'admin' : 'vendor',
@@ -262,6 +265,7 @@ class ListingQueryService
             'variant_id' => $variant->id,
             'variant_slug' => $variant->slug,
             'product_url' => $url,
+            'url_param' => $url_param,
             'variant_name' => $variant->variant_name ?? $variant->sku,
             'variant_image' => $variantImage,
             'primary_image' => $variantImage,

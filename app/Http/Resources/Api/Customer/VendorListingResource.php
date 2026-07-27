@@ -23,7 +23,8 @@ class VendorListingResource extends JsonResource
             ?? $product->images->firstWhere('is_primary', true)
             ?? $product->images->first();
 
-        $url = route('customer.listing.show', [$this->country->site_code,$variant->id .'--' . $listing->id]);
+        $url = route('customer.listing.show', [$this->country->site_code, $variant->id . '--' . $listing->id]);
+        $url_param = $variant->id . '--' . $listing->id;
 
         return [
             'listing_id' => $listing->id,
@@ -31,6 +32,7 @@ class VendorListingResource extends JsonResource
             'variant_id' => $variant->id,
             'variant_name' => $variant->variant_name ?? $variant->sku,
             'product_url' => $url, // ✓ correct UUID format
+            'url_param' => $url_param,
             'primary_image' => $primaryImage?->url,
             'price' => (int) $listing->price,
             'compare_at_price' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,
@@ -53,7 +55,7 @@ class VendorListingResource extends JsonResource
                     'name_ar' => $product->category->name_ar,
                     'name_en' => $product->category->name_en,
                 ] : null,
-                'images' => $product->images->map(fn ($image) => [
+                'images' => $product->images->map(fn($image) => [
                     'url' => $image->url,
                     'is_primary' => (bool) $image->is_primary,
                 ])->values()->all(),

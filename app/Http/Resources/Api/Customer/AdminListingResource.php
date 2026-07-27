@@ -24,6 +24,8 @@ class AdminListingResource extends JsonResource
             ?? $product->images->first();
 
         $url = route('customer.listing.show', [$this->country->site_code, $variant->id .'--' . $listing->id]);
+        $url_param = $variant->id .'--' . $listing->id;
+
 
         return [
             'listing_id' => $listing->id,
@@ -64,6 +66,7 @@ class AdminListingResource extends JsonResource
                 'name_ar' => $listing->productVariant->name_ar,
                 'name_en' => $listing->productVariant->name_en,
             ],
+            'url_param' => $url_param,
         ];
     }
 }

@@ -62,6 +62,7 @@ class ProductDetailController extends Controller
         }
 
         $url = route('customer.listing.show', [$request->attributes->get('country')->site_code, $variant->id .'--' . $listing->id]);
+        $url_param = $variant->id .'--' . $listing->id;
 
         $shippingListingType = $listingType === 'vendor' ? 'vendor_listing' : 'admin_listing';
 
@@ -83,6 +84,7 @@ class ProductDetailController extends Controller
             'shipping_methods' => $shippingMethodsData,
             'selected_shipping_method_id' => $selectedShippingMethodId,
             'current_url' => $url,
+            'url_param' => $url_param
         ]);
     }
 
@@ -188,10 +190,11 @@ class ProductDetailController extends Controller
         }
 
         $url = route('customer.listing.show', [$request->attributes->get('country')->site_code, $variant->id .'--' . $listing->id]);
+        $url_param = $variant->id .'--' . $listing->id;
 
 
         if ($request->wantsJson() || $request->header('X-Requested-From') === 'mobile-app') {
-            return ApiResponse::success(['redirect_url' => $url]);
+            return ApiResponse::success(['redirect_url' => $url, 'url_param' => $url_param]);
         }
 
         return redirect($url, 301);
@@ -377,6 +380,7 @@ class ProductDetailController extends Controller
                 }
 
                 $url = route('customer.listing.show', [request()->attributes->get('country')->site_code,$targetVariant->id .'--' . $targetListing->id]);
+                $url_param = $targetVariant->id .'--' . $targetListing->id;
 
                 return [
                     'attribute_value_id' => $attributeValue->id,
@@ -388,6 +392,7 @@ class ProductDetailController extends Controller
                     'target_variant_id' => $targetVariant?->id,
                     'target_listing_id' => $targetListing?->id,
                     'url' => $url,
+                    'url_param' => $url_param,
                     'target_url' => ($targetVariant && $targetListing)
                         ? $url
                         : null,

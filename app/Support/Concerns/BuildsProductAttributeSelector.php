@@ -53,8 +53,10 @@ trait BuildsProductAttributeSelector
 
                             if($matchedVariantId && $listing) {
                                 $url = route('customer.listing.show', [request()->attributes->get('country')->site_code, $matchedVariantId .'--' . $listing['listing_id']]);
+                                $url_param = $matchedVariantId .'--' . $listing['listing_id'];
                             } else {
                                 $url = null;
+                                $url_param = null;
                             }
                             return [
                                 'attribute_value_id' => $va->attributeValue?->id,
@@ -64,6 +66,7 @@ trait BuildsProductAttributeSelector
                                     'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
                                 ],
                                 'url' => $url,
+                                'url_param' => $url_param,
                                 'color_hex' => $va->attributeValue?->color_hex,
                                 'selected' => ($selectedCombo[$attributeId] ?? null) === $va->attribute_value_id,
                                 'disabled' => $listing === null,
