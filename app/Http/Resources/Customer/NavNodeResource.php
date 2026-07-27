@@ -15,7 +15,7 @@ class NavNodeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'type'     => $this->resource['type'],
+            'type'     => $this->resource['type'] ?? $this->resource['source_type'],
             'id'       => $this->resource['id'],
             'name'     => $this->resource['name'],
             'slug'     => $this->resource['slug'],
