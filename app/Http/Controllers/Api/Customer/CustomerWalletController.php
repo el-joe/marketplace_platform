@@ -10,6 +10,8 @@ use App\Exceptions\InvalidGiftCardPinException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Customer\RedeemGiftCardRequest;
 use App\Http\Responses\ApiResponse;
+use App\Models\GiftCard;
+use App\Models\Order;
 use App\Services\GiftCardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -53,17 +55,54 @@ class CustomerWalletController extends Controller
     {
         $paginator = $this->giftCardService->getTransactionHistory(auth('customer')->user());
 
-        $items = $paginator->getCollection()->map(fn ($transaction) => [
-            'id' => $transaction->id,
-            'type' => $transaction->type,
-            'direction' => $transaction->direction,
-            'amount' => $transaction->amount,
-            'balance_after' => $transaction->balance_after,
-            'currency_code' => $transaction->currency_code,
-            'reference_type' => $transaction->reference_type,
-            'note' => $transaction->note,
-            'created_at' => $transaction->created_at,
-        ]);
+        $items = $paginator->getCollection()->map(function ($transaction) {
+            $item = [
+                'id' => $transaction->id,
+                'type' => $transaction->type,
+                'direction' => $transaction->direction,
+                'amount' => $transaction->amount,
+                'balance_after' => $transaction->balance_after,
+                'currency_code' => $transaction->currency_code,
+                'description' => $transaction->description,
+                'note' => $transaction->note,
+                'created_at' => $transaction->created_at,
+                'order' => null,
+                'gift_card' => null,
+            ];
+
+            if ($transaction->reference_type === Order::class && $transaction->reference_id) {
+                $order = Order::select(['id', 'order_number', 'total', 'currency', 'status', 'placed_at'])
+                    ->find($transaction->reference_id);
+
+                if ($order) {
+                    $item['order'] = [
+                        'id' => $order->id,
+                        'order_number' => $order->order_number,
+                        'total' => $order->total,
+                        'currency' => $order->currency,
+                        'status' => $order->status,
+                        'placed_at' => $order->placed_at,
+                    ];
+                }
+            }
+
+            if ($transaction->reference_type === GiftCard::class && $transaction->reference_id) {
+                $card = GiftCard::select(['id', 'code', 'amount', 'currency_code', 'redeemed_at'])
+                    ->find($transaction->reference_id);
+
+                if ($card) {
+                    $item['gift_card'] = [
+                        'id' => $card->id,
+                        'code' => $card->code,
+                        'amount' => $card->amount,
+                        'currency' => $card->currency_code,
+                        'redeemed_at' => $card->redeemed_at,
+                    ];
+                }
+            }
+
+            return $item;
+        });
 
         return ApiResponse::success([
             'items' => $items,

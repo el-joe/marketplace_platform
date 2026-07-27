@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\ReturnRequestLiability;
 use App\Enums\ReturnRequestStatus;
+use App\Enums\ReturnRequestType;
 use App\Http\Controllers\Controller;
 use App\Models\InventoryMovement;
 use App\Models\ReturnRequest;
 use App\Models\Vendor;
 use App\Models\WarehouseInventory;
+use App\Services\GiftCardService;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\Customer\ReturnApprovedNotification;
 use App\Notifications\Customer\ReturnRejectedNotification;
@@ -386,6 +388,21 @@ class ReturnController extends Controller
         );
 
         $returnRequest->update(['refund_id' => $refund->id]);
+
+        if ($returnRequest->return_type === ReturnRequestType::StoreCredit && $returnRequest->status === ReturnRequestStatus::Completed) {
+            $customer = $returnRequest->customer()->first();
+
+            $completedRefund = \App\Models\Refund::where('order_id', $returnRequest->order_id)
+                ->where('status', 'completed')
+                ->latest()
+                ->first();
+
+            $creditAmount = $completedRefund?->net_refund ?? 0;
+
+            if ($customer && $order && $creditAmount > 0) {
+                app(GiftCardService::class)->refundToWallet($customer, $order, $creditAmount);
+            }
+        }
     }
 
     private function restockInventory(ReturnRequest $returnRequest, $admin): void

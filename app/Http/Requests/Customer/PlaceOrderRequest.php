@@ -31,4 +31,12 @@ class PlaceOrderRequest extends FormRequest
             'warranty_selections.*.warranty_plan_id' => ['required_with:warranty_selections', 'uuid'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'wallet_amount_used.integer' => 'Wallet amount must be a whole number.',
+            'wallet_amount_used.min'     => 'Wallet amount cannot be negative.',
+        ];
+    }
 }

@@ -15,6 +15,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CountryShippingSetting;
 use App\Models\Coupon;
+use App\Models\CustomerWallet;
 use App\Services\BannerService;
 use App\Services\Customer\CartService;
 use App\Services\Customer\ListingIdentifierService;
@@ -84,7 +85,46 @@ class CartController extends Controller
                 $cart->country_id,
                 $cart->currency,
             ),
+            'wallet' => $this->resolveWalletInfo($cart),
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function resolveWalletInfo(Cart $cart): array
+    {
+        $customer = auth('customer')->user();
+
+        if (!$customer) {
+            return [
+                'balance' => 0,
+                'currency_code' => $cart->currency,
+                'applicable' => false,
+                'max_usable' => 0,
+                'remaining_after_wallet' => (int) $cart->estimated_total,
+            ];
+        }
+
+        $customerCurrency = $customer->country?->currency_code;
+
+        $wallet = CustomerWallet::where('customer_id', $customer->id)->first();
+        $walletBalance = $wallet?->balance ?? 0;
+        $walletCurrency = $wallet?->currency_code ?? $customerCurrency;
+
+        $walletApplicable = $walletBalance > 0 && $walletCurrency === $cart->currency;
+
+        $maxUsable = $walletApplicable ? min($walletBalance, (int) $cart->estimated_total) : 0;
+
+        return [
+            'balance' => $walletBalance,
+            'currency_code' => $walletCurrency,
+            'applicable' => $walletApplicable,
+            'max_usable' => $maxUsable,
+            'remaining_after_wallet' => $walletApplicable
+                ? ((int) $cart->estimated_total - $maxUsable)
+                : (int) $cart->estimated_total,
+        ];
     }
 
     /**

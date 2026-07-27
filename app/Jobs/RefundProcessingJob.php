@@ -2,8 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Models\Customer;
 use App\Models\Refund;
 use App\Notifications\Customer\OrderRefundProcessed;
+use App\Services\GiftCardService;
 use App\Services\PaymentService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,7 +25,7 @@ class RefundProcessingJob implements ShouldQueue
     {
     }
 
-    public function handle(PaymentService $paymentService): void
+    public function handle(PaymentService $paymentService, GiftCardService $giftCardService): void
     {
         $this->refund->loadMissing('originalTransaction', 'order');
 
@@ -86,5 +88,14 @@ class RefundProcessingJob implements ShouldQueue
         ]);
 
         $this->refund->order->customer->notify(new OrderRefundProcessed($this->refund));
+
+        if ($this->refund->status === 'completed') {
+            $customer = Customer::find($this->refund->initiated_by_customer_id);
+            $order = $this->refund->order;
+
+            if ($customer && $order) {
+                $giftCardService->refundToWallet($customer, $order, $this->refund->net_refund);
+            }
+        }
     }
 }

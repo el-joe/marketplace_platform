@@ -24,6 +24,7 @@ use App\Models\CountryPaymentMethod;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\CustomerWallet;
+use App\Exceptions\GiftCardCurrencyMismatchException;
 use App\Exceptions\InsufficientWalletBalanceException;
 use App\Models\InventoryMovement;
 use App\Models\Order;
@@ -657,14 +658,34 @@ class CheckoutController extends Controller
                     $this->giftCardService->redeem($giftCard, $giftCardAppliedCents, $order, $customer);
                 }
 
-                $walletAmountRequested = $validated['wallet_amount_used'] ?? $validated['wallet_amount_to_use'] ?? 0;
-                if ($walletAmountRequested > 0) {
-                    $walletAmountToUse = min((int) $walletAmountRequested, $order->total);
+                $walletAmountToUse = (int) ($validated['wallet_amount_used'] ?? $validated['wallet_amount_to_use'] ?? 0);
+                if ($walletAmountToUse > 0) {
+                    $wallet = CustomerWallet::where('customer_id', $customer->id)->first();
+                    if (! $wallet || $wallet->currency_code !== $order->currency) {
+                        throw new GiftCardCurrencyMismatchException(
+                            'Your wallet currency does not match this order.'
+                        );
+                    }
+
+                    if ($walletAmountToUse > $order->total) {
+                        throw new \InvalidArgumentException('Wallet amount cannot exceed order total.');
+                    }
+
+                    if ($validated['payment_method'] === 'cod' && $walletAmountToUse < $order->total) {
+                        throw new \InvalidArgumentException(
+                            'COD orders must be paid fully by wallet or not use wallet at all.'
+                        );
+                    }
+
                     $this->giftCardService->applyWalletToOrder($customer, $order, $walletAmountToUse);
                     $order->refresh();
 
-                    if ($walletAmountToUse >= $order->total) {
-                        $order->update(['payment_method' => 'wallet']);
+                    $remainingToPay = $order->total - $walletAmountToUse;
+                    if ($remainingToPay === 0) {
+                        $order->update([
+                            'payment_method' => 'wallet',
+                            'payment_status' => 'captured',
+                        ]);
                     }
                 }
 
@@ -688,16 +709,19 @@ class CheckoutController extends Controller
                     $this->affiliatePromoCodeService->recordConversion($affiliatePromoCode, $order, $commissionAmount);
                 }
 
-                return ['order' => $order, 'sub_orders' => $subOrders];
+                return ['order' => $order, 'sub_orders' => $subOrders, 'wallet_fully_paid' => $order->payment_status === 'captured'];
             });
-        } catch (\DomainException|InsufficientWalletBalanceException $e) {
+        } catch (\DomainException|InsufficientWalletBalanceException|GiftCardCurrencyMismatchException|\InvalidArgumentException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
         $subOrders = $result['sub_orders'];
         $order = $result['order'];
 
-        if ($isCod) {
+        if ($result['wallet_fully_paid']) {
+            // Wallet covered the full order total inside the transaction above — no COD
+            // collection and no external payment gateway call needed.
+        } elseif ($isCod) {
             // Cash hasn't changed hands yet — this transaction (and order.payment_status,
             // already 'pending' from creation above) only becomes 'succeeded'/'captured' once
             // the delivery agent actually collects payment (see AssignmentController::confirmDelivery).
