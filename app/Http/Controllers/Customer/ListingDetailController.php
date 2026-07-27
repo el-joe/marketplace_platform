@@ -324,17 +324,24 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function productAttributesShape($product, $productVariant): ?array
+    private function productAttributesShape($product, $productVariant, $country): array
     {
         $variants = $product->variants->loadMissing('variantAttributes.attribute', 'variantAttributes.attributeValue');
 
-        $selectedAttributes = $productVariant->variantAttributes;
+        $comboFor = fn($variant) => $variant->variantAttributes
+            ->filter(fn($va) => $va->attribute_value_id)
+            ->pluck('attribute_value_id', 'attribute_id')
+            ->all();
+
+        $variantCombos = $variants->mapWithKeys(fn($variant) => [$variant->id => $comboFor($variant)]);
+        $selectedCombo = $comboFor($productVariant);
+        $listingsByVariant = $this->variantListingsMap($product, $country);
 
         return $variants
             ->flatMap(fn($variant) => $variant->variantAttributes)
             ->filter(fn($va) => $va->attribute !== null)
             ->groupBy('attribute_id')
-            ->map(function ($group) use ($productVariant) {
+            ->map(function ($group, $attributeId) use ($selectedCombo, $variantCombos, $listingsByVariant) {
                 $attribute = $group->first()->attribute;
 
                 return [
@@ -345,20 +352,63 @@ class ListingDetailController extends Controller
                     ],
                     'values' => $group
                         ->unique(fn($va) => $va->attribute_value_id ?? $va->value_text_en)
-                        ->map(fn($va) => [
-                            'attribute_value_id' => $va->attributeValue?->id,
-                            'value' => [
-                                'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
-                                'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
-                            ],
-                            'color_hex' => $va->attributeValue?->color_hex,
-                        ])
+                        ->map(function ($va) use ($attributeId, $selectedCombo, $variantCombos, $listingsByVariant) {
+                            $candidateCombo = $selectedCombo;
+                            $candidateCombo[$attributeId] = $va->attribute_value_id;
+
+                            $matchedVariantId = $variantCombos->search(fn($combo) => $combo == $candidateCombo);
+                            $matchedVariantId = $matchedVariantId === false ? null : $matchedVariantId;
+                            $listing = $matchedVariantId ? ($listingsByVariant[$matchedVariantId] ?? null) : null;
+
+                            return [
+                                'attribute_value_id' => $va->attributeValue?->id,
+                                'slug' => $va->attributeValue?->slug,
+                                'value' => [
+                                    'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
+                                    'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
+                                ],
+                                'color_hex' => $va->attributeValue?->color_hex,
+                                'selected' => ($selectedCombo[$attributeId] ?? null) === $va->attribute_value_id,
+                                'disabled' => $listing === null,
+                                'variant_id' => $matchedVariantId,
+                                'listing_id' => $listing['listing_id'] ?? null,
+                                'listing_ref' => $listing['listing_ref'] ?? null,
+                            ];
+                        })
                         ->values()
                         ->all(),
                 ];
             })
             ->sortBy(fn($group) => $group['name']['en'])
             ->values()
+            ->all();
+    }
+
+    private function variantListingsMap($product, $country): array
+    {
+        $variantIds = $product->variants->pluck('id')->all();
+
+        if ($this->appContext->isNawyNow()) {
+            $listings = AdminProductListing::whereIn('product_variant_id', $variantIds)
+                ->where('country_id', $country->id)
+                ->where('status', 'active')
+                ->orderBy('price')
+                ->get()
+                ->groupBy('product_variant_id');
+        } else {
+            $listings = VendorListing::whereIn('product_variant_id', $variantIds)
+                ->where('country_id', $country->id)
+                ->where('status', VendorListingStatus::Active)
+                ->orderBy('price')
+                ->get()
+                ->groupBy('product_variant_id');
+        }
+
+        return $listings
+            ->map(fn($group) => [
+                'listing_id' => $group->first()->id,
+                'listing_ref' => $this->identifiers->buildListingRef($group->first()),
+            ])
             ->all();
     }
 
