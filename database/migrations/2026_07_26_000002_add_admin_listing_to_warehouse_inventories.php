@@ -10,7 +10,7 @@ return new class extends Migration {
     {
         Schema::table('warehouse_inventories', function (Blueprint $table) {
             $table->char('admin_product_listing_id', 36)->nullable()->after('vendor_listing_id')->index();
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
+            // $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->nullOnDelete();
         });
 
         DB::statement('ALTER TABLE warehouse_inventories MODIFY vendor_listing_id CHAR(36) NULL');
@@ -30,7 +30,7 @@ return new class extends Migration {
         DB::statement('ALTER TABLE warehouse_inventories DROP CHECK chk_wi_listing_xor');
 
         Schema::table('warehouse_inventories', function (Blueprint $table) {
-            $table->dropForeign(['admin_product_listing_id']);
+            // $table->dropForeign(['admin_product_listing_id']);
             $table->dropColumn('admin_product_listing_id');
         });
 
