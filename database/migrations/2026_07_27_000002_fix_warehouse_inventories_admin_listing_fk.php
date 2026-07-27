@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('warehouse_inventories', function (Blueprint $table) {
-            $table->dropForeign('warehouse_inventories_admin_product_listing_id_foreign');
-        });
+        // Schema::table('warehouse_inventories', function (Blueprint $table) {
+        //     $table->dropForeign('warehouse_inventories_admin_product_listing_id_foreign');
+        // });
 
         Schema::table('warehouse_inventories', function (Blueprint $table) {
             $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings')->restrictOnDelete();
