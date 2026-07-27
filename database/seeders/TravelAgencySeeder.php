@@ -58,7 +58,7 @@ class TravelAgencySeeder extends Seeder
                     'license_number' => $data['license_number'],
                     'country_id'     => $country->id,
                     'status'         => $data['status'],
-                    'password'       => bcrypt('password123'),
+                    'password'       => 'password123',
                 ]
             );
         }
