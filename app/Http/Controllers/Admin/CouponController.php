@@ -10,6 +10,8 @@ use App\Http\Resources\Admin\CouponUsageResource;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
+use App\Models\Country;
+use App\Models\Customer;
 use App\Services\Admin\CouponService;
 use App\Traits\HasDataTable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -43,6 +45,12 @@ class CouponController extends Controller
             'breadcrumbs' => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.nav.coupons')],
+            ],
+            'stats' => [
+                'total' => Coupon::count(),
+                'active' => Coupon::active()->count(),
+                'expired' => Coupon::where('valid_until', '<', now())->count(),
+                'used_today' => CouponUsage::whereDate('used_at', today())->count(),
             ],
         ]);
     }
@@ -131,6 +139,8 @@ class CouponController extends Controller
                 ['label' => __('admin.coupons_section.new_coupon')],
             ],
             'categories' => Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
+            'countries' => Country::query()->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
+            'selectedCustomers' => collect(),
         ]);
     }
 
@@ -205,6 +215,12 @@ class CouponController extends Controller
             'categories' => $isAdminManaged
                 ? Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en'])
                 : collect(),
+            'countries' => $isAdminManaged
+                ? Country::query()->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en'])
+                : collect(),
+            'selectedCustomers' => $coupon->eligible_customer_ids
+                ? Customer::query()->whereIn('id', $coupon->eligible_customer_ids)->get(['id', 'name', 'email'])
+                : collect(),
             'totalDiscountGranted' => (float) $totalDiscountGranted,
             'dailyRedemptions' => $dailyRedemptions,
             'recentUsages' => CouponUsageResource::collection($recentUsages)->resolve(),
@@ -237,6 +253,10 @@ class CouponController extends Controller
                 ['label' => e($model->code)],
             ],
             'categories' => Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
+            'countries' => Country::query()->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
+            'selectedCustomers' => $model->eligible_customer_ids
+                ? Customer::query()->whereIn('id', $model->eligible_customer_ids)->get(['id', 'name', 'email'])
+                : collect(),
         ]);
     }
 
@@ -347,6 +367,28 @@ class CouponController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Search (Select2 AJAX)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function searchCustomers(Request $request): JsonResponse
+    {
+        $term = $request->input('q', '');
+
+        $customers = Customer::query()
+            ->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                    ->orWhere('email', 'like', "%{$term}%");
+            })
+            ->orderBy('name')
+            ->limit(30)
+            ->get(['id', 'name', 'email']);
+
+        return response()->json([
+            'results' => $customers->map(fn($c) => ['id' => $c->id, 'text' => "{$c->name} ({$c->email})"]),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Usages
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -365,6 +407,33 @@ class CouponController extends Controller
             'current_page' => $usages->currentPage(),
             'last_page' => $usages->lastPage(),
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Usage Chart
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function usageChart(Coupon $coupon): JsonResponse
+    {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('view', $coupon);
+
+        $counts = CouponUsage::query()
+            ->where('coupon_id', $coupon->id)
+            ->where('used_at', '>=', now()->subDays(30)->startOfDay())
+            ->selectRaw('DATE(used_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date');
+
+        $labels = [];
+        $data = [];
+
+        for ($day = now()->subDays(29)->startOfDay(); $day <= now()->endOfDay(); $day->addDay()) {
+            $date = $day->toDateString();
+            $labels[] = $date;
+            $data[] = (int) ($counts[$date] ?? 0);
+        }
+
+        return response()->json(['labels' => $labels, 'data' => $data]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

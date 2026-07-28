@@ -65,10 +65,22 @@ class UpdateCouponRequest extends FormRequest
             'usage_limit_total' => ['nullable', 'integer', 'min:1'],
             'usage_limit_per_customer' => ['required', 'integer', 'min:1'],
             'customer_eligibility' => ['required', Rule::enum(CouponCustomerEligibility::class)],
+            'eligible_customer_ids' => [
+                Rule::when(fn () => $this->input('customer_eligibility') === 'specific_users', ['required']),
+                'array',
+            ],
+            'eligible_customer_ids.*' => ['uuid', 'exists:customers,id'],
+            'country_ids' => ['nullable', 'array'],
+            'country_ids.*' => ['uuid', 'exists:countries,id'],
             'valid_from' => ['required', 'date'],
             'valid_until' => ['required', 'date', 'after:valid_from'],
             'is_active' => ['boolean'],
             'is_stackable' => ['boolean'],
+            'funded_by' => ['required', Rule::in(['platform', 'shared'])],
+            'vendor_share_pct' => [
+                Rule::when(fn () => $this->input('funded_by') === 'shared', ['required'], ['nullable']),
+                'integer', 'min:0', 'max:100',
+            ],
         ];
     }
 }

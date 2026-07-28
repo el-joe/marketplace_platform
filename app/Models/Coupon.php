@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Coupon extends Model
 {
-    use HasUuids;
+    use HasUuids, HasFactory;
     protected $fillable = [
         'code',
         'name',
@@ -33,6 +34,10 @@ class Coupon extends Model
         'max_orders_per_customer_per_month',
         'times_used',
         'customer_eligibility',
+        'eligible_customer_ids',
+        'country_ids',
+        'funded_by',
+        'vendor_share_pct',
         'valid_from',
         'valid_until',
         'is_active',
@@ -46,10 +51,15 @@ class Coupon extends Model
         'customer_eligibility' => \App\Enums\CouponCustomerEligibility::class,
         'terms_ar' => 'array',
         'terms_en' => 'array',
+        'country_ids' => 'array',
+        'eligible_customer_ids' => 'array',
         'valid_from' => 'datetime',
         'valid_until' => 'datetime',
         'is_active' => 'boolean',
         'is_stackable' => 'boolean',
+        'min_order_amount' => 'integer',
+        'max_discount' => 'integer',
+        'value' => 'decimal:2',
     ];
 
     public function isBankOffer(): bool
@@ -85,5 +95,18 @@ class Coupon extends Model
     public function usages(): HasMany
     {
         return $this->hasMany(CouponUsage::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1)
+            ->where('valid_from', '<=', now())
+            ->where('valid_until', '>=', now());
+    }
+
+    public function scopeForCountry($query, string $countryId)
+    {
+        return $query->whereNull('country_ids')
+            ->orWhereJsonContains('country_ids', $countryId);
     }
 }

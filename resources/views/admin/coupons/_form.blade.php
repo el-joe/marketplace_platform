@@ -25,11 +25,18 @@
 
     $currentType  = old('type',  $isEdit ? $coupon->type->value  : 'percentage');
     $currentScope = old('scope', $isEdit ? $coupon->scope->value : 'platform');
+    $currentEligibility = old('customer_eligibility', $isEdit ? $coupon->customer_eligibility->value : 'all');
+    $currentFundedBy = old('funded_by', $isEdit ? ($coupon->funded_by ?? 'platform') : 'platform');
+    $selectedCustomers = $selectedCustomers ?? collect();
+    $countries = $countries ?? collect();
+    $selectedCountryIds = old('country_ids', $isEdit ? ($coupon->country_ids ?? []) : []);
 @endphp
 
 <div class="space-y-6" x-data="{
     type:  '{{ $currentType }}',
-    scope: '{{ $currentScope }}'
+    scope: '{{ $currentScope }}',
+    eligibility: '{{ $currentEligibility }}',
+    fundedBy: '{{ $currentFundedBy }}'
 }">
     <input type="hidden" id="form-mode" name="_form_mode" value="{{ $isEdit ? 'edit' : 'create' }}">
     <input type="hidden" id="form-times-used" value="{{ $isEdit ? $coupon->times_used : 0 }}">
@@ -432,17 +439,107 @@
                         <select
                             id="customer_eligibility"
                             name="customer_eligibility"
+                            x-model="eligibility"
                             class="input w-full @error('customer_eligibility') border-red-400 @enderror"
                             required
                         >
-                            <option value="all"              {{ $val('customer_eligibility', 'all') === 'all'              ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_all') }}</option>
-                            <option value="new_customers"    {{ $val('customer_eligibility', 'all') === 'new_customers'    ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_new') }}</option>
-                            <option value="specific_segment" {{ $val('customer_eligibility', 'all') === 'specific_segment' ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_segment') }}</option>
-                            <option value="specific_users"   {{ $val('customer_eligibility', 'all') === 'specific_users'   ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_users') }}</option>
+                            <option value="all"              {{ $currentEligibility === 'all'              ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_all') }}</option>
+                            <option value="new_customers"    {{ $currentEligibility === 'new_customers'    ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_new') }}</option>
+                            <option value="specific_segment" {{ $currentEligibility === 'specific_segment' ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_segment') }}</option>
+                            <option value="specific_users"   {{ $currentEligibility === 'specific_users'   ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_users') }}</option>
                         </select>
                         @error('customer_eligibility') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
+                    {{-- Eligible customers (specific_users only) --}}
+                    <div x-show="eligibility === 'specific_users'" class="col-span-2">
+                        <label for="eligible_customer_ids" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.eligible_customers') }}</label>
+                        <select
+                            id="eligible_customer_ids"
+                            name="eligible_customer_ids[]"
+                            multiple
+                            class="input w-full @error('eligible_customer_ids') border-red-400 @enderror"
+                            data-async-select
+                            data-config="{{ json_encode(['url' => route('admin.coupons.search-customers'), 'param' => 'q', 'minLength' => 2], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}"
+                            placeholder="{{ __('admin.coupons_section.select_customers') }}"
+                        >
+                            @foreach($selectedCustomers as $customer)
+                                <option value="{{ $customer->id }}" selected>{{ e($customer->name) }} ({{ e($customer->email) }})</option>
+                            @endforeach
+                        </select>
+                        @error('eligible_customer_ids') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        @error('eligible_customer_ids.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- Restrictions ────────────────────────────────────────────── --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.countries') }}</h2>
+                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.coupons_section.countries_hint') }}</p>
+                </div>
+                <div class="px-5 py-5">
+                    <select
+                        id="country_ids"
+                        name="country_ids[]"
+                        multiple
+                        class="input w-full @error('country_ids') border-red-400 @enderror"
+                        data-select2-init
+                    >
+                        <option value=""></option>
+                        @foreach($countries as $country)
+                            <option value="{{ $country->id }}" {{ in_array($country->id, $selectedCountryIds, true) ? 'selected' : '' }}>
+                                {{ e($country->name_en) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('country_ids') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('country_ids.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
+            {{-- Funding ───────────────────────────────────────────────── --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.funding') }}</h2>
+                </div>
+                <div class="px-5 py-5 grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="funded_by" class="block text-xs font-medium text-gray-700 mb-1">
+                            {{ __('admin.coupons_section.funded_by') }} <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            id="funded_by"
+                            name="funded_by"
+                            x-model="fundedBy"
+                            class="input w-full @error('funded_by') border-red-400 @enderror"
+                            required
+                        >
+                            <option value="platform" {{ $currentFundedBy === 'platform' ? 'selected' : '' }}>{{ __('admin.coupons_section.funded_by_platform') }}</option>
+                            <option value="shared"   {{ $currentFundedBy === 'shared'   ? 'selected' : '' }}>{{ __('admin.coupons_section.funded_by_shared') }}</option>
+                        </select>
+                        @error('funded_by') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div x-show="fundedBy === 'shared'">
+                        <label for="vendor_share_pct" class="block text-xs font-medium text-gray-700 mb-1">
+                            {{ __('admin.coupons_section.vendor_share_pct') }}
+                            <span class="text-gray-400 font-normal">{{ __('admin.coupons_section.vendor_share_pct_hint') }}</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="vendor_share_pct"
+                            name="vendor_share_pct"
+                            value="{{ $val('vendor_share_pct') }}"
+                            class="input w-full @error('vendor_share_pct') border-red-400 @enderror"
+                            min="0"
+                            max="100"
+                            :required="fundedBy === 'shared'"
+                        />
+                        @error('vendor_share_pct') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
             </div>
 

@@ -10,20 +10,8 @@ class GiftCardTransaction extends Model
 {
     use HasUuids;
 
-    public const UPDATED_AT = null; // append-only
-
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        static::updating(function () {
-            throw new \RuntimeException('GiftCardTransaction is append-only and cannot be updated.');
-        });
-
-        static::deleting(function () {
-            throw new \RuntimeException('GiftCardTransaction is append-only and cannot be deleted.');
-        });
-    }
+    // Schema-verified: NO updated_at column on this table
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'gift_card_id',
@@ -36,11 +24,21 @@ class GiftCardTransaction extends Model
         'notes',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'amount' => 'integer',
         'balance_after' => 'integer',
+        'created_at' => 'datetime',
     ];
+
+    public function update(array $attributes = [], array $options = []): never
+    {
+        throw new \RuntimeException('GiftCardTransaction is append-only and cannot be updated.');
+    }
+
+    public function delete(): never
+    {
+        throw new \RuntimeException('GiftCardTransaction is append-only and cannot be deleted.');
+    }
 
     public function giftCard(): BelongsTo
     {

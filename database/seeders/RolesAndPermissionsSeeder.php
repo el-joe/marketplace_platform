@@ -70,6 +70,7 @@ class RolesAndPermissionsSeeder extends Seeder
                     'marketers.campaigns', 'marketers.secret_promotions',
                     'flash_sales.view', 'flash_sales.create', 'flash_sales.edit',
                     'flash_sales.review_submissions',
+                    'vouchers.view', 'vouchers.create', 'vouchers.edit', 'vouchers.delete',
                 ],
             ],
             [

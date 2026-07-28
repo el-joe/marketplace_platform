@@ -22,7 +22,6 @@ use App\Jobs\OrderConfirmationEmailJob;
 use App\Models\Address;
 use App\Models\CountryPaymentMethod;
 use App\Models\Coupon;
-use App\Models\CouponUsage;
 use App\Models\CustomerWallet;
 use App\Exceptions\GiftCardCurrencyMismatchException;
 use App\Exceptions\InsufficientWalletBalanceException;
@@ -42,7 +41,8 @@ use App\Services\Customer\CityShippingSurchargeService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\WarehouseShippingSurchargeService;
 use App\Services\AffiliatePromoCodeService;
-use App\Services\GiftCardService;
+use App\Services\Customer\CheckoutWalletService;
+use App\Services\CouponService;
 use App\Services\PaymentService;
 use App\Services\ShippingSubsidyService;
 use App\Services\WarrantyPlanService;
@@ -51,6 +51,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CheckoutController extends Controller
 {
@@ -59,12 +60,13 @@ class CheckoutController extends Controller
         private readonly CheckoutCalculationService $calculationService,
         private readonly ListingIdentifierService $listingIdentifierService,
         private readonly PaymentService $paymentService,
-        private readonly GiftCardService $giftCardService,
+        private readonly CheckoutWalletService $checkoutWalletService,
         private readonly WarrantyPlanService $warrantyPlanService,
         private readonly CityShippingSurchargeService $cityShippingSurchargeService,
         private readonly WarehouseShippingSurchargeService $warehouseShippingSurchargeService,
         private readonly AffiliatePromoCodeService $affiliatePromoCodeService,
         private readonly ShippingSubsidyService $shippingSubsidyService,
+        private readonly CouponService $couponService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -202,43 +204,13 @@ class CheckoutController extends Controller
             ];
         }
 
-        $preGiftCardSummary = $this->calculationService->buildOrderSummary(
-            $cartItems,
-            $vendorShipping['total'],
-            $codFeeCents,
-            $discountCents,
-            $country,
-            0,
-            $warrantyTotalCents
-        );
-
-        $giftCardResponse = null;
-        $giftCardAppliedCents = 0;
-        if (! empty($validated['gift_card_code'])) {
-            $giftCardResult = $this->calculationService->applyGiftCard(
-                $validated['gift_card_code'],
-                $cart->currency,
-                $preGiftCardSummary['total']
-            );
-
-            if ($giftCardResult['error']) {
-                return ApiResponse::error($giftCardResult['error'], [], 422);
-            }
-
-            $giftCardAppliedCents = $giftCardResult['applied'];
-            $giftCardResponse = [
-                'code' => $validated['gift_card_code'],
-                'applied' => $giftCardAppliedCents,
-            ];
-        }
-
         $summary = $this->calculationService->buildOrderSummary(
             $cartItems,
             $vendorShipping['total'],
             $codFeeCents,
             $discountCents,
             $country,
-            $giftCardAppliedCents,
+            0,
             $warrantyTotalCents
         );
 
@@ -290,7 +262,6 @@ class CheckoutController extends Controller
             'payment_method' => $validated['payment_method'],
             'available_payment_methods' => $availablePaymentMethods,
             'coupon' => $couponResponse,
-            'gift_card' => $giftCardResponse,
             'wallet_balance' => $walletBalance,
             'wallet_currency' => $walletCurrency,
             'wallet_applicable' => $walletApplicable,
@@ -390,6 +361,7 @@ class CheckoutController extends Controller
 
             $discountCents = $couponResult['discount'];
         }
+        $couponDiscountCents = $discountCents;
 
         $affiliatePromoCode = null;
         $affiliatePromoDiscountCents = 0;
@@ -412,7 +384,7 @@ class CheckoutController extends Controller
             }
         }
 
-        $preGiftCardSummary = $this->calculationService->buildOrderSummary(
+        $summary = $this->calculationService->buildOrderSummary(
             $cartItems,
             $shippingFeeCents,
             $codFeeCents,
@@ -422,40 +394,13 @@ class CheckoutController extends Controller
             $warrantyTotalCents
         );
 
-        $giftCard = null;
-        $giftCardAppliedCents = 0;
-        if (! empty($validated['gift_card_code'])) {
-            $giftCardResult = $this->calculationService->applyGiftCard(
-                $validated['gift_card_code'],
-                $cart->currency,
-                $preGiftCardSummary['total']
-            );
-
-            if ($giftCardResult['error']) {
-                return ApiResponse::error($giftCardResult['error'], [], 422);
-            }
-
-            $giftCard = $giftCardResult['gift_card'];
-            $giftCardAppliedCents = $giftCardResult['applied'];
-        }
-
-        $summary = $this->calculationService->buildOrderSummary(
-            $cartItems,
-            $shippingFeeCents,
-            $codFeeCents,
-            $discountCents,
-            $country,
-            $giftCardAppliedCents,
-            $warrantyTotalCents
-        );
-
         $attribution = session('marketer_attribution', []);
 
         try {
             $result = DB::transaction(function () use (
                 $customer, $country, $address, $validated, $coupon,
                 $cartItems, $summary, $attribution, $vendorShipping,
-                $giftCard, $giftCardAppliedCents, $warrantySelections,
+                $warrantySelections, $cart, $couponDiscountCents,
                 $affiliatePromoCode, $affiliatePromoDiscountCents
             ) {
                 $vendorShippingMap = $vendorShipping['per_vendor'];
@@ -654,10 +599,6 @@ class CheckoutController extends Controller
                     $subOrders[] = $subOrder;
                 }
 
-                if ($giftCard && $giftCardAppliedCents > 0) {
-                    $this->giftCardService->redeem($giftCard, $giftCardAppliedCents, $order, $customer);
-                }
-
                 $walletAmountToUse = (int) ($validated['wallet_amount_used'] ?? $validated['wallet_amount_to_use'] ?? 0);
                 if ($walletAmountToUse > 0) {
                     $wallet = CustomerWallet::where('customer_id', $customer->id)->first();
@@ -677,7 +618,7 @@ class CheckoutController extends Controller
                         );
                     }
 
-                    $this->giftCardService->applyWalletToOrder($customer, $order, $walletAmountToUse);
+                    $this->checkoutWalletService->applyWalletToOrder($customer, $order, $walletAmountToUse);
                     $order->refresh();
 
                     $remainingToPay = $order->total - $walletAmountToUse;
@@ -690,14 +631,18 @@ class CheckoutController extends Controller
                 }
 
                 if ($coupon) {
-                    CouponUsage::create([
-                        'coupon_id' => $coupon->id,
-                        'customer_id' => $customer->id,
-                        'order_id' => $order->id,
-                        'discount_amount' => $summary['discount'],
-                        'used_at' => now(),
-                    ]);
-                    $coupon->increment('times_used');
+                    // Re-validate at placement time — coupon may have expired,
+                    // hit its usage limit, or become otherwise invalid since it
+                    // was applied to the cart.
+                    try {
+                        $this->couponService->validate($coupon->code, $cart, $customer);
+                    } catch (ValidationException $e) {
+                        throw new \DomainException(
+                            'Your coupon is no longer valid: '.$e->validator->errors()->first()
+                        );
+                    }
+
+                    $this->couponService->recordUsage($coupon, $order, $customer, $couponDiscountCents);
                 }
 
                 if ($affiliatePromoCode) {

@@ -3,21 +3,26 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AdjustGiftCardBalanceRequest;
 use App\Http\Requests\Admin\StoreBatchRequest;
 use App\Models\GiftCard;
 use App\Models\GiftCardBatch;
+use App\Models\GiftCardTransaction;
+use App\Services\GiftCardService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class AdminGiftCardController extends Controller
 {
     use HasDataTable;
+
+    public function __construct(private readonly GiftCardService $giftCardService)
+    {
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Card index (all cards, across batches)
@@ -25,7 +30,19 @@ class AdminGiftCardController extends Controller
 
     public function cardIndex(): View
     {
+        // NEVER sum across currencies — gift card balances are currency-scoped.
+        $stats = GiftCard::selectRaw(
+            "currency_code, COUNT(*) as total,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_count,
+            SUM(CASE WHEN status = 'redeemed' THEN 1 ELSE 0 END) as redeemed_count,
+            SUM(amount) as total_value"
+        )->groupBy('currency_code')->get();
+
+        $recentBatches = GiftCardBatch::with('createdByAdmin:id,name')->latest()->take(5)->get();
+
         return view('admin.gift-cards.index', [
+            'stats' => $stats,
+            'recentBatches' => $recentBatches,
             'breadcrumbs' => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.gift_cards_section.title')],
@@ -37,20 +54,25 @@ class AdminGiftCardController extends Controller
     {
         $columns = $this->cardColumnDefinitions();
 
-        $query = GiftCard::query()->select([
-            'gift_cards.id',
-            'gift_cards.code',
-            'gift_cards.amount',
-            'gift_cards.currency_code',
-            'gift_cards.status',
-            'gift_cards.gift_card_batch_id',
-            'gift_cards.expires_at',
-            'gift_cards.created_at',
-        ]);
+        $query = GiftCard::query()
+            ->select([
+                'gift_cards.id',
+                'gift_cards.code',
+                'gift_cards.amount',
+                'gift_cards.remaining_balance',
+                'gift_cards.currency_code',
+                'gift_cards.status',
+                'gift_cards.gift_card_batch_id',
+                'gift_cards.redeemed_by_customer_id',
+                'gift_cards.expires_at',
+                'gift_cards.created_at',
+            ])
+            ->with('redeemedBy:id,name');
 
         $query = $this->applyFilters($query, $request, [
             'status' => fn($q, $v) => $q->where('gift_cards.status', $v),
             'currency_code' => fn($q, $v) => $q->where('gift_cards.currency_code', $v),
+            'batch_id' => fn($q, $v) => $q->where('gift_cards.gift_card_batch_id', $v),
             'search' => fn($q, $v) => $q->where('gift_cards.code', 'like', "%{$v}%"),
         ]);
 
@@ -58,11 +80,15 @@ class AdminGiftCardController extends Controller
             return [
                 'id' => $row->id,
                 'code' => e($row->code),
+                'code_masked' => e($row->masked_code),
                 'amount' => (int) $row->amount,
+                'remaining_balance' => (int) $row->remaining_balance,
                 'currency_code' => $row->currency_code,
                 'status' => $row->status,
+                'redeemed_by' => $row->redeemedBy?->name,
                 'expires_at' => $row->expires_at,
                 'created_at' => $row->created_at,
+                'show_url' => route('admin.gift-cards.show', $row->id),
                 'batch_url' => $row->gift_card_batch_id
                     ? route('admin.gift-cards.batches.show', $row->gift_card_batch_id)
                     : null,
@@ -118,7 +144,7 @@ class AdminGiftCardController extends Controller
                 'gift_cards.expires_at',
                 'gift_cards.created_at',
             ])
-            ->with('redeemedByCustomer:id,name')
+            ->with('redeemedBy:id,name')
             ->where('gift_card_batch_id', $batch->id);
 
         $query = $this->applyFilters($query, $request, [
@@ -129,13 +155,14 @@ class AdminGiftCardController extends Controller
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
             return [
                 'id' => $row->id,
-                'code' => e($row->code),
+                'code' => e($row->masked_code),
                 'amount' => (int) $row->amount,
                 'currency_code' => $row->currency_code,
                 'status' => $row->status,
-                'redeemed_by' => $row->redeemedByCustomer?->name,
+                'redeemed_by' => $row->redeemedBy?->name,
                 'redeemed_at' => $row->redeemed_at,
                 'expires_at' => $row->expires_at,
+                'show_url' => route('admin.gift-cards.show', $row->id),
             ];
         });
     }
@@ -157,36 +184,21 @@ class AdminGiftCardController extends Controller
 
     public function batchStore(StoreBatchRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
-
         /** @var \App\Models\Admin $admin */
         $admin = Auth::guard('admin')->user();
 
-        $batch = DB::transaction(function () use ($validated, $admin) {
-            $batch = GiftCardBatch::create([
-                'name' => $validated['name'],
-                'description' => $validated['description'] ?? null,
-                'currency_code' => $validated['currency_code'],
-                'amount' => $validated['amount'],
-                'quantity' => $validated['quantity'],
-                'expires_at' => $validated['expires_at'] ?? null,
-                'created_by_admin_id' => $admin->id,
-            ]);
+        $result = $this->giftCardService->generateBatch($request->validated(), $admin);
+        $batch = $result['batch'];
+        $pins = $result['plain_pins'];
 
-            for ($i = 0; $i < $validated['quantity']; $i++) {
-                GiftCard::create([
-                    'gift_card_batch_id' => $batch->id,
-                    'code' => GiftCard::generateCode(),
-                    'pin_hash' => Hash::make(sprintf('%04d', random_int(0, 9999))),
-                    'amount' => $validated['amount'],
-                    'currency_code' => $validated['currency_code'],
-                    'status' => 'inactive',
-                    'expires_at' => $validated['expires_at'] ?? null,
-                ]);
-            }
-
-            return $batch;
-        });
+        // Flash plain PINs as CSV for one-time download — never stored anywhere.
+        $csvLines = ['code,pin'];
+        $cards = $batch->giftCards()->orderBy('created_at')->get();
+        foreach ($cards as $i => $card) {
+            $csvLines[] = $card->code.','.$pins[$i];
+        }
+        session()->flash('pins_csv', implode("\n", $csvLines));
+        session()->flash('pins_filename', 'gift_cards_'.$batch->id.'.csv');
 
         return redirect()
             ->route('admin.gift-cards.batches.show', $batch->id)
@@ -218,6 +230,23 @@ class AdminGiftCardController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Batch PIN download (one-time, session-flashed CSV only)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function downloadPins(GiftCardBatch $batch): \Symfony\Component\HttpFoundation\Response
+    {
+        $csv = session('pins_csv');
+        $filename = session('pins_filename', 'gift_cards_'.$batch->id.'.csv');
+
+        abort_unless($csv !== null, 404);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Batch activate
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -231,6 +260,65 @@ class AdminGiftCardController extends Controller
             'success' => true,
             'activated_count' => $activated,
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Card show / activate / adjust / block
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function showCard(GiftCard $card): View
+    {
+        // CONFIRM: pin_hash is in $hidden on the model — never passes to the view.
+        $card->load([
+            'batch',
+            'redeemedBy',
+            'issuedTo',
+            'transactions.performedByAdmin',
+            'transactions.performedByCustomer',
+            'transactions.order:id,order_number',
+        ]);
+
+        return view('admin.gift-cards.cards.show', [
+            'card' => $card,
+            'breadcrumbs' => [
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.gift_cards_section.title'), 'url' => route('admin.gift-cards.index')],
+                ['label' => $card->masked_code],
+            ],
+        ]);
+    }
+
+    public function activateCard(GiftCard $card): JsonResponse
+    {
+        $card->update(['status' => 'active']);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function adjustBalance(AdjustGiftCardBalanceRequest $request, GiftCard $card): RedirectResponse
+    {
+        /** @var \App\Models\Admin $admin */
+        $admin = Auth::guard('admin')->user();
+
+        $this->giftCardService->adminAdjust($card, $request->validated('delta'), $request->validated('notes'), $admin);
+
+        return back()->with('success', __('admin.gift_cards_section.balance_adjusted'));
+    }
+
+    public function blockCard(GiftCard $card): RedirectResponse
+    {
+        $card->update(['status' => 'inactive']);
+
+        GiftCardTransaction::create([
+            'gift_card_id' => $card->id,
+            'amount' => 0,
+            'balance_after' => $card->remaining_balance,
+            'type' => 'admin_adjustment',
+            'performed_by_admin_id' => Auth::guard('admin')->id(),
+            'notes' => 'Admin blocked card',
+        ]);
+
+        return back()->with('success', __('admin.gift_cards_section.card_blocked'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -259,8 +347,10 @@ class AdminGiftCardController extends Controller
         return [
             ['title' => 'Code', 'data' => 'code', 'name' => 'code', 'orderable_column' => 'gift_cards.code', 'searchable_columns' => ['gift_cards.code']],
             ['title' => 'Amount', 'data' => 'amount', 'name' => 'amount', 'orderable_column' => 'gift_cards.amount', 'searchable' => false],
+            ['title' => 'Remaining', 'data' => 'remaining_balance', 'name' => 'remaining_balance', 'orderable_column' => 'gift_cards.remaining_balance', 'searchable' => false],
             ['title' => 'Currency', 'data' => 'currency_code', 'name' => 'currency_code', 'orderable_column' => 'gift_cards.currency_code', 'searchable' => false],
             ['title' => 'Status', 'data' => 'status', 'name' => 'status', 'orderable_column' => 'gift_cards.status', 'searchable' => false],
+            ['title' => 'Redeemed By', 'data' => 'redeemed_by', 'name' => 'redeemed_by', 'orderable' => false, 'searchable' => false],
             ['title' => 'Expiry', 'data' => 'expires_at', 'name' => 'expires_at', 'orderable_column' => 'gift_cards.expires_at', 'searchable' => false],
             ['title' => '', 'data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
         ];

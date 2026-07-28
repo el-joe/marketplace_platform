@@ -133,6 +133,25 @@
         ];
     @endphp
 
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+            <p class="text-xs text-gray-500">{{ __('admin.coupons_section.total') }}</p>
+            <p class="text-xl font-semibold text-gray-900 mt-1">{{ number_format($stats['total']) }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+            <p class="text-xs text-gray-500">{{ __('admin.coupons_section.active') }}</p>
+            <p class="text-xl font-semibold text-green-600 mt-1">{{ number_format($stats['active']) }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+            <p class="text-xs text-gray-500">{{ __('admin.coupons_section.expired') }}</p>
+            <p class="text-xl font-semibold text-gray-500 mt-1">{{ number_format($stats['expired']) }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
+            <p class="text-xs text-gray-500">{{ __('admin.coupons_section.used_today') }}</p>
+            <p class="text-xl font-semibold text-gray-900 mt-1">{{ number_format($stats['used_today']) }}</p>
+        </div>
+    </div>
+
     <x-table.datatable id="coupons-table" url="{{ route('admin.coupons.datatable') }}" :columns="$columns"
         :filters="$filters" :bulk-actions="$bulkActions" bulk-url="{{ route('admin.coupons.bulk') }}"
         :create-action="['url' => route('admin.coupons.create'), 'label' => __('admin.coupons_section.add_coupon')]" :page-length="25" :order="[[7, 'desc']]" />

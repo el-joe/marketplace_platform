@@ -76,10 +76,45 @@
         ];
     @endphp
 
-    <div class="flex items-center justify-end mb-4">
-        <a href="{{ route('admin.gift-cards.batches.index') }}" class="btn btn-secondary">
-            {{ __('admin.gift_cards_section.batches_title') }}
-        </a>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.gift_cards_section.title') }}</h1>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.gift-cards.batches.index') }}" class="btn btn-secondary">
+                {{ __('admin.gift_cards_section.batches_title') }}
+            </a>
+            @if(auth('admin')->user()->can('gift_cards.create'))
+                <a href="{{ route('admin.gift-cards.batches.create') }}" class="btn btn-primary">
+                    {{ __('admin.gift_cards_section.add_batch') }}
+                </a>
+            @endif
+        </div>
+    </div>
+
+    {{-- Per-currency stats — NEVER sum across currencies, gift card balances are currency-scoped --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        @forelse($stats as $stat)
+            <div class="bg-white rounded-xl border border-gray-200 p-4">
+                <div class="text-sm font-bold text-gray-900 mb-3">{{ $stat->currency_code }}</div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                        <div class="text-lg font-black text-gray-700">{{ number_format((int) $stat->total_value) }}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ __('admin.gift_cards_section.total_value') }}</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-black text-emerald-600">{{ $stat->active_count }}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ __('admin.gift_cards_section.active_count') }}</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-black text-blue-600">{{ $stat->redeemed_count }}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ __('admin.gift_cards_section.redeemed_count') }}</div>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="col-span-full text-center text-gray-400 text-sm py-6">
+                {{ __('admin.gift_cards_section.no_gift_cards') }}
+            </div>
+        @endforelse
     </div>
 
     <x-table.datatable id="gift-cards-table" url="{{ route('admin.gift-cards.datatable') }}" :columns="$columns"

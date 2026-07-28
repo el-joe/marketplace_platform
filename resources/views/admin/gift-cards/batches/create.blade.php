@@ -14,6 +14,11 @@
 
         <div class="max-w-3xl space-y-6">
 
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 0)"
+                 class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-3">
+                ⚠️ {{ __('admin.gift_cards_section.pin_warning') }}
+            </div>
+
             @if ($errors->any())
                 <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
                     <ul class="list-disc ps-5 space-y-1">
@@ -63,6 +68,12 @@
                         <label for="expires_at" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.expires_at') }}</label>
                         <input type="text" id="expires_at" name="expires_at" value="{{ old('expires_at') }}" data-flatpickr data-enable-time="true" class="form-input" placeholder="YYYY-MM-DD HH:MM">
                     </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <label for="activate_immediately" class="text-sm font-medium text-gray-700">{{ __('admin.gift_cards_section.activate_immediately') }}</label>
+                    <input type="hidden" name="activate_immediately" value="0">
+                    <input type="checkbox" id="activate_immediately" name="activate_immediately" value="1" class="form-checkbox" {{ old('activate_immediately') ? 'checked' : '' }}>
                 </div>
 
                 <div class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm rounded-lg px-4 py-3" x-show="amount > 0 && quantity > 0" x-cloak>

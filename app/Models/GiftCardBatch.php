@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GiftCardBatch extends Model
 {
-    use HasUuids;
+    use HasUuids, HasFactory;
 
     protected $table = 'gift_card_batches';
 
@@ -38,11 +38,6 @@ class GiftCardBatch extends Model
     public function createdByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'created_by_admin_id');
-    }
-
-    public function scopeForCurrency(Builder $query, string $currency): Builder
-    {
-        return $query->where('currency_code', $currency);
     }
 
     public function getRedeemedCountAttribute(): int

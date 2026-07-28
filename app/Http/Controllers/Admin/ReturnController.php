@@ -10,7 +10,6 @@ use App\Models\InventoryMovement;
 use App\Models\ReturnRequest;
 use App\Models\Vendor;
 use App\Models\WarehouseInventory;
-use App\Services\GiftCardService;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\Customer\ReturnApprovedNotification;
 use App\Notifications\Customer\ReturnRejectedNotification;
@@ -400,7 +399,7 @@ class ReturnController extends Controller
             $creditAmount = $completedRefund?->net_refund ?? 0;
 
             if ($customer && $order && $creditAmount > 0) {
-                app(GiftCardService::class)->refundToWallet($customer, $order, $creditAmount);
+                app(\App\Services\Customer\CheckoutWalletService::class)->refundToWallet($customer, $order, $creditAmount);
             }
         }
     }

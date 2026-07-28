@@ -21,6 +21,7 @@ class StoreBatchRequest extends FormRequest
             'amount' => ['required', 'integer', 'min:1'],
             'quantity' => ['required', 'integer', 'min:1', 'max:10000'],
             'expires_at' => ['nullable', 'date', 'after:today'],
+            'activate_immediately' => ['nullable', 'boolean'],
         ];
     }
 }

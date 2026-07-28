@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\CartCardOfferController;
 use App\Http\Controllers\Admin\FbtController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\AdminGiftCardController;
+use App\Http\Controllers\Admin\AdminVoucherController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\DisputeController;
 use App\Http\Controllers\Admin\ReturnController;
@@ -588,16 +589,40 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     Route::prefix('coupons')->name('coupons.')->middleware('admin.permission:coupons.view')->group(function () {
         Route::get('/create', [CouponController::class, 'create'])->name('create');
         Route::get('/generate-code', [CouponController::class, 'generateCode'])->name('generate-code');
+        Route::get('/search/customers', [CouponController::class, 'searchCustomers'])->name('search-customers');
         Route::post('/datatable', [CouponController::class, 'datatable'])->name('datatable');
         Route::post('/bulk', [CouponController::class, 'bulkAction'])->name('bulk');
         Route::get('/', [CouponController::class, 'index'])->name('index');
         Route::post('/', [CouponController::class, 'store'])->name('store');
         Route::get('/{coupon}/usages', [CouponController::class, 'usages'])->name('usages');
+        Route::get('/{coupon}/usage-chart', [CouponController::class, 'usageChart'])->name('usage-chart');
         Route::get('/{coupon}/edit', [CouponController::class, 'edit'])->name('edit');
         Route::get('/{coupon}', [CouponController::class, 'show'])->name('show');
         Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
         Route::put('/{coupon}/toggle-active', [CouponController::class, 'toggleActive'])->name('toggle-active');
         Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Vouchers ────────────────────────────────────────────────────────────────
+    Route::prefix('vouchers')->name('vouchers.')->group(function () {
+        Route::middleware('admin.permission:vouchers.create')->group(function () {
+            Route::get('/create', [AdminVoucherController::class, 'create'])->name('create');
+            Route::post('/', [AdminVoucherController::class, 'store'])->name('store');
+            Route::post('/bulk-generate', [AdminVoucherController::class, 'bulkGenerate'])->name('bulk_generate');
+        });
+        Route::middleware('admin.permission:vouchers.view')->group(function () {
+            Route::get('/', [AdminVoucherController::class, 'index'])->name('index');
+            Route::match(['GET', 'POST'], '/datatable/data', [AdminVoucherController::class, 'datatable'])->name('datatable');
+            Route::get('/{voucher}', [AdminVoucherController::class, 'show'])->name('show');
+            Route::get('/{voucher}/redemptions/export', [AdminVoucherController::class, 'exportRedemptions'])->name('export');
+        });
+        Route::middleware('admin.permission:vouchers.edit')->group(function () {
+            Route::get('/{voucher}/edit', [AdminVoucherController::class, 'edit'])->name('edit');
+            Route::put('/{voucher}', [AdminVoucherController::class, 'update'])->name('update');
+            Route::patch('/{voucher}/toggle', [AdminVoucherController::class, 'toggle'])->name('toggle');
+        });
+        Route::delete('/{voucher}', [AdminVoucherController::class, 'destroy'])
+            ->name('destroy')->middleware('admin.permission:vouchers.delete');
     });
 
     // ─── Cart Card Offers ──────────────────────────────────────────────────────────
@@ -617,9 +642,14 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/batches', [AdminGiftCardController::class, 'batchStore'])->middleware('admin.permission:gift_cards.create')->name('batches.store');
         Route::post('/batches/{batch}/datatable', [AdminGiftCardController::class, 'batchDatatable'])->name('batches.datatable');
         Route::post('/batches/{batch}/activate', [AdminGiftCardController::class, 'activateBatch'])->middleware('admin.permission:gift_cards.edit')->name('batches.activate');
+        Route::get('/batches/{batch}/download-pins', [AdminGiftCardController::class, 'downloadPins'])->name('batches.download_pins');
         Route::get('/batches/{batch}', [AdminGiftCardController::class, 'batchShow'])->name('batches.show');
         Route::get('/batches', [AdminGiftCardController::class, 'batchIndex'])->name('batches.index');
         Route::post('/expire-stale', [AdminGiftCardController::class, 'expireStale'])->middleware('admin.permission:gift_cards.edit')->name('expire-stale');
+        Route::post('/{card}/activate', [AdminGiftCardController::class, 'activateCard'])->middleware('admin.permission:gift_cards.edit')->name('activate');
+        Route::post('/{card}/adjust', [AdminGiftCardController::class, 'adjustBalance'])->middleware('admin.permission:gift_cards.edit')->name('adjust');
+        Route::post('/{card}/block', [AdminGiftCardController::class, 'blockCard'])->middleware('admin.permission:gift_cards.edit')->name('block');
+        Route::get('/{card}', [AdminGiftCardController::class, 'showCard'])->name('show');
         Route::post('/datatable', [AdminGiftCardController::class, 'datatable'])->name('datatable');
         Route::get('/', [AdminGiftCardController::class, 'cardIndex'])->name('index');
     });

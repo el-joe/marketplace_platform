@@ -164,6 +164,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.vouchers'),
+                        'route' => 'admin.vouchers.index',
+                        'icon' => 'credit-card',
+                        'permission' => 'vouchers.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.flash_sales'),
                         'route' => 'admin.flash-sales.index',
                         'icon' => 'bolt',

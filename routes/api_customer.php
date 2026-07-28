@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Customer\CategoryController as ApiCategoryController;
+use App\Http\Controllers\Api\Customer\CustomerCouponController;
 use App\Http\Controllers\Api\Customer\CustomerWalletController;
 use App\Http\Controllers\Api\Customer\DeviceTokenController as ApiDeviceTokenController;
 use App\Http\Controllers\Api\Customer\GiftCardController as ApiGiftCardController;
@@ -25,7 +26,6 @@ use App\Http\Controllers\Customer\CategoryController;
 use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Api\Customer\CheckoutController as ApiCheckoutController;
 use App\Http\Controllers\Customer\CouponController;
-use App\Http\Controllers\Customer\GiftCardController;
 use App\Http\Controllers\Customer\DisputeController;
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\PaymentMethodController;
@@ -174,11 +174,6 @@ Route::prefix('v1/{country}')
             Route::get('suggestions', [SearchController::class, 'suggestions'])->name('suggestions');
         });
 
-        // ── Gift cards (public balance check) ───────────────────────────────────
-        Route::prefix('gift-cards')->name('customer.gift-cards.')->group(function (): void {
-            Route::post('check-balance', [GiftCardController::class, 'checkBalance'])->name('check-balance');
-        });
-
         // ── Public auth endpoints ─────────────────────────────────────────────
         Route::prefix('auth')->name('customer.auth.')->group(function (): void {
             Route::post('register', [AuthController::class, 'register'])
@@ -311,12 +306,6 @@ Route::prefix('v1/{country}')
                 Route::get('/', [WalletController::class, 'show'])->name('show');
                 Route::get('transactions', [WalletController::class, 'transactions'])->name('transactions');
                 Route::post('withdrawal', [WalletController::class, 'requestWithdrawal'])->name('withdrawal');
-            });
-
-            // Gift cards
-            Route::prefix('gift-cards')->name('customer.gift-cards.')->group(function (): void {
-                Route::get('/', [GiftCardController::class, 'myCodes'])->name('index');
-                Route::post('purchase', [GiftCardController::class, 'purchase'])->name('purchase');
             });
 
             // Checkout
@@ -515,9 +504,26 @@ Route::prefix('v1/gift-cards')->middleware('auth:customer')->name('customer.api.
 // ── Gift-card wallet (CustomerWallet/GiftCardService-backed; distinct from the
 //    owner_type/owner_id Wallet system above) ──
 Route::prefix('v1/gift-card-wallet')->middleware('auth:customer')->name('customer.api.gift-card-wallet.')->group(function (): void {
-    Route::get('/', [CustomerWalletController::class, 'balance'])->name('balance');
+    Route::get('/', [CustomerWalletController::class, 'index'])->name('index');
     Route::post('redeem-gift-card', [CustomerWalletController::class, 'redeemGiftCard'])->name('redeem-gift-card');
     Route::get('transactions', [CustomerWalletController::class, 'transactions'])->name('transactions');
+});
+
+// ── Gift-card wallet — Redeem & Balance (country-agnostic path, scoped to
+//    customer_id; extends the CustomerWalletController group above with
+//    voucher redemption and no-PIN balance checks) ──
+Route::middleware('auth:customer')->prefix('v1/gift-card-wallet')->name('customer.api.gift-card-wallet.')->group(function (): void {
+    // Redeem voucher (code only) → credits wallet
+    Route::post('/redeem/voucher', [CustomerWalletController::class, 'redeemVoucher'])->name('redeem.voucher');
+
+    // Check gift card balance without redeeming (no PIN needed)
+    Route::post('/gift-card/balance', [CustomerWalletController::class, 'giftCardBalance'])->name('gift_card.balance');
+});
+
+// ── Coupon — Applied at Checkout (country-agnostic path, scoped to customer_id) ──
+Route::middleware('auth:customer')->prefix('v1/coupons')->name('customer.api.coupons.')->group(function (): void {
+    Route::post('/validate', [CustomerCouponController::class, 'validate'])->name('validate');
+    Route::delete('/remove', [CustomerCouponController::class, 'remove'])->name('remove');
 });
 
 // ── Warranty (country-agnostic path, scoped to customer_id) ──

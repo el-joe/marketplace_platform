@@ -12,7 +12,6 @@ use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Country;
 use App\Models\Customer;
-use App\Models\GiftCard;
 use App\Models\Order;
 use App\Models\ShippingRate;
 use App\Models\VendorListing;
@@ -474,27 +473,5 @@ class CheckoutCalculationService
         }
 
         return ['selections' => $selections, 'total' => $total];
-    }
-
-    /**
-     * Validate a gift card code and compute the amount that can be applied
-     * against the given order total. Does not mutate the gift card balance —
-     * actual redemption happens at order-placing time via GiftCardService::redeem().
-     */
-    public function applyGiftCard(string $code, string $currency, int $orderTotalCents): array
-    {
-        $giftCard = GiftCard::active()->where('code', $code)->first();
-
-        if (! $giftCard) {
-            return ['gift_card' => null, 'applied' => 0, 'error' => 'Gift card not found or inactive.'];
-        }
-
-        if ($giftCard->currency !== $currency) {
-            return ['gift_card' => null, 'applied' => 0, 'error' => 'Gift card currency does not match order currency.'];
-        }
-
-        $appliedCents = min($giftCard->balance, $orderTotalCents);
-
-        return ['gift_card' => $giftCard, 'applied' => $appliedCents, 'error' => null];
     }
 }

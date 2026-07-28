@@ -33,6 +33,9 @@ class CouponService
         $data['created_by_user_id'] = $admin->id;
         $data['vendor_id'] = null;
         $data['category_id'] = $data['scope'] === 'category' ? ($data['category_id'] ?? null) : null;
+        $data['country_ids'] = !empty($data['country_ids']) ? $data['country_ids'] : null;
+        $data['eligible_customer_ids'] = $data['customer_eligibility'] === 'specific_users' ? ($data['eligible_customer_ids'] ?? []) : null;
+        $data['vendor_share_pct'] = $data['funded_by'] === 'shared' ? $data['vendor_share_pct'] : null;
 
         $coupon = DB::transaction(fn () => Coupon::query()->create(array_merge(
             ['id' => Str::uuid()->toString()],
@@ -59,6 +62,9 @@ class CouponService
         $data['is_stackable'] = (bool) ($data['is_stackable'] ?? false);
         $data['vendor_id'] = null;
         $data['category_id'] = $data['scope'] === 'category' ? ($data['category_id'] ?? null) : null;
+        $data['country_ids'] = !empty($data['country_ids']) ? $data['country_ids'] : null;
+        $data['eligible_customer_ids'] = $data['customer_eligibility'] === 'specific_users' ? ($data['eligible_customer_ids'] ?? []) : null;
+        $data['vendor_share_pct'] = $data['funded_by'] === 'shared' ? $data['vendor_share_pct'] : null;
 
         DB::transaction(fn () => $coupon->update($data));
 

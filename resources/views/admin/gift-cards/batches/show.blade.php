@@ -26,6 +26,15 @@
         </div>
     </div>
 
+    @if(session('pins_csv'))
+        <div x-data="{ visible: true }" x-show="visible" x-init="setTimeout(() => visible = false, 60000)" x-cloak class="mb-6">
+            <a href="{{ route('admin.gift-cards.batches.download_pins', $batch) }}"
+               class="btn btn-primary inline-flex items-center gap-2">
+                ⬇ {{ __('admin.gift_cards_section.download_pins') }} ({{ __('admin.gift_cards_section.download_pins_hint') }})
+            </a>
+        </div>
+    @endif
+
     <div class="mb-6 grid grid-cols-2 gap-4 text-sm text-gray-600 bg-white rounded-xl border border-gray-200 p-4 sm:grid-cols-4">
         <div><span class="text-gray-400">{{ __('admin.gift_cards_section.currency_code') }}:</span> {{ $batch->currency_code }}</div>
         <div><span class="text-gray-400">{{ __('admin.gift_cards_section.amount') }}:</span> {{ (int) $batch->amount }} {{ $batch->currency_code }}</div>

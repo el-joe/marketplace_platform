@@ -15,8 +15,6 @@ class CustomerWallet extends Model
 
     protected $table = 'customer_wallets';
 
-    public const CREATED_AT = null;
-
     protected $fillable = [
         'customer_id',
         'balance',
@@ -35,6 +33,11 @@ class CustomerWallet extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(WalletTransaction::class, 'customer_id', 'customer_id');
+    }
+
+    public function redemptions(): HasMany
+    {
+        return $this->hasMany(VoucherRedemption::class, 'customer_wallet_id');
     }
 
     public function credit(int $amount): void

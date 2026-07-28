@@ -4,25 +4,33 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
+// ARCHITECTURE NOTE: Gift cards are redeemed in the profile/wallet screen (code + PIN).
+// On redemption the full remaining_balance is credited to customer_wallets.
+// Gift cards do NOT link directly to orders. The customer spends wallet balance
+// at checkout via orders.wallet_amount_used.
 class GiftCard extends Model
 {
-    use HasUuids;
+    use HasUuids, HasFactory;
 
     protected $table = 'gift_cards';
 
     protected $fillable = [
         'gift_card_batch_id',
+        'source',
         'code',
         'pin_hash',
         'amount',
+        'remaining_balance',
         'currency_code',
         'status',
         'redeemed_by_customer_id',
+        'issued_to_customer_id',
         'redeemed_at',
         'expires_at',
     ];
@@ -33,6 +41,7 @@ class GiftCard extends Model
 
     protected $casts = [
         'amount' => 'integer',
+        'remaining_balance' => 'integer',
         'redeemed_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
@@ -42,9 +51,14 @@ class GiftCard extends Model
         return $this->belongsTo(GiftCardBatch::class, 'gift_card_batch_id');
     }
 
-    public function redeemedByCustomer(): BelongsTo
+    public function redeemedBy(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'redeemed_by_customer_id');
+    }
+
+    public function issuedTo(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'issued_to_customer_id');
     }
 
     public function transactions(): HasMany
@@ -52,26 +66,20 @@ class GiftCard extends Model
         return $this->hasMany(GiftCardTransaction::class, 'gift_card_id');
     }
 
-    public function getIsExpiredAttribute(): bool
-    {
-        return $this->expires_at !== null && $this->expires_at->isPast();
-    }
-
-    public function getIsRedeemableAttribute(): bool
-    {
-        return $this->status === 'active' && !$this->is_expired;
-    }
-
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('status', 'active');
+        return $query->where('status', 'active')
+            ->where(fn (Builder $q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
     }
 
-    public function scopeExpiredStale(Builder $query): Builder
+    public function scopeForCurrency(Builder $query, string $code): Builder
     {
-        return $query->where('status', 'active')
-            ->whereNotNull('expires_at')
-            ->where('expires_at', '<', now());
+        return $query->where('currency_code', $code);
+    }
+
+    public function getMaskedCodeAttribute(): string
+    {
+        return substr($this->code, 0, 4).'****'.substr($this->code, -4);
     }
 
     public static function generateUniqueCode(): string

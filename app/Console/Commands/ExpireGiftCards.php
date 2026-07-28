@@ -2,26 +2,20 @@
 
 namespace App\Console\Commands;
 
-use App\Models\GiftCard;
+use App\Services\GiftCardService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 class ExpireGiftCards extends Command
 {
     protected $signature = 'gift-cards:expire';
 
-    protected $description = 'Mark all active gift cards past their expires_at as expired.';
+    protected $description = 'Set expired gift cards to expired status and log expiry transactions';
 
-    public function handle(): int
+    public function handle(GiftCardService $giftCardService): int
     {
-        $expired = GiftCard::where('status', 'active')
-            ->whereNotNull('expires_at')
-            ->where('expires_at', '<', now())
-            ->update(['status' => 'expired']);
+        $count = $giftCardService->expireDueCards();
 
-        $this->info("Expired {$expired} gift cards.");
-
-        Log::info("ExpireGiftCards: {$expired} cards expired.", ['timestamp' => now()]);
+        $this->info("Expired {$count} gift card(s).");
 
         return self::SUCCESS;
     }
