@@ -614,6 +614,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             Route::get('/', [AdminVoucherController::class, 'index'])->name('index');
             Route::match(['GET', 'POST'], '/datatable/data', [AdminVoucherController::class, 'datatable'])->name('datatable');
             Route::get('/{voucher}', [AdminVoucherController::class, 'show'])->name('show');
+            Route::match(['GET', 'POST'], '/{voucher}/redemptions/data', [AdminVoucherController::class, 'redemptionsDatatable'])->name('redemptions.data');
             Route::get('/{voucher}/redemptions/export', [AdminVoucherController::class, 'exportRedemptions'])->name('export');
         });
         Route::middleware('admin.permission:vouchers.edit')->group(function () {

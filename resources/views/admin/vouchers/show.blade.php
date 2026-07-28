@@ -142,7 +142,7 @@
         @endphp
 
         <x-table.datatable id="voucher-redemptions-table"
-            url="{{ route('admin.vouchers.show', $voucher->id) }}?redemptions=1"
+            url="{{ route('admin.vouchers.redemptions.data', $voucher->id) }}"
             :columns="$redemptionColumns" :page-length="25" :order="[[5, 'desc']]" />
 
     </div>

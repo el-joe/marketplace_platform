@@ -164,6 +164,33 @@ class AdminVoucherController extends Controller
         ]);
     }
 
+    public function redemptionsDatatable(Request $request, string $voucher): JsonResponse
+    {
+        $voucher = Voucher::findOrFail($voucher);
+
+        $columns = [
+            [],
+            [],
+            ['orderable_column' => 'amount'],
+            ['orderable_column' => 'currency_code'],
+            ['orderable_column' => 'wallet_balance_after'],
+            ['orderable_column' => 'redeemed_at'],
+        ];
+
+        $query = VoucherRedemption::where('voucher_id', $voucher->id)->with('customer');
+
+        return $this->dataTableResponse($request, $query, $columns, function (VoucherRedemption $redemption) {
+            return [
+                'customer_name' => $redemption->customer?->name,
+                'customer_email' => $redemption->customer?->email,
+                'amount' => number_format($redemption->amount, 2),
+                'currency_code' => $redemption->currency_code,
+                'wallet_balance_after' => number_format($redemption->wallet_balance_after, 2),
+                'redeemed_at' => optional($redemption->redeemed_at)->toIso8601String(),
+            ];
+        });
+    }
+
     public function exportRedemptions(string $voucher): StreamedResponse
     {
         $voucher = Voucher::findOrFail($voucher);
