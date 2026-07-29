@@ -161,9 +161,24 @@ class Marketer extends Authenticatable implements JWTSubject
         return $this->hasMany(AdminMarketerInvitation::class);
     }
 
+    public function monthlyQuotas(): HasMany
+    {
+        return $this->hasMany(MarketerMonthlyQuota::class);
+    }
+
+    public function monthlyQuotaProgress(): HasMany
+    {
+        return $this->hasMany(MarketerMonthlyQuotaProgress::class);
+    }
+
     public function qrCodes(): HasMany
     {
         return $this->hasMany(MarketerQrCode::class);
+    }
+
+    public function influencerPromotionRequestItems(): HasMany
+    {
+        return $this->hasMany(VendorInfluencerPromotionRequestItem::class);
     }
 
     public function whatsappLinks(): HasMany

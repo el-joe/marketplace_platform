@@ -31,6 +31,9 @@ class PermissionSeeder extends Seeder
             'admin_listings.edit',
             'admin_listings.delete',
             'admin_listings.toggle_status',
+            // Influencer Open Market
+            'open_market.view',
+            'open_market.manage',
             // Catalog – Categories
             'categories.view',
             'categories.create',
@@ -197,6 +200,8 @@ class PermissionSeeder extends Seeder
             'marketers.products.view',
             'marketers.products.approve',
             'marketers.products.reject',
+            'admin_can_manage_influencer_promotions',
+            'admin_can_manage_marketer_quotas',
             // Travel
             'travel.view',
             'travel.approve',

@@ -656,4 +656,38 @@ return [
         'featured_products'     => 'Featured Products',
     ],
 
+    'promotion_requests' => [
+        'title'            => 'Promotion Requests',
+        'subtitle'         => 'Vendor invitations to promote a product slot.',
+        'none_title'       => 'No pending requests',
+        'none_desc'        => 'New vendor promotion invitations will appear here.',
+        'product'          => 'Product',
+        'vendor'           => 'Vendor',
+        'slot_fee'         => 'Slot Fee',
+        'expires_at'       => 'Expires',
+        'expired'          => 'Expired',
+        'accept'           => 'Accept',
+        'decline'          => 'Decline',
+        'decline_note'     => 'Reason (optional)',
+        'decline_note_placeholder' => 'Let the vendor know why you\'re declining…',
+        'cancel'           => 'Cancel',
+        'confirm_decline'  => 'Confirm decline',
+        'accepted'         => 'Promotion request accepted.',
+        'declined'         => 'Promotion request declined.',
+        'unknown_product'  => 'Unknown product',
+        'days'             => 'd',
+        'hours'            => 'h',
+        'minutes'          => 'm',
+        'seconds'          => 's',
+    ],
+
+    'quota' => [
+        'title'         => 'Monthly Quota',
+        'subtitle'      => 'Your progress against this month\'s promotion targets.',
+        'completed_of_target' => ':completed / :target',
+        'met'           => 'Met',
+        'in_progress'   => 'In progress',
+        'at_risk'       => 'At risk',
+    ],
+
 ];

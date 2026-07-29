@@ -62,7 +62,15 @@
             shippingPreviewUrl: '{{ route('partner.listings.shipping-preview', $listing->id) }}',
             csrf: '{{ csrf_token() }}',
         };
+        window.INFLUENCER_PROMOTION = {
+            marketersSearchUrl: '{{ route('partner.listings.influencer-promotion.marketers-search', $listing->id) }}',
+            feePreviewUrl: '{{ route('partner.listings.influencer-promotion.fee-preview', $listing->id) }}',
+            requestUrl: '{{ route('partner.listings.influencer-promotion.request', $listing->id) }}',
+            acceptanceWindowHours: {{ (int) config('marketers.acceptance_window_hours', 12) }},
+            csrf: '{{ csrf_token() }}',
+        };
     </script>
+    @vite('resources/js/partner/influencer-promotion.js')
 @endpush
 
 @section('content')
@@ -78,6 +86,26 @@
         </a>
     </div>
 
+    <div x-data="{ tab: '{{ request('tab', 'details') }}' }">
+
+    {{-- Tab nav --}}
+    <div class="border-b border-gray-200 mb-6">
+        <nav class="-mb-px flex gap-x-6 overflow-x-auto">
+            @foreach ([
+                'details' => __('partner.listings.show.tab_details'),
+                'influencer_promotion' => __('partner.listings.show.tab_influencer_promotion'),
+            ] as $tabKey => $tabLabel)
+                <button type="button"
+                    @click="tab = '{{ $tabKey }}'"
+                    :class="tab === '{{ $tabKey }}' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors">
+                    {{ $tabLabel }}
+                </button>
+            @endforeach
+        </nav>
+    </div>
+
+    <div x-show="tab === 'details'" x-cloak>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {{-- ── LEFT COLUMN ── --}}
@@ -505,6 +533,143 @@
             </div>
 
         </div>
+
+    </div>
+    </div>
+
+    {{-- Influencer Promotion tab --}}
+    <div x-show="tab === 'influencer_promotion'" x-cloak x-data="influencerPromotionPanel()" x-init="init()">
+
+        {{-- Eligibility banners --}}
+        <div class="space-y-3 mb-6">
+            @php
+                $ipAvailable = $listing->warehouseInventories->sum(fn ($inv) => $inv->quantity_on_hand - $inv->quantity_reserved);
+                $ipMinStock = $listing->min_stock_for_promotion !== null
+                    ? (int) $listing->min_stock_for_promotion
+                    : (int) ($category->min_stock_for_promotion ?? 0);
+                $ipStockOk = $ipAvailable >= $ipMinStock;
+                $ipAcceptanceWindowHours = (int) config('marketers.acceptance_window_hours', 12);
+            @endphp
+
+            @unless($ipStockOk)
+                <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm font-medium">
+                    {{ __('partner.listings.show.influencer_promotion.insufficient_stock') }}
+                    ({{ $ipAvailable }} / {{ $ipMinStock }})
+                </div>
+            @endunless
+
+            @unless($listing->available_for_marketers)
+                <div class="bg-gray-100 border border-gray-200 text-gray-600 rounded-xl p-4 text-sm font-medium">
+                    {{ __('partner.listings.show.influencer_promotion.not_enabled_for_marketers') }}
+                </div>
+            @endunless
+
+            @if(in_array($listing->fulfillment_model, ['fbm', 'cross_dock'], true) || $listing->global_system_type === \App\Enums\GlobalSystemType::MerchantFbp)
+                <div class="bg-blue-50 border border-blue-200 text-blue-700 rounded-xl p-4 text-sm">
+                    {{ __('partner.listings.show.influencer_promotion.warehouse_shipping_note') }}
+                </div>
+            @endif
+        </div>
+
+        {{-- Active promotions table --}}
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <h3 class="font-semibold text-gray-800 mb-4">{{ __('partner.listings.show.influencer_promotion.active_promotions') }}</h3>
+
+            @if($influencerPromotionItems->isEmpty())
+                <p class="text-sm text-gray-400 text-center py-6">{{ __('partner.listings.show.influencer_promotion.no_promotions') }}</p>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-xs text-gray-500 border-b border-gray-100">
+                                <th class="text-right py-2 font-medium">{{ __('partner.listings.show.influencer_promotion.influencer') }}</th>
+                                <th class="text-right py-2 font-medium">{{ __('partner.listings.show.influencer_promotion.status') }}</th>
+                                <th class="text-right py-2 font-medium">{{ __('partner.listings.show.influencer_promotion.requested_at') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @foreach($influencerPromotionItems as $item)
+                                <tr>
+                                    <td class="py-2">{{ $item->marketer?->display_name ?: $item->marketer?->name ?? '—' }}</td>
+                                    <td class="py-2">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                            {{ $item->status }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2 text-gray-400">{{ $item->created_at?->format('M d, H:i') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+
+        <button type="button" @click="openModal()"
+            @disabled(!$ipStockOk || !$listing->available_for_marketers)
+            class="bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 text-sm font-semibold py-2.5 px-5 rounded-xl transition-colors">
+            {{ __('partner.listings.show.influencer_promotion.request_button') }}
+        </button>
+
+        {{-- Request Influencer Promotion Modal --}}
+        <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" style="display: none;">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg" @click.outside="closeModal()">
+                <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="font-semibold text-gray-900 text-sm">{{ __('partner.listings.show.influencer_promotion.request_button') }}</h3>
+                    <button type="button" @click="closeModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form @submit.prevent="submit()" class="p-5 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.show.influencer_promotion.select_influencers') }}</label>
+                        <select id="ip-marketer-select" multiple
+                            data-async-select
+                            data-config='{"url": "{{ route('partner.listings.influencer-promotion.marketers-search', $listing->id) }}", "param": "q", "minLength": 1, "placeholder": "{{ __('partner.listings.show.influencer_promotion.search_placeholder') }}"}'
+                            class="w-full"></select>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-4 space-y-1.5 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">{{ __('partner.listings.show.influencer_promotion.fee_per_slot') }}</span>
+                            <span x-text="formatMoney(feePerSlot)"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">{{ __('partner.listings.show.influencer_promotion.selected_count') }}</span>
+                            <span x-text="selectedIds.length"></span>
+                        </div>
+                        <div class="flex justify-between font-bold pt-1.5 border-t border-gray-100">
+                            <span class="text-gray-500 font-normal">{{ __('partner.listings.show.influencer_promotion.total_fee') }}</span>
+                            <span x-text="formatMoney(feePerSlot * selectedIds.length)"></span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-400">{{ __('partner.listings.show.influencer_promotion.fee_deduction_notice') }}</p>
+
+                    <div x-show="selectedIds.length > 0" x-cloak class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-3 text-xs">
+                        {{ __('partner.listings.show.influencer_promotion.reassignment_warning', ['hours' => $ipAcceptanceWindowHours ?? 12]) }}
+                    </div>
+
+                    <div x-show="errorMessage" x-cloak x-text="errorMessage" class="text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>
+
+                    <div class="flex gap-2">
+                        <button type="submit" :disabled="selectedIds.length === 0 || submitting"
+                            class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!submitting">{{ __('partner.listings.show.influencer_promotion.submit') }}</span>
+                            <span x-show="submitting" x-cloak>{{ __('partner.listings.show.loading') }}</span>
+                        </button>
+                        <button type="button" @click="closeModal()"
+                            class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                            {{ __('partner.listings.show.cancel') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     </div>
 

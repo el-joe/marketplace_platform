@@ -114,7 +114,12 @@ class PayoutController extends Controller
     {
         $payout = Payout::where('vendor_id', $this->vendorId())
             ->where('payout_number', $payoutNumber)
-            ->with(['items.subOrder', 'bankAccount'])
+            ->with([
+                'items.subOrder',
+                'items.promotionRequest.vendorListing.productVariant.product',
+                'items.promotionRequest.adminProductListing.productVariant.product',
+                'bankAccount',
+            ])
             ->firstOrFail();
 
         return view('partner.payouts.show', compact('payout'));

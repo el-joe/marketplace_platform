@@ -123,6 +123,10 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/{listing}/toggle-covers-delivery', 'toggleCoversDelivery')->name('toggle-covers-delivery')->middleware('vendor.can:listings.edit');
         Route::post('/{listing}/update-dimensions', 'updateDimensions')->name('update-dimensions')->middleware('vendor.can:listings.edit');
         Route::get('/{listing}/shipping-preview', 'shippingPreview')->name('shipping-preview')->middleware('vendor.can:listings.view');
+
+        Route::get('/{listing}/influencer-promotion/marketers-search', [\App\Http\Controllers\Partner\InfluencerPromotionController::class, 'marketersSearch'])->name('influencer-promotion.marketers-search')->middleware('vendor.can:influencer_promotions.view');
+        Route::get('/{listing}/influencer-promotion/fee-preview', [\App\Http\Controllers\Partner\InfluencerPromotionController::class, 'feePreview'])->name('influencer-promotion.fee-preview')->middleware('vendor.can:influencer_promotions.view');
+        Route::post('/{listing}/influencer-promotions', [\App\Http\Controllers\Partner\InfluencerPromotionController::class, 'store'])->name('influencer-promotion.request')->middleware('vendor.can:influencer_promotions.request');
     });
 
     // ── Inventory module ─────────────────────────────────────────────────────

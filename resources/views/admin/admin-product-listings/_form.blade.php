@@ -445,6 +445,16 @@
                     {{ __('admin.admin_product_listings.preview_in_now_nawy') }}
                 </a>
             </div>
+
+            <div class="pt-3 border-t border-primary-100" x-show="featuredInNawy" x-cloak>
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" id="include-in-open-market"
+                           {{ $listing->openMarketEntries()->where('open_market_category', 4)->where('is_active', true)->exists() ? 'checked' : '' }}
+                           class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                    <span class="text-sm font-medium text-primary-700">Include in Influencer Open Market (Category 4)</span>
+                </label>
+                <p class="text-xs text-gray-400 mt-1 ml-6">Saved immediately — not part of the main form submit.</p>
+            </div>
             @endif
         </div>
 
@@ -558,6 +568,22 @@
         if (selectedOption) {
             fetchUrlInfo(selectedOption.value);
         }
+    });
+
+    document.getElementById('include-in-open-market')?.addEventListener('change', function () {
+        var checkbox = this;
+        $.ajax({
+            url: '{{ $isEdit ? route('admin.open-market.toggle-for-admin-listing', $listing) : '' }}',
+            method: 'POST',
+            data: { included: checkbox.checked ? 1 : 0, _token: $('meta[name="csrf-token"]').attr('content') },
+        })
+            .done(function () {
+                window.Toast?.success(checkbox.checked ? 'Added to influencer open market.' : 'Removed from influencer open market.');
+            })
+            .fail(function (xhr) {
+                checkbox.checked = !checkbox.checked;
+                window.Toast?.error(xhr.responseJSON?.message || 'Failed to update.');
+            });
     });
 
     document.addEventListener('DOMContentLoaded', function () {

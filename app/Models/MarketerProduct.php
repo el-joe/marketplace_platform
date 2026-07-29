@@ -13,6 +13,7 @@ class MarketerProduct extends Model
 
     protected $fillable = [
         'marketer_id',
+        'category_id',
         'name_en',
         'name_ar',
         'description_en',
@@ -40,6 +41,11 @@ class MarketerProduct extends Model
     public function marketer(): BelongsTo
     {
         return $this->belongsTo(Marketer::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function getNameAttribute(): string

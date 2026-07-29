@@ -656,4 +656,38 @@ return [
         'featured_products'     => 'منتجات مميزة',
     ],
 
+    'promotion_requests' => [
+        'title'            => 'طلبات الترويج',
+        'subtitle'         => 'دعوات من التجار لترويج منتج.',
+        'none_title'       => 'لا توجد طلبات معلقة',
+        'none_desc'        => 'ستظهر دعوات الترويج الجديدة من التجار هنا.',
+        'product'          => 'المنتج',
+        'vendor'           => 'التاجر',
+        'slot_fee'         => 'رسوم الفرصة',
+        'expires_at'       => 'تنتهي في',
+        'expired'          => 'منتهية',
+        'accept'           => 'قبول',
+        'decline'          => 'رفض',
+        'decline_note'     => 'السبب (اختياري)',
+        'decline_note_placeholder' => 'أخبر التاجر بسبب الرفض…',
+        'cancel'           => 'إلغاء',
+        'confirm_decline'  => 'تأكيد الرفض',
+        'accepted'         => 'تم قبول طلب الترويج.',
+        'declined'         => 'تم رفض طلب الترويج.',
+        'unknown_product'  => 'منتج غير معروف',
+        'days'             => 'ي',
+        'hours'            => 'س',
+        'minutes'          => 'د',
+        'seconds'          => 'ث',
+    ],
+
+    'quota' => [
+        'title'         => 'الحصة الشهرية',
+        'subtitle'      => 'تقدمك في أهداف الترويج لهذا الشهر.',
+        'completed_of_target' => ':completed / :target',
+        'met'           => 'مكتمل',
+        'in_progress'   => 'قيد التقدم',
+        'at_risk'       => 'معرض للخطر',
+    ],
+
 ];

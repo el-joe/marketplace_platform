@@ -221,6 +221,13 @@ class CategoryController extends Controller
             'seo_title_ar' => $request->seo_title_ar ?: null,
             'seo_description_en' => $request->seo_description_en ?: null,
             'seo_description_ar' => $request->seo_description_ar ?: null,
+            'influencer_commission_pct' => $request->influencer_commission_pct ?? $categoryModel->influencer_commission_pct ?? 0,
+            'admin_cut_from_influencer_pct' => $request->admin_cut_from_influencer_pct ?? $categoryModel->admin_cut_from_influencer_pct ?? 0,
+            'affiliate_commission_pct' => $request->affiliate_commission_pct ?? $categoryModel->affiliate_commission_pct ?? 0,
+            'admin_cut_from_affiliate_pct' => $request->admin_cut_from_affiliate_pct ?? $categoryModel->admin_cut_from_affiliate_pct ?? 0,
+            'promotion_fee_per_influencer' => (int) ($request->promotion_fee_per_influencer ?? $categoryModel->promotion_fee_per_influencer ?? 0),
+            'min_stock_for_promotion' => (int) ($request->min_stock_for_promotion ?? $categoryModel->min_stock_for_promotion ?? 0),
+            'influencer_monthly_quota' => (int) ($request->influencer_monthly_quota ?? $categoryModel->influencer_monthly_quota ?? 0),
             'updated_at' => now(),
         ];
 

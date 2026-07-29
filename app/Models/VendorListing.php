@@ -30,6 +30,9 @@ class VendorListing extends Model
             'declared_length_cm' => 'decimal:2',
             'declared_width_cm' => 'decimal:2',
             'declared_height_cm' => 'decimal:2',
+            'available_for_marketers' => 'boolean',
+            'influencer_commission_pct' => 'decimal:2',
+            'affiliate_commission_pct' => 'decimal:2',
         ];
     }
 
@@ -79,6 +82,11 @@ class VendorListing extends Model
         'declared_length_cm',
         'declared_width_cm',
         'declared_height_cm',
+        'available_for_marketers',
+        'influencer_commission_pct',
+        'affiliate_commission_pct',
+        'promotion_fee_per_influencer_override',
+        'min_stock_for_promotion',
     ];
 
     public function vendor(): BelongsTo

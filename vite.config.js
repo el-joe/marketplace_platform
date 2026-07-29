@@ -75,6 +75,9 @@ export default defineConfig({
                 'resources/js/admin/notifications.js',
                 'resources/js/admin/wishlist-overview.js',
                 'resources/js/admin/cost-references.js',
+                'resources/js/admin/influencer-promotions.js',
+                'resources/js/admin/marketer-quotas.js',
+                'resources/js/admin/marketer-quotas-progress.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
                 'resources/js/portal/registration.js',

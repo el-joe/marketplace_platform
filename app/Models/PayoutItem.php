@@ -2,17 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PayoutItem extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'payout_id',
+        'item_type',
         'sub_order_id',
+        'promotion_request_id',
+        'sample_item_id',
         'gross',
         'commission',
         'net',
+        'description',
     ];
 
     public function payout(): BelongsTo
@@ -23,5 +30,15 @@ class PayoutItem extends Model
     public function subOrder(): BelongsTo
     {
         return $this->belongsTo(SubOrder::class);
+    }
+
+    public function promotionRequest(): BelongsTo
+    {
+        return $this->belongsTo(VendorInfluencerPromotionRequest::class, 'promotion_request_id');
+    }
+
+    public function sampleItem(): BelongsTo
+    {
+        return $this->belongsTo(MarketerSampleItem::class, 'sample_item_id');
     }
 }

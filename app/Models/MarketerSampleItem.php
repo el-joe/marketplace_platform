@@ -20,6 +20,8 @@ class MarketerSampleItem extends Model
         'admin_quantity',
         'is_mandatory',
         'sample_cost',
+        'fee_deducted',
+        'fee_deducted_at',
         'created_at',
     ];
 
@@ -31,6 +33,8 @@ class MarketerSampleItem extends Model
             'admin_quantity'    => 'integer',
             'is_mandatory'      => 'boolean',
             'sample_cost' => 'integer',
+            'fee_deducted'      => 'boolean',
+            'fee_deducted_at'   => 'datetime',
             'created_at'        => 'datetime',
         ];
     }

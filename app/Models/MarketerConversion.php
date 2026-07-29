@@ -17,6 +17,7 @@ class MarketerConversion extends \Illuminate\Database\Eloquent\Model
         'order_item_id',
         'customer_id',
         'vendor_id',
+        'admin_product_listing_id',
         'order_value',
         'commission_rate',
         'commission_amount',
@@ -82,6 +83,11 @@ class MarketerConversion extends \Illuminate\Database\Eloquent\Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
     }
 
     public function whatsappLink(): BelongsTo

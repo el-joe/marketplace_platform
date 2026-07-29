@@ -40,6 +40,7 @@
                         ['id' => 'attributes', 'label' => __('admin.categories.attributes_tab'), 'icon' => 'tag'],
                         ['id' => 'shipping',   'label' => __('admin.categories.shipping_methods_tab'), 'icon' => 'truck'],
                         ['id' => 'seo',        'label' => __('admin.categories.seo_tab'),        'icon' => 'magnifying-glass'],
+                        ['id' => 'marketer_commissions', 'label' => __('admin.categories.marketer_commissions_tab'), 'icon' => 'banknotes'],
                     ] as $tab)
                     <button
                         type="button"
@@ -358,6 +359,95 @@
                         rows="3"
                         maxlength="160"
                         dir="rtl"
+                    />
+                </div>
+            </div>
+
+            {{-- TAB: Marketer Commissions --}}
+            <div
+                x-show="activeTab === 'marketer_commissions'"
+                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-6"
+            >
+                {{-- Influencer Commissions --}}
+                <div class="space-y-4">
+                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.influencer_commissions_section') }}</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <x-form.input
+                            name="influencer_commission_pct"
+                            label="{{ __('admin.categories.influencer_commission_pct') }}"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            :value="$val('influencer_commission_pct', '0')"
+                        />
+                        <x-form.input
+                            name="admin_cut_from_influencer_pct"
+                            label="{{ __('admin.categories.admin_cut_from_influencer_pct') }}"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            :value="$val('admin_cut_from_influencer_pct', '0')"
+                        />
+                    </div>
+                </div>
+
+                {{-- Affiliate Marketer Commissions --}}
+                <div class="border-t border-gray-100 pt-5 space-y-4">
+                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.affiliate_commissions_section') }}</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <x-form.input
+                            name="affiliate_commission_pct"
+                            label="{{ __('admin.categories.affiliate_commission_pct') }}"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            :value="$val('affiliate_commission_pct', '0')"
+                        />
+                        <x-form.input
+                            name="admin_cut_from_affiliate_pct"
+                            label="{{ __('admin.categories.admin_cut_from_affiliate_pct') }}"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            :value="$val('admin_cut_from_affiliate_pct', '0')"
+                        />
+                    </div>
+                </div>
+
+                {{-- Promotion Fees --}}
+                <div class="border-t border-gray-100 pt-5 space-y-4">
+                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.promotion_fees_section') }}</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <x-form.input
+                            name="promotion_fee_per_influencer"
+                            label="{{ __('admin.categories.promotion_fee_per_influencer') }}"
+                            type="number"
+                            min="0"
+                            :value="$val('promotion_fee_per_influencer', '0')"
+                        />
+                        <x-form.input
+                            name="min_stock_for_promotion"
+                            label="{{ __('admin.categories.min_stock_for_promotion') }}"
+                            type="number"
+                            min="0"
+                            :value="$val('min_stock_for_promotion', '0')"
+                        />
+                    </div>
+                </div>
+
+                {{-- Monthly Quotas --}}
+                <div class="border-t border-gray-100 pt-5 space-y-4">
+                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.monthly_quotas_section') }}</h4>
+                    <x-form.input
+                        name="influencer_monthly_quota"
+                        label="{{ __('admin.categories.influencer_monthly_quota') }}"
+                        type="number"
+                        min="0"
+                        :value="$val('influencer_monthly_quota', '0')"
                     />
                 </div>
             </div>

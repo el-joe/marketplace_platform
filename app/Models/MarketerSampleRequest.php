@@ -23,6 +23,10 @@ class MarketerSampleRequest extends Model
         'dispatched_at',
         'received_at',
         'rejection_reason',
+        'requires_warehouse_receipt',
+        'target_warehouse_id',
+        'fulfillment_alert_sent',
+        'fulfillment_alert_sent_at',
     ];
 
     protected function casts(): array
@@ -32,6 +36,9 @@ class MarketerSampleRequest extends Model
             'approved_at' => 'datetime',
             'dispatched_at' => 'datetime',
             'received_at' => 'datetime',
+            'requires_warehouse_receipt' => 'boolean',
+            'fulfillment_alert_sent' => 'boolean',
+            'fulfillment_alert_sent_at' => 'datetime',
         ];
     }
 
@@ -55,6 +62,11 @@ class MarketerSampleRequest extends Model
     public function approvedByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'admin_approved_by');
+    }
+
+    public function targetWarehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class, 'target_warehouse_id');
     }
 
     public function items(): HasMany

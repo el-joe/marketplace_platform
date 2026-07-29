@@ -38,6 +38,13 @@ class UpdateCategoryRequest extends FormRequest
             'seo_title_ar' => ['nullable', 'string', 'max:70'],
             'seo_description_en' => ['nullable', 'string', 'max:160'],
             'seo_description_ar' => ['nullable', 'string', 'max:160'],
+            'influencer_commission_pct' => ['nullable', 'numeric', 'between:0,100'],
+            'admin_cut_from_influencer_pct' => ['nullable', 'numeric', 'between:0,100'],
+            'affiliate_commission_pct' => ['nullable', 'numeric', 'between:0,100'],
+            'admin_cut_from_affiliate_pct' => ['nullable', 'numeric', 'between:0,100'],
+            'promotion_fee_per_influencer' => ['nullable', 'integer', 'min:0'],
+            'min_stock_for_promotion' => ['nullable', 'integer', 'min:0'],
+            'influencer_monthly_quota' => ['nullable', 'integer', 'min:0'],
         ];
     }
 

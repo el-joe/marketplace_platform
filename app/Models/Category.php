@@ -68,6 +68,13 @@ class Category extends Model
         'is_featured',
         'marketer_sample_quota',
         'admin_sample_quota',
+        'influencer_commission_pct',
+        'admin_cut_from_influencer_pct',
+        'affiliate_commission_pct',
+        'admin_cut_from_affiliate_pct',
+        'promotion_fee_per_influencer',
+        'min_stock_for_promotion',
+        'influencer_monthly_quota',
         'seo_title_ar',
         'seo_title_en',
         'seo_description_ar',
@@ -90,6 +97,10 @@ class Category extends Model
         'is_featured' => 'boolean',
         'marketer_sample_quota' => 'integer',
         'admin_sample_quota' => 'integer',
+        'influencer_commission_pct' => 'decimal:2',
+        'admin_cut_from_influencer_pct' => 'decimal:2',
+        'affiliate_commission_pct' => 'decimal:2',
+        'admin_cut_from_affiliate_pct' => 'decimal:2',
     ];
 
     // ── Accessors ────────────────────────────────────────────────────────────

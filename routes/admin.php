@@ -69,6 +69,8 @@ use App\Http\Controllers\Admin\AffiliatePromoCodeController;
 use App\Http\Controllers\Admin\MarketerController;
 use App\Http\Controllers\Admin\MarketerProductController;
 use App\Http\Controllers\Admin\InfluencerDealController;
+use App\Http\Controllers\Admin\InfluencerPromotionController;
+use App\Http\Controllers\Admin\MarketerMonthlyQuotaController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\FbnController;
 use App\Http\Controllers\Admin\SecretPromotionController;
@@ -1253,6 +1255,28 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{deal}/deliverables/{deliverable}/reject', [InfluencerDealController::class, 'rejectDeliverable'])->name('deliverables.reject');
     });
 
+    // ── Influencer Promotion Requests ───────────────────────────────────────────
+    Route::prefix('influencer-promotions')->name('influencer-promotions.')->middleware('admin.permission:admin_can_manage_influencer_promotions')->group(function () {
+        Route::get('/', [InfluencerPromotionController::class, 'index'])->name('index');
+        Route::post('/datatable', [InfluencerPromotionController::class, 'datatable'])->name('datatable');
+        Route::get('/{promotionRequest}', [InfluencerPromotionController::class, 'show'])->name('show');
+        Route::post('/{promotionRequest}/cancel', [InfluencerPromotionController::class, 'cancel'])->name('cancel');
+        Route::post('/{promotionRequest}/confirm-warehouse-receipt', [InfluencerPromotionController::class, 'confirmWarehouseReceipt'])->name('confirm-warehouse-receipt');
+    });
+
+    // ── Marketer Monthly Quotas ──────────────────────────────────────────────────
+    Route::prefix('marketer-quotas')->name('marketer-quotas.')->middleware('admin.permission:admin_can_manage_marketer_quotas')->group(function () {
+        Route::get('/progress', [MarketerMonthlyQuotaController::class, 'progress'])->name('progress');
+        Route::post('/progress/datatable', [MarketerMonthlyQuotaController::class, 'progressDatatable'])->name('progress.datatable');
+        Route::post('/progress/send-warnings', [MarketerMonthlyQuotaController::class, 'sendBulkWarnings'])->name('progress.send-warnings');
+        Route::get('/', [MarketerMonthlyQuotaController::class, 'index'])->name('index');
+        Route::post('/datatable', [MarketerMonthlyQuotaController::class, 'datatable'])->name('datatable');
+        Route::post('/', [MarketerMonthlyQuotaController::class, 'store'])->name('store');
+        Route::put('/{quota}', [MarketerMonthlyQuotaController::class, 'update'])->name('update');
+        Route::delete('/{quota}', [MarketerMonthlyQuotaController::class, 'destroy'])->name('destroy');
+        Route::post('/{quota}/toggle', [MarketerMonthlyQuotaController::class, 'toggleActive'])->name('toggle');
+    });
+
     // ── Marketer Secret Promotions ──────────────────────────────────────────────
     Route::prefix('marketers-secret-promotions')->name('secret-promotions.')->group(function () {
         // AJAX helpers — must come before wildcard {secretPromotion}
@@ -1405,6 +1429,23 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         // Attachment verification
         Route::post('/attachments/{attachment}/verify', [\App\Http\Controllers\Admin\ClassifiedListingController::class, 'verifyAttachment'])
             ->name('attachments.verify');
+    });
+
+    // ─── Influencer Open Market (Category 3 & 4 product assignment) ─────────
+    Route::prefix('open-market')->name('open-market.')
+        ->middleware('admin.permission:open_market.view')
+        ->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'index'])->name('index');
+        Route::post('/datatable', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'datatable'])->name('datatable');
+        Route::get('/search-listings', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'searchListings'])->name('search-listings');
+        Route::post('/', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'store'])
+            ->middleware('admin.permission:open_market.manage')->name('store');
+        Route::post('/{openMarketProduct}/toggle', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'toggle'])
+            ->middleware('admin.permission:open_market.manage')->name('toggle');
+        Route::delete('/{openMarketProduct}', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'destroy'])
+            ->middleware('admin.permission:open_market.manage')->name('destroy');
+        Route::post('/admin-product-listings/{adminProductListing}/toggle', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'toggleForAdminListing'])
+            ->middleware('admin.permission:open_market.manage')->name('toggle-for-admin-listing');
     });
 
     // ─── Admin Product Listings (Now Nawy) ───────────────────────────────────

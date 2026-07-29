@@ -16,6 +16,9 @@
         'wallet' => __('partner.payouts.method_wallet'),
         'paypal' => 'PayPal',
     ];
+
+    $subOrderItems = $payout->items->where('item_type', 'sub_order');
+    $promotionFeeItems = $payout->items->where('item_type', 'promotion_fee');
 @endphp
 
 @section('title', __('partner.payouts.payout_details_title', ['number' => $payout->payout_number]))
@@ -146,10 +149,10 @@
             <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h3 class="font-semibold text-gray-800">{{ __('partner.payouts.included_orders') }}</h3>
-                    <span class="text-xs text-gray-400">{{ __('partner.payouts.order_count', ['count' => $payout->items->count()]) }}</span>
+                    <span class="text-xs text-gray-400">{{ __('partner.payouts.order_count', ['count' => $subOrderItems->count()]) }}</span>
                 </div>
 
-                @if($payout->items->isEmpty())
+                @if($subOrderItems->isEmpty())
                     <div class="py-10 text-center">
                         <p class="text-sm text-gray-400">{{ __('partner.payouts.no_items_for_payout') }}</p>
                     </div>
@@ -165,7 +168,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
-                                @foreach($payout->items as $item)
+                                @foreach($subOrderItems as $item)
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="py-3 px-5">
                                             <span class="font-mono text-xs text-gray-700">
@@ -188,13 +191,13 @@
                                 <tr class="text-sm font-semibold text-gray-800">
                                     <td class="py-3 px-5">{{ __('partner.payouts.total') }}</td>
                                     <td class="py-3 px-4 text-center">
-                                        {{ number_format($payout->items->sum('gross') / 100, 2) }}
+                                        {{ number_format($subOrderItems->sum('gross') / 100, 2) }}
                                     </td>
                                     <td class="py-3 px-4 text-center text-red-500">
-                                        − {{ number_format($payout->items->sum('commission') / 100, 2) }}
+                                        − {{ number_format($subOrderItems->sum('commission') / 100, 2) }}
                                     </td>
                                     <td class="py-3 px-4 text-center text-gray-900 font-bold">
-                                        {{ number_format($payout->items->sum('net') / 100, 2) }}
+                                        {{ number_format($subOrderItems->sum('net') / 100, 2) }}
                                     </td>
                                 </tr>
                             </tfoot>
@@ -202,6 +205,51 @@
                     </div>
                 @endif
             </div>
+
+            {{-- Influencer promotion fee deductions (collapsible) --}}
+            @if($promotionFeeItems->isNotEmpty())
+                <details class="bg-white rounded-2xl border border-gray-200 overflow-hidden group">
+                    <summary class="px-5 py-4 border-b border-gray-100 flex items-center justify-between cursor-pointer select-none list-none">
+                        <h3 class="font-semibold text-gray-800">{{ __('partner.payouts.influencer_promotion_fees') }}</h3>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs text-gray-400">{{ __('partner.payouts.promotion_fee_count', ['count' => $promotionFeeItems->count()]) }}</span>
+                            <svg class="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </summary>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr class="text-xs text-gray-500 uppercase">
+                                    <th class="text-right py-3 px-5 font-medium">{{ __('partner.payouts.description') }}</th>
+                                    <th class="py-3 px-4 text-center font-medium">{{ __('partner.payouts.amount') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @foreach($promotionFeeItems as $item)
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-3 px-5 text-gray-700">
+                                            {{ $item->description }}
+                                        </td>
+                                        <td class="py-3 px-4 text-center text-red-500 font-medium">
+                                            − {{ number_format(abs($item->net) / 100, 2) }} {{ $payout->currency }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot class="border-t border-gray-200 bg-gray-50">
+                                <tr class="text-sm font-semibold text-gray-800">
+                                    <td class="py-3 px-5">{{ __('partner.payouts.total') }}</td>
+                                    <td class="py-3 px-4 text-center text-red-500">
+                                        − {{ number_format($promotionFeeItems->sum(fn($i) => abs($i->net)) / 100, 2) }} {{ $payout->currency }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </details>
+            @endif
 
         </div>
 

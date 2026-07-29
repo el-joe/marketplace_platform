@@ -125,6 +125,11 @@ class AdminProductListing extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
+    public function openMarketEntries(): HasMany
+    {
+        return $this->hasMany(AdminInfluencerOpenMarketProduct::class);
+    }
+
     public function primaryShippingMethod(): BelongsTo
     {
         return $this->belongsTo(ShippingMethod::class, 'primary_shipping_method_id');

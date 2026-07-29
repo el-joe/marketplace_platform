@@ -6,6 +6,7 @@ use App\Jobs\GenerateCodSettlementsJob;
 use App\Jobs\ReleaseExpiredLocksJob;
 use App\Jobs\ApproveMarketerCommissionsJob;
 use App\Jobs\CheckSlaBreachJob;
+use App\Jobs\CheckInfluencerPromotionTimeoutsJob;
 use App\Jobs\GenerateVendorPayoutsJob;
 use App\Jobs\BannerSchedulerJob;
 use App\Jobs\FlashSaleSchedulerJob;
@@ -15,6 +16,8 @@ use App\Jobs\FbnInboundReminderJob;
 use App\Jobs\PublishScheduledBlogPostsJob;
 use App\Jobs\RecalculateBestSellerRankingsJob;
 use App\Jobs\ProcessAcquisitionCommissionsJob;
+use App\Jobs\MarketerMonthlyQuotaWarningJob;
+use App\Jobs\ApplyMarketerMonthEndPenaltiesJob;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -26,6 +29,7 @@ Artisan::command('inspire', function () {
 
 Schedule::job(new ReleaseExpiredLocksJob)->everyMinute()->withoutOverlapping()->name('release-expired-locks');
 Schedule::job(new CheckSlaBreachJob)->everyFifteenMinutes();
+Schedule::job(new CheckInfluencerPromotionTimeoutsJob)->everyFifteenMinutes()->name('check-influencer-promotion-timeouts');
 Schedule::job(new AutoCompleteOrdersJob)->dailyAt('02:00');
 Schedule::job(new TransitionFlashSaleStatusJob)->everyFiveMinutes();
 Schedule::job(new FlashSaleSchedulerJob)->everyFiveMinutes()->withoutOverlapping()->name('flash-sale-scheduler');
@@ -78,6 +82,17 @@ Schedule::command('coupons:deactivate-expired')
     ->withoutOverlapping()
     ->runInBackground()
     ->name('deactivate-expired-coupons');
+
+// Warn marketers behind quota during the last 7 days of the month
+Schedule::job(new MarketerMonthlyQuotaWarningJob)
+    ->dailyAt('09:00')
+    ->when(fn () => Carbon::today()->day > Carbon::today()->daysInMonth - 7)
+    ->name('marketer-monthly-quota-warning');
+
+// Apply month-end penalties for unmet quotas and initialize next month's progress
+Schedule::job(new ApplyMarketerMonthEndPenaltiesJob)
+    ->monthlyOn(1, '02:00')
+    ->name('apply-marketer-month-end-penalties');
 
 // Recalculate best-seller rankings per category/country
 Schedule::job(new RecalculateBestSellerRankingsJob, 'rankings')

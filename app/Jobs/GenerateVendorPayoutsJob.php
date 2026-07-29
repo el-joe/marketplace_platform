@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Admin;
 use App\Models\Payout;
+use App\Models\PayoutItem;
 use App\Models\Vendor;
 use App\Models\VendorBankAccount;
 use App\Notifications\Admin\PayoutBatchReadyForApproval;
@@ -14,6 +15,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
@@ -84,25 +86,74 @@ class GenerateVendorPayoutsJob implements ShouldQueue
                             continue;
                         }
 
-                        Payout::create([
-                            'payout_number'        => $this->generatePayoutNumber(),
-                            'vendor_id'            => $vendor->id,
-                            'period_start'         => $calc['period_start'],
-                            'period_end'           => $calc['period_end'],
-                            'gross_sales'          => $calc['gross_sales'],
-                            'commission'           => $calc['commission'],
-                            'gateway_fee_deducted' => $calc['gateway_fee_deducted'],
-                            'refunds_deducted'     => $calc['refunds_deducted'],
-                            'chargebacks_deducted' => $calc['chargebacks_deducted'],
-                            'storage_fees'         => $calc['storage_fees'],
-                            'ad_fees'              => $calc['ad_fees'],
-                            'other_adjustments'    => $calc['other_adjustments'],
-                            'net_amount'           => $calc['net_amount'],
-                            'currency'             => $currency, // sales currency — see PayoutCalculationService note on FX
-                            'status'               => 'pending',
-                            'bank_account_id'      => $primaryAccount->id,
-                            'payout_method'        => 'bank_transfer',
-                        ]);
+                        DB::transaction(function () use ($calc, $currency, $vendor, $primaryAccount) {
+                            $payout = Payout::create([
+                                'payout_number'        => $this->generatePayoutNumber(),
+                                'vendor_id'            => $vendor->id,
+                                'period_start'         => $calc['period_start'],
+                                'period_end'           => $calc['period_end'],
+                                'gross_sales'          => $calc['gross_sales'],
+                                'commission'           => $calc['commission'],
+                                'gateway_fee_deducted' => $calc['gateway_fee_deducted'],
+                                'refunds_deducted'     => $calc['refunds_deducted'],
+                                'chargebacks_deducted' => $calc['chargebacks_deducted'],
+                                'storage_fees'         => $calc['storage_fees'],
+                                'ad_fees'              => $calc['ad_fees'],
+                                'other_adjustments'    => $calc['other_adjustments'],
+                                'net_amount'           => $calc['net_amount'],
+                                'currency'             => $currency, // sales currency — see PayoutCalculationService note on FX
+                                'status'               => 'pending',
+                                'bank_account_id'      => $primaryAccount->id,
+                                'payout_method'        => 'bank_transfer',
+                            ]);
+
+                            foreach ($calc['promotion_fee_requests'] ?? [] as $request) {
+                                $listing = $request->vendorListing ?? $request->adminProductListing;
+                                $product = $listing?->productVariant?->product;
+                                $productName = $product?->name_en ?? $product?->name_ar ?? '—';
+                                $slots = $request->items->count();
+                                $feePerSlot = $request->items->first()?->slot_promotion_fee ?? 0;
+
+                                PayoutItem::create([
+                                    'payout_id'             => $payout->id,
+                                    'item_type'             => 'promotion_fee',
+                                    'promotion_request_id'  => $request->id,
+                                    'gross'                 => 0,
+                                    'commission'            => 0,
+                                    'net'                   => -$request->total_promotion_fee,
+                                    'description'           => "Influencer Promotion Fee — {$productName} — {$slots} slots × {$feePerSlot}",
+                                ]);
+
+                                $request->update([
+                                    'fee_deducted'    => true,
+                                    'fee_deducted_at' => now(),
+                                ]);
+                            }
+
+                            foreach ($calc['sample_items'] ?? [] as $entry) {
+                                $sampleItem = $entry['item'];
+                                $listing = $sampleItem->vendorListing;
+                                $product = $listing?->productVariant?->product;
+                                $productName = $product?->name_en ?? $product?->name_ar ?? '—';
+
+                                // Price shown to vendor is ZERO (Promotion Sample) — only
+                                // the admin fixed + variable commission is actually deducted.
+                                PayoutItem::create([
+                                    'payout_id'      => $payout->id,
+                                    'item_type'      => 'promotion_sample',
+                                    'sample_item_id' => $sampleItem->id,
+                                    'gross'          => 0,
+                                    'commission'     => $entry['commission_amount'],
+                                    'net'            => -$entry['commission_amount'],
+                                    'description'    => "ترويج عينة — Promotion Sample — {$productName}",
+                                ]);
+
+                                $sampleItem->update([
+                                    'fee_deducted'    => true,
+                                    'fee_deducted_at' => now(),
+                                ]);
+                            }
+                        });
 
                         $generated++;
                     }

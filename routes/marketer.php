@@ -10,8 +10,11 @@ use App\Http\Controllers\MarketerPortal\EarningsController;
 use App\Http\Controllers\MarketerPortal\InfluencerDealController;
 use App\Http\Controllers\MarketerPortal\InvitationController;
 use App\Http\Controllers\MarketerPortal\MediaKitController;
+use App\Http\Controllers\MarketerPortal\OpenMarketController;
 use App\Http\Controllers\MarketerPortal\ProfileController;
+use App\Http\Controllers\MarketerPortal\PromotionRequestController;
 use App\Http\Controllers\MarketerPortal\QrCodeController;
+use App\Http\Controllers\MarketerPortal\QuotaController;
 use App\Http\Controllers\MarketerPortal\SampleRequestController;
 use App\Http\Controllers\MarketerPortal\StoreProductController;
 use App\Http\Controllers\MarketerPortal\TrackingController;
@@ -123,6 +126,16 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             Route::get('/wallet', [\App\Http\Controllers\MarketerPortal\WalletController::class, 'index'])->name('wallet.index');
             Route::post('/wallet/withdraw', [\App\Http\Controllers\MarketerPortal\WalletController::class, 'requestWithdrawal'])->name('wallet.withdraw');
 
+            // Promotion Requests (vendor-initiated influencer slot invitations)
+            Route::prefix('promotion-requests')->name('promotion-requests.')->group(function () {
+                Route::get('/', [PromotionRequestController::class, 'index'])->name('index');
+                Route::post('/{item}/accept', [PromotionRequestController::class, 'accept'])->name('accept');
+                Route::post('/{item}/decline', [PromotionRequestController::class, 'decline'])->name('decline');
+            });
+
+            // Monthly Quota Dashboard
+            Route::get('/quota', [QuotaController::class, 'index'])->name('quota.index');
+
             // Secret Promotions
             Route::prefix('secret-promotions')->name('secret-promotions.')->group(function () {
                 Route::get('/', [\App\Http\Controllers\MarketerPortal\SecretPromotionController::class, 'index'])->name('index');
@@ -153,6 +166,12 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
                 Route::put('/{product}', [StoreProductController::class, 'update'])->name('update');
                 Route::post('/{product}/submit', [StoreProductController::class, 'submitForReview'])->name('submit');
                 Route::delete('/{product}', [StoreProductController::class, 'destroy'])->name('destroy');
+            });
+
+            // Open Market (browse + promote other marketers' own products — quota category 2)
+            Route::prefix('open-market')->name('open-market.')->group(function () {
+                Route::get('/', [OpenMarketController::class, 'index'])->name('index');
+                Route::post('/{product}/promote', [OpenMarketController::class, 'promote'])->name('promote');
             });
 
             // ── Affiliate only: Promo Codes ───────────────────────────────────────

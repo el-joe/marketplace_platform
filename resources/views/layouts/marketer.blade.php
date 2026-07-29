@@ -211,6 +211,25 @@
 
             @php $isInfluencer = auth('marketer')->check() && auth('marketer')->user()->isInfluencer(); @endphp
 
+            @if($isInfluencer)
+                <a href="{{ route('marketer.promotion-requests.index') }}"
+                    class="{{ Str::startsWith($route, 'marketer.promotion-requests') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1z" />
+                    </svg>
+                    {{ __('marketer.promotion_requests.title') }}
+                </a>
+
+                <a href="{{ route('marketer.quota.index') }}"
+                    class="{{ Str::startsWith($route, 'marketer.quota') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <circle cx="12" cy="12" r="9" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 019 9" />
+                    </svg>
+                    {{ __('marketer.quota.title') }}
+                </a>
+            @endif
+
             @if(!$isInfluencer)
                 <a href="{{ route('marketer.campaigns.index') }}"
                     class="{{ Str::startsWith($route, 'marketer.campaigns') ? 'active' : '' }}"
