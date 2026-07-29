@@ -410,6 +410,16 @@ class ListingDetailController extends Controller
                 'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,
                 'delivery_days_max' => $listing->primaryShippingMethod->max_delivery_days,
             ] : null,
+            'vendor_details' => $listing->vendor ? [
+                'rating_avg' => (float) $listing->vendor->store_rating_avg,
+                'rating_count' => (int) $listing->vendor->store_rating_count,
+                'positive_rating_pct' => $listing->vendor->positive_rating_pct,
+                'item_as_shown_pct' => $listing->vendor->positive_rating_pct,
+                'partner_since_years' => $listing->vendor->partner_years,
+                'warranty_months' => $listing->vendor->warranty_months,
+                'easy_returns_enabled' => (bool) $listing->vendor->easy_returns_enabled,
+                'secure_payments_enabled' => (bool) $listing->vendor->secure_payments_enabled,
+            ] : null,
         ];
     }
 
