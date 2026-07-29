@@ -30,9 +30,9 @@ return new class extends Migration {
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('vendor_id')->references('id')->on('vendors');
-            $table->foreign('vendor_listing_id')->references('id')->on('vendor_listings');
-            $table->foreign('admin_product_listing_id')->references('id')->on('admin_product_listings');
+            $table->foreign('vendor_id', 'vipr_vendor_id_foreign')->references('id')->on('vendors');
+            $table->foreign('vendor_listing_id', 'vipr_vendor_listing_id_foreign')->references('id')->on('vendor_listings');
+            $table->foreign('admin_product_listing_id', 'vipr_admin_product_listing_id_foreign')->references('id')->on('admin_product_listings');
 
             $table->index(['vendor_id', 'status']);
         });

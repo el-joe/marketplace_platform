@@ -25,12 +25,12 @@ return new class extends Migration {
             $table->timestamp('notification_sent_at')->nullable();
             $table->timestamps();
 
-            $table->foreign('promotion_request_id')
+            $table->foreign('promotion_request_id', 'vipri_promotion_request_id_foreign')
                 ->references('id')->on('vendor_influencer_promotion_requests')->cascadeOnDelete();
-            $table->foreign('marketer_id')->references('id')->on('marketers');
-            $table->foreign('resulting_campaign_id')->references('id')->on('marketer_campaigns');
+            $table->foreign('marketer_id', 'vipri_marketer_id_foreign')->references('id')->on('marketers');
+            $table->foreign('resulting_campaign_id', 'vipri_resulting_campaign_id_foreign')->references('id')->on('marketer_campaigns');
 
-            $table->index(['marketer_id', 'status']);
+            $table->index(['marketer_id', 'status'], 'vipri_marketer_id_status_index');
         });
     }
 

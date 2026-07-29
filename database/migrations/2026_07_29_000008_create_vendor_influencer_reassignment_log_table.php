@@ -18,14 +18,14 @@ return new class extends Migration {
             $table->uuid('triggered_by_admin_id')->nullable();
             $table->timestamp('created_at')->nullable();
 
-            $table->foreign('promotion_request_id')
+            $table->foreign('promotion_request_id', 'virl_promotion_request_id_foreign')
                 ->references('id')->on('vendor_influencer_promotion_requests');
-            $table->foreign('promotion_request_item_id')
+            $table->foreign('promotion_request_item_id', 'virl_promotion_request_item_id_foreign')
                 ->references('id')->on('vendor_influencer_promotion_request_items');
-            $table->foreign('from_marketer_id')->references('id')->on('marketers');
-            $table->foreign('to_marketer_id')->references('id')->on('marketers');
+            $table->foreign('from_marketer_id', 'virl_from_marketer_id_foreign')->references('id')->on('marketers');
+            $table->foreign('to_marketer_id', 'virl_to_marketer_id_foreign')->references('id')->on('marketers');
 
-            $table->index(['to_marketer_id', 'created_at']);
+            $table->index(['to_marketer_id', 'created_at'], 'virl_to_marketer_id_created_at_index');
         });
     }
 
