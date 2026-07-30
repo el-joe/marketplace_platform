@@ -436,6 +436,9 @@ return [
         'docs_roles'                 => 'الأدوار والصلاحيات',
         'docs_content_pages'         => 'صفحات المحتوى',
         'docs_system_pages'          => 'صفحات النظام',
+        'content_settings'           => 'إعدادات المحتوى',
+        'vendor_listings'            => 'قوائم البائعين',
+        'celebrity_monthly_report'   => 'التقرير الشهري للمشاهير',
     ],
 
     'product_form' => [

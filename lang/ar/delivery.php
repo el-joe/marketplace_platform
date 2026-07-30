@@ -7,6 +7,7 @@ return [
         'map' => 'الخريطة',
         'earnings' => 'أرباحي',
         'cod_payments' => 'مدفوعاتي النقدية',
+        'wallet' => 'المحفظة',
         'profile' => 'ملفي',
         'logout' => 'خروج',
         'lang_en' => 'English',

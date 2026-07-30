@@ -408,6 +408,14 @@
                         {{ __('delivery.nav.cod_payments') }}
                     </a>
 
+                    <a href="{{ route('delivery.wallet.index') }}"
+                       class="nav-item {{ navActive('delivery.wallet', $current) }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12V7H5a2 2 0 010-4h14v4M3 5v14a2 2 0 002 2h16v-5M18 12a2 2 0 100 4 2 2 0 000-4z"/>
+                        </svg>
+                        {{ __('delivery.nav.wallet') }}
+                    </a>
+
                     <a href="{{ route('delivery.profile.index') }}"
                        class="nav-item {{ navActive('delivery.profile', $current) }}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">

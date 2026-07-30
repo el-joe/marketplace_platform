@@ -394,6 +394,15 @@
                     ">{{ $adminOfferPendingCount > 99 ? '99+' : $adminOfferPendingCount }}</span>
                 @endif
             </a>
+
+            <a href="{{ route('marketer.open-market.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.open-market') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 3h18M3 3l1.5 9a2 2 0 002 1.5h11a2 2 0 002-1.5L21 3M3 3h18M9 21a1.5 1.5 0 11-3 0M18 21a1.5 1.5 0 11-3 0" />
+                </svg>
+                {{ __('marketer.nav.open_market') }}
+            </a>
             @endauth
 
             <a href="{{ route('marketer.profile.edit') }}"

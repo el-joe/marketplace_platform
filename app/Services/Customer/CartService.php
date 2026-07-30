@@ -34,7 +34,8 @@ class CartService
         private readonly CheckoutCalculationService $calculationService,
         private readonly AppContextService $appContextService,
         private readonly ShippingMethodResolverService $shippingMethodResolver,
-    ) {}
+    ) {
+    }
 
     /**
      * Validates the requested shipping method against the listing's available
@@ -60,12 +61,12 @@ class CartService
         $cart = Cart::firstOrCreate(
             ['user_id' => $customer->id, 'country_id' => $countryId],
             [
-                'currency'           => $currency,
-                'subtotal'           => 0,
-                'discount'           => 0,
+                'currency' => $currency,
+                'subtotal' => 0,
+                'discount' => 0,
                 'estimated_shipping' => 0,
-                'estimated_tax'      => 0,
-                'estimated_total'    => 0,
+                'estimated_tax' => 0,
+                'estimated_total' => 0,
             ]
         );
 
@@ -78,22 +79,22 @@ class CartService
     {
         $cart = Cart::where('session_token', $sessionToken)
             ->whereNull('user_id')
-            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
             ->with(['items.vendorListing', 'coupon'])
             ->first();
 
         if (!$cart) {
             $cart = Cart::create([
-                'session_token'      => $sessionToken,
-                'user_id'            => null,
-                'country_id'         => $countryId,
-                'currency'           => $currency,
-                'subtotal'           => 0,
-                'discount'           => 0,
+                'session_token' => $sessionToken,
+                'user_id' => null,
+                'country_id' => $countryId,
+                'currency' => $currency,
+                'subtotal' => 0,
+                'discount' => 0,
                 'estimated_shipping' => 0,
-                'estimated_tax'      => 0,
-                'estimated_total'    => 0,
-                'expires_at'         => now()->addDays(30),
+                'estimated_tax' => 0,
+                'estimated_total' => 0,
+                'expires_at' => now()->addDays(30),
             ]);
         }
 
@@ -171,9 +172,9 @@ class CartService
             }
             $item = $cart->items()->create([
                 'vendor_listing_id' => $vendorListingId,
-                'quantity'          => $quantity,
-                'unit_price'        => $listing->price,
-                'added_at'          => now(),
+                'quantity' => $quantity,
+                'unit_price' => $listing->price,
+                'added_at' => now(),
                 'selected_shipping_method_id' => $shippingMethodId,
             ]);
         }
@@ -208,13 +209,13 @@ class CartService
      */
     public function addAdminItem(Cart $cart, string $adminProductListingId, int $quantity, ?string $shippingMethodId, string $countryId): CartItem
     {
-        if (! $this->appContextService->isNawyNow()) {
+        if (!$this->appContextService->isNawyNow()) {
             throw new \DomainException(__('common.exceptions.cart.admin_listing_not_allowed'));
         }
 
         $listing = AdminProductListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($adminProductListingId);
 
-        if ($listing->status !== AdminProductListingStatus::Active || ! $listing->featured_in_nawy) {
+        if ($listing->status !== AdminProductListingStatus::Active || !$listing->featured_in_nawy) {
             throw new \DomainException(__('common.exceptions.cart.admin_listing_not_allowed'));
         }
 
@@ -248,11 +249,11 @@ class CartService
                 throw new \DomainException(__('common.exceptions.cart.max_items', ['max' => self::MAX_ITEMS]));
             }
             $item = $cart->items()->create([
-                'vendor_listing_id'           => null,
-                'admin_product_listing_id'    => $adminProductListingId,
-                'quantity'                    => $quantity,
-                'unit_price'                  => $listing->getRawOriginal('price'),
-                'added_at'                    => now(),
+                'vendor_listing_id' => null,
+                'admin_product_listing_id' => $adminProductListingId,
+                'quantity' => $quantity,
+                'unit_price' => $listing->getRawOriginal('price'),
+                'added_at' => now(),
                 'selected_shipping_method_id' => $shippingMethodId,
             ]);
         }
@@ -328,7 +329,7 @@ class CartService
             throw new \DomainException(__('common.exceptions.cart.coupon_customer_limit_reached'));
         }
 
-        $subtotal = (int) $cart->items()->get()->sum(fn (CartItem $item) => $item->unit_price * $item->quantity);
+        $subtotal = (int) $cart->items()->get()->sum(fn(CartItem $item) => $item->unit_price * $item->quantity);
 
         if ($coupon->min_order_amount !== null && $subtotal < $coupon->min_order_amount) {
             $minFormatted = number_format($coupon->min_order_amount / 100, 2);
@@ -349,14 +350,14 @@ class CartService
 
     public function applyAffiliatePromoCode(Cart $cart, string $code): AffiliatePromoCode
     {
-        $subtotal = (int) $cart->items()->get()->sum(fn (CartItem $item) => $item->unit_price * $item->quantity);
+        $subtotal = (int) $cart->items()->get()->sum(fn(CartItem $item) => $item->unit_price * $item->quantity);
 
         $cart->setAttribute('subtotal', $subtotal);
         $cart->setAttribute('estimated_shipping', 0);
 
         $result = $this->calculationService->applyAffiliatePromoCode($cart, $code, $cart->coupon);
 
-        if (! $result['applied']) {
+        if (!$result['applied']) {
             throw new \DomainException($result['message']);
         }
 
@@ -395,7 +396,7 @@ class CartService
             if ($item->admin_product_listing_id !== null) {
                 $listing = $item->adminProductListing;
 
-                if (! $listing || $listing->status !== AdminProductListingStatus::Active || ! $listing->featured_in_nawy) {
+                if (!$listing || $listing->status !== AdminProductListingStatus::Active || !$listing->featured_in_nawy) {
                     $item->delete();
                     continue;
                 }
@@ -404,7 +405,7 @@ class CartService
             } else {
                 $listing = $item->vendorListing;
 
-                if (! $listing || $listing->status !== VendorListingStatus::Active) {
+                if (!$listing || $listing->status !== VendorListingStatus::Active) {
                     $item->delete();
                     continue;
                 }
@@ -421,7 +422,7 @@ class CartService
         $cart->unsetRelation('items');
         $cart->load(self::ITEM_EAGER_LOADS);
 
-        $subtotal = (int) $cart->items->sum(fn (CartItem $item) => $item->unit_price * $item->quantity);
+        $subtotal = (int) $cart->items->sum(fn(CartItem $item) => $item->unit_price * $item->quantity);
 
         $discount = 0;
         if ($cart->coupon && $cart->customer) {
@@ -460,13 +461,13 @@ class CartService
         $estimatedTax = $country ? $this->calculationService->calculateTax($taxable, $country) : 0;
 
         $cart->update([
-            'subtotal'                 => $subtotal,
-            'discount'                 => $discount,
-            'estimated_shipping'       => 0,
-            'estimated_tax'            => $estimatedTax,
-            'estimated_total'          => max(0, $subtotal - $discount + $estimatedTax),
-            'affiliate_promo_code_id'  => $cart->affiliate_promo_code_id,
-            'expires_at'               => now()->addDays(30),
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'estimated_shipping' => 0,
+            'estimated_tax' => $estimatedTax,
+            'estimated_total' => max(0, $subtotal - $discount + $estimatedTax),
+            'affiliate_promo_code_id' => $cart->affiliate_promo_code_id,
+            'expires_at' => now()->addDays(30),
         ]);
 
         foreach ($cart->items as $item) {

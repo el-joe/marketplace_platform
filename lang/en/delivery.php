@@ -7,6 +7,7 @@ return [
         'map' => 'Map',
         'earnings' => 'Earnings',
         'cod_payments' => 'My COD Payments',
+        'wallet' => 'Wallet',
         'profile' => 'Profile',
         'logout' => 'Logout',
         'lang_en' => 'English',

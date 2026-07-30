@@ -192,7 +192,7 @@ class CartController extends Controller
         return $groups->map(function ($groupItems) use ($countryId) {
             $method = $groupItems->first()->selectedShippingMethod;
 
-            $groupSubtotal = $groupItems->sum(fn ($item) => $item->unit_price * $item->quantity);
+            $groupSubtotal = $groupItems->sum(fn($item) => $item->unit_price * $item->quantity);
 
             $threshold = ($method && $countryId)
                 ? CountryShippingSetting::where('country_id', $countryId)
@@ -307,9 +307,10 @@ class CartController extends Controller
         return $this->cartResponse($cart, [], 'Items added to cart', 201);
     }
 
-    public function updateItem(UpdateCartItemRequest $request, string $id): JsonResponse
+    public function updateItem(UpdateCartItemRequest $request, $countryId, string $id): JsonResponse
     {
         $cart = $this->resolveCart($request);
+
         $countryId = $request->attributes->get('country')->id;
 
         try {
@@ -335,7 +336,7 @@ class CartController extends Controller
         ], 'Cart item updated');
     }
 
-    public function removeItem(Request $request, string $id): JsonResponse
+    public function removeItem(Request $request, $countryId, string $id): JsonResponse
     {
         $cart = $this->resolveCart($request);
 

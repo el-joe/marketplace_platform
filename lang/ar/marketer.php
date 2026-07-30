@@ -10,6 +10,7 @@ return [
         'campaigns'        => 'حملاتي',
         'invitations'      => 'الدعوات',
         'admin_offers'     => 'عروض الإدارة',
+        'open_market'      => 'السوق المفتوح',
         'secret_promotions' => 'العروض السرية',
         'earnings'         => 'أرباحي',
         'wallet'           => 'المحفظة',

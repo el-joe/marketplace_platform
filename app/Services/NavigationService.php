@@ -94,13 +94,13 @@ class NavigationService
                         'permission' => 'celebrity_store.view',
                         'badge' => null,
                     ],
-                    // [
-                    //     'label' => __('admin.nav.product_relations'),
-                    //     'route' => 'admin.fbt.index',
-                    //     'icon' => 'link',
-                    //     'permission' => 'products.view',
-                    //     'badge' => null,
-                    // ],
+                    [
+                        'label' => __('admin.nav.product_relations'),
+                        'route' => 'admin.fbt.index',
+                        'icon' => 'link',
+                        'permission' => 'products.view',
+                        'badge' => null,
+                    ],
                     [
                         'label' => __('admin.nav.brands'),
                         'route' => 'admin.brands.index',
@@ -122,13 +122,13 @@ class NavigationService
                         'permission' => 'warranty_plans.view',
                         'badge' => $this->cachedBadge('active_warranty_plans', fn() => $this->countActiveWarrantyPlans(), 300),
                     ],
-                    // [
-                    //     'label' => __('admin.nav.product_highlights'),
-                    //     'route' => 'admin.product-highlights.index',
-                    //     'icon' => 'star',
-                    //     'permission' => 'products.view',
-                    //     'badge' => null,
-                    // ],
+                    [
+                        'label' => __('admin.nav.product_highlights'),
+                        'route' => 'admin.product-highlights.index',
+                        'icon' => 'star',
+                        'permission' => 'products.view',
+                        'badge' => null,
+                    ],
                     [
                         'label' => __('admin.nav.bestsellers'),
                         'route' => 'admin.bestsellers.index',
@@ -295,6 +295,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.vendor_listings'),
+                        'route' => 'admin.vendor-listings.index',
+                        'icon' => 'list-bullet',
+                        'permission' => 'vendors.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.applications'),
                         'route' => 'admin.vendor-applications.index',
                         'icon' => 'inbox-arrow-down',
@@ -419,6 +426,13 @@ class NavigationService
                         'route' => 'admin.marketer-quotas.progress',
                         'icon' => 'presentation-chart-line',
                         'permission' => 'admin_can_manage_marketer_quotas',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.celebrity_monthly_report'),
+                        'route' => 'admin.celebrities.monthly-report',
+                        'icon' => 'chart-bar',
+                        'permission' => 'celebrity_store.view',
                         'badge' => null,
                     ],
                 ],
@@ -736,6 +750,13 @@ class NavigationService
                         'route' => 'admin.portal-content.index',
                         'icon' => 'document-text',
                         'permission' => 'portal_content.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.content_settings'),
+                        'route' => 'admin.content-settings.index',
+                        'icon' => 'cog',
+                        'permission' => 'settings.content',
                         'badge' => null,
                     ],
                     [

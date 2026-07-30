@@ -436,6 +436,9 @@ return [
         'docs_roles'                 => 'Roles & Permissions',
         'docs_content_pages'         => 'Content Pages',
         'docs_system_pages'          => 'System Pages',
+        'content_settings'           => 'Content Settings',
+        'vendor_listings'            => 'Vendor Listings',
+        'celebrity_monthly_report'   => 'Celebrity Monthly Report',
     ],
     'product_form' => [
         'status' => 'ٍStatus',

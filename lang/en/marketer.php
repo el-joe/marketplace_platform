@@ -10,6 +10,7 @@ return [
         'campaigns'        => 'My Campaigns',
         'invitations'      => 'Invitations',
         'admin_offers'     => 'Admin Offers',
+        'open_market'      => 'Open Market',
         'secret_promotions' => 'Secret Promotions',
         'earnings'         => 'Earnings',
         'wallet'           => 'Wallet',
