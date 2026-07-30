@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\AdminCelebrityStoreController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductCostController;
@@ -72,6 +73,7 @@ use App\Http\Controllers\Admin\MarketerController;
 use App\Http\Controllers\Admin\MarketerProductController;
 use App\Http\Controllers\Admin\InfluencerDealController;
 use App\Http\Controllers\Admin\InfluencerPromotionController;
+use App\Http\Controllers\Admin\CelebrityMonthlyReportController;
 use App\Http\Controllers\Admin\MarketerMonthlyQuotaController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\FbnController;
@@ -1298,6 +1300,29 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::delete('/{quota}', [MarketerMonthlyQuotaController::class, 'destroy'])->name('destroy');
         Route::post('/{quota}/toggle', [MarketerMonthlyQuotaController::class, 'toggleActive'])->name('toggle');
     });
+
+    // ── Celebrity Monthly Progress Report ───────────────────────────────────────
+    Route::prefix('celebrities')->name('celebrities.')->group(function () {
+        Route::get('/monthly-report', [CelebrityMonthlyReportController::class, 'index'])->name('monthly-report');
+        Route::post('/monthly-report/datatable', [CelebrityMonthlyReportController::class, 'datatable'])->name('monthly-report.datatable');
+        Route::get('/monthly-report/export', [CelebrityMonthlyReportController::class, 'export'])->name('monthly-report.export');
+    });
+
+    // ── Celebrity Open Market (Tier 2 Celebrity Store) ─────────────────────────
+    Route::prefix('celebrity-store')->name('celebrity-store.')
+        ->middleware('admin.permission:celebrity_store.view')
+        ->group(function () {
+            Route::get('/', [AdminCelebrityStoreController::class, 'index'])->name('index');
+            Route::post('/datatable', [AdminCelebrityStoreController::class, 'datatable'])->name('datatable');
+            Route::get('/search-celebrities', [AdminCelebrityStoreController::class, 'searchCelebrities'])->name('search-celebrities');
+            Route::get('/search-listings', [AdminCelebrityStoreController::class, 'searchListings'])->name('search-listings');
+            Route::post('/products', [AdminCelebrityStoreController::class, 'approveProduct'])
+                ->middleware('admin.permission:celebrity_store.manage')->name('products.approve');
+            Route::delete('/products/{product}', [AdminCelebrityStoreController::class, 'removeProduct'])
+                ->middleware('admin.permission:celebrity_store.manage')->name('products.remove');
+            Route::put('/products/{product}/commission', [AdminCelebrityStoreController::class, 'setCommission'])
+                ->middleware('admin.permission:celebrity_store.manage')->name('products.commission');
+        });
 
     // ── Marketer Secret Promotions ──────────────────────────────────────────────
     Route::prefix('marketers-secret-promotions')->name('secret-promotions.')->group(function () {

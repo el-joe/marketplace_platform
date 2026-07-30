@@ -129,6 +129,7 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             // Promotion Requests (vendor-initiated influencer slot invitations)
             Route::prefix('promotion-requests')->name('promotion-requests.')->group(function () {
                 Route::get('/', [PromotionRequestController::class, 'index'])->name('index');
+                Route::get('/{item}', [PromotionRequestController::class, 'show'])->name('show');
                 Route::post('/{item}/accept', [PromotionRequestController::class, 'accept'])->name('accept');
                 Route::post('/{item}/decline', [PromotionRequestController::class, 'decline'])->name('decline');
             });

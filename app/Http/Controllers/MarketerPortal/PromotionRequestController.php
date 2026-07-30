@@ -42,6 +42,22 @@ class PromotionRequestController extends Controller
         ]);
     }
 
+    public function show(string $item): View
+    {
+        /** @var \App\Models\Marketer $marketer */
+        $marketer = Auth::guard('marketer')->user();
+
+        $item = VendorInfluencerPromotionRequestItem::query()
+            ->where('marketer_id', $marketer->id)
+            ->with(['promotionRequest.vendor', 'promotionRequest.vendorListing.productVariant.product', 'promotionRequest.adminProductListing.productVariant.product'])
+            ->findOrFail($item);
+
+        return view('marketer.promotion_requests.show', [
+            'marketer' => $marketer,
+            'item' => $item,
+        ]);
+    }
+
     public function accept(string $item): RedirectResponse
     {
         /** @var \App\Models\Marketer $marketer */

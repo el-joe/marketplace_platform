@@ -87,6 +87,13 @@ class NavigationService
                         'permission' => 'open_market.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => 'Celebrity Open Market',
+                        'route' => 'admin.celebrity-store.index',
+                        'icon' => 'star',
+                        'permission' => 'celebrity_store.view',
+                        'badge' => null,
+                    ],
                     // [
                     //     'label' => __('admin.nav.product_relations'),
                     //     'route' => 'admin.fbt.index',

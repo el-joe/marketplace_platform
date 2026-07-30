@@ -124,6 +124,48 @@
         </div>
     @endif
 
+    {{-- ── Monthly Promotion Progress (Celebrities) ────────────────────────────────── --}}
+    @if($monthlyStats->isNotEmpty())
+        @php $belowMinimum = $monthlyStats->where('is_below_minimum', true); @endphp
+
+        @if($belowMinimum->isNotEmpty())
+            <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+                @foreach($belowMinimum as $stat)
+                    <p class="text-sm text-red-700 font-semibold">
+                        ⚠️ {{ __('marketer.dashboard.below_minimum_warning', ['tier' => $stat->tier]) }}
+                    </p>
+                    @if($stat->penalty_amount)
+                        <p class="text-xs text-red-500 mt-1">
+                            {{ __('marketer.dashboard.below_minimum_penalty', ['amount' => number_format($stat->penalty_amount / 100, 2)]) }}
+                        </p>
+                    @endif
+                @endforeach
+            </div>
+        @endif
+
+        <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+            <h3 class="font-bold text-gray-800 mb-4">{{ __('marketer.dashboard.monthly_progress') }}</h3>
+            <div class="space-y-4">
+                @foreach($monthlyStats as $stat)
+                    @php $met = $stat->promotions_completed >= $stat->monthly_minimum_snapshot; @endphp
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-sm font-semibold text-gray-700">{{ __('marketer.dashboard.tier') }} {{ $stat->tier }}</span>
+                            <span class="text-xs font-mono {{ $met ? 'text-green-600' : 'text-gray-500' }}">
+                                {{ $stat->promotions_completed }}/{{ $stat->monthly_minimum_snapshot }}
+                                @if($met) ✓ @endif
+                            </span>
+                        </div>
+                        <div class="bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                            <div class="h-2.5 rounded-full {{ $met ? 'bg-green-500' : 'bg-red-400' }} transition-all duration-700"
+                                style="width: {{ min(100, $stat->progress_percentage) }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {{-- ── Revenue Trend Chart ──────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
         <div class="flex items-center justify-between mb-4">

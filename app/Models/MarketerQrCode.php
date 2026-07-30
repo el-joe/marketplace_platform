@@ -14,6 +14,7 @@ class MarketerQrCode extends Model
 
     protected $fillable = [
         'marketer_id',
+        'previous_marketer_id',
         'campaign_id',
         'vendor_listing_id',
         'product_id',
@@ -24,6 +25,7 @@ class MarketerQrCode extends Model
         'scan_count',
         'last_scanned_at',
         'is_active',
+        'reassigned_at',
     ];
 
     protected function casts(): array
@@ -32,6 +34,7 @@ class MarketerQrCode extends Model
             'scan_count' => 'integer',
             'is_active' => 'boolean',
             'last_scanned_at' => 'datetime',
+            'reassigned_at' => 'datetime',
             'code_type' => MarketerQrCodeType::class,
         ];
     }
@@ -41,6 +44,11 @@ class MarketerQrCode extends Model
     public function marketer(): BelongsTo
     {
         return $this->belongsTo(Marketer::class);
+    }
+
+    public function previousMarketer(): BelongsTo
+    {
+        return $this->belongsTo(Marketer::class, 'previous_marketer_id');
     }
 
     public function campaign(): BelongsTo

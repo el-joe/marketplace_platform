@@ -99,3 +99,21 @@ Schedule::job(new RecalculateBestSellerRankingsJob, 'rankings')
     ->everySixHours()
     ->withoutOverlapping(30)
     ->name('recalculate-bestseller-rankings');
+
+// Expire overdue promotion request items and trigger auto-reassignment
+Schedule::command('promotion:expire-items')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Send alerts to celebrities below monthly promotion minimum
+Schedule::command('promotion:check-minimums')
+    ->dailyAt('09:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Apply month-end penalties to celebrities who missed minimums (runs on the 1st for the previous month)
+Schedule::command('promotion:apply-penalties')
+    ->monthlyOn(1, '01:00')
+    ->withoutOverlapping()
+    ->runInBackground();

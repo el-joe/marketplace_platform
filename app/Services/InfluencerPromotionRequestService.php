@@ -263,6 +263,15 @@ class InfluencerPromotionRequestService
 
             $newItem->update(['expires_at' => now()->addHours($newItem->acceptance_window_hours)]);
 
+            if ($item->qr_code_id) {
+                $item->qrCode->update([
+                    'previous_marketer_id' => $item->marketer_id,
+                    'marketer_id' => $candidate->id,
+                    'reassigned_at' => now(),
+                ]);
+                $newItem->update(['qr_code_id' => $item->qr_code_id]);
+            }
+
             $log = VendorInfluencerReassignmentLog::query()->create([
                 'promotion_request_id' => $item->promotion_request_id,
                 'promotion_request_item_id' => $item->id,

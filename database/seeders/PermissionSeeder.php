@@ -34,6 +34,9 @@ class PermissionSeeder extends Seeder
             // Influencer Open Market
             'open_market.view',
             'open_market.manage',
+            // Celebrity Open Market (Tier 2 Celebrity Store)
+            'celebrity_store.view',
+            'celebrity_store.manage',
             // Catalog – Categories
             'categories.view',
             'categories.create',

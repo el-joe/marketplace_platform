@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\MarketerPortal;
 
 use App\Http\Controllers\Controller;
+use App\Models\InfluencerMonthlyStat;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerConversion;
 use Illuminate\Support\Facades\Auth;
@@ -77,6 +78,16 @@ class DashboardController extends Controller
         );
         $nextTier = $allTiers->first(fn($t) => $t->min_sales_count > $salesCount);
 
+        // Celebrity monthly promotion progress (per tier, current month)
+        $monthlyStats = $marketer->isCelebrity()
+            ? InfluencerMonthlyStat::query()
+                ->where('marketer_id', $marketer->id)
+                ->where('month', $today->month)
+                ->where('year', $today->year)
+                ->orderBy('tier')
+                ->get()
+            : collect();
+
         return view('marketer.dashboard', [
             'marketer' => $marketer,
             'stats' => $stats,
@@ -86,6 +97,7 @@ class DashboardController extends Controller
             'currentTier' => $currentTier ?? null,
             'nextTier' => $nextTier ?? null,
             'salesCount' => $salesCount,
+            'monthlyStats' => $monthlyStats,
         ]);
     }
 }

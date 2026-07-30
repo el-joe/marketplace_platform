@@ -16,18 +16,18 @@ class PromotionCountrySettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        $adminCommissionCents  = 190;
-        $feePerCelebrityCents  = 900;
+        $adminCommission  = 190;
+        $feePerCelebrity  = 900;
 
         $countryIds = DB::table('countries')->where('is_active', true)->pluck('id');
 
         $rows = $countryIds->map(fn ($countryId) => [
-            'id'                       => (string) Str::uuid(),
-            'country_id'               => $countryId,
-            'admin_commission_cents'   => $adminCommissionCents,
-            'fee_per_celebrity_cents'  => $feePerCelebrityCents,
-            'created_at'               => now(),
-            'updated_at'               => now(),
+            'id'                 => (string) Str::uuid(),
+            'country_id'         => $countryId,
+            'admin_commission'   => $adminCommission,
+            'fee_per_celebrity'  => $feePerCelebrity,
+            'created_at'         => now(),
+            'updated_at'         => now(),
         ])->all();
 
         DB::table('promotion_country_settings')->insertOrIgnore($rows);

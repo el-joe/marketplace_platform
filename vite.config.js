@@ -78,6 +78,7 @@ export default defineConfig({
                 'resources/js/admin/influencer-promotions.js',
                 'resources/js/admin/marketer-quotas.js',
                 'resources/js/admin/marketer-quotas-progress.js',
+                'resources/js/admin/celebrity-monthly-report.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
                 'resources/js/portal/registration.js',
