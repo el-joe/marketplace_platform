@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 // ARCHITECTURE NOTE: Gift cards are redeemed in the profile/wallet screen (code + PIN).
@@ -33,6 +34,11 @@ class GiftCard extends Model
         'issued_to_customer_id',
         'redeemed_at',
         'expires_at',
+        'purchased_by_customer_id',
+        'recipient_email',
+        'recipient_name',
+        'purchase_order_id',
+        'delivery_sent_at',
     ];
 
     protected $hidden = [
@@ -44,6 +50,7 @@ class GiftCard extends Model
         'remaining_balance' => 'integer',
         'redeemed_at' => 'datetime',
         'expires_at' => 'datetime',
+        'delivery_sent_at' => 'datetime',
     ];
 
     public function batch(): BelongsTo
@@ -64,6 +71,21 @@ class GiftCard extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(GiftCardTransaction::class, 'gift_card_id');
+    }
+
+    public function purchasedBy(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'purchased_by_customer_id');
+    }
+
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'purchase_order_id');
+    }
+
+    public function purchase(): HasOne
+    {
+        return $this->hasOne(GiftCardPurchase::class);
     }
 
     public function scopeActive(Builder $query): Builder

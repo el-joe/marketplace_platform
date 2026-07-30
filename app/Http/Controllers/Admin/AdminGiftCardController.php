@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdjustGiftCardBalanceRequest;
 use App\Http\Requests\Admin\StoreBatchRequest;
+use App\Http\Requests\Admin\UpdateBatchRequest;
+use App\Jobs\SendGiftCardDeliveryJob;
 use App\Models\GiftCard;
 use App\Models\GiftCardBatch;
+use App\Models\GiftCardPurchase;
 use App\Models\GiftCardTransaction;
 use App\Services\GiftCardService;
 use App\Traits\HasDataTable;
@@ -35,8 +38,18 @@ class AdminGiftCardController extends Controller
             "currency_code, COUNT(*) as total,
             SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_count,
             SUM(CASE WHEN status = 'redeemed' THEN 1 ELSE 0 END) as redeemed_count,
+            SUM(CASE WHEN purchased_by_customer_id IS NOT NULL THEN 1 ELSE 0 END) as purchased_count,
             SUM(amount) as total_value"
         )->groupBy('currency_code')->get();
+
+        // Revenue is scoped to purchases (amount actually paid) — also never summed across currencies.
+        $revenueByCurrency = GiftCardPurchase::selectRaw('currency_code, SUM(amount_paid) as total_revenue')
+            ->groupBy('currency_code')
+            ->pluck('total_revenue', 'currency_code');
+
+        foreach ($stats as $stat) {
+            $stat->total_revenue = (int) ($revenueByCurrency[$stat->currency_code] ?? 0);
+        }
 
         $recentBatches = GiftCardBatch::with('createdByAdmin:id,name')->latest()->take(5)->get();
 
@@ -219,14 +232,100 @@ class AdminGiftCardController extends Controller
         ]);
         $batch->load('createdByAdmin:id,name');
 
+        $purchaseStats = [
+            'total_purchased' => GiftCardPurchase::where('gift_card_batch_id', $batch->id)->count(),
+            'total_revenue' => GiftCardPurchase::where('gift_card_batch_id', $batch->id)->sum('amount_paid'),
+            'pending_delivery' => GiftCardPurchase::where('gift_card_batch_id', $batch->id)
+                ->where('delivery_status', 'pending')->count(),
+        ];
+
         return view('admin.gift-cards.batches.show', [
             'batch' => $batch,
+            'purchaseStats' => $purchaseStats,
             'breadcrumbs' => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.gift_cards_section.batches_title'), 'url' => route('admin.gift-cards.batches.index')],
                 ['label' => e($batch->name)],
             ],
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Batch edit / update
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function batchEdit(GiftCardBatch $batch): View
+    {
+        return view('admin.gift-cards.batches.edit', [
+            'batch' => $batch,
+            'breadcrumbs' => [
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.gift_cards_section.batches_title'), 'url' => route('admin.gift-cards.batches.index')],
+                ['label' => e($batch->name), 'url' => route('admin.gift-cards.batches.show', $batch->id)],
+                ['label' => __('admin.gift_cards_section.edit_batch')],
+            ],
+        ]);
+    }
+
+    public function batchUpdate(UpdateBatchRequest $request, GiftCardBatch $batch): RedirectResponse
+    {
+        $batch->update($request->validated());
+
+        return redirect()
+            ->route('admin.gift-cards.batches.show', $batch->id)
+            ->with('success', __('admin.gift_cards_section.batch_updated'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Purchases (storefront) — datatable + resend delivery
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function purchasesDatatable(GiftCardBatch $batch, Request $request): JsonResponse
+    {
+        $columns = $this->purchaseColumnDefinitions();
+
+        $query = GiftCardPurchase::query()
+            ->select([
+                'gift_card_purchases.id',
+                'gift_card_purchases.amount_paid',
+                'gift_card_purchases.currency_code',
+                'gift_card_purchases.is_gift',
+                'gift_card_purchases.recipient_email',
+                'gift_card_purchases.delivery_status',
+                'gift_card_purchases.delivered_at',
+                'gift_card_purchases.order_id',
+                'gift_card_purchases.buyer_customer_id',
+                'gift_card_purchases.created_at',
+            ])
+            ->with(['buyer:id,name,email', 'order:id,order_number'])
+            ->where('gift_card_batch_id', $batch->id);
+
+        $query = $this->applyFilters($query, $request, [
+            'delivery_status' => fn($q, $v) => $q->where('gift_card_purchases.delivery_status', $v),
+        ]);
+
+        return $this->dataTableResponse($request, $query, $columns, function ($row) {
+            return [
+                'id' => $row->id,
+                'buyer_name' => $row->buyer?->name,
+                'buyer_email' => $row->buyer?->email,
+                'amount_paid' => (int) $row->amount_paid,
+                'currency_code' => $row->currency_code,
+                'is_gift' => $row->is_gift,
+                'recipient_email' => $row->recipient_email,
+                'delivery_status' => $row->delivery_status,
+                'delivered_at' => $row->delivered_at,
+                'order_number' => $row->order?->order_number,
+                'resend_url' => route('admin.gift-cards.purchases.resend', $row->id),
+            ];
+        });
+    }
+
+    public function resendDelivery(GiftCardPurchase $purchase): JsonResponse
+    {
+        SendGiftCardDeliveryJob::dispatch($purchase->id);
+
+        return response()->json(['success' => true]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -365,6 +464,22 @@ class AdminGiftCardController extends Controller
             ['title' => 'Redeemed By', 'data' => 'redeemed_by', 'name' => 'redeemed_by', 'orderable' => false, 'searchable' => false],
             ['title' => 'Redeemed At', 'data' => 'redeemed_at', 'name' => 'redeemed_at', 'orderable_column' => 'gift_cards.redeemed_at', 'searchable' => false],
             ['title' => 'Expiry', 'data' => 'expires_at', 'name' => 'expires_at', 'orderable_column' => 'gift_cards.expires_at', 'searchable' => false],
+        ];
+    }
+
+    private function purchaseColumnDefinitions(): array
+    {
+        return [
+            ['title' => 'Buyer Name', 'data' => 'buyer_name', 'name' => 'buyer_name', 'orderable' => false, 'searchable' => false],
+            ['title' => 'Buyer Email', 'data' => 'buyer_email', 'name' => 'buyer_email', 'orderable' => false, 'searchable' => false],
+            ['title' => 'Amount Paid', 'data' => 'amount_paid', 'name' => 'amount_paid', 'orderable_column' => 'gift_card_purchases.amount_paid', 'searchable' => false],
+            ['title' => 'Currency', 'data' => 'currency_code', 'name' => 'currency_code', 'orderable_column' => 'gift_card_purchases.currency_code', 'searchable' => false],
+            ['title' => 'Is Gift', 'data' => 'is_gift', 'name' => 'is_gift', 'orderable_column' => 'gift_card_purchases.is_gift', 'searchable' => false],
+            ['title' => 'Recipient Email', 'data' => 'recipient_email', 'name' => 'recipient_email', 'orderable' => false, 'searchable' => false],
+            ['title' => 'Delivery Status', 'data' => 'delivery_status', 'name' => 'delivery_status', 'orderable_column' => 'gift_card_purchases.delivery_status', 'searchable' => false],
+            ['title' => 'Delivered At', 'data' => 'delivered_at', 'name' => 'delivered_at', 'orderable_column' => 'gift_card_purchases.delivered_at', 'searchable' => false],
+            ['title' => 'Order #', 'data' => 'order_number', 'name' => 'order_number', 'orderable' => false, 'searchable' => false],
+            ['title' => '', 'data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
         ];
     }
 }

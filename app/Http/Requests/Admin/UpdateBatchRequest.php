@@ -3,9 +3,8 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class StoreBatchRequest extends FormRequest
+class UpdateBatchRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,11 +16,7 @@ class StoreBatchRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'currency_code' => ['required', Rule::in(['SAR', 'AED', 'EGP', 'KWD', 'OMR', 'QAR', 'BHD', 'JOD'])],
-            'amount' => ['required', 'integer', 'min:1'],
-            'quantity' => ['required', 'integer', 'min:1', 'max:10000'],
             'expires_at' => ['nullable', 'date', 'after:today'],
-            'activate_immediately' => ['nullable', 'boolean'],
             'is_purchasable' => ['boolean'],
             'title_ar' => ['nullable', 'string', 'max:255'],
             'title_en' => ['nullable', 'string', 'max:255'],

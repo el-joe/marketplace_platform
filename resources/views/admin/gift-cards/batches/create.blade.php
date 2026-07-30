@@ -8,6 +8,8 @@
               amount: {{ old('amount', 0) }},
               quantity: {{ old('quantity', 1) }},
               currency: '{{ old('currency_code', 'SAR') }}',
+              isPurchasable: {{ old('is_purchasable') ? 'true' : 'false' }},
+              imageUrl: '{{ old('image_url') }}',
               get total() { return (Number(this.amount) || 0) * (Number(this.quantity) || 0); }
           }">
         @csrf
@@ -79,6 +81,53 @@
                 <div class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm rounded-lg px-4 py-3" x-show="amount > 0 && quantity > 0" x-cloak>
                     {{ __('admin.gift_cards_section.preview') }}:
                     <span x-text="'This will generate ' + quantity + ' cards worth ' + amount + ' ' + currency + ' each = ' + total + ' ' + currency + ' total'"></span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-5">
+                <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.gift_cards_section.storefront_settings') }}</h2>
+
+                <div class="flex items-center gap-3">
+                    <label for="is_purchasable" class="text-sm font-medium text-gray-700">{{ __('admin.gift_cards_section.is_purchasable') }}</label>
+                    <input type="hidden" name="is_purchasable" value="0">
+                    <input type="checkbox" id="is_purchasable" name="is_purchasable" value="1" class="form-checkbox"
+                           x-model="isPurchasable" {{ old('is_purchasable') ? 'checked' : '' }}>
+                </div>
+
+                <div x-show="isPurchasable" x-cloak class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="title_ar" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.title_ar') }}</label>
+                            <input type="text" id="title_ar" name="title_ar" dir="rtl" value="{{ old('title_ar') }}" class="form-input" maxlength="255">
+                        </div>
+                        <div>
+                            <label for="title_en" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.title_en') }}</label>
+                            <input type="text" id="title_en" name="title_en" value="{{ old('title_en') }}" class="form-input" maxlength="255">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="image_url" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.image_url') }}</label>
+                        <input type="url" id="image_url" name="image_url" value="{{ old('image_url') }}" class="form-input" maxlength="500" x-model="imageUrl">
+                        <img :src="imageUrl" x-show="imageUrl" x-cloak class="mt-2 h-24 rounded-lg border border-gray-200 object-cover" alt="">
+                    </div>
+
+                    <div>
+                        <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.sort_order') }}</label>
+                        <input type="number" id="sort_order" name="sort_order" value="{{ old('sort_order', 0) }}" min="0" max="255" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">{{ __('admin.gift_cards_section.sort_order_hint') }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="min_quantity" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.min_quantity') }}</label>
+                            <input type="number" id="min_quantity" name="min_quantity" value="{{ old('min_quantity', 1) }}" min="1" max="100" class="form-input">
+                        </div>
+                        <div>
+                            <label for="max_quantity" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.max_quantity') }}</label>
+                            <input type="number" id="max_quantity" name="max_quantity" value="{{ old('max_quantity', 10) }}" min="1" max="100" class="form-input">
+                        </div>
+                    </div>
                 </div>
             </div>
 

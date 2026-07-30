@@ -644,8 +644,12 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/batches/create', [AdminGiftCardController::class, 'batchCreate'])->middleware('admin.permission:gift_cards.create')->name('batches.create');
         Route::post('/batches', [AdminGiftCardController::class, 'batchStore'])->middleware('admin.permission:gift_cards.create')->name('batches.store');
         Route::post('/batches/{batch}/datatable', [AdminGiftCardController::class, 'batchDatatable'])->name('batches.datatable');
+        Route::post('/batches/{batch}/purchases/datatable', [AdminGiftCardController::class, 'purchasesDatatable'])->name('batches.purchases.datatable');
+        Route::patch('/purchases/{purchase}/resend', [AdminGiftCardController::class, 'resendDelivery'])->middleware('admin.permission:gift_cards.edit')->name('purchases.resend');
         Route::post('/batches/{batch}/activate', [AdminGiftCardController::class, 'activateBatch'])->middleware('admin.permission:gift_cards.edit')->name('batches.activate');
         Route::get('/batches/{batch}/download-pins', [AdminGiftCardController::class, 'downloadPins'])->name('batches.download_pins');
+        Route::get('/batches/{batch}/edit', [AdminGiftCardController::class, 'batchEdit'])->middleware('admin.permission:gift_cards.edit')->name('batches.edit');
+        Route::put('/batches/{batch}', [AdminGiftCardController::class, 'batchUpdate'])->middleware('admin.permission:gift_cards.edit')->name('batches.update');
         Route::get('/batches/{batch}', [AdminGiftCardController::class, 'batchShow'])->name('batches.show');
         Route::get('/batches', [AdminGiftCardController::class, 'batchIndex'])->name('batches.index');
         Route::post('/expire-stale', [AdminGiftCardController::class, 'expireStale'])->middleware('admin.permission:gift_cards.edit')->name('expire-stale');

@@ -109,6 +109,16 @@
                         <div class="text-xs text-gray-500 mt-0.5">{{ __('admin.gift_cards_section.redeemed_count') }}</div>
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-2 text-center mt-3 pt-3 border-t border-gray-100">
+                    <div>
+                        <div class="text-lg font-black text-purple-600">{{ $stat->purchased_count }}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ __('admin.gift_cards_section.purchased_count') }}</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-black text-emerald-700">{{ number_format((int) $stat->total_revenue) }}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ __('admin.gift_cards_section.total_revenue') }}</div>
+                    </div>
+                </div>
             </div>
         @empty
             <div class="col-span-full text-center text-gray-400 text-sm py-6">

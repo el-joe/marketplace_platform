@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Customer\CategoryController as ApiCategoryController;
 use App\Http\Controllers\Api\Customer\CustomerCouponController;
+use App\Http\Controllers\Api\Customer\CustomerGiftCardStoreController;
 use App\Http\Controllers\Api\Customer\CustomerWalletController;
 use App\Http\Controllers\Api\Customer\DeviceTokenController as ApiDeviceTokenController;
 use App\Http\Controllers\Api\Customer\GiftCardController as ApiGiftCardController;
@@ -199,6 +200,18 @@ Route::prefix('v1/{country}')
             // Email verification — token from email link, no auth guard needed
             Route::post('verify-email', [AuthController::class, 'verifyEmail'])
                 ->name('verify-email');
+        });
+
+        // ── Gift Card Storefront (browse & purchase gift cards) ──
+        Route::prefix('gift-card-store')->name('customer.api.gift-card-store.')->group(function (): void {
+            // Browse available denominations (public, no auth required)
+            Route::get('available', [CustomerGiftCardStoreController::class, 'available'])->name('available');
+
+            Route::middleware('auth:customer')->group(function (): void {
+                Route::post('purchase', [CustomerGiftCardStoreController::class, 'purchase'])->name('purchase');
+                Route::get('my-purchases', [CustomerGiftCardStoreController::class, 'myPurchases'])->name('my-purchases');
+                Route::post('resend/{purchase}', [CustomerGiftCardStoreController::class, 'resend'])->name('resend');
+            });
         });
 
         // Cart — guest + auth (session resolved via X-Cart-Token header)
@@ -424,6 +437,49 @@ Route::prefix('v1/{country}')
                 Route::get('/', [AccountController::class, 'inquiriesIndex'])->name('index');
                 Route::get('{id}', [AccountController::class, 'inquiriesShow'])->name('show');
             });
+
+            // Orders (Api\Customer)
+            Route::prefix('orders')->name('customer.api.orders.')->group(function (): void {
+                Route::get('/', [ApiOrderController::class, 'index'])->name('index');
+                Route::get('{orderNumber}', [ApiOrderController::class, 'show'])->name('show');
+                Route::get('{orderNumber}/sub-orders/{subOrderNumber}', [ApiOrderController::class, 'showSubOrder'])->name('sub-orders.show');
+                Route::get('{orderNumber}/tracking', [ApiOrderController::class, 'tracking'])->name('tracking');
+                Route::post('{orderNumber}/cancel', [ApiOrderController::class, 'cancel'])->name('cancel');
+                Route::get('{orderNumber}/invoice', [ApiOrderController::class, 'invoice'])->name('invoice');
+            });
+
+            // Wallet (Api\Customer)
+            Route::prefix('api-wallet')->name('customer.api.wallet.')->group(function (): void {
+                Route::get('/', [ApiWalletController::class, 'index'])->name('index');
+                Route::get('transactions', [ApiWalletController::class, 'transactions'])->name('transactions');
+                Route::post('withdrawal-request', [ApiWalletController::class, 'withdrawalRequest'])->name('withdrawal-request');
+            });
+
+            // Gift cards
+            Route::prefix('gift-cards')->name('customer.api.gift-cards.')->group(function (): void {
+                Route::post('validate', [ApiGiftCardController::class, 'validate'])->name('validate');
+                Route::get('mine', [ApiGiftCardController::class, 'mine'])->name('mine');
+            });
+
+            // Gift-card wallet (CustomerWallet/GiftCardService-backed; distinct from
+            // the owner_type/owner_id Wallet system above)
+            Route::prefix('gift-card-wallet')->name('customer.api.gift-card-wallet.')->group(function (): void {
+                Route::get('/', [CustomerWalletController::class, 'index'])->name('index');
+                Route::post('redeem-gift-card', [CustomerWalletController::class, 'redeemGiftCard'])->name('redeem-gift-card');
+                Route::get('transactions', [CustomerWalletController::class, 'transactions'])->name('transactions');
+                Route::post('/redeem/voucher', [CustomerWalletController::class, 'redeemVoucher'])->name('redeem.voucher');
+                Route::post('/gift-card/balance', [CustomerWalletController::class, 'giftCardBalance'])->name('gift_card.balance');
+            });
+
+            // Warranty
+            Route::prefix('warranty')->name('customer.api.warranty.')->group(function (): void {
+                Route::get('plans/{orderItemId}', [ApiWarrantyController::class, 'plans'])->name('plans');
+                Route::get('purchases', [ApiWarrantyController::class, 'purchases'])->name('purchases');
+                Route::get('claims', [ApiWarrantyController::class, 'claimsIndex'])->name('claims.index');
+                Route::post('claims', [ApiWarrantyController::class, 'claimsStore'])->name('claims.store');
+                Route::get('claims/{claimNumber}', [ApiWarrantyController::class, 'claimsShow'])->name('claims.show');
+                Route::post('claims/{claimNumber}/messages', [ApiWarrantyController::class, 'claimsAddMessage'])->name('claims.messages.store');
+            });
         });
 
         // Public review listing (outside auth guard)
@@ -464,16 +520,6 @@ Route::prefix('v1')->middleware('auth:customer')->name('customer.dual-categories
     Route::get('/categories/{slug}', [ApiCategoryController::class, 'show'])->name('show');
 });
 
-// ── Orders (country-agnostic path, scoped to customer_id) ──
-Route::prefix('v1/orders')->middleware('auth:customer')->name('customer.api.orders.')->group(function (): void {
-    Route::get('/', [ApiOrderController::class, 'index'])->name('index');
-    Route::get('{orderNumber}', [ApiOrderController::class, 'show'])->name('show');
-    Route::get('{orderNumber}/sub-orders/{subOrderNumber}', [ApiOrderController::class, 'showSubOrder'])->name('sub-orders.show');
-    Route::get('{orderNumber}/tracking', [ApiOrderController::class, 'tracking'])->name('tracking');
-    Route::post('{orderNumber}/cancel', [ApiOrderController::class, 'cancel'])->name('cancel');
-    Route::get('{orderNumber}/invoice', [ApiOrderController::class, 'invoice'])->name('invoice');
-});
-
 // ── App config (public, country-agnostic path — country_id is a query param) ──
 Route::prefix('v1/app')->name('customer.app.')->group(function (): void {
     Route::get('config', [AppConfigController::class, 'config'])->name('config');
@@ -488,52 +534,10 @@ Route::prefix('v1/return-requests')->middleware('auth:customer')->name('customer
     Route::post('{returnNumber}/messages', [ApiReturnRequestController::class, 'addMessage'])->name('messages.store');
 });
 
-// ── Wallet (country-agnostic path, scoped to customer_id) ──
-Route::prefix('v1/wallet')->middleware('auth:customer')->name('customer.api.wallet.')->group(function (): void {
-    Route::get('/', [ApiWalletController::class, 'index'])->name('index');
-    Route::get('transactions', [ApiWalletController::class, 'transactions'])->name('transactions');
-    Route::post('withdrawal-request', [ApiWalletController::class, 'withdrawalRequest'])->name('withdrawal-request');
-});
-
-// ── Gift cards (country-agnostic path, scoped to customer_id) ──
-Route::prefix('v1/gift-cards')->middleware('auth:customer')->name('customer.api.gift-cards.')->group(function (): void {
-    Route::post('validate', [ApiGiftCardController::class, 'validate'])->name('validate');
-    Route::get('mine', [ApiGiftCardController::class, 'mine'])->name('mine');
-});
-
-// ── Gift-card wallet (CustomerWallet/GiftCardService-backed; distinct from the
-//    owner_type/owner_id Wallet system above) ──
-Route::prefix('v1/gift-card-wallet')->middleware('auth:customer')->name('customer.api.gift-card-wallet.')->group(function (): void {
-    Route::get('/', [CustomerWalletController::class, 'index'])->name('index');
-    Route::post('redeem-gift-card', [CustomerWalletController::class, 'redeemGiftCard'])->name('redeem-gift-card');
-    Route::get('transactions', [CustomerWalletController::class, 'transactions'])->name('transactions');
-});
-
-// ── Gift-card wallet — Redeem & Balance (country-agnostic path, scoped to
-//    customer_id; extends the CustomerWalletController group above with
-//    voucher redemption and no-PIN balance checks) ──
-Route::middleware('auth:customer')->prefix('v1/gift-card-wallet')->name('customer.api.gift-card-wallet.')->group(function (): void {
-    // Redeem voucher (code only) → credits wallet
-    Route::post('/redeem/voucher', [CustomerWalletController::class, 'redeemVoucher'])->name('redeem.voucher');
-
-    // Check gift card balance without redeeming (no PIN needed)
-    Route::post('/gift-card/balance', [CustomerWalletController::class, 'giftCardBalance'])->name('gift_card.balance');
-});
-
 // ── Coupon — Applied at Checkout (country-agnostic path, scoped to customer_id) ──
 Route::middleware('auth:customer')->prefix('v1/coupons')->name('customer.api.coupons.')->group(function (): void {
     Route::post('/validate', [CustomerCouponController::class, 'validate'])->name('validate');
     Route::delete('/remove', [CustomerCouponController::class, 'remove'])->name('remove');
-});
-
-// ── Warranty (country-agnostic path, scoped to customer_id) ──
-Route::prefix('v1/warranty')->middleware('auth:customer')->name('customer.api.warranty.')->group(function (): void {
-    Route::get('plans/{orderItemId}', [ApiWarrantyController::class, 'plans'])->name('plans');
-    Route::get('purchases', [ApiWarrantyController::class, 'purchases'])->name('purchases');
-    Route::get('claims', [ApiWarrantyController::class, 'claimsIndex'])->name('claims.index');
-    Route::post('claims', [ApiWarrantyController::class, 'claimsStore'])->name('claims.store');
-    Route::get('claims/{claimNumber}', [ApiWarrantyController::class, 'claimsShow'])->name('claims.show');
-    Route::post('claims/{claimNumber}/messages', [ApiWarrantyController::class, 'claimsAddMessage'])->name('claims.messages.store');
 });
 
 // ── Generic OTP (country-agnostic, public — no auth guard) ──
