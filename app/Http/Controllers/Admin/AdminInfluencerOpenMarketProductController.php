@@ -32,7 +32,9 @@ class AdminInfluencerOpenMarketProductController extends Controller
     {
         $columns = [
             [],
-            ['orderable_column' => 'open_market_category'],
+            [],
+            ['orderable_column' => 'promotion_tier'],
+            ['orderable_column' => 'celebrity_commission_amount'],
             ['orderable_column' => 'is_active'],
             ['orderable_column' => 'created_at'],
             [],
@@ -46,7 +48,7 @@ class AdminInfluencerOpenMarketProductController extends Controller
             ]);
 
         $query = $this->applyFilters($query, $request, [
-            'open_market_category' => fn($q, $v) => $q->where('open_market_category', $v),
+            'promotion_tier' => fn($q, $v) => $q->where('promotion_tier', $v),
             'is_active' => fn($q, $v) => $q->where('is_active', (bool) $v),
         ]);
 
@@ -57,15 +59,19 @@ class AdminInfluencerOpenMarketProductController extends Controller
             return [
                 'id' => $row->id,
                 'product_name' => $product ? e($product->name_en) : '—',
-                'source' => $row->vendor_listing_id ? 'Vendor Listing' : 'Admin Product Listing',
-                'open_market_category' => $row->open_market_category === AdminInfluencerOpenMarketProduct::CATEGORY_NAWY_NOW
-                    ? 'Nawy Now'
-                    : 'Admin Intermediary',
+                'listing_id' => $listing?->id ?? '—',
+                'promotion_tier' => $row->promotion_tier === AdminInfluencerOpenMarketProduct::CATEGORY_NAWY_NOW
+                    ? 'Tier 4 (Nawy Now)'
+                    : 'Tier 3 (Admin Curated)',
+                'celebrity_commission_amount' => number_format($row->celebrity_commission_amount) . ' ' . $row->commission_currency,
                 'is_active' => (bool) $row->is_active,
                 'added_by' => $row->addedByAdmin?->name,
                 'created_at' => $row->created_at?->format('Y-m-d H:i'),
                 'toggle_url' => route('admin.open-market.toggle', $row->id),
                 'delete_url' => route('admin.open-market.destroy', $row->id),
+                'update_commission_url' => route('admin.open-market.update-commission', $row->id),
+                'current_commission_amount' => $row->celebrity_commission_amount,
+                'current_commission_currency' => $row->commission_currency,
             ];
         });
     }
@@ -79,6 +85,8 @@ class AdminInfluencerOpenMarketProductController extends Controller
                 AdminInfluencerOpenMarketProduct::CATEGORY_ADMIN_INTERMEDIARY,
                 AdminInfluencerOpenMarketProduct::CATEGORY_NAWY_NOW,
             ])],
+            'celebrity_commission_amount' => ['nullable', 'integer', 'min:0'],
+            'commission_currency' => ['nullable', 'string', 'size:3'],
         ]);
 
         $isVendorListing = $data['listing_type'] === 'vendor_listing';
@@ -103,6 +111,9 @@ class AdminInfluencerOpenMarketProductController extends Controller
             'vendor_listing_id' => $isVendorListing ? $data['listing_id'] : null,
             'admin_product_listing_id' => $isVendorListing ? null : $data['listing_id'],
             'open_market_category' => $data['open_market_category'],
+            'promotion_tier' => $data['open_market_category'],
+            'celebrity_commission_amount' => $data['celebrity_commission_amount'] ?? 0,
+            'commission_currency' => $data['commission_currency'] ?? 'SAR',
             'is_active' => true,
             'added_by_admin_id' => Auth::guard('admin')->id(),
         ]);
@@ -144,16 +155,31 @@ class AdminInfluencerOpenMarketProductController extends Controller
     {
         $data = $request->validate([
             'included' => ['required', 'boolean'],
+            'promotion_tier' => ['required', 'integer', Rule::in([
+                AdminInfluencerOpenMarketProduct::CATEGORY_ADMIN_INTERMEDIARY,
+                AdminInfluencerOpenMarketProduct::CATEGORY_NAWY_NOW,
+            ])],
+            'celebrity_commission_amount' => ['required_if:included,1', 'nullable', 'integer', 'min:0'],
+            'commission_currency' => ['nullable', 'string', 'size:3'],
         ]);
 
-        abort_unless($adminProductListing->featured_in_nawy, 422, 'Listing must be featured in Nawy to be included in the influencer open market.');
+        if ($data['promotion_tier'] === AdminInfluencerOpenMarketProduct::CATEGORY_NAWY_NOW) {
+            abort_unless($adminProductListing->featured_in_nawy, 422, 'Listing must be featured in Nawy to be included in Tier 4.');
+        }
 
         $record = AdminInfluencerOpenMarketProduct::firstOrNew([
             'admin_product_listing_id' => $adminProductListing->id,
-            'open_market_category' => AdminInfluencerOpenMarketProduct::CATEGORY_NAWY_NOW,
+            'promotion_tier' => $data['promotion_tier'],
         ]);
 
+        $record->open_market_category = $data['promotion_tier'];
         $record->is_active = $data['included'];
+
+        if ($data['included']) {
+            $record->celebrity_commission_amount = $data['celebrity_commission_amount'];
+            $record->commission_currency = $data['commission_currency'] ?? 'SAR';
+        }
+
         if (!$record->exists) {
             $record->added_by_admin_id = Auth::guard('admin')->id();
         }
@@ -162,6 +188,59 @@ class AdminInfluencerOpenMarketProductController extends Controller
         return response()->json([
             'success' => true,
             'is_active' => (bool) $record->is_active,
+        ]);
+    }
+
+    /** Bulk-assign selected open-market products to a tier from the pool page. */
+    public function bulkAssignTier(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['string'],
+            'promotion_tier' => ['required', 'integer', Rule::in([
+                AdminInfluencerOpenMarketProduct::CATEGORY_ADMIN_INTERMEDIARY,
+                AdminInfluencerOpenMarketProduct::CATEGORY_NAWY_NOW,
+            ])],
+        ]);
+
+        $records = AdminInfluencerOpenMarketProduct::whereIn('id', $data['ids'])->get();
+
+        if ($data['promotion_tier'] === AdminInfluencerOpenMarketProduct::CATEGORY_NAWY_NOW) {
+            $ineligible = $records->first(fn (AdminInfluencerOpenMarketProduct $r) =>
+                !$r->admin_product_listing_id || !$r->adminProductListing?->featured_in_nawy);
+
+            if ($ineligible) {
+                throw ValidationException::withMessages([
+                    'promotion_tier' => 'Tier 4 (Nawy Now) requires admin product listings that are featured in Nawy.',
+                ]);
+            }
+        }
+
+        foreach ($records as $record) {
+            $record->promotion_tier = $data['promotion_tier'];
+            $record->open_market_category = $data['promotion_tier'];
+            $record->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => count($records) . ' product(s) reassigned.',
+        ]);
+    }
+
+    /** Update the celebrity commission amount/currency for a single pool row. */
+    public function updateCommission(Request $request, AdminInfluencerOpenMarketProduct $openMarketProduct): JsonResponse
+    {
+        $data = $request->validate([
+            'celebrity_commission_amount' => ['required', 'integer', 'min:0'],
+            'commission_currency' => ['required', 'string', 'size:3'],
+        ]);
+
+        $openMarketProduct->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Commission updated.',
         ]);
     }
 

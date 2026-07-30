@@ -18,7 +18,6 @@ use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\ProductDetailEnrichmentService;
 use App\Services\Customer\ProductViewService;
 use App\Services\Customer\ReviewService;
-use App\Services\ListingShippingResolver;
 use App\Services\WarrantyPlanService;
 use App\Support\Bilingual;
 use App\Support\Concerns\BuildsProductAttributeSelector;
@@ -31,7 +30,6 @@ class ListingDetailController extends Controller
 
     public function __construct(
         private readonly ListingIdentifierService $identifiers,
-        private readonly ListingShippingResolver $shipping,
         private readonly ProductViewService $viewService,
         private readonly ReviewService $reviewService,
         private readonly ProductDetailEnrichmentService $enrichment,
@@ -54,9 +52,14 @@ class ListingDetailController extends Controller
         $siblings = $listing instanceof VendorListing
             ? $this->identifiers->getSiblings($listing, $country)
             : ['same_variant' => collect(), 'other_variants' => collect()];
-        $deliveryOptions = $this->shipping->resolveForListing($listing);
-
         $product = $listing->productVariant->product;
+
+        $deliveryOptions = $this->enrichment->getDeliveryOptions(
+            $product,
+            $country,
+            $request->query('address_id'),
+            $listing instanceof VendorListing ? $listing : null,
+        );
 
         $isWishlisted = false;
         if ($customerId = auth('customer')->id()) {
@@ -100,7 +103,7 @@ class ListingDetailController extends Controller
         return ApiResponse::success(new ListingDetailResource([
             'listing' => $this->listingShape($listing, $country, $isWishlisted),
             'seller' => $this->sellerShape($listing),
-            'delivery_options' => $deliveryOptions->map(fn($method) => $this->deliveryOptionShape($method))->values()->all(),
+            'delivery_options' => $deliveryOptions,
             'best_seller_badge' => $bestSellerBadge,
             'coupons' => $coupons,
             'payment_options' => $paymentOptions,
@@ -251,20 +254,6 @@ class ListingDetailController extends Controller
             'warranty_months' => $vendor->warranty_months,
             'easy_returns_enabled' => (bool) $vendor->easy_returns_enabled,
             'secure_payments_enabled' => (bool) $vendor->secure_payments_enabled,
-        ];
-    }
-
-    private function deliveryOptionShape($method): array
-    {
-        return [
-            'method_code' => $method->code,
-            'method_name' => $method->name,
-            'badge_label' => Bilingual::pair($method, 'badge_label'),
-            'badge_color_hex' => $method->badge_color_hex,
-            'badge_text_color_hex' => $method->badge_text_color_hex,
-            'delivery_label' => Bilingual::pair($method, 'delivery_label'),
-            'delivery_days_min' => $method->min_delivery_days,
-            'delivery_days_max' => $method->max_delivery_days,
         ];
     }
 

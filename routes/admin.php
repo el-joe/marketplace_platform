@@ -49,6 +49,7 @@ use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\PortalContentController;
 use App\Http\Controllers\Admin\ContentSettingsController;
+use App\Http\Controllers\Admin\AdminPromotionSettingsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingSubsidyController;
@@ -66,6 +67,7 @@ use App\Http\Controllers\Admin\DeliveryZoneController;
 use App\Http\Controllers\Admin\DeliveryAssignmentController;
 use App\Http\Controllers\Admin\DeliveryPayoutController;
 use App\Http\Controllers\Admin\AffiliatePromoCodeController;
+use App\Http\Controllers\Admin\AdminMarketerCommissionController;
 use App\Http\Controllers\Admin\MarketerController;
 use App\Http\Controllers\Admin\MarketerProductController;
 use App\Http\Controllers\Admin\InfluencerDealController;
@@ -915,6 +917,12 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/clear-cache', [SettingsController::class, 'clearCache'])->name('clear-cache')->middleware('admin.permission:settings.edit');
     });
 
+    // ─── Promotion Settings ─────────────────────────────────────────────────────
+    Route::prefix('settings/promotion')->name('settings.promotion.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [AdminPromotionSettingsController::class, 'index'])->name('index');
+        Route::put('/', [AdminPromotionSettingsController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
+    });
+
     // ─── Content Settings ─────────────────────────────────────────────────────
     Route::prefix('content-settings')->name('content-settings.')->middleware('admin.permission:settings.content')->group(function () {
         Route::get('/', [ContentSettingsController::class, 'index'])->name('index');
@@ -1225,7 +1233,15 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{marketer}/deliverables/datatable', [MarketerController::class, 'marketerDeliverablesDatatable'])->name('marketer-deliverables.datatable');
         Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
         Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
+        Route::put('/{marketer}/tiers', [MarketerController::class, 'updateTiers'])->name('tiers.update');
         Route::post('/{marketer}/invite', [MarketerController::class, 'sendInvitation'])->name('invite');
+
+        Route::prefix('{marketer}/commissions')->name('commissions.')->group(function () {
+            Route::get('/', [AdminMarketerCommissionController::class, 'index'])->name('index');
+            Route::post('/', [AdminMarketerCommissionController::class, 'store'])->name('store');
+            Route::put('/{commission}', [AdminMarketerCommissionController::class, 'update'])->name('update');
+            Route::delete('/{commission}', [AdminMarketerCommissionController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // ── Marketer Products (own store) ─────────────────────────────────────────────
@@ -1266,6 +1282,8 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{promotionRequest}', [InfluencerPromotionController::class, 'show'])->name('show');
         Route::post('/{promotionRequest}/cancel', [InfluencerPromotionController::class, 'cancel'])->name('cancel');
         Route::post('/{promotionRequest}/confirm-warehouse-receipt', [InfluencerPromotionController::class, 'confirmWarehouseReceipt'])->name('confirm-warehouse-receipt');
+        Route::post('/{promotionRequest}/settle-sample-debt', [InfluencerPromotionController::class, 'settleSampleDebt'])->name('settle-sample-debt');
+        Route::post('/{promotionRequest}/items/{item}/force-reassign', [InfluencerPromotionController::class, 'forceReassign'])->name('force-reassign');
     });
 
     // ── Marketer Monthly Quotas ──────────────────────────────────────────────────
@@ -1450,6 +1468,10 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             ->middleware('admin.permission:open_market.manage')->name('destroy');
         Route::post('/admin-product-listings/{adminProductListing}/toggle', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'toggleForAdminListing'])
             ->middleware('admin.permission:open_market.manage')->name('toggle-for-admin-listing');
+        Route::post('/bulk-assign-tier', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'bulkAssignTier'])
+            ->middleware('admin.permission:open_market.manage')->name('bulk-assign-tier');
+        Route::post('/{openMarketProduct}/update-commission', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'updateCommission'])
+            ->middleware('admin.permission:open_market.manage')->name('update-commission');
     });
 
     // ─── Admin Product Listings (Now Nawy) ───────────────────────────────────

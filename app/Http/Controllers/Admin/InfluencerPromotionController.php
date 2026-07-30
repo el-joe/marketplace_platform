@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\CampaignType;
 use App\Http\Controllers\Controller;
+use App\Models\MarketerCampaign;
 use App\Models\Vendor;
 use App\Models\VendorInfluencerPromotionRequest;
+use App\Models\VendorInfluencerPromotionRequestItem;
+use App\Services\InfluencerPromotionRequestService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +20,24 @@ class InfluencerPromotionController extends Controller
 
     public function index(): View
     {
+        $stats = [
+            'pending' => VendorInfluencerPromotionRequest::query()->where('status', 'pending')->count(),
+            'active_campaigns' => MarketerCampaign::query()
+                ->where('campaign_type', CampaignType::ProductPromotion)
+                ->where('status', 'active')
+                ->count(),
+            'needs_warehouse_receipt' => VendorInfluencerPromotionRequest::query()
+                ->where('requires_warehouse_receipt', true)
+                ->where('warehouse_receipt_confirmed', false)
+                ->count(),
+            'outstanding_sample_debts' => VendorInfluencerPromotionRequest::query()
+                ->where('admin_sample_debt', '>', 0)
+                ->where('admin_sample_debt_settled', false)
+                ->count(),
+        ];
+
         return view('admin.influencer-promotions.index', [
+            'stats' => $stats,
             'vendors' => Vendor::orderBy('store_name')->get(['id', 'store_name']),
             'statuses' => ['pending', 'partially_accepted', 'fully_accepted', 'completed', 'cancelled'],
             'fulfillmentModels' => ['fbm', 'fbn', 'cross_dock', 'admin_express', 'admin_global'],
@@ -132,6 +153,35 @@ class InfluencerPromotionController extends Controller
         ]);
 
         return response()->json(['success' => true, 'message' => __('admin.influencer_promotions.warehouse_confirmed_success')]);
+    }
+
+    public function settleSampleDebt(Request $request, VendorInfluencerPromotionRequest $promotionRequest): JsonResponse
+    {
+        if ($promotionRequest->admin_sample_debt <= 0 || $promotionRequest->admin_sample_debt_settled) {
+            return response()->json(['success' => false, 'message' => __('admin.influencer_promotions.cannot_settle_debt')], 422);
+        }
+
+        $promotionRequest->update(['admin_sample_debt_settled' => true]);
+
+        return response()->json(['success' => true, 'message' => __('admin.influencer_promotions.debt_settled_success')]);
+    }
+
+    public function forceReassign(
+        Request $request,
+        VendorInfluencerPromotionRequest $promotionRequest,
+        VendorInfluencerPromotionRequestItem $item,
+        InfluencerPromotionRequestService $service
+    ): JsonResponse {
+        abort_if($item->promotion_request_id !== $promotionRequest->id, 404);
+
+        if (!in_array($item->status, ['pending', 'timed_out'], true)) {
+            return response()->json(['success' => false, 'message' => __('admin.influencer_promotions.cannot_force_reassign')], 422);
+        }
+
+        $item->update(['status' => 'reassigned']);
+        $service->autoReassign($item, auth('admin')->id(), 'admin_forced');
+
+        return response()->json(['success' => true, 'message' => __('admin.influencer_promotions.force_reassign_success')]);
     }
 
     private function statusBadgeClass(string $status): string

@@ -446,17 +446,69 @@
                 </a>
             </div>
 
-            <div class="pt-3 border-t border-primary-100" x-show="featuredInNawy" x-cloak>
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                    <input type="checkbox" id="include-in-open-market"
-                           {{ $listing->openMarketEntries()->where('open_market_category', 4)->where('is_active', true)->exists() ? 'checked' : '' }}
-                           class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                    <span class="text-sm font-medium text-primary-700">Include in Influencer Open Market (Category 4)</span>
-                </label>
-                <p class="text-xs text-gray-400 mt-1 ml-6">Saved immediately — not part of the main form submit.</p>
-            </div>
             @endif
         </div>
+
+        {{-- Influencer Promotion Tiers --}}
+        @if($isEdit)
+        @php
+            $tier3Entry = $listing->openMarketEntries()->where('promotion_tier', 3)->first();
+            $tier4Entry = $listing->openMarketEntries()->where('promotion_tier', 4)->first();
+        @endphp
+        <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4"
+             x-data="{
+                selectedTier: null,
+                tier3: {{ $tier3Entry && $tier3Entry->is_active ? 'true' : 'false' }},
+                tier4: {{ $tier4Entry && $tier4Entry->is_active ? 'true' : 'false' }},
+                commissionAmount: {{ $tier3Entry->celebrity_commission_amount ?? $tier4Entry->celebrity_commission_amount ?? 0 }},
+                commissionCurrency: '{{ $tier3Entry->commission_currency ?? $tier4Entry->commission_currency ?? 'SAR' }}',
+             }">
+            <div class="flex items-center gap-2">
+                <x-heroicon name="star" class="w-5 h-5 text-gray-500" />
+                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Influencer Promotion Tiers</h2>
+            </div>
+            <p class="text-xs text-gray-400 -mt-2">Add to the influencer open market pool. Saved immediately — not part of the main form submit.</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" id="tier3-toggle" x-model="tier3"
+                           class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                    <span class="text-sm font-medium text-gray-700">Enable for Tier 3 (Admin Curated)</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer select-none" x-show="featuredInNawy" x-cloak>
+                    <input type="checkbox" id="tier4-toggle" x-model="tier4"
+                           class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                    <span class="text-sm font-medium text-gray-700">Enable for Tier 4 (Nawy Now)</span>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4" x-show="tier3 || tier4" x-cloak>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Celebrity Commission Amount</label>
+                    <input type="number" id="tier-commission-amount" min="0" step="1" x-model.number="commissionAmount"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <p class="text-xs text-gray-400 mt-1">Base-currency, whole units (BIGINT).</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                    <select id="tier-commission-currency" x-model="commissionCurrency"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        @foreach(['SAR', 'AED', 'EGP', 'KWD', 'OMR', 'QAR', 'BHD', 'JOD'] as $code)
+                            <option value="{{ $code }}">{{ $code }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <button type="button" id="btn-save-promotion-tiers"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors">
+                    Save Promotion Tiers
+                </button>
+            </div>
+        </div>
+        @endif
 
         {{-- Section 7 — Influencer/Affiliate --}}
         <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
@@ -570,19 +622,41 @@
         }
     });
 
-    document.getElementById('include-in-open-market')?.addEventListener('change', function () {
-        var checkbox = this;
-        $.ajax({
-            url: '{{ $isEdit ? route('admin.open-market.toggle-for-admin-listing', $listing) : '' }}',
-            method: 'POST',
-            data: { included: checkbox.checked ? 1 : 0, _token: $('meta[name="csrf-token"]').attr('content') },
-        })
+    document.getElementById('btn-save-promotion-tiers')?.addEventListener('click', function () {
+        var btn = this;
+        var tier3 = document.getElementById('tier3-toggle')?.checked;
+        var tier4 = document.getElementById('tier4-toggle')?.checked;
+        var commissionAmount = document.getElementById('tier-commission-amount')?.value || 0;
+        var commissionCurrency = document.getElementById('tier-commission-currency')?.value || 'SAR';
+        var token = $('meta[name="csrf-token"]').attr('content');
+        var url = '{{ $isEdit ? route('admin.open-market.toggle-for-admin-listing', $listing) : '' }}';
+
+        var requests = [3, 4]
+            .map(function (tier) {
+                var included = tier === 3 ? tier3 : tier4;
+                return $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: {
+                        included: included ? 1 : 0,
+                        promotion_tier: tier,
+                        celebrity_commission_amount: commissionAmount,
+                        commission_currency: commissionCurrency,
+                        _token: token,
+                    },
+                });
+            });
+
+        btn.disabled = true;
+        $.when.apply($, requests)
             .done(function () {
-                window.Toast?.success(checkbox.checked ? 'Added to influencer open market.' : 'Removed from influencer open market.');
+                window.Toast?.success('Promotion tiers updated.');
             })
             .fail(function (xhr) {
-                checkbox.checked = !checkbox.checked;
-                window.Toast?.error(xhr.responseJSON?.message || 'Failed to update.');
+                window.Toast?.error(xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Failed to update promotion tiers.');
+            })
+            .always(function () {
+                btn.disabled = false;
             });
     });
 

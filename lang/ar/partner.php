@@ -72,6 +72,7 @@ return [
         'my_warehouse' => 'مستودعي',
         'classifieds' => 'الإعلانات المبوّبة',
         'campaign_offers' => 'عروض الحملات',
+        'promotion_requests' => 'طلبات الترويج',
         'notifications' => 'الإشعارات',
         'disputes' => 'النزاعات',
         'wallet' => 'المحفظة',

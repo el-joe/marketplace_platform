@@ -328,6 +328,10 @@ class MarketerController extends Controller
             ->limit(20)
             ->get();
 
+        $categoryCommissions = $marketer->isCelebrity()
+            ? $marketer->categoryCommissions()->with('category:id,name_en,name_ar')->latest()->get()
+            : collect();
+
         return view('admin.marketers.show', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -340,6 +344,8 @@ class MarketerController extends Controller
             'campaignTypeOptions' => CampaignType::options(),
             'commissionTypeOptions' => AdminInvitationCommissionType::options(),
             'currencies' => Currency::where('is_active', true)->orderBy('code')->pluck('code'),
+            'categoryCommissions' => $categoryCommissions,
+            'categories' => $marketer->isCelebrity() ? Category::orderBy('name_en')->get(['id', 'name_en']) : collect(),
         ]);
     }
 
@@ -1385,6 +1391,26 @@ class MarketerController extends Controller
         });
 
         return response()->json(['success' => true, 'message' => 'Tiers saved successfully.']);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  CELEBRITY TIER ASSIGNMENT
+    // ════════════════════════════════════════════════════════════════════════
+
+    public function updateTiers(Request $request, Marketer $marketer): JsonResponse
+    {
+        $request->validate([
+            'celebrity_tiers' => 'nullable|array',
+            'celebrity_tiers.*' => 'integer|in:1,2,3,4',
+            'acceptance_window_hours' => 'required|integer|min:1|max:720',
+        ]);
+
+        $marketer->update([
+            'celebrity_tiers' => $request->celebrity_tiers ?: null,
+            'acceptance_window_hours' => $request->acceptance_window_hours,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Tier assignment saved successfully.']);
     }
 
     // ════════════════════════════════════════════════════════════════════════

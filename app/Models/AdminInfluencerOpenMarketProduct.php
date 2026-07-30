@@ -18,12 +18,17 @@ class AdminInfluencerOpenMarketProduct extends Model
         'vendor_listing_id',
         'admin_product_listing_id',
         'open_market_category',
+        'promotion_tier',
+        'celebrity_commission_amount',
+        'commission_currency',
         'is_active',
         'added_by_admin_id',
     ];
 
     protected $casts = [
         'open_market_category' => 'integer',
+        'promotion_tier' => 'integer',
+        'celebrity_commission_amount' => 'integer',
         'is_active' => 'boolean',
     ];
 
@@ -45,6 +50,11 @@ class AdminInfluencerOpenMarketProduct extends Model
     public function scopeCategory(Builder $query, int $category): Builder
     {
         return $query->where('open_market_category', $category);
+    }
+
+    public function scopeTier(Builder $query, int $tier): Builder
+    {
+        return $query->where('promotion_tier', $tier);
     }
 
     public function scopeActive(Builder $query): Builder

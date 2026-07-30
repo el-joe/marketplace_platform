@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @push('scripts')
-    @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
+    @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/components/select2.js'])
 @endpush
 
 @section('title', $marketer->name)
@@ -141,6 +141,10 @@
             'media_kit'    => '🪪 ' . __('admin.marketer_show_section.tab_media_kit'),
             'payouts'      => '💳 ' . __('admin.marketers.tab_payouts'),
         ];
+
+    if ($marketer->isCelebrity()) {
+        $tabLabels['commissions'] = '💰 Category Commissions';
+    }
 @endphp
 <div x-data="{ tab: 'overview' }"
      x-effect="document.dispatchEvent(new CustomEvent('marketer-tab-change', { detail: tab }))">
@@ -180,6 +184,38 @@
             @endif
             <a href="{{ route('admin.marketers.all.tiers.show', $marketer) }}" class="btn btn-primary btn-sm mt-4">{{ __('admin.marketers.edit_tiers') }}</a>
         </div>
+
+        @if($marketer->isCelebrity())
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">🎯 Tier Assignment</h3>
+            <form id="tier-assignment-form">
+                <div class="space-y-2 mb-4">
+                    @php
+                        $tierOptions = [
+                            1 => 'Tier 1 — Vendor Requests',
+                            2 => 'Tier 2 — Open Market',
+                            3 => 'Tier 3 — Admin Curated',
+                            4 => 'Tier 4 — Nawy Now',
+                        ];
+                        $assignedTiers = $marketer->celebrity_tiers ?? [];
+                    @endphp
+                    @foreach($tierOptions as $tierNum => $tierLabel)
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="celebrity_tiers[]" value="{{ $tierNum }}"
+                                   class="form-checkbox" {{ in_array($tierNum, $assignedTiers) ? 'checked' : '' }}>
+                            {{ $tierLabel }}
+                        </label>
+                    @endforeach
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Acceptance Window Override (hours)</label>
+                    <input type="number" name="acceptance_window_hours" class="form-input w-full" min="1" max="720"
+                           value="{{ $marketer->acceptance_window_hours }}">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Save Tier Assignment</button>
+            </form>
+        </div>
+        @endif
 
         <div class="space-y-6">
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
@@ -347,6 +383,101 @@
             </div>
         </x-card>
     </div>
+
+    @if($marketer->isCelebrity())
+    <div x-show="tab === 'commissions'">
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700 mb-4">
+            Commission amount is BIGINT base-currency. e.g. 18 = 18 SAR per sale.
+        </div>
+
+        <div class="flex justify-end mb-3">
+            <button type="button" id="add-commission-btn" class="btn btn-primary btn-sm">+ Add Commission</button>
+        </div>
+
+        <x-card>
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-gray-400 text-xs uppercase">
+                        <th class="pb-2">Category</th>
+                        <th class="pb-2">Commission Amount</th>
+                        <th class="pb-2">Currency</th>
+                        <th class="pb-2">Status</th>
+                        <th class="pb-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="category-commissions-tbody">
+                    @forelse($categoryCommissions as $commission)
+                        <tr class="border-t border-gray-100" data-commission-id="{{ $commission->id }}">
+                            <td class="py-2">{{ $commission->category?->name_en }}</td>
+                            <td class="py-2">{{ number_format($commission->commission_amount) }}</td>
+                            <td class="py-2">{{ $commission->currency_code }}</td>
+                            <td class="py-2">
+                                <span class="badge badge-{{ $commission->is_active ? 'success' : 'secondary' }}">
+                                    {{ $commission->is_active ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="py-2">
+                                <div class="flex gap-1">
+                                    <button type="button" class="btn btn-xs btn-ghost btn-edit-commission"
+                                            data-id="{{ $commission->id }}"
+                                            data-category-id="{{ $commission->category_id }}"
+                                            data-amount="{{ $commission->commission_amount }}"
+                                            data-currency="{{ $commission->currency_code }}">Edit</button>
+                                    <button type="button" class="btn btn-xs btn-danger btn-delete-commission" data-id="{{ $commission->id }}">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="py-4 text-center text-gray-400 italic">No category commissions configured.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+            </div>
+        </x-card>
+    </div>
+
+    {{-- Add / Edit Category Commission Modal --}}
+    <div id="commission-modal" class="modal-backdrop hidden">
+        <div class="modal-box max-w-lg">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-semibold text-gray-900" id="commission-modal-title">Add Category Commission</h3>
+                <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">&times;</button>
+            </div>
+            <form id="commission-form">
+                <input type="hidden" name="commission_id" value="">
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Category <span class="text-red-500">*</span></label>
+                        <select name="category_id" id="commission-category-select" class="form-input w-full" data-select2-init required>
+                            <option value="">Select a category…</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name_en }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Commission Amount <span class="text-red-500">*</span></label>
+                        <input type="number" name="commission_amount" class="form-input w-full" min="0" required>
+                        <p class="text-xs text-gray-400 mt-1">BIGINT base-currency. e.g. 18 = 18 SAR per sale.</p>
+                    </div>
+                    <div>
+                        <label class="form-label">Currency <span class="text-red-500">*</span></label>
+                        <select name="currency_code" class="form-input w-full" required>
+                            @foreach(['SAR', 'AED', 'EGP', 'KWD', 'OMR', 'QAR', 'BHD', 'JOD'] as $code)
+                                <option value="{{ $code }}">{{ $code }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100">
+                    <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
     {{-- Create Promo Code Modal (marketer-scoped) --}}
     <div id="create-marketer-promo-modal" class="modal-backdrop hidden">
@@ -738,6 +869,79 @@ document.addEventListener('DOMContentLoaded', function () {
         $.post('{{ url('marketer-samples') }}/' + id + '/dispatch', { _token: tok })
             .done(r => { window.Toast.success(r.message); $('#marketer-samples-table').DataTable().ajax.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
+    });
+
+    // ── Tier Assignment ────────────────────────────────────────────────────────
+    $('#tier-assignment-form').on('submit', function (e) {
+        e.preventDefault();
+        const celebrity_tiers = $(this).find('input[name="celebrity_tiers[]"]:checked').map(function () { return this.value; }).get();
+        const acceptance_window_hours = $(this).find('input[name="acceptance_window_hours"]').val();
+
+        $.ajax({
+            url: '{{ route('admin.marketers.all.tiers.update', $marketer->id) }}',
+            method: 'PUT',
+            headers: { 'X-CSRF-TOKEN': tok },
+            data: { celebrity_tiers, acceptance_window_hours },
+        })
+            .done(r => window.Toast.success(r.message))
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
+    });
+
+    // ── Category Commissions ───────────────────────────────────────────────────
+    const commissionsBaseUrl = '{{ url('marketers/' . $marketer->id . '/commissions') }}';
+
+    $('#add-commission-btn').on('click', function () {
+        $('#commission-modal-title').text('Add Category Commission');
+        const form = $('#commission-form')[0];
+        form.reset();
+        $(form).find('[name="commission_id"]').val('');
+        $('#commission-category-select').val('').trigger('change');
+        $('#commission-modal').removeClass('hidden');
+    });
+
+    $(document).on('click', '.btn-edit-commission', function () {
+        $('#commission-modal-title').text('Edit Category Commission');
+        const $btn = $(this);
+        const form = $('#commission-form');
+        form.find('[name="commission_id"]').val($btn.data('id'));
+        form.find('[name="commission_amount"]').val($btn.data('amount'));
+        form.find('[name="currency_code"]').val($btn.data('currency'));
+        $('#commission-category-select').val($btn.data('category-id').toString()).trigger('change');
+        $('#commission-modal').removeClass('hidden');
+    });
+
+    $('#commission-modal [data-modal-close]').on('click', () => $('#commission-modal').addClass('hidden'));
+
+    $('#commission-form').on('submit', function (e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(this).entries());
+        const commissionId = data.commission_id;
+        delete data.commission_id;
+
+        const isEdit = !!commissionId;
+        const url = isEdit ? commissionsBaseUrl + '/' + commissionId : commissionsBaseUrl;
+
+        $.ajax({
+            url,
+            method: isEdit ? 'PUT' : 'POST',
+            headers: { 'X-CSRF-TOKEN': tok },
+            data,
+        })
+            .done(r => { window.Toast.success(r.message); $('#commission-modal').addClass('hidden'); setTimeout(() => location.reload(), 800); })
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
+    });
+
+    $(document).on('click', '.btn-delete-commission', function () {
+        const id = $(this).data('id');
+        window.confirmDialog({ title: 'Delete this commission?', onConfirm: () => {
+            $.ajax({
+                url: commissionsBaseUrl + '/' + id,
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': tok },
+            })
+                .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 800); })
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
+        }});
     });
 }, { once: true });
 </script>

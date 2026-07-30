@@ -15,6 +15,18 @@
         </div>
     </div>
 
+    {{-- ─── Stats ───────────────────────────────────────────────────────────── --}}
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+        <x-stat-card title="{{ __('admin.influencer_promotions.stat_pending') }}" :value="number_format($stats['pending'])"
+            iconBg="bg-yellow-100 text-yellow-600" />
+        <x-stat-card title="{{ __('admin.influencer_promotions.stat_active_campaigns') }}" :value="number_format($stats['active_campaigns'])"
+            iconBg="bg-green-100 text-green-600" />
+        <x-stat-card title="{{ __('admin.influencer_promotions.stat_needs_warehouse_receipt') }}" :value="number_format($stats['needs_warehouse_receipt'])"
+            iconBg="bg-primary-100 text-primary-600" />
+        <x-stat-card title="{{ __('admin.influencer_promotions.stat_outstanding_sample_debts') }}" :value="number_format($stats['outstanding_sample_debts'])"
+            iconBg="bg-red-100 text-red-600" />
+    </div>
+
     {{-- ─── Filter bar ──────────────────────────────────────────────────────── --}}
     <x-card class="mb-5">
         <div class="flex flex-wrap gap-3 items-end">

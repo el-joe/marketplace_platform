@@ -1221,6 +1221,34 @@ return [
         'cannot_cancel'                 => 'This request can no longer be cancelled.',
         'warehouse_confirmed_success'   => 'Warehouse receipt confirmed.',
         'cannot_confirm_warehouse'      => 'Warehouse receipt cannot be confirmed for this request.',
+
+        'stat_pending'                  => 'Pending Requests',
+        'stat_active_campaigns'         => 'Active Campaigns',
+        'stat_needs_warehouse_receipt'  => 'Needs Warehouse Receipt',
+        'stat_outstanding_sample_debts' => 'Outstanding Sample Debts',
+
+        'samples_title'                 => 'Samples',
+        'sample_celebrity'              => 'Celebrity Sample',
+        'sample_admin'                  => 'Admin Sample',
+        'sample_qty'                    => 'Qty',
+        'admin_sample_debt'             => 'Admin Sample Debt',
+        'settle_debt'                   => 'Mark Settled',
+        'settle_debt_confirm'           => 'Mark this admin sample debt as settled?',
+        'debt_settled_success'          => 'Admin sample debt marked as settled.',
+        'cannot_settle_debt'            => 'There is no outstanding admin sample debt to settle for this request.',
+        'debt_settled'                  => 'Settled',
+        'debt_outstanding'              => 'Outstanding',
+        'no_debt'                       => 'No admin sample debt.',
+
+        'financial_title'               => 'Financial Breakdown',
+        'fixed_admin_commission'        => 'Fixed Admin Commission',
+        'promotion_fees'                => 'Promotion Fees (:count celebrities × :fee :currency)',
+        'total'                         => 'Total',
+
+        'force_reassign'                => 'Force Reassign',
+        'force_reassign_confirm'        => 'Force reassign this slot to a new marketer? This will decline the current slot and assign a replacement.',
+        'force_reassign_success'        => 'Slot reassigned to a new marketer.',
+        'cannot_force_reassign'         => 'This slot cannot be force-reassigned in its current status.',
     ],
 
     'marketer_quotas' => [

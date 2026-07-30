@@ -59,6 +59,9 @@ class Marketer extends Authenticatable implements JWTSubject
         'total_samples_allocated',
         'is_profile_public',
         'accept_new_campaigns',
+        'celebrity_tiers',
+        'acceptance_window_hours',
+        'total_promotion_requests_received',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -77,6 +80,9 @@ class Marketer extends Authenticatable implements JWTSubject
             'followers_count' => 'integer',
             'is_profile_public' => 'boolean',
             'accept_new_campaigns' => 'boolean',
+            'celebrity_tiers' => 'array',
+            'acceptance_window_hours' => 'integer',
+            'total_promotion_requests_received' => 'integer',
             'status' => \App\Enums\MarketerStatus::class,
             'type' => \App\Enums\MarketerType::class,
         ];
@@ -211,6 +217,31 @@ class Marketer extends Authenticatable implements JWTSubject
         return $this->hasMany(AffiliatePromoCode::class);
     }
 
+    public function categoryCommissions(): HasMany
+    {
+        return $this->hasMany(MarketerCategoryCommission::class);
+    }
+
+    public function monthlyStats(): HasMany
+    {
+        return $this->hasMany(InfluencerMonthlyStat::class);
+    }
+
+    public function storeProducts(): HasMany
+    {
+        return $this->hasMany(CelebrityStoreProduct::class, 'celebrity_marketer_id');
+    }
+
+    public function openMarketPromotions(): HasMany
+    {
+        return $this->hasMany(CelebrityOpenMarketPromotion::class, 'promoter_marketer_id');
+    }
+
+    public function promotionRequests(): HasMany
+    {
+        return $this->hasMany(VendorInfluencerPromotionRequestItem::class, 'marketer_id');
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     public function isInfluencer(): bool
@@ -221,6 +252,24 @@ class Marketer extends Authenticatable implements JWTSubject
     public function isAffiliate(): bool
     {
         return ($this->type?->value ?? $this->type) === 'affiliate';
+    }
+
+    public function isCelebrity(): bool
+    {
+        return in_array($this->type?->value ?? $this->type, ['celebrity', 'influencer'], true);
+    }
+
+    public function isInTier(int $tier): bool
+    {
+        return is_array($this->celebrity_tiers) && in_array($tier, $this->celebrity_tiers);
+    }
+
+    public function getCommissionForCategory(string $categoryId): ?int
+    {
+        return $this->categoryCommissions()
+            ->where('category_id', $categoryId)
+            ->where('is_active', true)
+            ->value('commission_amount');
     }
 
     public function getTypeLabelAttribute(): string

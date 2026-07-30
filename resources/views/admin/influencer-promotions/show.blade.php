@@ -97,7 +97,7 @@
         </x-card>
 
         <x-card title="{{ __('admin.influencer_promotions.slots_title') }}">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" data-request-id="{{ $promotionRequest->id }}" id="promotion-slots">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100 text-start">
@@ -107,6 +107,7 @@
                             <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.influencer_promotions.slot_expires_at') }}</th>
                             <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.influencer_promotions.slot_responded_at') }}</th>
                             <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.influencer_promotions.slot_campaign') }}</th>
+                            <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -126,15 +127,91 @@
                                         —
                                     @endif
                                 </td>
+                                <td class="py-2 pr-4 text-end">
+                                    @if(in_array($item->status, ['pending', 'timed_out'], true))
+                                        <button type="button" class="btn btn-xs btn-secondary btn-force-reassign" data-item-id="{{ $item->id }}">{{ __('admin.influencer_promotions.force_reassign') }}</button>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="py-4 text-center text-gray-400">—</td>
+                                <td colspan="7" class="py-4 text-center text-gray-400">—</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+        </x-card>
+
+        <x-card title="{{ __('admin.influencer_promotions.samples_title') }}">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-100 text-start">
+                            <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.influencer_promotions.slot_influencer') }}</th>
+                            <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.influencer_promotions.sample_celebrity') }}</th>
+                            <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.influencer_promotions.sample_admin') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @forelse($promotionRequest->items->where('status', 'accepted') as $item)
+                            <tr>
+                                <td class="py-2 pr-4 text-gray-900">{{ $item->marketer?->name ?? '—' }}</td>
+                                <td class="py-2 pr-4 text-gray-700">1 {{ __('admin.influencer_promotions.sample_qty') }}</td>
+                                <td class="py-2 pr-4 text-gray-700">1 {{ __('admin.influencer_promotions.sample_qty') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="py-4 text-center text-gray-400">—</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <div>
+                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ __('admin.influencer_promotions.admin_sample_debt') }}</dt>
+                    <dd class="mt-1 font-medium text-gray-900">
+                        @if($promotionRequest->admin_sample_debt > 0)
+                            {{ number_format($promotionRequest->admin_sample_debt) }} {{ $promotionRequest->currency }}
+                            <x-badge :color="$promotionRequest->admin_sample_debt_settled ? 'success' : 'gray'">
+                                {{ $promotionRequest->admin_sample_debt_settled ? __('admin.influencer_promotions.debt_settled') : __('admin.influencer_promotions.debt_outstanding') }}
+                            </x-badge>
+                        @else
+                            {{ __('admin.influencer_promotions.no_debt') }}
+                        @endif
+                    </dd>
+                </div>
+                @if($promotionRequest->admin_sample_debt > 0 && !$promotionRequest->admin_sample_debt_settled)
+                    <button type="button" id="btn-settle-debt" class="btn btn-success btn-sm">{{ __('admin.influencer_promotions.settle_debt') }}</button>
+                @endif
+            </div>
+        </x-card>
+
+        <x-card title="{{ __('admin.influencer_promotions.financial_title') }}">
+            @php
+                $numCelebrities = $promotionRequest->items->count();
+                $feePerCelebrity = $promotionRequest->promotion_fee_per_celebrity_snapshot;
+            @endphp
+            <dl class="space-y-3 text-sm">
+                <div class="flex items-center justify-between">
+                    <dt class="text-gray-500">{{ __('admin.influencer_promotions.fixed_admin_commission') }}</dt>
+                    <dd class="font-medium text-gray-900">{{ number_format($promotionRequest->fixed_admin_commission_snapshot) }} {{ $promotionRequest->currency }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-gray-500">{{ __('admin.influencer_promotions.promotion_fees', ['count' => $numCelebrities, 'fee' => number_format($feePerCelebrity), 'currency' => $promotionRequest->currency]) }}</dt>
+                    <dd class="font-medium text-gray-900">{{ number_format($feePerCelebrity * $numCelebrities) }} {{ $promotionRequest->currency }}</dd>
+                </div>
+                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <dt class="font-semibold text-gray-900">{{ __('admin.influencer_promotions.total') }}</dt>
+                    <dd class="font-semibold text-gray-900">{{ number_format($promotionRequest->total_promotion_fee) }} {{ $promotionRequest->currency }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
+                    <dt class="text-gray-500">{{ __('admin.influencer_promotions.fee_deducted') }}</dt>
+                    <dd class="font-medium text-gray-900">{{ $promotionRequest->fee_deducted ? __('admin.influencer_promotions.yes') : __('admin.influencer_promotions.no') }}</dd>
+                </div>
+            </dl>
         </x-card>
 
         <x-card title="{{ __('admin.influencer_promotions.reassignment_log_title') }}">

@@ -129,6 +129,14 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/{listing}/influencer-promotions', [\App\Http\Controllers\Partner\InfluencerPromotionController::class, 'store'])->name('influencer-promotion.request')->middleware('vendor.can:influencer_promotions.request');
     });
 
+    // ── Promotion requests module ────────────────────────────────────────────
+    Route::prefix('promotion-requests')->name('promotion-requests.')->controller(\App\Http\Controllers\Partner\VendorPromotionRequestController::class)->group(function () {
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:influencer_promotions.view');
+        Route::get('/create', 'create')->name('create')->middleware('vendor.can:influencer_promotions.request');
+        Route::post('/', 'store')->name('store')->middleware('vendor.can:influencer_promotions.request');
+        Route::get('/{request}', 'show')->name('show')->middleware('vendor.can:influencer_promotions.view');
+    });
+
     // ── Inventory module ─────────────────────────────────────────────────────
     Route::prefix('inventory')->name('inventory.')->controller(InventoryController::class)->group(function () {
         Route::get('/', 'index')->name('index');

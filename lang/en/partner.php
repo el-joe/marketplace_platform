@@ -72,6 +72,7 @@ return [
         'my_warehouse'         => 'My Warehouse',
         'classifieds'          => 'Classifieds',
         'campaign_offers'      => 'Campaign Offers',
+        'promotion_requests'   => 'Promotion Requests',
         'notifications'        => 'Notifications',
         'disputes'             => 'Disputes',
         'wallet'               => 'Wallet',

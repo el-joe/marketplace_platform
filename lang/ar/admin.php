@@ -1226,6 +1226,34 @@ return [
         'cannot_cancel'                 => 'لم يعد بالإمكان إلغاء هذا الطلب.',
         'warehouse_confirmed_success'   => 'تم تأكيد إيصال المستودع.',
         'cannot_confirm_warehouse'      => 'لا يمكن تأكيد إيصال المستودع لهذا الطلب.',
+
+        'stat_pending'                  => 'الطلبات المعلقة',
+        'stat_active_campaigns'         => 'الحملات النشطة',
+        'stat_needs_warehouse_receipt'  => 'بحاجة لتأكيد المستودع',
+        'stat_outstanding_sample_debts' => 'ديون العينات المستحقة',
+
+        'samples_title'                 => 'العينات',
+        'sample_celebrity'              => 'عينة المؤثر',
+        'sample_admin'                  => 'عينة الإدارة',
+        'sample_qty'                    => 'الكمية',
+        'admin_sample_debt'             => 'دين عينة الإدارة',
+        'settle_debt'                   => 'تسوية الدين',
+        'settle_debt_confirm'           => 'هل تريد تحديد دين عينة الإدارة هذا كمسوّى؟',
+        'debt_settled_success'          => 'تم تسوية دين عينة الإدارة.',
+        'cannot_settle_debt'            => 'لا يوجد دين عينة إدارة مستحق لتسويته لهذا الطلب.',
+        'debt_settled'                  => 'تمت التسوية',
+        'debt_outstanding'              => 'مستحق',
+        'no_debt'                       => 'لا يوجد دين عينة إدارة.',
+
+        'financial_title'               => 'التفاصيل المالية',
+        'fixed_admin_commission'        => 'عمولة الإدارة الثابتة',
+        'promotion_fees'                => 'رسوم الترويج (:count مؤثر × :fee :currency)',
+        'total'                         => 'الإجمالي',
+
+        'force_reassign'                => 'إعادة تعيين إجبارية',
+        'force_reassign_confirm'        => 'إعادة تعيين هذا المقعد إجباريًا لمسوّق جديد؟ سيتم رفض المقعد الحالي وتعيين بديل.',
+        'force_reassign_success'        => 'تمت إعادة تعيين المقعد لمسوّق جديد.',
+        'cannot_force_reassign'         => 'لا يمكن إعادة تعيين هذا المقعد إجباريًا في حالته الحالية.',
     ],
 
     'marketer_quotas' => [

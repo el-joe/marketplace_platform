@@ -48,6 +48,8 @@ class DatabaseSeeder extends Seeder
             CategoryAttributeSeeder::class,
             BrandShippingSeeder::class,
             SettingsSeeder::class,
+            PromotionSettingsSeeder::class,
+            PromotionCountrySettingsSeeder::class,
             SubscriptionPlanSeeder::class,
             BannerPlacementDefinitionsSeeder::class,
 

@@ -36,4 +36,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm('Confirm that the warehouse has received the stock for this promotion?')) return;
         postAction(`/influencer-promotions/${requestId}/confirm-warehouse-receipt`);
     });
+
+    document.getElementById('btn-settle-debt')?.addEventListener('click', () => {
+        if (!confirm('Mark this admin sample debt as settled?')) return;
+        postAction(`/influencer-promotions/${requestId}/settle-sample-debt`);
+    });
+
+    document.getElementById('promotion-slots')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-force-reassign');
+        if (!btn) return;
+        if (!confirm('Force reassign this slot to a new marketer? This will decline the current slot and assign a replacement.')) return;
+        postAction(`/influencer-promotions/${requestId}/items/${btn.dataset.itemId}/force-reassign`);
+    });
 });

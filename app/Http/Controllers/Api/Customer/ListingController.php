@@ -17,6 +17,7 @@ use App\Models\ShippingZone;
 use App\Models\VendorListing;
 use App\Services\AppContextService;
 use App\Services\Customer\ListingIdentifierService;
+use App\Services\Customer\ProductDetailEnrichmentService;
 use App\Services\SavingsBenefitsService;
 use App\Services\ShippingCalculationService;
 use App\Services\WarrantyPlanService;
@@ -32,6 +33,7 @@ class ListingController extends Controller
         private readonly WarrantyPlanService $warrantyPlanService,
         private readonly SavingsBenefitsService $savingsBenefitsService,
         private readonly AppContextService $appContext,
+        private readonly ProductDetailEnrichmentService $enrichment,
     ) {
     }
 
@@ -105,7 +107,12 @@ class ListingController extends Controller
 
         return ApiResponse::success([
             'listing' => $this->vendorListingShape($listing, $country),
-            'delivery_info' => $this->vendorDeliveryInfo($listing, $country, $address),
+            'delivery_info' => $this->enrichment->getDeliveryOptions(
+                $listing->productVariant->product,
+                $country,
+                $request->query('address_id') ?? $address?->id,
+                $listing,
+            ),
             'warranty_plans' => $this->warrantyPlansFor($listing, $country),
             'savings_and_benefits' => $this->savingsBenefitsService->get(
                 (int) $listing->price,
@@ -283,76 +290,6 @@ class ListingController extends Controller
     }
 
     // ── Delivery info ────────────────────────────────────────────────────────
-
-    private function vendorDeliveryInfo(VendorListing $listing, Country $country, ?Address $address): array
-    {
-        $category = $listing->productVariant->product->category;
-
-        if (!$category) {
-            return ['methods' => []];
-        }
-
-        $zone = null;
-
-        if ($address?->city?->shipping_zone_id) {
-            $zone = ShippingZone::find($address->city->shipping_zone_id);
-        }
-
-        $weightGrams = $this->effectiveWeightGrams($listing);
-
-        // Availability column depends on which system fulfills this listing.
-        $availabilityColumn = $listing->global_system_type?->value === 'express_fbn'
-            ? 'category_shipping_methods.is_available_for_express_fbn'
-            : 'category_shipping_methods.is_available_for_merchant_fbp';
-
-        $methods = $category->shippingMethods()
-            ->where('shipping_methods.is_active', 1)
-            ->where($availabilityColumn, 1)
-            ->orderBy('shipping_methods.display_priority')
-            ->get();
-
-        $shaped = $methods->map(function (ShippingMethod $method) use ($listing, $zone, $weightGrams) {
-            $estimatedFee = null;
-            $isExceptional = false;
-
-            if ($zone) {
-                $breakdown = $this->shipping->calculate(
-                    vendor: $listing->vendor,
-                    listing: $listing,
-                    quantity: 1,
-                    destinationZone: $zone,
-                    method: $method,
-                    billableWeightGrams: $weightGrams,
-                );
-
-                $estimatedFee = $breakdown->customerPays;
-                $isExceptional = $breakdown->isExceptional;
-            }
-
-            return [
-                'method_id' => $method->id,
-                'code' => $method->code,
-                'name' => $method->name,
-                'badge_label' => ['ar' => $method->badge_label_ar, 'en' => $method->badge_label_en],
-                'badge_color_hex' => $method->badge_color_hex,
-                'badge_text_color_hex' => $method->badge_text_color_hex,
-                'delivery_label' => ['ar' => $method->delivery_label_ar, 'en' => $method->delivery_label_en],
-                'delivery_days_min' => $method->min_delivery_days,
-                'delivery_days_max' => $method->max_delivery_days,
-                'handling_time_hours' => $method->handling_time_hours,
-                'is_express_type' => $method->is_express_type,
-                'is_default' => (bool) $method->pivot->is_default,
-                'show_estimated_price' => (bool) $method->show_estimated_price,
-                'estimated_fee' => $estimatedFee,
-                'is_exceptional' => $isExceptional,
-            ];
-        })->values()->all();
-
-        return [
-            'currency' => $country->currency_code,
-            'methods' => $shaped,
-        ];
-    }
 
     private function adminDeliveryInfo(AdminProductListing $listing): array
     {
