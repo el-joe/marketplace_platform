@@ -222,6 +222,7 @@ class ListingDetailController extends Controller
                 'rating_avg' => $listing->rating_avg,
                 'rating_count' => $listing->rating_count,
                 'is_admin_listing' => true,
+                'vendor_details' => null,
             ];
         }
 
@@ -231,6 +232,25 @@ class ListingDetailController extends Controller
             'rating_avg' => $listing->vendor->store_rating_avg,
             'rating_count' => $listing->vendor->store_rating_count,
             'is_admin_listing' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
+            'vendor_details' => $this->vendorDetailsShape($listing->vendor),
+        ];
+    }
+
+    private function vendorDetailsShape(?\App\Models\Vendor $vendor): ?array
+    {
+        if (!$vendor) {
+            return null;
+        }
+
+        return [
+            'rating_avg' => (float) $vendor->store_rating_avg,
+            'rating_count' => (int) $vendor->store_rating_count,
+            'positive_rating_pct' => $vendor->positive_rating_pct,
+            'item_as_shown_pct' => $vendor->positive_rating_pct,
+            'partner_since_years' => $vendor->partner_years,
+            'warranty_months' => $vendor->warranty_months,
+            'easy_returns_enabled' => (bool) $vendor->easy_returns_enabled,
+            'secure_payments_enabled' => (bool) $vendor->secure_payments_enabled,
         ];
     }
 
@@ -410,16 +430,7 @@ class ListingDetailController extends Controller
                 'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,
                 'delivery_days_max' => $listing->primaryShippingMethod->max_delivery_days,
             ] : null,
-            'vendor_details' => $listing->vendor ? [
-                'rating_avg' => (float) $listing->vendor->store_rating_avg,
-                'rating_count' => (int) $listing->vendor->store_rating_count,
-                'positive_rating_pct' => $listing->vendor->positive_rating_pct,
-                'item_as_shown_pct' => $listing->vendor->positive_rating_pct,
-                'partner_since_years' => $listing->vendor->partner_years,
-                'warranty_months' => $listing->vendor->warranty_months,
-                'easy_returns_enabled' => (bool) $listing->vendor->easy_returns_enabled,
-                'secure_payments_enabled' => (bool) $listing->vendor->secure_payments_enabled,
-            ] : null,
+            'vendor_details' => $this->vendorDetailsShape($listing->vendor),
         ];
     }
 
