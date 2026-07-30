@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Enums\MarketerStatus;
-use App\Models\InfluencerMonthlyMinimum;
-use App\Models\InfluencerMonthlyStat;
 use App\Models\Marketer;
+use App\Models\MarketerMonthlyQuota;
+use App\Models\MarketerMonthlyQuotaProgress;
 use App\Models\Setting;
 use App\Models\VendorInfluencerPromotionRequestItem;
 use Illuminate\Support\Facades\DB;
@@ -47,25 +47,26 @@ class InfluencerMonthlyCheckService
             $tiers = $celebrity->celebrity_tiers ?? [];
 
             foreach ($tiers as $tier) {
-                $stat = InfluencerMonthlyStat::query()->firstOrCreate(
+                $progress = MarketerMonthlyQuotaProgress::query()->firstOrCreate(
                     [
                         'marketer_id' => $celebrity->id,
-                        'tier' => $tier,
+                        'promotion_category' => $tier,
                         'month' => now()->month,
                         'year' => now()->year,
                     ],
                     [
-                        'promotions_completed' => 0,
-                        'monthly_minimum_snapshot' => (int) Setting::get("promotion_tier{$tier}_monthly_minimum", 3),
+                        'completed_count' => 0,
+                        'quota_target' => (int) Setting::get("promotion_tier{$tier}_monthly_minimum", 3),
+                        'status' => 'in_progress',
                     ]
                 );
 
-                if ($stat->is_below_minimum && ! $stat->below_minimum_alert_sent) {
-                    $stat->below_minimum_alert_sent = true;
-                    $stat->below_minimum_alert_sent_at = now();
-                    $stat->save();
+                if ($progress->is_below_quota && ! $progress->warning_sent) {
+                    $progress->warning_sent = true;
+                    $progress->warning_sent_at = now();
+                    $progress->save();
 
-                    // dispatch(new NotifyCelebrityBelowMinimum($celebrity, $stat));
+                    // dispatch(new NotifyCelebrityBelowMinimum($celebrity, $progress));
                     // WhatsApp notification + in-dashboard red alert
                 }
             }
@@ -76,35 +77,35 @@ class InfluencerMonthlyCheckService
     {
         $prevMonth = now()->subMonth();
 
-        $stats = InfluencerMonthlyStat::query()
+        $progressRows = MarketerMonthlyQuotaProgress::query()
             ->where('month', $prevMonth->month)
             ->where('year', $prevMonth->year)
             ->where('penalty_applied', false)
             ->get()
-            ->filter(fn (InfluencerMonthlyStat $stat) => $stat->is_below_minimum);
+            ->filter(fn (MarketerMonthlyQuotaProgress $progress) => $progress->is_below_quota);
 
-        foreach ($stats as $stat) {
-            $shortfall = $stat->monthly_minimum_snapshot - $stat->promotions_completed;
+        foreach ($progressRows as $progress) {
+            $shortfall = $progress->quota_target - $progress->completed_count;
 
-            $minimum = InfluencerMonthlyMinimum::query()
-                ->where('tier', $stat->tier)
+            $quota = MarketerMonthlyQuota::query()
+                ->where('promotion_category', $progress->promotion_category)
                 ->where('is_active', true)
                 ->first();
 
-            if (! $minimum || $minimum->penalty_per_unmet_promotion === 0) {
+            if (! $quota || $quota->penalty_per_missing === 0) {
                 continue;
             }
 
-            $penaltyAmount = $shortfall * $minimum->penalty_per_unmet_promotion; // BIGINT — no /100
+            $penaltyAmount = $shortfall * $quota->penalty_per_missing; // BIGINT — no /100
 
-            DB::transaction(function () use ($stat, $penaltyAmount) {
-                $stat->penalty_applied = true;
-                $stat->penalty_amount = $penaltyAmount;
-                $stat->penalty_applied_at = now();
-                $stat->save();
+            DB::transaction(function () use ($progress, $penaltyAmount) {
+                $progress->penalty_applied = true;
+                $progress->penalty_amount = $penaltyAmount;
+                $progress->penalty_applied_at = now();
+                $progress->save();
 
                 // TODO: deduct from celebrity wallet/earnings
-                // dispatch(new ApplyCelebrityPenalty($stat->marketer, $penaltyAmount));
+                // dispatch(new ApplyCelebrityPenalty($progress->marketer, $penaltyAmount));
             });
         }
     }

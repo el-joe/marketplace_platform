@@ -19,6 +19,7 @@ class CartResource extends JsonResource
             'summary'  => [
                 'subtotal'           => $this->subtotal,
                 'discount'           => $this->discount,
+                'wallet_amount_to_use' => $this->wallet_amount_to_use,
                 'estimated_shipping' => $this->estimated_shipping,
                 'estimated_tax'      => $this->estimated_tax,
                 'estimated_total'    => $this->estimated_total,

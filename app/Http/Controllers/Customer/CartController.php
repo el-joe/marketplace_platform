@@ -90,6 +90,40 @@ class CartController extends Controller
     }
 
     /**
+     * Toggles whether the customer wants to pay with their wallet balance.
+     * When enabled, applies min(wallet balance, estimated_total); when
+     * disabled, clears the amount. Persists to carts.wallet_amount_to_use so
+     * CheckoutService can read it when the order is placed.
+     */
+    public function toggleWallet(Request $request): JsonResponse
+    {
+        $customer = auth('customer')->user();
+
+        if (!$customer) {
+            return ApiResponse::error('You must be logged in to use your wallet.', [], 401);
+        }
+
+        $cart = $this->resolveCart($request);
+        $useWallet = $request->boolean('use_wallet');
+
+        if ($useWallet) {
+            $wallet = CustomerWallet::where('customer_id', $customer->id)
+                ->where('currency_code', $cart->currency)
+                ->first();
+
+            $walletAmount = min($wallet?->balance ?? 0, (int) $cart->estimated_total);
+        } else {
+            $walletAmount = 0;
+        }
+
+        $cart->update(['wallet_amount_to_use' => $walletAmount]);
+
+        return $this->cartResponse($cart, [
+            'wallet' => $this->resolveWalletInfo($cart),
+        ], 'Wallet usage updated');
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function resolveWalletInfo(Cart $cart): array
@@ -115,15 +149,15 @@ class CartController extends Controller
         $walletApplicable = $walletBalance > 0 && $walletCurrency === $cart->currency;
 
         $maxUsable = $walletApplicable ? min($walletBalance, (int) $cart->estimated_total) : 0;
+        $applied = $walletApplicable ? min((int) $cart->wallet_amount_to_use, $maxUsable) : 0;
 
         return [
             'balance' => $walletBalance,
             'currency_code' => $walletCurrency,
             'applicable' => $walletApplicable,
             'max_usable' => $maxUsable,
-            'remaining_after_wallet' => $walletApplicable
-                ? ((int) $cart->estimated_total - $maxUsable)
-                : (int) $cart->estimated_total,
+            'amount_applied' => $applied,
+            'remaining_after_wallet' => (int) $cart->estimated_total - $applied,
         ];
     }
 

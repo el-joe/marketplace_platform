@@ -126,13 +126,13 @@
 
     {{-- ── Monthly Promotion Progress (Celebrities) ────────────────────────────────── --}}
     @if($monthlyStats->isNotEmpty())
-        @php $belowMinimum = $monthlyStats->where('is_below_minimum', true); @endphp
+        @php $belowMinimum = $monthlyStats->where('is_below_quota', true); @endphp
 
         @if($belowMinimum->isNotEmpty())
             <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
                 @foreach($belowMinimum as $stat)
                     <p class="text-sm text-red-700 font-semibold">
-                        ⚠️ {{ __('marketer.dashboard.below_minimum_warning', ['tier' => $stat->tier]) }}
+                        ⚠️ {{ __('marketer.dashboard.below_minimum_warning', ['tier' => $stat->promotion_category]) }}
                     </p>
                     @if($stat->penalty_amount)
                         <p class="text-xs text-red-500 mt-1">
@@ -147,12 +147,12 @@
             <h3 class="font-bold text-gray-800 mb-4">{{ __('marketer.dashboard.monthly_progress') }}</h3>
             <div class="space-y-4">
                 @foreach($monthlyStats as $stat)
-                    @php $met = $stat->promotions_completed >= $stat->monthly_minimum_snapshot; @endphp
+                    @php $met = $stat->completed_count >= $stat->quota_target; @endphp
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-sm font-semibold text-gray-700">{{ __('marketer.dashboard.tier') }} {{ $stat->tier }}</span>
+                            <span class="text-sm font-semibold text-gray-700">{{ __('marketer.dashboard.tier') }} {{ $stat->promotion_category }}</span>
                             <span class="text-xs font-mono {{ $met ? 'text-green-600' : 'text-gray-500' }}">
-                                {{ $stat->promotions_completed }}/{{ $stat->monthly_minimum_snapshot }}
+                                {{ $stat->completed_count }}/{{ $stat->quota_target }}
                                 @if($met) ✓ @endif
                             </span>
                         </div>

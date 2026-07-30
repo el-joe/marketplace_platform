@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\InfluencerMonthlyStat;
+use App\Models\MarketerMonthlyQuotaProgress;
 use App\Traits\HasDataTable;
 use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
@@ -21,14 +21,14 @@ class CelebrityMonthlyReportController extends Controller
         $year = (int) $request->input('year', now()->year);
         $month = (int) $request->input('month', now()->month);
 
-        $stats = InfluencerMonthlyStat::query()
+        $stats = MarketerMonthlyQuotaProgress::query()
             ->where('year', $year)
             ->where('month', $month)
             ->get();
 
         $activeCelebrities = $stats->pluck('marketer_id')->unique()->count();
-        $meetingMinimum = $stats->filter(fn ($s) => !$s->is_below_minimum)->count();
-        $belowMinimum = $stats->filter(fn ($s) => $s->is_below_minimum)->count();
+        $meetingMinimum = $stats->filter(fn ($s) => !$s->is_below_quota)->count();
+        $belowMinimum = $stats->filter(fn ($s) => $s->is_below_quota)->count();
         $penaltiesApplied = $stats->where('penalty_applied', true)->count();
 
         return view('admin.celebrities.monthly_report', [
@@ -40,25 +40,25 @@ class CelebrityMonthlyReportController extends Controller
                 'below_minimum' => $belowMinimum,
                 'penalties_applied' => $penaltiesApplied,
             ],
-            'tiers' => InfluencerMonthlyStat::query()->distinct()->orderBy('tier')->pluck('tier'),
+            'tiers' => MarketerMonthlyQuotaProgress::query()->distinct()->orderBy('promotion_category')->pluck('promotion_category'),
         ]);
     }
 
     public function datatable(Request $request): JsonResponse
     {
-        $query = InfluencerMonthlyStat::query()
-            ->leftJoin('marketers', 'marketers.id', '=', 'influencer_monthly_stats.marketer_id')
-            ->select('influencer_monthly_stats.*', 'marketers.name as marketer_name');
+        $query = MarketerMonthlyQuotaProgress::query()
+            ->leftJoin('marketers', 'marketers.id', '=', 'marketer_monthly_quota_progress.marketer_id')
+            ->select('marketer_monthly_quota_progress.*', 'marketers.name as marketer_name');
 
         $query = $this->applyFilters($query, $request, [
-            'tier' => fn ($q, $v) => $q->where('influencer_monthly_stats.tier', $v),
-            'year' => fn ($q, $v) => $q->where('influencer_monthly_stats.year', $v),
-            'month' => fn ($q, $v) => $q->where('influencer_monthly_stats.month', $v),
+            'tier' => fn ($q, $v) => $q->where('marketer_monthly_quota_progress.promotion_category', $v),
+            'year' => fn ($q, $v) => $q->where('marketer_monthly_quota_progress.year', $v),
+            'month' => fn ($q, $v) => $q->where('marketer_monthly_quota_progress.month', $v),
             'status' => function ($q, $v) {
                 match ($v) {
-                    'meeting' => $q->whereColumn('influencer_monthly_stats.promotions_completed', '>=', 'influencer_monthly_stats.monthly_minimum_snapshot'),
-                    'below' => $q->whereColumn('influencer_monthly_stats.promotions_completed', '<', 'influencer_monthly_stats.monthly_minimum_snapshot'),
-                    'penalty' => $q->where('influencer_monthly_stats.penalty_applied', true),
+                    'meeting' => $q->whereColumn('marketer_monthly_quota_progress.completed_count', '>=', 'marketer_monthly_quota_progress.quota_target'),
+                    'below' => $q->whereColumn('marketer_monthly_quota_progress.completed_count', '<', 'marketer_monthly_quota_progress.quota_target'),
+                    'penalty' => $q->where('marketer_monthly_quota_progress.penalty_applied', true),
                     default => null,
                 };
             },
@@ -66,33 +66,33 @@ class CelebrityMonthlyReportController extends Controller
 
         $columns = [
             0 => ['searchable_columns' => ['marketers.name']],
-            1 => ['orderable_column' => 'influencer_monthly_stats.tier'],
-            2 => ['orderable_column' => 'influencer_monthly_stats.year'],
-            3 => ['orderable_column' => 'influencer_monthly_stats.promotions_completed'],
-            4 => ['orderable_column' => 'influencer_monthly_stats.monthly_minimum_snapshot'],
+            1 => ['orderable_column' => 'marketer_monthly_quota_progress.promotion_category'],
+            2 => ['orderable_column' => 'marketer_monthly_quota_progress.year'],
+            3 => ['orderable_column' => 'marketer_monthly_quota_progress.completed_count'],
+            4 => ['orderable_column' => 'marketer_monthly_quota_progress.quota_target'],
             5 => [],
             6 => [],
-            7 => ['orderable_column' => 'influencer_monthly_stats.penalty_applied'],
+            7 => ['orderable_column' => 'marketer_monthly_quota_progress.penalty_applied'],
         ];
 
-        return $this->dataTableResponse($request, $query, $columns, function (InfluencerMonthlyStat $stat) {
-            $completed = (int) $stat->promotions_completed;
-            $minimum = max(1, (int) $stat->monthly_minimum_snapshot);
+        return $this->dataTableResponse($request, $query, $columns, function (MarketerMonthlyQuotaProgress $stat) {
+            $completed = (int) $stat->completed_count;
+            $minimum = max(1, (int) $stat->quota_target);
             $pct = min(100, (int) round(($completed / $minimum) * 100));
 
             $status = $stat->penalty_applied
                 ? 'penalty'
-                : ($stat->is_below_minimum ? 'below' : 'meeting');
+                : ($stat->is_below_quota ? 'below' : 'meeting');
 
             return [
                 'DT_RowId' => 'stat-' . $stat->id,
                 'marketer' => '<span class="text-sm font-medium text-gray-900">' . e($stat->marketer_name ?? '—') . '</span>',
-                'tier' => '<span class="text-sm text-gray-700">' . e(__('admin.celebrity_report.tier_label', ['tier' => $stat->tier])) . '</span>',
+                'tier' => '<span class="text-sm text-gray-700">' . e(__('admin.celebrity_report.tier_label', ['tier' => $stat->promotion_category])) . '</span>',
                 'period' => '<span class="text-sm text-gray-700">' . sprintf('%02d/%04d', $stat->month, $stat->year) . '</span>',
                 'completed' => '<span class="text-sm text-gray-700">' . $completed . '</span>',
-                'minimum' => '<span class="text-sm text-gray-700">' . (int) $stat->monthly_minimum_snapshot . '</span>',
+                'minimum' => '<span class="text-sm text-gray-700">' . (int) $stat->quota_target . '</span>',
                 'progress' => '<div x-data="{ completed: ' . $completed . ', minimum: ' . $minimum . ' }" class="w-32">'
-                    . '<div class="flex items-center justify-between text-xs text-gray-500 mb-0.5"><span>' . $completed . '/' . (int) $stat->monthly_minimum_snapshot . '</span><span>' . $pct . '%</span></div>'
+                    . '<div class="flex items-center justify-between text-xs text-gray-500 mb-0.5"><span>' . $completed . '/' . (int) $stat->quota_target . '</span><span>' . $pct . '%</span></div>'
                     . '<div class="h-1.5 w-full rounded-full bg-gray-100">'
                     . '<div class="h-1.5 rounded-full" :class="completed >= minimum ? \'bg-green-500\' : completed >= minimum * 0.5 ? \'bg-orange-500\' : \'bg-red-500\'" style="width:' . $pct . '%"></div>'
                     . '</div></div>',
@@ -109,11 +109,11 @@ class CelebrityMonthlyReportController extends Controller
         $year = (int) $request->input('year', now()->year);
         $month = (int) $request->input('month', now()->month);
 
-        $stats = InfluencerMonthlyStat::query()
-            ->leftJoin('marketers', 'marketers.id', '=', 'influencer_monthly_stats.marketer_id')
-            ->select('influencer_monthly_stats.*', 'marketers.name as marketer_name')
-            ->where('influencer_monthly_stats.year', $year)
-            ->where('influencer_monthly_stats.month', $month)
+        $stats = MarketerMonthlyQuotaProgress::query()
+            ->leftJoin('marketers', 'marketers.id', '=', 'marketer_monthly_quota_progress.marketer_id')
+            ->select('marketer_monthly_quota_progress.*', 'marketers.name as marketer_name')
+            ->where('marketer_monthly_quota_progress.year', $year)
+            ->where('marketer_monthly_quota_progress.month', $month)
             ->get();
 
         $headers = [
@@ -126,13 +126,13 @@ class CelebrityMonthlyReportController extends Controller
             __('admin.celebrity_report.penalty_column'),
         ];
 
-        $rows = $stats->map(fn (InfluencerMonthlyStat $stat) => [
+        $rows = $stats->map(fn (MarketerMonthlyQuotaProgress $stat) => [
             $stat->marketer_name ?? '—',
-            $stat->tier,
+            $stat->promotion_category,
             sprintf('%02d/%04d', $stat->month, $stat->year),
-            $stat->promotions_completed,
-            $stat->monthly_minimum_snapshot,
-            $stat->penalty_applied ? 'Penalty Applied' : ($stat->is_below_minimum ? 'Below Minimum' : 'Meeting Minimum'),
+            $stat->completed_count,
+            $stat->quota_target,
+            $stat->penalty_applied ? 'Penalty Applied' : ($stat->is_below_quota ? 'Below Minimum' : 'Meeting Minimum'),
             $stat->penalty_applied ? $stat->penalty_amount : '',
         ]);
 

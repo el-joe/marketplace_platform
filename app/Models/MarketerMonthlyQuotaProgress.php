@@ -44,6 +44,20 @@ class MarketerMonthlyQuotaProgress extends Model
         ];
     }
 
+    // ── Accessors ─────────────────────────────────────────────────────────────
+
+    public function getIsBelowQuotaAttribute(): bool
+    {
+        return $this->completed_count < $this->quota_target;
+    }
+
+    public function getProgressPercentageAttribute(): float
+    {
+        return $this->quota_target > 0
+            ? round(($this->completed_count / $this->quota_target) * 100, 1)
+            : 0.0;
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────────
 
     public function marketer(): BelongsTo

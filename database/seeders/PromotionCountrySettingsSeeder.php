@@ -9,15 +9,14 @@ use Illuminate\Support\Str;
 class PromotionCountrySettingsSeeder extends Seeder
 {
     /**
-     * Owner-specified figures (190 cents = 1.90 SAR admin commission,
-     * 900 cents = 9.00 SAR per-celebrity fee) apply as-is only to SA.
-     * Other active countries seed with the same minor-unit values as a
-     * starting default; admins can override per country later.
+     * Columns are BIGINT base-currency units (no /100). Owner specified
+     * 1.9 SAR fixed admin commission; rounded to 2 since these columns
+     * store whole base-currency units. VERIFY with owner before going live.
      */
     public function run(): void
     {
-        $adminCommission  = 190;
-        $feePerCelebrity  = 900;
+        $adminCommission  = 2;
+        $feePerCelebrity  = 9;
 
         $countryIds = DB::table('countries')->where('is_active', true)->pluck('id');
 

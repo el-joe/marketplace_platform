@@ -31,17 +31,21 @@ class MarketerSecretPromotion extends Model
         'approved_by_admin_id',
     ];
 
+    protected $hidden = [
+        'admin_share_pct',
+    ];
+
     protected function casts(): array
     {
         return [
             'product_value' => 'integer',
-            'total_commission_pct' => 'decimal:2',
-            'marketer_share_pct' => 'decimal:2',
-            'admin_share_pct' => 'decimal:2',
-            'min_commission_pct' => 'decimal:2',
+            'total_commission_pct' => 'decimal:4',
+            'marketer_share_pct' => 'decimal:4',
+            'admin_share_pct' => 'decimal:4',
+            'min_commission_pct' => 'decimal:4',
             'is_hidden_from_public' => 'boolean',
             'created_by_vendor' => 'boolean',
-            'valid_until' => 'date',
+            'valid_until' => 'datetime',
             'status' => SecretPromotionStatus::class,
         ];
     }
@@ -134,13 +138,13 @@ class MarketerSecretPromotion extends Model
 
     public function getProductValueFormattedAttribute(): string
     {
-        return number_format($this->product_value / 100, 2)
+        return number_format($this->product_value, 2)
             . ' ' . ($this->listing?->currency ?? '');
     }
 
     public function getListingPriceFormattedAttribute(): string
     {
-        return number_format(($this->listing?->price ?? 0) / 100, 2)
+        return number_format($this->listing?->price ?? 0, 2)
             . ' ' . ($this->listing?->currency ?? '');
     }
 
@@ -159,14 +163,14 @@ class MarketerSecretPromotion extends Model
     {
         $perSale = ($this->listing?->price ?? 0) * $this->admin_share_pct / 100;
 
-        return number_format($perSale / 100, 2) . ' ' . ($this->listing?->currency ?? '');
+        return number_format($perSale, 2) . ' ' . ($this->listing?->currency ?? '');
     }
 
     public function getMarketerEarningsFormatAttribute(): string
     {
         $perSale = ($this->listing?->price ?? 0) * $this->marketer_share_pct / 100;
 
-        return number_format($perSale / 100, 2);
+        return number_format($perSale, 2);
     }
 
     public function getConversionCountAttribute(): int

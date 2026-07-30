@@ -19,10 +19,15 @@ class Cart extends Model
         'affiliate_promo_code_id',
         'subtotal',
         'discount',
+        'wallet_amount_to_use',
         'estimated_shipping',
         'estimated_tax',
         'estimated_total',
         'expires_at',
+    ];
+
+    protected $casts = [
+        'wallet_amount_to_use' => 'integer',
     ];
 
     public function country(): BelongsTo

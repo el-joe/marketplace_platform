@@ -16,6 +16,7 @@ use App\Models\InventoryMovement;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerMonthlyQuotaProgress;
+use App\Models\MarketerQrCode;
 use App\Models\MarketerSampleItem;
 use App\Models\MarketerSampleRequest;
 use App\Models\Setting;
@@ -24,6 +25,7 @@ use App\Models\VendorInfluencerPromotionRequest;
 use App\Models\VendorInfluencerPromotionRequestItem;
 use App\Models\VendorInfluencerReassignmentLog;
 use App\Models\VendorListing;
+use App\Models\Wallet;
 use App\Notifications\Admin\InfluencerReassignmentLogged;
 use App\Notifications\Marketer\NewPromotionRequestReceived;
 use App\Notifications\Marketer\PromotionRequestReassignedAway;
@@ -37,16 +39,21 @@ class InfluencerPromotionRequestService
     public function __construct(
         private readonly InfluencerPromotionFeeService $feeService,
         private readonly MarketerQrCodeService $qrCodeService,
+        private readonly LedgerService $ledgerService,
     ) {}
 
     /**
      * Cost breakdown for the vendor to preview before submitting a request.
      * BIGINT base-currency units. Never divide or multiply by 100.
      */
-    public function calculatePromotionCost(int $numCelebrities, string $fulfillmentModel): array
+    public function calculatePromotionCost(int $numCelebrities, string $fulfillmentModel, Vendor $vendor): array
     {
-        $fixedAdminCommission = (int) Setting::get('promotion_fixed_admin_commission', 2);
-        $feePerCelebrity = (int) Setting::get('promotion_fee_per_celebrity', 9);
+        $countrySettings = DB::table('promotion_country_settings')
+            ->where('country_id', $vendor->country_id)
+            ->first();
+
+        $fixedAdminCommission = $countrySettings->admin_commission ?? 2;
+        $feePerCelebrity = $countrySettings->fee_per_celebrity ?? 9;
         $variableCommissionRate = (float) Setting::get(
             "promotion_variable_commission_{$fulfillmentModel}",
             5.0
@@ -57,7 +64,7 @@ class InfluencerPromotionRequestService
             'promotion_fees' => $feePerCelebrity * $numCelebrities,
             'variable_commission_note' => "Variable commission applied per sale ({$variableCommissionRate}%)",
             'total_upfront_cost' => $fixedAdminCommission + ($feePerCelebrity * $numCelebrities),
-            'currency' => 'SAR', // TODO: make country-aware
+            'currency' => $vendor->country?->currency_code ?? 'SAR',
             'samples_required' => $numCelebrities + 1, // N celebrities + 1 admin
         ];
     }
@@ -157,6 +164,7 @@ class InfluencerPromotionRequestService
                 $item->update(['qr_code_id' => $qrCode->id]);
 
                 $this->deductSamples($item);
+                $this->deductPromotionFees($item);
 
                 $period = now();
                 MarketerMonthlyQuotaProgress::query()
@@ -229,6 +237,78 @@ class InfluencerPromotionRequestService
         }
     }
 
+    /**
+     * Deducts the celebrity slot fee + pro-rata share of the fixed admin
+     * commission from the vendor's wallet, recording a double-entry ledger
+     * movement (debit vendor, credit platform). BIGINT base-currency units.
+     */
+    public function deductPromotionFees(VendorInfluencerPromotionRequestItem $item): void
+    {
+        $request = $item->promotionRequest;
+
+        DB::transaction(function () use ($item, $request) {
+            $vendorWallet = Wallet::query()
+                ->where('owner_type', \App\Enums\WalletOwnerType::Vendor)
+                ->where('owner_id', $request->vendor_id)
+                ->where('currency', $request->currency)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $vendorWallet || $vendorWallet->is_frozen) {
+                throw new \Exception('Vendor wallet unavailable for fee deduction.');
+            }
+
+            $numSlots = $request->num_celebrities_requested ?: 1;
+            $adminShare = (int) floor($request->fixed_admin_commission_snapshot / $numSlots);
+            $slotFee = (int) $item->slot_promotion_fee;
+            $totalDebit = $slotFee + $adminShare;
+
+            // Wallet::balance is BIGINT in the DB but the model accessor exposes it
+            // divided by 100; read/write the raw column to stay in base-currency units.
+            $rawBalance = (int) $vendorWallet->getRawOriginal('balance');
+
+            if ($rawBalance < $totalDebit) {
+                throw new \Exception('Insufficient vendor wallet balance for promotion fee deduction.');
+            }
+
+            Wallet::query()->whereKey($vendorWallet->id)->decrement('balance', $totalDebit);
+
+            $this->ledgerService->record($this->ledgerService->newGroupId(), [
+                [
+                    'account_type' => 'seller_payable',
+                    'account_holder_type' => Vendor::class,
+                    'account_holder_id' => $request->vendor_id,
+                    'debit' => $totalDebit,
+                    'credit' => 0,
+                    'currency' => $request->currency,
+                    'reference_type' => VendorInfluencerPromotionRequestItem::class,
+                    'reference_id' => $item->id,
+                    'description' => 'Promotion fee: celebrity slot + admin commission',
+                ],
+                [
+                    'account_type' => 'platform_revenue',
+                    'account_holder_type' => null,
+                    'account_holder_id' => null,
+                    'debit' => 0,
+                    'credit' => $totalDebit,
+                    'currency' => $request->currency,
+                    'reference_type' => VendorInfluencerPromotionRequestItem::class,
+                    'reference_id' => $item->id,
+                    'description' => 'Promotion fee received from vendor',
+                ],
+            ]);
+
+            $allDeducted = VendorInfluencerPromotionRequestItem::query()
+                ->where('promotion_request_id', $request->id)
+                ->where('status', 'accepted')
+                ->count() === $request->num_celebrities_requested;
+
+            if ($allDeducted) {
+                $request->update(['fee_deducted' => true, 'fee_deducted_at' => now()]);
+            }
+        });
+    }
+
     public function autoReassign(VendorInfluencerPromotionRequestItem $item, ?string $triggeredByAdminId = null, ?string $reason = null): void
     {
         DB::transaction(function () use ($item, $triggeredByAdminId, $reason) {
@@ -264,12 +344,21 @@ class InfluencerPromotionRequestService
             $newItem->update(['expires_at' => now()->addHours($newItem->acceptance_window_hours)]);
 
             if ($item->qr_code_id) {
-                $item->qrCode->update([
-                    'previous_marketer_id' => $item->marketer_id,
-                    'marketer_id' => $candidate->id,
-                    'reassigned_at' => now(),
-                ]);
                 $newItem->update(['qr_code_id' => $item->qr_code_id]);
+            }
+
+            $qrCode = MarketerQrCode::query()
+                ->where('promotion_request_item_id', $item->id)
+                ->where('is_active', true)
+                ->first();
+
+            if ($qrCode) {
+                $qrCode->previous_marketer_id = $item->marketer_id;
+                $qrCode->marketer_id = $candidate->id;
+                $qrCode->promotion_request_item_id = $newItem->id;
+                $qrCode->reassigned_at = now();
+                $this->qrCodeService->regenerateForReassignment($qrCode);
+                $qrCode->save();
             }
 
             $log = VendorInfluencerReassignmentLog::query()->create([

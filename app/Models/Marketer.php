@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class Marketer extends Authenticatable implements JWTSubject
 {
-    use HasUuids, SoftDeletes, Notifiable;
+    use HasUuids, SoftDeletes, Notifiable, HasRoles;
 
     protected $fillable = [
         'name',
@@ -220,11 +221,6 @@ class Marketer extends Authenticatable implements JWTSubject
     public function categoryCommissions(): HasMany
     {
         return $this->hasMany(MarketerCategoryCommission::class);
-    }
-
-    public function monthlyStats(): HasMany
-    {
-        return $this->hasMany(InfluencerMonthlyStat::class);
     }
 
     public function storeProducts(): HasMany

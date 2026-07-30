@@ -27,7 +27,7 @@ class MarketerCommissionTier extends Model
             'tier_order' => 'integer',
             'min_sales_count' => 'integer',
             'max_sales_count' => 'integer',
-            'commission_rate' => 'decimal:2',
+            'commission_rate' => 'decimal:4',
             'is_active' => 'boolean',
         ];
     }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\MarketerPortal;
 
 use App\Http\Controllers\Controller;
-use App\Models\InfluencerMonthlyStat;
+use App\Models\MarketerMonthlyQuotaProgress;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerConversion;
 use Illuminate\Support\Facades\Auth;
@@ -80,11 +80,11 @@ class DashboardController extends Controller
 
         // Celebrity monthly promotion progress (per tier, current month)
         $monthlyStats = $marketer->isCelebrity()
-            ? InfluencerMonthlyStat::query()
+            ? MarketerMonthlyQuotaProgress::query()
                 ->where('marketer_id', $marketer->id)
                 ->where('month', $today->month)
                 ->where('year', $today->year)
-                ->orderBy('tier')
+                ->orderBy('promotion_category')
                 ->get()
             : collect();
 

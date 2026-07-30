@@ -213,6 +213,12 @@ class PermissionSeeder extends Seeder
             'travel.geography.manage',
             // Classifieds
             'classifieds.view',
+            // Promotions (Prompts 12, 13, 15, 16)
+            'promotion_requests.view',
+            'promotion_requests.edit',
+            'celebrity_store.edit',
+            'promotion_settings.view',
+            'promotion_settings.edit',
         ];
 
         foreach ($permissions as $name) {

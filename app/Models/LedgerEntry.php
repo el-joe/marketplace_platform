@@ -10,13 +10,6 @@ class LedgerEntry extends Model
 {
     use HasUuids;
 
-    public static function boot(): void
-    {
-        parent::boot();
-        static::updating(static fn () => throw new \Exception('Ledger entries cannot be modified.'));
-        static::deleting(static fn () => throw new \Exception('Ledger entries cannot be deleted.'));
-    }
-
     protected $fillable = [
         'transaction_group_id',
         'account_type',
@@ -30,6 +23,32 @@ class LedgerEntry extends Model
         'description',
     ];
 
+    protected $casts = [
+        'debit' => 'integer',
+        'credit' => 'integer',
+    ];
+
+    /**
+     * Append-only — financial ledger must never be modified.
+     */
+    public function update(array $attributes = [], array $options = []): never
+    {
+        throw new \RuntimeException('LedgerEntry is append-only and cannot be updated.');
+    }
+
+    /**
+     * Append-only — financial ledger must never be deleted.
+     */
+    public function delete(): never
+    {
+        throw new \RuntimeException('LedgerEntry is append-only and cannot be deleted.');
+    }
+
+    public function scopeForGroup($query, string $groupId)
+    {
+        return $query->where('transaction_group_id', $groupId);
+    }
+
     /**
      * Polymorphic owner (Vendor or Customer).
      * Uses manual columns: account_holder_type / account_holder_id.
@@ -37,5 +56,10 @@ class LedgerEntry extends Model
     public function accountHolder(): MorphTo
     {
         return $this->morphTo('account_holder');
+    }
+
+    public function reference(): MorphTo
+    {
+        return $this->morphTo('reference');
     }
 }

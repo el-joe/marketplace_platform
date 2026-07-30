@@ -16,7 +16,9 @@ class MarketerQrCode extends Model
         'marketer_id',
         'previous_marketer_id',
         'campaign_id',
+        'promotion_request_item_id',
         'vendor_listing_id',
+        'admin_product_listing_id',
         'product_id',
         'code_type',
         'qr_code_path',
@@ -56,9 +58,19 @@ class MarketerQrCode extends Model
         return $this->belongsTo(MarketerCampaign::class);
     }
 
+    public function promotionRequestItem(): BelongsTo
+    {
+        return $this->belongsTo(VendorInfluencerPromotionRequestItem::class, 'promotion_request_item_id');
+    }
+
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class);
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
     }
 
     public function product(): BelongsTo
