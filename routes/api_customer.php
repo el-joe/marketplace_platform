@@ -439,7 +439,7 @@ Route::prefix('v1/{country}')
             });
 
             // Orders (Api\Customer)
-            Route::prefix('orders')->name('customer.api.orders.')->group(function (): void {
+            Route::prefix('api-orders')->name('customer.api.orders.')->group(function (): void {
                 Route::get('/', [ApiOrderController::class, 'index'])->name('index');
                 Route::get('{orderNumber}', [ApiOrderController::class, 'show'])->name('show');
                 Route::get('{orderNumber}/sub-orders/{subOrderNumber}', [ApiOrderController::class, 'showSubOrder'])->name('sub-orders.show');
