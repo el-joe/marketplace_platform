@@ -106,6 +106,7 @@ export default defineConfig({
                 'resources/js/partner/city-surcharges.js',
                 'resources/js/partner/roles.js',
                 'resources/js/partner/campaign-offers.js',
+                'resources/js/partner/influencer-promotion.js',
                 'resources/js/vendor/coupons.js',
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',
