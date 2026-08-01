@@ -238,13 +238,6 @@ class NavigationService
                         'permission' => 'ad_campaigns.view',
                         'badge' => null,
                     ],
-                    [
-                        'label' => __('admin.nav.affiliate_promo_codes'),
-                        'route' => 'admin.affiliate-promo-codes.index',
-                        'icon' => 'ticket',
-                        'permission' => 'marketers.view',
-                        'badge' => null,
-                    ],
                 ],
             ],
             [
@@ -815,7 +808,6 @@ class NavigationService
 
                     ['label' => __('admin.nav.docs_panel_admin'), 'route' => 'admin.docs.panels.admin', 'icon' => 'shield-check', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_panel_partner'), 'route' => 'admin.docs.panels.partner', 'icon' => 'building-storefront', 'permission' => null, 'badge' => null],
-                    ['label' => __('admin.nav.docs_panel_marketer'), 'route' => 'admin.docs.panels.marketer', 'icon' => 'megaphone', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_panel_travel'), 'route' => 'admin.docs.panels.travel', 'icon' => 'globe-alt', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_panel_delivery'), 'route' => 'admin.docs.panels.delivery', 'icon' => 'truck', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_panel_carrier'), 'route' => 'admin.docs.panels.carrier', 'icon' => 'truck', 'permission' => null, 'badge' => null],
@@ -830,10 +822,6 @@ class NavigationService
                     ['label' => __('admin.nav.docs_banners'), 'route' => 'admin.docs.features.banners', 'icon' => 'photo', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_ad_campaigns'), 'route' => 'admin.docs.features.ad-campaigns', 'icon' => 'megaphone', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_vendor_campaigns'), 'route' => 'admin.docs.features.vendor-campaigns', 'icon' => 'rectangle-group', 'permission' => null, 'badge' => null],
-                    ['label' => __('admin.nav.docs_marketer_campaigns'), 'route' => 'admin.docs.features.marketer-campaigns', 'icon' => 'megaphone', 'permission' => null, 'badge' => null],
-                    ['label' => __('admin.nav.docs_influencer_deals'), 'route' => 'admin.docs.features.influencer-deals', 'icon' => 'gift', 'permission' => null, 'badge' => null],
-                    ['label' => __('admin.nav.docs_secret_promotions'), 'route' => 'admin.docs.features.secret-promotions', 'icon' => 'lock-closed', 'permission' => null, 'badge' => null],
-                    ['label' => __('admin.nav.docs_affiliate_codes'), 'route' => 'admin.docs.features.affiliate-codes', 'icon' => 'ticket', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_flash_sales'), 'route' => 'admin.docs.features.flash-sales', 'icon' => 'bolt', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_packaging'), 'route' => 'admin.docs.features.packaging', 'icon' => 'cube', 'permission' => null, 'badge' => null],
                     ['label' => __('admin.nav.docs_warranties'), 'route' => 'admin.docs.features.warranties', 'icon' => 'shield-check', 'permission' => null, 'badge' => null],
