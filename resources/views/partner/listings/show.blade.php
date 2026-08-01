@@ -286,61 +286,6 @@
                 </div>
             </div>
 
-            {{-- Delivery Cost Preview (collapsible) --}}
-            <div class="bg-white rounded-2xl border border-gray-200 p-6" x-data="{ open: false }">
-                <button type="button" class="w-full flex items-center justify-between" @click="open = !open; if (open) window.loadShippingPreview && window.loadShippingPreview();">
-                    <h3 class="font-semibold text-gray-800">{{ __('partner.listings.show.delivery_cost_preview') }}</h3>
-                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open" x-cloak class="mt-4">
-                    <p class="text-xs text-gray-400 mb-3">{{ __('partner.listings.show.indicative_prices_hint') }}</p>
-                    <div id="shipping-preview-loading" class="text-sm text-gray-400 text-center py-6">{{ __('partner.listings.show.loading') }}</div>
-                    <div id="shipping-preview-empty" class="hidden text-sm text-gray-400 text-center py-6">{{ __('partner.listings.show.no_shipping_data') }}</div>
-                    <div id="shipping-preview-table-wrap" class="hidden overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="text-xs text-gray-500 border-b border-gray-100">
-                                    <th class="text-right py-2 font-medium">{{ __('partner.listings.show.preview_table.zone') }}</th>
-                                    <th class="text-right py-2 font-medium">{{ __('partner.listings.show.preview_table.method') }}</th>
-                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.preview_table.full_rate') }}</th>
-                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.preview_table.platform_covers') }}</th>
-                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.preview_table.you_cover') }}</th>
-                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.preview_table.customer_pays') }}</th>
-                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.preview_table.display') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody id="shipping-preview-tbody" class="divide-y divide-gray-50"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Influencer / Affiliate Marketing Commissions --}}
-            <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 class="font-semibold text-gray-800 mb-1">{{ __('partner.listings.marketing_commissions') }}</h3>
-                <p class="text-xs text-gray-400 mb-4">{{ __('partner.listings.marketing_commissions_hint') }}</p>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 text-sm">
-                    <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.influencer_commission_percentage') }}</span>
-                        <span class="font-medium">{{ $listing->influencer_commission_percentage !== null ? number_format($listing->influencer_commission_percentage, 2) . '%' : '—' }}</span>
-                    </div>
-                    <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.influencer_sample_quota') }}</span>
-                        <span class="font-medium">{{ $listing->influencer_sample_quota ?? '—' }}</span>
-                    </div>
-                    <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.affiliate_commission_percentage') }}</span>
-                        <span class="font-medium">{{ $listing->affiliate_commission_percentage !== null ? number_format($listing->affiliate_commission_percentage, 2) . '%' : '—' }}</span>
-                    </div>
-                    <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.affiliate_sample_quota') }}</span>
-                        <span class="font-medium">{{ $listing->affiliate_sample_quota ?? '—' }}</span>
-                    </div>
-                </div>
-            </div>
-
             {{-- Inventory per Warehouse --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
                 <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
