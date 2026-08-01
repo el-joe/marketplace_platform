@@ -14,6 +14,7 @@ enum SettingCategory: string
     case Integrations = 'integrations';
     case Notifications = 'notifications';
     case Orders = 'orders';
+    case Promotion = 'promotion';
     case Security = 'security';
     case Vendors = 'vendors';
 }

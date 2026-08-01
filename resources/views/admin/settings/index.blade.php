@@ -58,6 +58,7 @@
                     'orders' => 'shopping-cart',
                     'security' => 'shield-check',
                     'vendors' => 'building-storefront',
+                    'promotion' => 'megaphone',
                 ];
                 $tabLabels = [
                     'appearance' => __('admin.settings_section.appearance'),
@@ -68,6 +69,7 @@
                     'orders' => __('admin.settings_section.orders_tab'),
                     'security' => __('admin.settings_section.security'),
                     'vendors' => __('admin.settings_section.vendors_tab'),
+                    'promotion' => __('admin.settings_section.promotion_tab'),
                 ];
             @endphp
 

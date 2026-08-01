@@ -147,9 +147,10 @@ class SettingsService
                 } else {
                     // Coerce to the original PHP type stored in DB
                     $original = $setting->value;
+
                     $value = match (true) {
                         is_bool($original) => filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $value,
-                        is_int($original) => (int) $value,
+                        is_int($original) => (float) $value,
                         is_float($original) => (float) $value,
                         is_array($original) => is_string($value) ? (json_decode($value, true) ?? $value) : $value,
                         default => (string) ($value ?? ''),
