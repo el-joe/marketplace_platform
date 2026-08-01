@@ -40,7 +40,7 @@
                         ['id' => 'attributes', 'label' => __('admin.categories.attributes_tab'), 'icon' => 'tag'],
                         ['id' => 'shipping',   'label' => __('admin.categories.shipping_methods_tab'), 'icon' => 'truck'],
                         ['id' => 'seo',        'label' => __('admin.categories.seo_tab'),        'icon' => 'magnifying-glass'],
-                        ['id' => 'marketer_commissions', 'label' => __('admin.categories.marketer_commissions_tab'), 'icon' => 'banknotes'],
+                        ['id' => 'marketers',  'label' => __('admin.categories.marketers_tab'),  'icon' => 'user-group'],
                     ] as $tab)
                     <button
                         type="button"
@@ -233,33 +233,6 @@
                     :value="$val('sort_order', '0')"
                     min="0"
                 />
-
-                {{-- Sample Quotas --}}
-                <div class="border-t border-gray-100 pt-5 space-y-4">
-                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.sample_quotas') }}</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <x-form.input
-                                name="marketer_sample_quota"
-                                label="{{ __('admin.categories.marketer_sample_quota') }}"
-                                type="number"
-                                :value="$val('marketer_sample_quota', '0')"
-                                min="0"
-                            />
-                            <p class="mt-1 text-xs text-gray-500">{{ __('admin.categories.marketer_sample_quota_hint') }}</p>
-                        </div>
-                        <div>
-                            <x-form.input
-                                name="admin_sample_quota"
-                                label="{{ __('admin.categories.admin_sample_quota') }}"
-                                type="number"
-                                :value="$val('admin_sample_quota', '0')"
-                                min="0"
-                            />
-                            <p class="mt-1 text-xs text-gray-500">{{ __('admin.categories.admin_sample_quota_hint') }}</p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {{-- TAB: Attributes --}}
@@ -363,93 +336,96 @@
                 </div>
             </div>
 
-            {{-- TAB: Marketer Commissions --}}
+            {{-- TAB: Marketers --}}
             <div
-                x-show="activeTab === 'marketer_commissions'"
+                x-show="activeTab === 'marketers'"
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-6"
             >
-                {{-- Influencer Commissions --}}
-                <div class="space-y-4">
-                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.influencer_commissions_section') }}</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <x-form.input
-                            name="influencer_commission_pct"
-                            label="{{ __('admin.categories.influencer_commission_pct') }}"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            :value="$val('influencer_commission_pct', '0')"
-                        />
-                        <x-form.input
-                            name="admin_cut_from_influencer_pct"
-                            label="{{ __('admin.categories.admin_cut_from_influencer_pct') }}"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            :value="$val('admin_cut_from_influencer_pct', '0')"
-                        />
-                    </div>
-                </div>
+                @if(!$isEdit)
+                    <p class="text-sm text-gray-400 italic">{{ __('admin.categories.save_category_first_for_shipping') }}</p>
+                @else
+                    {{-- Commission per Country --}}
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">كوميشن الماركتر لكل دولة</h4>
 
-                {{-- Affiliate Marketer Commissions --}}
-                <div class="border-t border-gray-100 pt-5 space-y-4">
-                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.affiliate_commissions_section') }}</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <x-form.input
-                            name="affiliate_commission_pct"
-                            label="{{ __('admin.categories.affiliate_commission_pct') }}"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            :value="$val('affiliate_commission_pct', '0')"
-                        />
-                        <x-form.input
-                            name="admin_cut_from_affiliate_pct"
-                            label="{{ __('admin.categories.admin_cut_from_affiliate_pct') }}"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            :value="$val('admin_cut_from_affiliate_pct', '0')"
-                        />
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500">الدولة</th>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500">العملة</th>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500">كوميشن الإنفلوينسر</th>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500">كوميشن الأفيليت</th>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($activeCountries as $country)
+                                        @php $setting = $marketerCommissions->get($country->id); @endphp
+                                        <tr>
+                                            <form method="POST" action="{{ route('admin.categories.marketer-commission.update', $category->id) }}" class="contents">
+                                                @csrf
+                                                <input type="hidden" name="country_id" value="{{ $country->id }}">
+                                                <input type="hidden" name="currency" value="{{ $setting->currency ?? $country->currency_code }}">
+                                                <td class="px-3 py-2 text-gray-900">{{ $country->name_ar }}</td>
+                                                <td class="px-3 py-2 text-gray-700">{{ $setting->currency ?? $country->currency_code }}</td>
+                                                <td class="px-3 py-2">
+                                                    <input type="number" min="0" step="1" name="influencer_commission_amount"
+                                                        value="{{ $setting->influencer_commission_amount ?? 0 }}"
+                                                        class="w-24 rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
+                                                </td>
+                                                <td class="px-3 py-2">
+                                                    <input type="number" min="0" step="1" name="affiliate_commission_amount"
+                                                        value="{{ $setting->affiliate_commission_amount ?? 0 }}"
+                                                        class="w-24 rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
+                                                </td>
+                                                <td class="px-3 py-2">
+                                                    <button type="submit"
+                                                        class="inline-flex items-center rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700">
+                                                        حفظ
+                                                    </button>
+                                                </td>
+                                            </form>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
-                {{-- Promotion Fees --}}
-                <div class="border-t border-gray-100 pt-5 space-y-4">
-                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.promotion_fees_section') }}</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <x-form.input
-                            name="promotion_fee_per_influencer"
-                            label="{{ __('admin.categories.promotion_fee_per_influencer') }}"
-                            type="number"
-                            min="0"
-                            :value="$val('promotion_fee_per_influencer', '0')"
-                        />
-                        <x-form.input
-                            name="min_stock_for_promotion"
-                            label="{{ __('admin.categories.min_stock_for_promotion') }}"
-                            type="number"
-                            min="0"
-                            :value="$val('min_stock_for_promotion', '0')"
-                        />
+                    {{-- Sample & Campaign Settings --}}
+                    <div class="border-t border-gray-100 pt-5">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">إعدادات العينات والحملات</h4>
+
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">عينات الإنفلوينسر</label>
+                                <input type="number" min="0" step="1" name="influencer_sample_qty"
+                                    value="{{ old('influencer_sample_qty', $category->influencer_sample_qty ?? 0) }}"
+                                    class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">عينات الأفيليت</label>
+                                <input type="number" min="0" step="1" name="affiliate_sample_qty"
+                                    value="{{ old('affiliate_sample_qty', $category->affiliate_sample_qty ?? 0) }}"
+                                    class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">عينات المنصة</label>
+                                <input type="number" min="0" step="1" name="platform_sample_qty"
+                                    value="{{ old('platform_sample_qty', $category->platform_sample_qty ?? 0) }}"
+                                    class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">الحد الأدنى للمخزون للحملة</label>
+                                <input type="number" min="0" step="1" name="min_stock_for_campaign"
+                                    value="{{ old('min_stock_for_campaign', $category->min_stock_for_campaign ?? 0) }}"
+                                    class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
+                            </div>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">تُحفظ هذه الإعدادات مع زر "{{ __('admin.categories.save_changes') }}" أعلى النموذج.</p>
                     </div>
-                </div>
-
-                {{-- Monthly Quotas --}}
-                <div class="border-t border-gray-100 pt-5 space-y-4">
-                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.categories.monthly_quotas_section') }}</h4>
-                    <x-form.input
-                        name="influencer_monthly_quota"
-                        label="{{ __('admin.categories.influencer_monthly_quota') }}"
-                        type="number"
-                        min="0"
-                        :value="$val('influencer_monthly_quota', '0')"
-                    />
-                </div>
+                @endif
             </div>
 
         </div>{{-- /left column --}}

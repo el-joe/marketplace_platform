@@ -1880,7 +1880,7 @@ return [
         'percentage_rate_hint'     => 'e.g. 8.00 = 8% of item sale price',
         'sample_quotas'            => 'Sample Quotas',
         'saved_short'              => 'Saved',
-        'marketer_commissions_tab' => 'Marketer Commissions',
+        'marketers_tab' => 'Marketers',
         'influencer_commissions_section' => 'Influencer (Celebrity/Influencer) Commissions',
         'influencer_commission_pct' => 'Influencer Commission %',
         'admin_cut_from_influencer_pct' => 'Platform Cut from Influencer %',

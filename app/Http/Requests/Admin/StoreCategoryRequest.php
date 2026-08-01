@@ -27,8 +27,6 @@ class StoreCategoryRequest extends FormRequest
             'commission_fbn_pct' => ['nullable', 'numeric', 'between:0,100'],
             'commission_fbn_fixed' => ['nullable', 'integer', 'min:0'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'marketer_sample_quota' => ['nullable', 'integer', 'min:0'],
-            'admin_sample_quota' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
             'is_visible' => ['boolean'],
             'is_featured' => ['boolean'],

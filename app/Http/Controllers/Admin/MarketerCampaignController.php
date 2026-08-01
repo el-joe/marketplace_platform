@@ -15,7 +15,7 @@ class MarketerCampaignController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorize('marketer_campaigns.view');
+        abort_unless(auth('admin')->user()->can('marketer_campaigns.view'), 403);
 
         $campaigns = MarketerCampaign::with([
             'vendor', 'country',
@@ -36,7 +36,7 @@ class MarketerCampaignController extends Controller
 
     public function show(MarketerCampaign $marketerCampaign)
     {
-        $this->authorize('marketer_campaigns.view');
+        abort_unless(auth('admin')->user()->can('marketer_campaigns.view'), 403);
         $marketerCampaign->load([
             'vendor', 'country',
             'vendorListing.productVariant.product',
@@ -58,7 +58,7 @@ class MarketerCampaignController extends Controller
 
     public function approve(Request $request, MarketerCampaign $marketerCampaign)
     {
-        $this->authorize('marketer_campaigns.approve');
+        abort_unless(auth('admin')->user()->can('marketer_campaigns.approve'), 403);
 
         $request->validate([
             'platform_commission_amount' => 'required|integer|min:0',
@@ -80,7 +80,7 @@ class MarketerCampaignController extends Controller
 
     public function reject(Request $request, MarketerCampaign $marketerCampaign)
     {
-        $this->authorize('marketer_campaigns.reject');
+        abort_unless(auth('admin')->user()->can('marketer_campaigns.reject'), 403);
         $request->validate(['rejection_reason' => 'required|string|max:500']);
 
         $this->service->rejectCampaign(

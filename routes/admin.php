@@ -244,6 +244,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         Route::post('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggle-featured');
         Route::post('/{category}/sync-attributes', [CategoryController::class, 'syncAttributes'])->name('sync-attributes');
+        Route::post('/{category}/marketer-commission', [CategoryController::class, 'updateMarketerCommission'])->name('marketer-commission.update');
 
         Route::prefix('{category}/shipping-methods')->name('shipping-methods.')->group(function () {
             Route::get('/', [CategoryShippingMethodController::class, 'index'])->name('index');
@@ -834,9 +835,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     // ─── Marketer Settings (Commission & Fees) ────────────────────────────────────
     Route::prefix('marketer-settings')->name('marketer-settings.')->middleware('admin.permission:marketer_commission_settings.view')->group(function () {
         Route::get('/', [MarketerSettingsController::class, 'index'])->name('index');
-        Route::post('/commission', [MarketerSettingsController::class, 'updateCommission'])->name('update-commission');
         Route::post('/fee', [MarketerSettingsController::class, 'updateInfluencerFee'])->name('update-fee');
-        Route::post('/category', [MarketerSettingsController::class, 'updateCategorySettings'])->name('update-category');
     });
 
     // ─── Vendor Campaign Offers ───────────────────────────────────────────────────

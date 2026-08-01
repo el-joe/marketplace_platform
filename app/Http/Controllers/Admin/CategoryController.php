@@ -104,8 +104,6 @@ class CategoryController extends Controller
                 'is_active' => $request->boolean('is_active', true),
                 'is_visible' => $request->boolean('is_visible', true),
                 'is_featured' => $request->boolean('is_featured'),
-                'marketer_sample_quota' => (int) ($request->marketer_sample_quota ?? 0),
-                'admin_sample_quota' => (int) ($request->admin_sample_quota ?? 0),
                 'seo_title_en' => $request->seo_title_en ?: null,
                 'seo_title_ar' => $request->seo_title_ar ?: null,
                 'seo_description_en' => $request->seo_description_en ?: null,
@@ -133,8 +131,6 @@ class CategoryController extends Controller
                 'is_active' => $request->boolean('is_active', true),
                 'is_visible' => $request->boolean('is_visible', true),
                 'is_featured' => $request->boolean('is_featured'),
-                'marketer_sample_quota' => (int) ($request->marketer_sample_quota ?? 0),
-                'admin_sample_quota' => (int) ($request->admin_sample_quota ?? 0),
                 'seo_title_en' => $request->seo_title_en ?: null,
                 'seo_title_ar' => $request->seo_title_ar ?: null,
                 'seo_description_en' => $request->seo_description_en ?: null,
@@ -184,6 +180,12 @@ class CategoryController extends Controller
             ->whereNull('deleted_at')
             ->findOrFail($category);
 
+        $marketerCommissions = \App\Models\MarketerCommissionCountrySetting::where('category_id', $categoryModel->id)
+            ->with('country')
+            ->get()
+            ->keyBy('country_id');
+        $activeCountries = \App\Models\Country::where('is_active', true)->orderBy('name_en')->get();
+
         return view('admin.categories.edit', array_merge($this->formData(), [
             'breadcrumbs' => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
@@ -191,6 +193,8 @@ class CategoryController extends Controller
                 ['label' => e($categoryModel->name_en)],
             ],
             'category' => $categoryModel,
+            'marketerCommissions' => $marketerCommissions,
+            'activeCountries' => $activeCountries,
         ]));
     }
 
@@ -215,19 +219,10 @@ class CategoryController extends Controller
             'is_active' => $request->boolean('is_active'),
             'is_visible' => $request->boolean('is_visible'),
             'is_featured' => $request->boolean('is_featured'),
-            'marketer_sample_quota' => (int) ($request->marketer_sample_quota ?? $categoryModel->marketer_sample_quota ?? 0),
-            'admin_sample_quota' => (int) ($request->admin_sample_quota ?? $categoryModel->admin_sample_quota ?? 0),
             'seo_title_en' => $request->seo_title_en ?: null,
             'seo_title_ar' => $request->seo_title_ar ?: null,
             'seo_description_en' => $request->seo_description_en ?: null,
             'seo_description_ar' => $request->seo_description_ar ?: null,
-            'influencer_commission_pct' => $request->influencer_commission_pct ?? $categoryModel->influencer_commission_pct ?? 0,
-            'admin_cut_from_influencer_pct' => $request->admin_cut_from_influencer_pct ?? $categoryModel->admin_cut_from_influencer_pct ?? 0,
-            'affiliate_commission_pct' => $request->affiliate_commission_pct ?? $categoryModel->affiliate_commission_pct ?? 0,
-            'admin_cut_from_affiliate_pct' => $request->admin_cut_from_affiliate_pct ?? $categoryModel->admin_cut_from_affiliate_pct ?? 0,
-            'promotion_fee_per_influencer' => (int) ($request->promotion_fee_per_influencer ?? $categoryModel->promotion_fee_per_influencer ?? 0),
-            'min_stock_for_promotion' => (int) ($request->min_stock_for_promotion ?? $categoryModel->min_stock_for_promotion ?? 0),
-            'influencer_monthly_quota' => (int) ($request->influencer_monthly_quota ?? $categoryModel->influencer_monthly_quota ?? 0),
             'updated_at' => now(),
         ];
 
@@ -248,6 +243,13 @@ class CategoryController extends Controller
         }
 
         $categoryModel->update($data);
+
+        $categoryModel->update($request->only([
+            'influencer_sample_qty',
+            'affiliate_sample_qty',
+            'platform_sample_qty',
+            'min_stock_for_campaign',
+        ]));
 
         // Commission rate logging via service
         if ($request->filled('commission_rate')) {
@@ -375,6 +377,33 @@ class CategoryController extends Controller
         $this->service->syncAttributes($categoryModel, $request->input('attributes', []));
 
         return response()->json(['success' => true, 'message' => __('admin.categories.attributes_synced')]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Marketer Commission per Country
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function updateMarketerCommission(Request $request, Category $category)
+    {
+        abort_unless(auth('admin')->user()->can('marketer_commission_settings.edit'), 403);
+        $request->validate([
+            'country_id' => 'required|uuid|exists:countries,id',
+            'influencer_commission_amount' => 'required|integer|min:0',
+            'affiliate_commission_amount' => 'required|integer|min:0',
+            'currency' => 'required|string|size:3',
+        ]);
+
+        \App\Models\MarketerCommissionCountrySetting::updateOrCreate(
+            ['category_id' => $category->id, 'country_id' => $request->country_id],
+            [
+                'influencer_commission_amount' => $request->integer('influencer_commission_amount'),
+                'affiliate_commission_amount' => $request->integer('affiliate_commission_amount'),
+                'currency' => $request->currency,
+                'updated_by_admin_id' => auth()->guard('admin')->id(),
+            ]
+        );
+
+        return back()->with('success', 'تم حفظ إعدادات الكوميشن.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────
