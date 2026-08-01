@@ -14,7 +14,6 @@ class PayoutItem extends Model
         'payout_id',
         'item_type',
         'sub_order_id',
-        'promotion_request_id',
         'sample_item_id',
         'gross',
         'commission',
@@ -30,11 +29,6 @@ class PayoutItem extends Model
     public function subOrder(): BelongsTo
     {
         return $this->belongsTo(SubOrder::class);
-    }
-
-    public function promotionRequest(): BelongsTo
-    {
-        return $this->belongsTo(VendorInfluencerPromotionRequest::class, 'promotion_request_id');
     }
 
     public function sampleItem(): BelongsTo

@@ -4,7 +4,6 @@ use App\Jobs\AutoCompleteOrdersJob;
 use App\Jobs\ExpireVendorCampaignInvitationsJob;
 use App\Jobs\GenerateCodSettlementsJob;
 use App\Jobs\ReleaseExpiredLocksJob;
-use App\Jobs\ApproveMarketerCommissionsJob;
 use App\Jobs\CheckSlaBreachJob;
 use App\Jobs\CheckInfluencerPromotionTimeoutsJob;
 use App\Jobs\GenerateVendorPayoutsJob;
@@ -16,8 +15,6 @@ use App\Jobs\FbnInboundReminderJob;
 use App\Jobs\PublishScheduledBlogPostsJob;
 use App\Jobs\RecalculateBestSellerRankingsJob;
 use App\Jobs\ProcessAcquisitionCommissionsJob;
-use App\Jobs\MarketerMonthlyQuotaWarningJob;
-use App\Jobs\ApplyMarketerMonthEndPenaltiesJob;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -36,9 +33,6 @@ Schedule::job(new FlashSaleSchedulerJob)->everyFiveMinutes()->withoutOverlapping
 Schedule::job(new BannerSchedulerJob)->everyFiveMinutes();
 Schedule::job(new \App\Jobs\PageSchedulerJob)->everyFiveMinutes()->name('page-scheduler');
 Schedule::job(new PublishScheduledBlogPostsJob)->everyFiveMinutes()->name('publish-scheduled-blog-posts');
-
-// Auto-approve marketer commissions after 14-day return window
-Schedule::job(new ApproveMarketerCommissionsJob)->dailyAt('03:00')->name('marketer-approve-commissions');
 
 // Process vendor acquisition agent commissions for the previous month
 Schedule::job(new ProcessAcquisitionCommissionsJob)->monthlyOn(1, '02:00')->name('process-acquisition-commissions');
@@ -82,17 +76,6 @@ Schedule::command('coupons:deactivate-expired')
     ->withoutOverlapping()
     ->runInBackground()
     ->name('deactivate-expired-coupons');
-
-// Warn marketers behind quota during the last 7 days of the month
-Schedule::job(new MarketerMonthlyQuotaWarningJob)
-    ->dailyAt('09:00')
-    ->when(fn () => Carbon::today()->day > Carbon::today()->daysInMonth - 7)
-    ->name('marketer-monthly-quota-warning');
-
-// Apply month-end penalties for unmet quotas and initialize next month's progress
-Schedule::job(new ApplyMarketerMonthEndPenaltiesJob)
-    ->monthlyOn(1, '02:00')
-    ->name('apply-marketer-month-end-penalties');
 
 // Recalculate best-seller rankings per category/country
 Schedule::job(new RecalculateBestSellerRankingsJob, 'rankings')

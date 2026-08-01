@@ -31,12 +31,6 @@ class PermissionSeeder extends Seeder
             'admin_listings.edit',
             'admin_listings.delete',
             'admin_listings.toggle_status',
-            // Influencer Open Market
-            'open_market.view',
-            'open_market.manage',
-            // Celebrity Open Market (Tier 2 Celebrity Store)
-            'celebrity_store.view',
-            'celebrity_store.manage',
             // Catalog – Categories
             'categories.view',
             'categories.create',
@@ -178,33 +172,6 @@ class PermissionSeeder extends Seeder
             'roles.edit',
             'roles.delete',
             'activity-log.view',
-            // Marketers
-            'marketers.view',
-            'marketers.approve',
-            'marketers.reject',
-            'marketers.suspend',
-            'marketers.campaigns.view',
-            'marketers.campaigns.approve',
-            'marketers.campaigns.reject',
-            'marketers.conversions.view',
-            'marketers.conversions.approve',
-            'marketers.payouts.view',
-            'marketers.payouts.generate',
-            'marketers.payouts.approve',
-            'marketers.payouts.process',
-            'marketers.tiers.view',
-            'marketers.tiers.edit',
-            'marketers.secret_promotions.view',
-            'marketers.secret_promotions.create',
-            'marketers.secret_promotions.edit',
-            'marketers.samples.view',
-            'marketers.samples.approve',
-            'marketers.samples.dispatch',
-            'marketers.products.view',
-            'marketers.products.approve',
-            'marketers.products.reject',
-            'admin_can_manage_influencer_promotions',
-            'admin_can_manage_marketer_quotas',
             // Travel
             'travel.view',
             'travel.approve',
@@ -213,12 +180,6 @@ class PermissionSeeder extends Seeder
             'travel.geography.manage',
             // Classifieds
             'classifieds.view',
-            // Promotions (Prompts 12, 13, 15, 16)
-            'promotion_requests.view',
-            'promotion_requests.edit',
-            'celebrity_store.edit',
-            'promotion_settings.view',
-            'promotion_settings.edit',
         ];
 
         foreach ($permissions as $name) {

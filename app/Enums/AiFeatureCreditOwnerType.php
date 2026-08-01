@@ -9,5 +9,4 @@ enum AiFeatureCreditOwnerType: string
     use EnumHelpers;
 
     case Vendor = 'vendor';
-    case Marketer = 'marketer';
 }

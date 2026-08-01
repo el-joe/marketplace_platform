@@ -88,7 +88,6 @@
             <x-partner-nav-item route="partner.marketer-campaigns.index" icon="user-group" label="{{ __('partner.nav.marketer_campaigns') }}" />
             <x-partner-nav-item route="partner.marketer-samples.index" icon="inbox-stack" label="{{ __('partner.nav.sample_requests') }}" />
             <x-partner-nav-item route="partner.campaign-offers.index" icon="gift" label="{{ __('partner.nav.campaign_offers') }}" />
-            <x-partner-nav-item route="partner.promotion-requests.index" icon="star" label="{{ __('partner.nav.promotion_requests') }}" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.open_market') }}">

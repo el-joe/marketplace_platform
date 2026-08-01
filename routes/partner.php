@@ -15,8 +15,6 @@ use App\Http\Controllers\Partner\DisputeController;
 use App\Http\Controllers\Partner\SupportController;
 use App\Http\Controllers\Partner\SubscriptionController as PartnerSubscriptionController;
 use App\Http\Controllers\Partner\FulfillmentController;
-use App\Http\Controllers\Partner\MarketerCampaignController as PartnerMarketerCampaignController;
-use App\Http\Controllers\Partner\MarketerSampleController as PartnerMarketerSampleController;
 use App\Http\Controllers\Partner\RoleController;
 use App\Http\Controllers\Partner\TeamController;
 use App\Http\Controllers\Partner\VendorChangeRequestController;
@@ -123,18 +121,6 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/{listing}/toggle-covers-delivery', 'toggleCoversDelivery')->name('toggle-covers-delivery')->middleware('vendor.can:listings.edit');
         Route::post('/{listing}/update-dimensions', 'updateDimensions')->name('update-dimensions')->middleware('vendor.can:listings.edit');
         Route::get('/{listing}/shipping-preview', 'shippingPreview')->name('shipping-preview')->middleware('vendor.can:listings.view');
-
-        Route::get('/{listing}/influencer-promotion/marketers-search', [\App\Http\Controllers\Partner\InfluencerPromotionController::class, 'marketersSearch'])->name('influencer-promotion.marketers-search')->middleware('vendor.can:influencer_promotions.view');
-        Route::get('/{listing}/influencer-promotion/fee-preview', [\App\Http\Controllers\Partner\InfluencerPromotionController::class, 'feePreview'])->name('influencer-promotion.fee-preview')->middleware('vendor.can:influencer_promotions.view');
-        Route::post('/{listing}/influencer-promotions', [\App\Http\Controllers\Partner\InfluencerPromotionController::class, 'store'])->name('influencer-promotion.request')->middleware('vendor.can:influencer_promotions.request');
-    });
-
-    // ── Promotion requests module ────────────────────────────────────────────
-    Route::prefix('promotion-requests')->name('promotion-requests.')->controller(\App\Http\Controllers\Partner\VendorPromotionRequestController::class)->group(function () {
-        Route::get('/', 'index')->name('index')->middleware('vendor.can:influencer_promotions.view');
-        Route::get('/create', 'create')->name('create')->middleware('vendor.can:influencer_promotions.request');
-        Route::post('/', 'store')->name('store')->middleware('vendor.can:influencer_promotions.request');
-        Route::get('/{request}', 'show')->name('show')->middleware('vendor.can:influencer_promotions.view');
     });
 
     // ── Inventory module ─────────────────────────────────────────────────────
@@ -284,19 +270,6 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/cancel', 'cancel')->name('cancel');
     });
 
-    // ── Marketer Campaigns (read-only for vendors) ───────────────────────────────
-    Route::prefix('marketer-campaigns')->name('marketer-campaigns.')->controller(PartnerMarketerCampaignController::class)->group(function () {
-        Route::get('/', 'index')->name('index')->middleware('vendor.can:campaigns.view');
-        Route::get('/{campaign}', 'show')->name('show')->middleware('vendor.can:campaigns.view');
-    });
-
-    // ── Marketer Sample Requests ─────────────────────────────────────────────────
-    Route::prefix('marketer-samples')->name('marketer-samples.')->controller(PartnerMarketerSampleController::class)->group(function () {
-        Route::get('/', 'index')->name('index')->middleware('vendor.can:campaigns.view');
-        Route::post('/{req}/approve', 'approve')->name('approve')->middleware('vendor.can:campaigns.manage_marketers');
-        Route::post('/{req}/reject', 'reject')->name('reject')->middleware('vendor.can:campaigns.manage_marketers');
-    });
-
     // ── Wallet ────────────────────────────────────────────────────────────────
     Route::prefix('wallet')->name('wallet.')->controller(\App\Http\Controllers\Partner\WalletController::class)->group(function () {
         Route::get('/', 'index')->name('index');
@@ -403,7 +376,6 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/',                                        [CampaignOfferController::class, 'index'])->name('index')->middleware('vendor.can:campaigns.view');
         Route::get('/create',                                  [CampaignOfferController::class, 'create'])->name('create')->middleware('vendor.can:campaigns.create');
         Route::post('/',                                       [CampaignOfferController::class, 'store'])->name('store')->middleware('vendor.can:campaigns.create');
-        Route::get('/marketers/search',                        [CampaignOfferController::class, 'searchMarketers'])->name('marketers.search')->middleware('vendor.can:campaigns.view');
         Route::get('/{offer}',                                 [CampaignOfferController::class, 'show'])->name('show')->middleware('vendor.can:campaigns.view');
         Route::post('/{offer}/submit',                         [CampaignOfferController::class, 'submitForReview'])->name('submit')->middleware('vendor.can:campaigns.edit');
         Route::post('/{offer}/pause',                          [CampaignOfferController::class, 'pauseOffer'])->name('pause')->middleware('vendor.can:campaigns.edit');

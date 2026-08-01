@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\LoginController;
-use App\Http\Controllers\Admin\AdminCelebrityStoreController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductCostController;
@@ -50,7 +49,6 @@ use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\PortalContentController;
 use App\Http\Controllers\Admin\ContentSettingsController;
-use App\Http\Controllers\Admin\AdminPromotionSettingsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingSubsidyController;
@@ -67,17 +65,8 @@ use App\Http\Controllers\Admin\DeliveryAgentController;
 use App\Http\Controllers\Admin\DeliveryZoneController;
 use App\Http\Controllers\Admin\DeliveryAssignmentController;
 use App\Http\Controllers\Admin\DeliveryPayoutController;
-use App\Http\Controllers\Admin\AffiliatePromoCodeController;
-use App\Http\Controllers\Admin\AdminMarketerCommissionController;
-use App\Http\Controllers\Admin\MarketerController;
-use App\Http\Controllers\Admin\MarketerProductController;
-use App\Http\Controllers\Admin\InfluencerDealController;
-use App\Http\Controllers\Admin\InfluencerPromotionController;
-use App\Http\Controllers\Admin\CelebrityMonthlyReportController;
-use App\Http\Controllers\Admin\MarketerMonthlyQuotaController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\FbnController;
-use App\Http\Controllers\Admin\SecretPromotionController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
@@ -919,12 +908,6 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/clear-cache', [SettingsController::class, 'clearCache'])->name('clear-cache')->middleware('admin.permission:settings.edit');
     });
 
-    // ─── Promotion Settings ─────────────────────────────────────────────────────
-    Route::prefix('settings/promotion')->name('settings.promotion.')->middleware('admin.permission:settings.view')->group(function () {
-        Route::get('/', [AdminPromotionSettingsController::class, 'index'])->name('index');
-        Route::put('/', [AdminPromotionSettingsController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
-    });
-
     // ─── Content Settings ─────────────────────────────────────────────────────
     Route::prefix('content-settings')->name('content-settings.')->middleware('admin.permission:settings.content')->group(function () {
         Route::get('/', [ContentSettingsController::class, 'index'])->name('index');
@@ -1217,180 +1200,6 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         });
     });
 
-    // ── Marketers ─────────────────────────────────────────────────────────────────
-    Route::prefix('marketers')->name('marketers.all.')->group(function () {
-        Route::get('/', [MarketerController::class, 'index'])->name('index');
-        Route::post('/', [MarketerController::class, 'store'])->name('store');
-        Route::post('/datatable', [MarketerController::class, 'datatable'])->name('datatable');
-        Route::get('/{marketer}', [MarketerController::class, 'show'])->name('show');
-        Route::post('/{marketer}/approve', [MarketerController::class, 'approve'])->name('approve');
-        Route::post('/{marketer}/reject', [MarketerController::class, 'reject'])->name('reject');
-        Route::post('/{marketer}/suspend', [MarketerController::class, 'suspend'])->name('suspend');
-        Route::post('/{marketer}/activate', [MarketerController::class, 'activate'])->name('activate');
-        Route::post('/{marketer}/campaigns/datatable', [MarketerController::class, 'marketerCampaignsDatatable'])->name('marketer-campaigns.datatable');
-        Route::post('/{marketer}/conversions/datatable', [MarketerController::class, 'marketerConversionsDatatable'])->name('marketer-conversions.datatable');
-        Route::post('/{marketer}/samples/datatable', [MarketerController::class, 'marketerSamplesDatatable'])->name('marketer-samples.datatable');
-        Route::post('/{marketer}/secret-promotions/datatable', [MarketerController::class, 'marketerSecretPromotionsDatatable'])->name('marketer-secret-promotions.datatable');
-        Route::post('/{marketer}/payouts/datatable', [MarketerController::class, 'marketerPayoutsDatatable'])->name('marketer-payouts.datatable');
-        Route::post('/{marketer}/deliverables/datatable', [MarketerController::class, 'marketerDeliverablesDatatable'])->name('marketer-deliverables.datatable');
-        Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
-        Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
-        Route::put('/{marketer}/tiers', [MarketerController::class, 'updateTiers'])->name('tiers.update');
-        Route::post('/{marketer}/invite', [MarketerController::class, 'sendInvitation'])->name('invite');
-
-        Route::prefix('{marketer}/commissions')->name('commissions.')->group(function () {
-            Route::get('/', [AdminMarketerCommissionController::class, 'index'])->name('index');
-            Route::post('/', [AdminMarketerCommissionController::class, 'store'])->name('store');
-            Route::put('/{commission}', [AdminMarketerCommissionController::class, 'update'])->name('update');
-            Route::delete('/{commission}', [AdminMarketerCommissionController::class, 'destroy'])->name('destroy');
-        });
-    });
-
-    // ── Marketer Products (own store) ─────────────────────────────────────────────
-    Route::prefix('marketer-products')->name('marketer-products.')->group(function () {
-        Route::get('/', [MarketerProductController::class, 'index'])->name('index');
-        Route::post('/datatable', [MarketerProductController::class, 'datatable'])->name('datatable');
-        Route::get('/{product}', [MarketerProductController::class, 'show'])->name('show');
-        Route::post('/{product}/approve', [MarketerProductController::class, 'approve'])->name('approve');
-        Route::post('/{product}/reject', [MarketerProductController::class, 'reject'])->name('reject');
-    });
-
-    // ── Affiliate Promo Codes ────────────────────────────────────────────────────
-    Route::prefix('affiliate-promo-codes')->name('affiliate-promo-codes.')->group(function () {
-        Route::get('/', [AffiliatePromoCodeController::class, 'index'])->name('index');
-        Route::post('/datatable', [AffiliatePromoCodeController::class, 'datatable'])->name('datatable');
-        Route::post('/', [AffiliatePromoCodeController::class, 'store'])->name('store');
-        Route::post('/{id}/toggle', [AffiliatePromoCodeController::class, 'toggle'])->name('toggle');
-        Route::delete('/{id}', [AffiliatePromoCodeController::class, 'destroy'])->name('destroy');
-    });
-
-    // ── Influencer Deals ─────────────────────────────────────────────────────────
-    Route::prefix('influencer-deals')->name('influencer-deals.')->group(function () {
-        Route::get('/', [InfluencerDealController::class, 'index'])->name('index');
-        Route::post('/datatable', [InfluencerDealController::class, 'datatable'])->name('datatable');
-        Route::post('/propose', [InfluencerDealController::class, 'propose'])->name('propose');
-        Route::get('/{deal}', [InfluencerDealController::class, 'show'])->name('show');
-        Route::post('/{deal}/approve', [InfluencerDealController::class, 'approve'])->name('approve');
-        Route::post('/{deal}/payment', [InfluencerDealController::class, 'initiatePayment'])->name('payment');
-        Route::post('/{deal}/cancel', [InfluencerDealController::class, 'cancel'])->name('cancel');
-        Route::post('/{deal}/deliverables/{deliverable}/approve', [InfluencerDealController::class, 'approveDeliverable'])->name('deliverables.approve');
-        Route::post('/{deal}/deliverables/{deliverable}/reject', [InfluencerDealController::class, 'rejectDeliverable'])->name('deliverables.reject');
-    });
-
-    // ── Influencer Promotion Requests ───────────────────────────────────────────
-    Route::prefix('influencer-promotions')->name('influencer-promotions.')->middleware('admin.permission:admin_can_manage_influencer_promotions')->group(function () {
-        Route::get('/', [InfluencerPromotionController::class, 'index'])->name('index');
-        Route::post('/datatable', [InfluencerPromotionController::class, 'datatable'])->name('datatable');
-        Route::get('/{promotionRequest}', [InfluencerPromotionController::class, 'show'])->name('show');
-        Route::post('/{promotionRequest}/cancel', [InfluencerPromotionController::class, 'cancel'])->name('cancel');
-        Route::post('/{promotionRequest}/confirm-warehouse-receipt', [InfluencerPromotionController::class, 'confirmWarehouseReceipt'])->name('confirm-warehouse-receipt');
-        Route::post('/{promotionRequest}/settle-sample-debt', [InfluencerPromotionController::class, 'settleSampleDebt'])->name('settle-sample-debt');
-        Route::post('/{promotionRequest}/items/{item}/force-reassign', [InfluencerPromotionController::class, 'forceReassign'])->name('force-reassign');
-    });
-
-    // ── Marketer Monthly Quotas ──────────────────────────────────────────────────
-    Route::prefix('marketer-quotas')->name('marketer-quotas.')->middleware('admin.permission:admin_can_manage_marketer_quotas')->group(function () {
-        Route::get('/progress', [MarketerMonthlyQuotaController::class, 'progress'])->name('progress');
-        Route::post('/progress/datatable', [MarketerMonthlyQuotaController::class, 'progressDatatable'])->name('progress.datatable');
-        Route::post('/progress/send-warnings', [MarketerMonthlyQuotaController::class, 'sendBulkWarnings'])->name('progress.send-warnings');
-        Route::get('/', [MarketerMonthlyQuotaController::class, 'index'])->name('index');
-        Route::post('/datatable', [MarketerMonthlyQuotaController::class, 'datatable'])->name('datatable');
-        Route::post('/', [MarketerMonthlyQuotaController::class, 'store'])->name('store');
-        Route::put('/{quota}', [MarketerMonthlyQuotaController::class, 'update'])->name('update');
-        Route::delete('/{quota}', [MarketerMonthlyQuotaController::class, 'destroy'])->name('destroy');
-        Route::post('/{quota}/toggle', [MarketerMonthlyQuotaController::class, 'toggleActive'])->name('toggle');
-    });
-
-    // ── Celebrity Monthly Progress Report ───────────────────────────────────────
-    Route::prefix('celebrities')->name('celebrities.')->group(function () {
-        Route::get('/monthly-report', [CelebrityMonthlyReportController::class, 'index'])->name('monthly-report');
-        Route::post('/monthly-report/datatable', [CelebrityMonthlyReportController::class, 'datatable'])->name('monthly-report.datatable');
-        Route::get('/monthly-report/export', [CelebrityMonthlyReportController::class, 'export'])->name('monthly-report.export');
-    });
-
-    // ── Celebrity Open Market (Tier 2 Celebrity Store) ─────────────────────────
-    Route::prefix('celebrity-store')->name('celebrity-store.')
-        ->middleware('admin.permission:celebrity_store.view')
-        ->group(function () {
-            Route::get('/', [AdminCelebrityStoreController::class, 'index'])->name('index');
-            Route::post('/datatable', [AdminCelebrityStoreController::class, 'datatable'])->name('datatable');
-            Route::get('/search-celebrities', [AdminCelebrityStoreController::class, 'searchCelebrities'])->name('search-celebrities');
-            Route::get('/search-listings', [AdminCelebrityStoreController::class, 'searchListings'])->name('search-listings');
-            Route::post('/products', [AdminCelebrityStoreController::class, 'approveProduct'])
-                ->middleware('admin.permission:celebrity_store.manage')->name('products.approve');
-            Route::delete('/products/{product}', [AdminCelebrityStoreController::class, 'removeProduct'])
-                ->middleware('admin.permission:celebrity_store.manage')->name('products.remove');
-            Route::put('/products/{product}/commission', [AdminCelebrityStoreController::class, 'setCommission'])
-                ->middleware('admin.permission:celebrity_store.manage')->name('products.commission');
-        });
-
-    // ── Marketer Secret Promotions ──────────────────────────────────────────────
-    Route::prefix('marketers-secret-promotions')->name('secret-promotions.')->group(function () {
-        // AJAX helpers — must come before wildcard {secretPromotion}
-        Route::get('/listings/by-vendor', [SecretPromotionController::class, 'getListingsForVendor'])->name('listings.by-vendor');
-        Route::get('/listings/admin-search', [SecretPromotionController::class, 'getListingsForAdmin'])->name('listings.admin-search');
-        Route::get('/listings/{listing}/details', [SecretPromotionController::class, 'getListingDetails'])->name('listings.details');
-        Route::get('/stats/cards', [SecretPromotionController::class, 'stats'])->name('stats');
-        Route::post('/datatable', [SecretPromotionController::class, 'datatable'])->name('datatable');
-
-        Route::get('/', [SecretPromotionController::class, 'index'])->name('index');
-        Route::post('/', [SecretPromotionController::class, 'store'])->name('store');
-        Route::get('/{secretPromotion}', [SecretPromotionController::class, 'show'])->name('show');
-        Route::put('/{secretPromotion}', [SecretPromotionController::class, 'update'])->name('update');
-        Route::post('/{secretPromotion}/toggle-status', [SecretPromotionController::class, 'toggleStatus'])->name('toggle-status');
-        Route::post('/{secretPromotion}/approve', [SecretPromotionController::class, 'approve'])->name('approve');
-        Route::post('/{secretPromotion}/reject', [SecretPromotionController::class, 'reject'])->name('reject');
-        Route::post('/{secretPromotion}/expire', [SecretPromotionController::class, 'expire'])->name('expire');
-        Route::post('/{secretPromotion}/duplicate', [SecretPromotionController::class, 'duplicate'])->name('duplicate');
-    });
-
-
-
-
-
-    // ── Marketer Samples ────────────────────────────────────────────────────────
-    Route::prefix('marketer-samples')->name('marketers.samples.')->group(function () {
-        Route::get('/', [MarketerController::class, 'samplesIndex'])->name('index');
-        Route::post('/datatable', [MarketerController::class, 'samplesDatatable'])->name('datatable');
-        Route::post('/{req}/approve', [MarketerController::class, 'approveSample'])->name('approve');
-        Route::post('/{req}/dispatch', [MarketerController::class, 'dispatchSample'])->name('dispatch');
-        Route::post('/{req}/reject', [MarketerController::class, 'rejectSample'])->name('reject');
-        Route::get('/{req}', [MarketerController::class, 'showSample'])->name('show');
-    });
-
-    // ── Marketer Campaigns ────────────────────────────────────────────────────────
-    Route::prefix('marketer-campaigns')->name('marketers.campaigns.')->group(function () {
-        Route::get('/', [MarketerController::class, 'campaignsIndex'])->name('index');
-        Route::post('/datatable', [MarketerController::class, 'campaignsDatatable'])->name('datatable');
-        Route::get('/{campaign}', [MarketerController::class, 'showCampaign'])->name('show');
-        Route::post('/{campaign}/approve', [MarketerController::class, 'approveCampaign'])->name('approve');
-        Route::post('/{campaign}/reject', [MarketerController::class, 'rejectCampaign'])->name('reject');
-        Route::post('/{campaign}/samples-required', [MarketerController::class, 'updateCampaignSamplesRequired'])->name('samples-required');
-        Route::post('/{campaign}/pause-request/approve', [MarketerController::class, 'approvePauseRequest'])->name('pause-request.approve');
-        Route::post('/{campaign}/pause-request/dismiss', [MarketerController::class, 'dismissPauseRequest'])->name('pause-request.dismiss');
-        Route::post('/{campaign}/products/datatable', [MarketerController::class, 'campaignProductsDatatable'])->name('products.datatable');
-        Route::post('/{campaign}/products', [MarketerController::class, 'storeCampaignProduct'])->name('products.store');
-        Route::delete('/{campaign}/products/{product}', [MarketerController::class, 'destroyCampaignProduct'])->name('products.destroy');
-        Route::get('/listings/admin-search', [MarketerController::class, 'searchAdminListingsForCampaign'])->name('listings.admin-search');
-        Route::get('/listings/vendor-search', [MarketerController::class, 'searchVendorListingsForCampaign'])->name('listings.vendor-search');
-    });
-
-    // ── Marketer Conversions ──────────────────────────────────────────────────────
-    Route::prefix('marketer-conversions')->name('marketers.conversions.')->group(function () {
-        Route::get('/', [MarketerController::class, 'conversionsIndex'])->name('index');
-        Route::post('/datatable', [MarketerController::class, 'conversionsDatatable'])->name('datatable');
-        Route::post('/approve', [MarketerController::class, 'approveConversions'])->name('approve');
-    });
-
-    // ── Marketer Payouts ──────────────────────────────────────────────────────────
-    Route::prefix('marketer-payouts')->name('marketers.payouts.')->group(function () {
-        Route::get('/', [MarketerController::class, 'payoutsIndex'])->name('index');
-        Route::post('/datatable', [MarketerController::class, 'payoutsDatatable'])->name('datatable');
-        Route::post('/generate', [MarketerController::class, 'generatePayout'])->name('generate');
-        Route::post('/{payout}/approve', [MarketerController::class, 'approvePayout'])->name('approve');
-        Route::post('/{payout}/process', [MarketerController::class, 'processPayout'])->name('process');
-    });
-
     // ── FBN / Fulfillment ─────────────────────────────────────────────────────
     Route::prefix('fbn')->name('fbn.')->group(function () {
 
@@ -1476,27 +1285,6 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         // Attachment verification
         Route::post('/attachments/{attachment}/verify', [\App\Http\Controllers\Admin\ClassifiedListingController::class, 'verifyAttachment'])
             ->name('attachments.verify');
-    });
-
-    // ─── Influencer Open Market (Category 3 & 4 product assignment) ─────────
-    Route::prefix('open-market')->name('open-market.')
-        ->middleware('admin.permission:open_market.view')
-        ->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'index'])->name('index');
-        Route::post('/datatable', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'datatable'])->name('datatable');
-        Route::get('/search-listings', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'searchListings'])->name('search-listings');
-        Route::post('/', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'store'])
-            ->middleware('admin.permission:open_market.manage')->name('store');
-        Route::post('/{openMarketProduct}/toggle', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'toggle'])
-            ->middleware('admin.permission:open_market.manage')->name('toggle');
-        Route::delete('/{openMarketProduct}', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'destroy'])
-            ->middleware('admin.permission:open_market.manage')->name('destroy');
-        Route::post('/admin-product-listings/{adminProductListing}/toggle', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'toggleForAdminListing'])
-            ->middleware('admin.permission:open_market.manage')->name('toggle-for-admin-listing');
-        Route::post('/bulk-assign-tier', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'bulkAssignTier'])
-            ->middleware('admin.permission:open_market.manage')->name('bulk-assign-tier');
-        Route::post('/{openMarketProduct}/update-commission', [\App\Http\Controllers\Admin\AdminInfluencerOpenMarketProductController::class, 'updateCommission'])
-            ->middleware('admin.permission:open_market.manage')->name('update-commission');
     });
 
     // ─── Admin Product Listings (Now Nawy) ───────────────────────────────────
@@ -1807,7 +1595,6 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         // Panels
         Route::get('/panels/admin', [\App\Http\Controllers\Admin\DocsController::class, 'adminPanel'])->name('panels.admin');
         Route::get('/panels/partner', [\App\Http\Controllers\Admin\DocsController::class, 'partnerPanel'])->name('panels.partner');
-        Route::get('/panels/marketer', [\App\Http\Controllers\Admin\DocsController::class, 'marketerPanel'])->name('panels.marketer');
         Route::get('/panels/travel', [\App\Http\Controllers\Admin\DocsController::class, 'travelPanel'])->name('panels.travel');
         Route::get('/panels/delivery', [\App\Http\Controllers\Admin\DocsController::class, 'deliveryPanel'])->name('panels.delivery');
         Route::get('/panels/carrier', [\App\Http\Controllers\Admin\DocsController::class, 'carrierPanel'])->name('panels.carrier');
@@ -1820,11 +1607,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/features/page-builder', [\App\Http\Controllers\Admin\DocsController::class, 'pageBuilder'])->name('features.page-builder');
         Route::get('/features/banners', [\App\Http\Controllers\Admin\DocsController::class, 'banners'])->name('features.banners');
         Route::get('/features/ad-campaigns', [\App\Http\Controllers\Admin\DocsController::class, 'adCampaigns'])->name('features.ad-campaigns');
-        Route::get('/features/marketer-campaigns', [\App\Http\Controllers\Admin\DocsController::class, 'marketerCampaigns'])->name('features.marketer-campaigns');
         Route::get('/features/vendor-campaigns', [\App\Http\Controllers\Admin\DocsController::class, 'vendorCampaigns'])->name('features.vendor-campaigns');
-        Route::get('/features/influencer-deals', [\App\Http\Controllers\Admin\DocsController::class, 'influencerDeals'])->name('features.influencer-deals');
-        Route::get('/features/secret-promotions', [\App\Http\Controllers\Admin\DocsController::class, 'secretPromotions'])->name('features.secret-promotions');
-        Route::get('/features/affiliate-codes', [\App\Http\Controllers\Admin\DocsController::class, 'affiliateCodes'])->name('features.affiliate-codes');
         Route::get('/features/flash-sales', [\App\Http\Controllers\Admin\DocsController::class, 'flashSales'])->name('features.flash-sales');
         Route::get('/features/finance', [\App\Http\Controllers\Admin\DocsController::class, 'finance'])->name('features.finance');
         Route::get('/features/subsidy', [\App\Http\Controllers\Admin\DocsController::class, 'subsidy'])->name('features.subsidy');

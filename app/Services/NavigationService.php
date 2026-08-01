@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Enums\ClassifiedListingStatus;
 use App\Enums\DisputeStatus;
 use App\Enums\ReturnRequestStatus;
-use App\Enums\MarketerStatus;
 use App\Enums\SupportTicketStatus;
 use App\Enums\TravelPackageStatus;
 use App\Enums\VendorCampaignOfferStatus;
@@ -78,20 +77,6 @@ class NavigationService
                         'route' => 'admin.categories.index',
                         'icon' => 'rectangle-stack',
                         'permission' => 'categories.view',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => 'Influencer Open Market',
-                        'route' => 'admin.open-market.index',
-                        'icon' => 'megaphone',
-                        'permission' => 'open_market.view',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => 'Celebrity Open Market',
-                        'route' => 'admin.celebrity-store.index',
-                        'icon' => 'star',
-                        'permission' => 'celebrity_store.view',
                         'badge' => null,
                     ],
                     [
@@ -342,97 +327,6 @@ class NavigationService
                         'route' => 'admin.roles.index',
                         'icon' => 'key',
                         'permission' => 'roles.view',
-                        'badge' => null,
-                    ],
-                ],
-            ],
-            [
-                'group' => __('admin.nav.marketers'),
-                'icon' => 'user-group',
-                'items' => [
-                    [
-                        'label' => __('admin.nav.all_marketers'),
-                        'route' => 'admin.marketers.all.index',
-                        'icon' => 'user-group',
-                        'permission' => 'marketers.view',
-                        // 'badge' => $this->cachedBadge('pending_marketers', fn() => $this->countPendingMarketers()),
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.campaigns'),
-                        'route' => 'admin.marketers.campaigns.index',
-                        'icon' => 'megaphone',
-                        'permission' => 'marketers.campaigns.view',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.conversions'),
-                        'route' => 'admin.marketers.conversions.index',
-                        'icon' => 'arrow-trending-up',
-                        'permission' => 'marketers.conversions.view',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.payouts'),
-                        'route' => 'admin.marketers.payouts.index',
-                        'icon' => 'banknotes',
-                        'permission' => 'marketers.payouts.view',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.sample_requests'),
-                        'route' => 'admin.marketers.samples.index',
-                        'icon' => 'inbox-stack',
-                        'permission' => 'marketers.samples.view',
-                        'badge' => $this->cachedBadge('pending_marketer_samples', fn() => $this->countPendingMarketerSamples()),
-                    ],
-                    [
-                        'label' => __('admin.nav.marketer_products'),
-                        'route' => 'admin.marketer-products.index',
-                        'icon' => 'shopping-bag',
-                        'permission' => 'marketers.products.view',
-                        'badge' => $this->cachedBadge('pending_marketer_products', fn() => $this->countPendingMarketerProducts()),
-                    ],
-                    [
-                        'label' => __('admin.nav.influencer_deals'),
-                        'route' => 'admin.influencer-deals.index',
-                        'icon' => 'gift',
-                        'permission' => 'marketers.view',
-                        'badge' => $this->cachedBadge('pending_influencer_deals', fn() => $this->countPendingInfluencerDeals()),
-                    ],
-                    [
-                        'label' => __('admin.nav.secret_promotions'),
-                        'route' => 'admin.secret-promotions.index',
-                        'icon' => 'lock-closed',
-                        'permission' => 'marketers.secret_promotions.view',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.influencer_promotions'),
-                        'route' => 'admin.influencer-promotions.index',
-                        'icon' => 'megaphone',
-                        'permission' => 'admin_can_manage_influencer_promotions',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.marketer_quotas'),
-                        'route' => 'admin.marketer-quotas.index',
-                        'icon' => 'chart-bar',
-                        'permission' => 'admin_can_manage_marketer_quotas',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.marketer_quotas_progress'),
-                        'route' => 'admin.marketer-quotas.progress',
-                        'icon' => 'presentation-chart-line',
-                        'permission' => 'admin_can_manage_marketer_quotas',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.celebrity_monthly_report'),
-                        'route' => 'admin.celebrities.monthly-report',
-                        'icon' => 'chart-bar',
-                        'permission' => 'celebrity_store.view',
                         'badge' => null,
                     ],
                 ],
@@ -1191,42 +1085,6 @@ class NavigationService
         }
         try {
             return (int) \App\Models\CartCardOffer::query()->active()->count();
-        } catch (\Throwable) {
-            return 0;
-        }
-    }
-
-    protected function countPendingMarketers(): int
-    {
-        try {
-            return (int) \App\Models\Marketer::query()->where('status', MarketerStatus::Pending->value)->count();
-        } catch (\Throwable) {
-            return 0;
-        }
-    }
-
-    protected function countPendingInfluencerDeals(): int
-    {
-        try {
-            return (int) \App\Models\InfluencerDeal::query()->where('status', 'content_submitted')->count();
-        } catch (\Throwable) {
-            return 0;
-        }
-    }
-
-    protected function countPendingMarketerProducts(): int
-    {
-        try {
-            return (int) \App\Models\MarketerProduct::query()->where('status', 'pending_review')->count();
-        } catch (\Throwable) {
-            return 0;
-        }
-    }
-
-    protected function countPendingMarketerSamples(): int
-    {
-        try {
-            return (int) \App\Models\MarketerSampleRequest::query()->where('status', 'requested')->count();
         } catch (\Throwable) {
             return 0;
         }
