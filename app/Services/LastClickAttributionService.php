@@ -35,7 +35,7 @@ class LastClickAttributionService
 
         $invitation = MarketerCampaignInvitation::where('referral_code', $click['referral_code'])
             ->where('status', 'accepted')
-            ->with('campaign')
+            ->with('campaign.tieredRules')
             ->first();
 
         if (!$invitation) {
@@ -44,32 +44,67 @@ class LastClickAttributionService
         if (!in_array($invitation->campaign->status, ['active', 'auto_approved'], true)) {
             return;
         }
-        if ($invitation->campaign->commission_type !== 'last_click') {
-            return;
-        }
 
-        DB::transaction(function () use ($invitation, $order, $click) {
-            $commissionAmount = $invitation->campaign->marketer_commission_amount;
-            if ($commissionAmount === 0) {
-                // VERIFY: fallback to MarketerCommissionCountrySetting for auto-approved campaigns
-                // that never had an admin-set commission split.
+        DB::transaction(function () use ($invitation, $order, $click, $sessionId) {
+            $campaign          = $invitation->campaign;
+            $saleNumber        = $invitation->total_conversions + 1;
+            $commissionAmount  = 0;
+            $applicableTierId  = null;
+
+            switch ($campaign->commission_type) {
+                case 'fixed':
+                case 'last_click':
+                    // Both use the marketer_commission_amount set by admin
+                    $commissionAmount = $campaign->marketer_commission_amount;
+
+                    // Fallback to category settings for auto-approved campaigns
+                    if ($commissionAmount === 0) {
+                        $setting = \App\Models\MarketerCommissionCountrySetting::where('country_id', $campaign->country_id)
+                            ->whereHas('category', fn ($q) => $q->where('id',
+                                $campaign->vendorListing?->productVariant?->product?->category_id
+                                    ?? $campaign->adminListing?->productVariant?->product?->category_id
+                            ))
+                            ->first();
+
+                        $marketerVendor   = $invitation->marketer;
+                        $commissionAmount = $setting
+                            ? ($marketerVendor->marketer_type === 'influencer'
+                                ? $setting->influencer_commission_amount
+                                : $setting->affiliate_commission_amount)
+                            : 0;
+                    }
+                    break;
+
+                case 'tiered':
+                    $applicableTier = $campaign->tieredRules
+                        ->where('from_sale_number', '<=', $saleNumber)
+                        ->sortByDesc('from_sale_number')
+                        ->first();
+                    $commissionAmount = $applicableTier?->commission_amount ?? 0;
+                    $applicableTierId = $applicableTier?->id;
+                    break;
             }
 
             MarketerCampaignConversion::create([
-                'campaign_id'             => $invitation->campaign_id,
+                'campaign_id'             => $campaign->id,
                 'invitation_id'           => $invitation->id,
                 'order_id'                => $order->id,
                 'referral_clicked_at'     => $click['clicked_at'],
                 'commission_amount'       => $commissionAmount,
-                'currency'                => $invitation->campaign->currency,
+                'currency'                => $campaign->currency,
                 'commissioned'            => false,
-                'sale_number_in_campaign' => $invitation->total_conversions + 1,
+                'sale_number_in_campaign' => $saleNumber,
+                'tiered_rule_id'          => $campaign->commission_type === 'tiered' ? $applicableTierId : null,
             ]);
 
             $invitation->increment('total_conversions');
             $invitation->increment('total_commission_earned', $commissionAmount);
-        });
 
-        Cache::forget("referral_click:{$sessionId}");
+            // For last_click only: clear attribution after conversion.
+            // For fixed/tiered: keep the cookie so repeat purchases also convert.
+            if ($campaign->commission_type === 'last_click') {
+                Cache::forget("referral_click:{$sessionId}");
+            }
+        });
     }
 }
