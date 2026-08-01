@@ -9750,4 +9750,9 @@ return [
         'please_enter_reason' => 'Please enter a reason.',
         'something_went_wrong' => 'Something went wrong.',
     ],
+
+    'marketer_types' => [
+        'influencer' => 'Influencer',
+        'affiliate' => 'Affiliate',
+    ],
 ];

@@ -9752,4 +9752,9 @@ return [
         'please_enter_reason' => 'يرجى إدخال سبب.',
         'something_went_wrong' => 'حدث خطأ ما.',
     ],
+
+    'marketer_types' => [
+        'influencer' => 'إنفلوينسر',
+        'affiliate' => 'أفيلييت',
+    ],
 ];

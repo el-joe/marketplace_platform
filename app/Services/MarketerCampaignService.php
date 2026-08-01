@@ -33,6 +33,41 @@ class MarketerCampaignService
      *             marketer_vendor_ids (array of UUIDs),
      *             tiered_rules (array of {from_sale_number, commission_amount} — only for tiered type)
      */
+    /**
+     * Mark conversions as paid when included in a payout.
+     * Called from payout processing flow.
+     */
+    public function markConversionsPaid(array $conversionIds, string $payoutId): void
+    {
+        DB::transaction(function () use ($conversionIds, $payoutId) {
+            \App\Models\MarketerCampaignConversion::whereIn('id', $conversionIds)
+                ->where('commissioned', false)
+                ->update([
+                    'commissioned' => true,
+                    'paid_at'      => now(),
+                ]);
+
+            $conversions = \App\Models\MarketerCampaignConversion::whereIn('id', $conversionIds)
+                ->with('invitation.marketer')
+                ->get();
+
+            $earningsByMarketer = $conversions->groupBy('invitation.marketer_vendor_id');
+
+            foreach ($earningsByMarketer as $marketerId => $marketerConversions) {
+                $totalEarned = $marketerConversions->sum('commission_amount');
+                $marketer    = $marketerConversions->first()->invitation->marketer;
+
+                $profile = $marketer->marketerProfile()->firstOrCreate(
+                    ['vendor_id' => $marketerId],
+                    ['total_earnings' => 0, 'total_conversions' => 0]
+                );
+
+                $profile->increment('total_earnings', $totalEarned);
+                $profile->increment('total_conversions', $marketerConversions->count());
+            }
+        });
+    }
+
     public function createCampaign(Vendor $vendor, array $data): MarketerCampaign
     {
         return DB::transaction(function () use ($vendor, $data) {
@@ -220,8 +255,19 @@ class MarketerCampaignService
             'referral_link'           => url("/r/{$referralCode}"),
         ]);
 
-        // VERIFY: generate QR code (endroid/qr-code) and persist qr_code_path
-        // $invitation->update(['qr_code_path' => $this->generateQrCode($invitation->referral_link, $invitation->id)]);
+        // Generate QR code for referral link
+        try {
+            $qrCode = \Endroid\QrCode\QrCode::create($invitation->referral_link)
+                ->setSize(300)
+                ->setMargin(10);
+            $writer  = new \Endroid\QrCode\Writer\PngWriter();
+            $result  = $writer->write($qrCode);
+            $qrPath  = 'qrcodes/invitations/' . $invitation->id . '.png';
+            \Illuminate\Support\Facades\Storage::disk('public')->put($qrPath, $result->getString());
+            $invitation->update(['qr_code_path' => $qrPath]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('QR generation failed for invitation ' . $invitation->id . ': ' . $e->getMessage());
+        }
 
         ProcessInvitationTimeoutJob::dispatch($invitation->id)
             ->delay(now()->addHours($timeoutHours));
