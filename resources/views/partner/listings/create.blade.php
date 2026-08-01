@@ -323,48 +323,6 @@
                         </div>
                     </div>
 
-                    {{-- Influencer / Affiliate Marketing Commissions --}}
-                    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-                        <h4 class="font-semibold text-gray-800 text-sm mb-1">{{ __('partner.listings.marketing_commissions') }}</h4>
-                        <p class="text-xs text-gray-400 mb-2">{{ __('partner.listings.marketing_commissions_hint') }}</p>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.influencer_commission_percentage') }}</label>
-                                <div class="relative">
-                                    <input type="number" name="influencer_commission_percentage" step="0.01" min="0" max="100"
-                                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                                        placeholder="0.00">
-                                    <span class="absolute top-2.5 left-3 text-gray-400 text-sm">%</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.influencer_sample_quota') }}</label>
-                                <input type="number" name="influencer_sample_quota" min="0" max="9999"
-                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                                    placeholder="{{ __('common.optional') }}">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.affiliate_commission_percentage') }}</label>
-                                <div class="relative">
-                                    <input type="number" name="affiliate_commission_percentage" step="0.01" min="0" max="100"
-                                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                                        placeholder="0.00">
-                                    <span class="absolute top-2.5 left-3 text-gray-400 text-sm">%</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.affiliate_sample_quota') }}</label>
-                                <input type="number" name="affiliate_sample_quota" min="0" max="9999"
-                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                                    placeholder="{{ __('common.optional') }}">
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- Marketer Promotion --}}
                     <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4"
                         x-data="{ promote: false }">
