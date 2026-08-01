@@ -225,6 +225,20 @@ class NavigationService
                         'badge' => $this->cachedBadge('pending_campaign_offers', fn() => $this->countPendingCampaignOffers()),
                     ],
                     [
+                        'label' => __('admin.nav.marketer_campaigns'),
+                        'route' => 'admin.marketer-campaigns.index',
+                        'icon' => 'user-group',
+                        'permission' => 'marketer_campaigns.view',
+                        'badge' => $this->cachedBadge('pending_marketer_campaigns', fn() => $this->countPendingMarketerCampaigns()),
+                    ],
+                    [
+                        'label' => __('admin.nav.marketer_settings'),
+                        'route' => 'admin.marketer-settings.index',
+                        'icon' => 'cog-6-tooth',
+                        'permission' => 'marketer_commission_settings.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.ad_slots'),
                         'route' => 'admin.ad-slots.index',
                         'icon' => 'rectangle-stack',
@@ -1061,6 +1075,15 @@ class NavigationService
     {
         try {
             return (int) \App\Models\VendorCampaignOffer::query()->where('status', VendorCampaignOfferStatus::PendingAdmin->value)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingMarketerCampaigns(): int
+    {
+        try {
+            return (int) \App\Models\MarketerCampaign::query()->where('status', 'pending_admin')->count();
         } catch (\Throwable) {
             return 0;
         }

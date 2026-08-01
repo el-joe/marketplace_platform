@@ -28,6 +28,7 @@ class VendorListing extends Model
             'declared_length_cm' => 'decimal:2',
             'declared_width_cm' => 'decimal:2',
             'declared_height_cm' => 'decimal:2',
+            'campaign_enabled' => 'boolean',
         ];
     }
 
@@ -73,6 +74,7 @@ class VendorListing extends Model
         'declared_length_cm',
         'declared_width_cm',
         'declared_height_cm',
+        'campaign_enabled',
     ];
 
     public function vendor(): BelongsTo

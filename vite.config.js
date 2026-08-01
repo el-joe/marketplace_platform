@@ -111,6 +111,7 @@ export default defineConfig({
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',
                 'resources/js/marketer/app.js',
+                'resources/js/marketer/reports.js',
                 // Travel Agency Portal (travel-agency subdomain)
                 'resources/js/travel_agency/campaigns.js',
                 'resources/js/travel_agency/team.js',

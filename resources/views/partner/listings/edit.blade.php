@@ -240,6 +240,99 @@
                     </div>
                 </div>
 
+                @if(auth()->guard('vendor')->user()->vendor->isMarketer())
+                {{-- Marketer Campaign --}}
+                <div class="bg-white rounded-2xl border border-purple-200 p-6 space-y-4"
+                    x-data="campaignSection()">
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" name="campaign_enabled" value="1" x-model="enabled"
+                            class="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                        <span class="text-sm text-gray-700">
+                            <i class="fas fa-bullhorn text-purple-500 mr-1"></i>
+                            تفعيل حملة ماركتر لهذا المنتج
+                            <span class="block text-xs text-gray-400 mt-0.5">
+                                متاح فقط لقوائم FBN — يتيح لك دعوة ماركترز للترويج مقابل عمولة.
+                            </span>
+                        </span>
+                    </label>
+
+                    <template x-if="!isFbn">
+                        <p class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3">
+                            يجب اختيار نموذج التنفيذ FBN لتفعيل حملة الماركتر.
+                        </p>
+                    </template>
+
+                    <div x-show="enabled && isFbn" x-cloak class="space-y-4"
+                        x-effect="enabled && $nextTick(() => window.initSelect2 && window.initSelect2())">
+                        <x-form.select
+                            name="marketer_vendor_ids"
+                            label="اختر الماركترز"
+                            :multiple="true"
+                            :select2="true"
+                            placeholder="ابحث واختر الماركترز..."
+                            x-on:change="updateSampleCount($event)"
+                            :options="$marketerVendors->mapWithKeys(fn ($m) => [
+                                $m->id => $m->business_name . ' — ' . ($m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت'),
+                            ])"
+                        />
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">نوع الكوميشن</label>
+                            <select name="commission_type" x-model="commissionType"
+                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/40">
+                                <option value="fixed">ثابت</option>
+                                <option value="tiered">متدرج</option>
+                                <option value="last_click">Last Click</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                أقصى ميزانية كوميشن
+                                <span class="text-xs text-gray-400">({{ auth()->guard('vendor')->user()->vendor->country->currency_code ?? '' }})</span>
+                            </label>
+                            <input type="number" name="max_commission_budget" min="0"
+                                   class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/40"
+                                   placeholder="0">
+                        </div>
+
+                        <div x-show="commissionType === 'tiered'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">قواعد الكوميشن المتدرج</label>
+                            <div class="space-y-2">
+                                <template x-for="(rule, i) in tieredRules" :key="i">
+                                    <div class="flex gap-2 items-center">
+                                        <input type="number" :name="`tiered_rules[${i}][from_sale_number]`"
+                                               x-model="rule.from_sale_number"
+                                               placeholder="رقم البيعة (مثال: 10)"
+                                               class="w-1/2 border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                                        <input type="number" :name="`tiered_rules[${i}][commission_amount]`"
+                                               x-model="rule.commission_amount"
+                                               placeholder="مبلغ الكوميشن"
+                                               class="w-1/2 border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                                        <button type="button" @click="tieredRules.splice(i, 1)"
+                                                class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                            <button type="button" @click="tieredRules.push({from_sale_number: '', commission_amount: ''})"
+                                    class="mt-2 text-sm text-purple-600 hover:underline">
+                                + إضافة مستوى
+                            </button>
+                        </div>
+
+                        <div class="p-3 bg-purple-50 rounded-lg text-sm text-purple-800">
+                            <i class="fas fa-box-open mr-1"></i>
+                            إجمالي العينات المتوقع: <strong x-text="selectedMarketerCount"></strong> ماركتر مختار
+                            <span class="block text-xs text-gray-500 mt-1">
+                                سيتم تحديد كمية العينات النهائية تلقائياً حسب فئة المنتج بعد إنشاء الحملة.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <button type="submit"
                     class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-3 rounded-xl transition-colors text-sm">
                     حفظ التعديلات
@@ -257,5 +350,27 @@
             @endif
         </div>
     </div>
+
+@if(auth()->guard('vendor')->user()->vendor->isMarketer())
+@push('scripts')
+    <script>
+        function campaignSection() {
+            return {
+                enabled: false,
+                commissionType: 'fixed',
+                tieredRules: [],
+                selectedMarketerCount: 0,
+                get isFbn() {
+                    const fmSelect = document.querySelector('select[name="fulfillment_model"]');
+                    return fmSelect ? fmSelect.value === 'fbn' : false;
+                },
+                updateSampleCount(event) {
+                    this.selectedMarketerCount = event.target.selectedOptions ? event.target.selectedOptions.length : 0;
+                },
+            };
+        }
+    </script>
+@endpush
+@endif
 
 @endsection

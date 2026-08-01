@@ -38,6 +38,8 @@ use App\Http\Controllers\Admin\WishlistOverviewController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\AdCampaignController;
+use App\Http\Controllers\Admin\MarketerCampaignController;
+use App\Http\Controllers\Admin\MarketerSettingsController;
 use App\Http\Controllers\Admin\VendorCampaignOfferController;
 use App\Http\Controllers\Admin\AdSlotController;
 use App\Http\Controllers\Admin\PaidAdBookingController;
@@ -819,6 +821,22 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{campaign}/products/datatable', [AdCampaignController::class, 'productsDatatable'])->name('products.datatable');
         Route::post('/{campaign}/products', [AdCampaignController::class, 'storeProduct'])->name('products.store');
         Route::delete('/{campaign}/products/{product}', [AdCampaignController::class, 'destroyProduct'])->name('products.destroy');
+    });
+
+    // ─── Marketer Campaigns ────────────────────────────────────────────────────────
+    Route::prefix('marketer-campaigns')->name('marketer-campaigns.')->middleware('admin.permission:marketer_campaigns.view')->group(function () {
+        Route::get('/', [MarketerCampaignController::class, 'index'])->name('index');
+        Route::get('/{marketerCampaign}', [MarketerCampaignController::class, 'show'])->name('show');
+        Route::post('/{marketerCampaign}/approve', [MarketerCampaignController::class, 'approve'])->name('approve');
+        Route::post('/{marketerCampaign}/reject', [MarketerCampaignController::class, 'reject'])->name('reject');
+    });
+
+    // ─── Marketer Settings (Commission & Fees) ────────────────────────────────────
+    Route::prefix('marketer-settings')->name('marketer-settings.')->middleware('admin.permission:marketer_commission_settings.view')->group(function () {
+        Route::get('/', [MarketerSettingsController::class, 'index'])->name('index');
+        Route::post('/commission', [MarketerSettingsController::class, 'updateCommission'])->name('update-commission');
+        Route::post('/fee', [MarketerSettingsController::class, 'updateInfluencerFee'])->name('update-fee');
+        Route::post('/category', [MarketerSettingsController::class, 'updateCategorySettings'])->name('update-category');
     });
 
     // ─── Vendor Campaign Offers ───────────────────────────────────────────────────

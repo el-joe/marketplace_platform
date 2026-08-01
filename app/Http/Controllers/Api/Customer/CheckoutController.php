@@ -348,6 +348,12 @@ class CheckoutController extends Controller
         $order = $result['order']->fresh();
         $order->load('subOrders.items');
 
+        $sessionId = $request->header('X-Session-Id')
+            ?? $request->cookie('session_id')
+            ?? session()->getId();
+        app(\App\Services\LastClickAttributionService::class)
+            ->resolveAndRecordConversion($order, $sessionId);
+
         $this->clearCustomerCart($customer);
 
         return ApiResponse::success(

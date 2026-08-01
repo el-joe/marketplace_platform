@@ -66,6 +66,10 @@ class Category extends Model
         'is_active',
         'is_visible',
         'is_featured',
+        'influencer_sample_qty',
+        'affiliate_sample_qty',
+        'platform_sample_qty',
+        'min_stock_for_campaign',
         'seo_title_ar',
         'seo_title_en',
         'seo_description_ar',
@@ -86,6 +90,10 @@ class Category extends Model
         'is_active' => 'boolean',
         'is_visible' => 'boolean',
         'is_featured' => 'boolean',
+        'influencer_sample_qty' => 'integer',
+        'affiliate_sample_qty' => 'integer',
+        'platform_sample_qty' => 'integer',
+        'min_stock_for_campaign' => 'integer',
     ];
 
     // ── Accessors ────────────────────────────────────────────────────────────

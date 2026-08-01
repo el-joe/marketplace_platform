@@ -120,6 +120,11 @@ class SettingsSeeder extends Seeder
             ['key' => 'announcement_bar_text_en', 'value' => 'Free shipping on orders over 200 EGP', 'category' => 'appearance', 'description' => 'Announcement bar message (English)', 'is_public' => 1],
             ['key' => 'announcement_bar_text_ar', 'value' => 'شحن مجاني للطلبات فوق ٢٠٠ جنيه', 'category' => 'appearance', 'description' => 'Announcement bar message (Arabic)', 'is_public' => 1],
             ['key' => 'announcement_bar_color', 'value' => '#0284c7', 'category' => 'appearance', 'description' => 'Announcement bar background color', 'is_public' => 1],
+
+            // ─── marketer ─────────────────────────────────────────────────────
+            ['key' => 'marketer_campaign_auto_approve_hours', 'value' => 36, 'category' => 'marketer', 'description' => 'Hours before a pending campaign is auto-approved if admin does not act', 'is_public' => 0],
+            ['key' => 'marketer_invitation_timeout_hours', 'value' => 12, 'category' => 'marketer', 'description' => 'Hours a marketer has to respond to a campaign invitation before auto-rejection', 'is_public' => 0],
+            ['key' => 'marketer_replacement_min_accepted_campaigns', 'value' => 0, 'category' => 'marketer', 'description' => 'When replacing a rejected/timed-out marketer, prefer marketers with at least this many accepted campaigns', 'is_public' => 0],
         ];
 
         foreach ($settings as $data) {

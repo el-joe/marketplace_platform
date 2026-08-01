@@ -60,6 +60,8 @@ class Vendor extends Model
         'warranty_months',
         'easy_returns_enabled',
         'secure_payments_enabled',
+        'marketer_type',
+        'whatsapp_for_campaigns',
     ];
 
     protected function casts(): array
@@ -206,5 +208,35 @@ class Vendor extends Model
     public function changeRequests(): HasMany
     {
         return $this->hasMany(VendorChangeRequest::class);
+    }
+
+    public function marketerProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(MarketerProfile::class);
+    }
+
+    public function campaignsAsVendor(): HasMany
+    {
+        return $this->hasMany(MarketerCampaign::class);
+    }
+
+    public function campaignInvitations(): HasMany
+    {
+        return $this->hasMany(MarketerCampaignInvitation::class, 'marketer_vendor_id');
+    }
+
+    public function isMarketer(): bool
+    {
+        return $this->marketer_type !== null;
+    }
+
+    public function isInfluencer(): bool
+    {
+        return $this->marketer_type === 'influencer';
+    }
+
+    public function isAffiliate(): bool
+    {
+        return $this->marketer_type === 'affiliate';
     }
 }

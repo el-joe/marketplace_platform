@@ -32,6 +32,12 @@ Route::get('cities', function (\Illuminate\Http\Request $request) {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// Marketer Referral Tracking
+// ═══════════════════════════════════════════════════════════════════════
+Route::get('r/{code}', [\App\Http\Controllers\Api\ReferralTrackingController::class, 'track'])
+    ->name('api.referral.track');
+
+// ═══════════════════════════════════════════════════════════════════════
 // Customer / Website / App
 // ═══════════════════════════════════════════════════════════════════════
 Route::prefix('v1/{country}')

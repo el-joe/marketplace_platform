@@ -180,6 +180,15 @@ class PermissionSeeder extends Seeder
             'travel.geography.manage',
             // Classifieds
             'classifieds.view',
+            // Marketer campaigns (admin)
+            'marketer_campaigns.view',
+            'marketer_campaigns.approve',
+            'marketer_campaigns.reject',
+            'marketer_commission_settings.view',
+            'marketer_commission_settings.edit',
+            'marketer_fee_settings.view',
+            'marketer_fee_settings.edit',
+            'vendor_marketer_type.edit',
         ];
 
         foreach ($permissions as $name) {
@@ -190,5 +199,30 @@ class PermissionSeeder extends Seeder
         $this->command->info('Permissions seeded: ' . $countPermissions . ' permissions (guard: ' . $guard . ').');
 
         $this->command->info('Permissions seeded: ' . count($permissions) . ' permissions (guard: ' . $guard . ').');
+
+        $vendorGuard = 'vendor';
+
+        $vendorPermissions = [
+            // Vendor panel — campaign management (available to vendor+marketer only)
+            'marketer_campaigns.view',
+            'marketer_campaigns.create',
+            'marketer_campaigns.edit',
+            'marketer_campaigns.cancel',
+            // Vendor panel — marketer profile management
+            'marketer_profile.view',
+            'marketer_profile.edit',
+            // Vendor panel — marketer campaign requests (invitations received as marketer)
+            'marketer_invitations.view',
+            'marketer_invitations.respond',
+            // Vendor panel — marketer reports
+            'marketer_reports.view',
+        ];
+
+        foreach ($vendorPermissions as $name) {
+            Permission::firstOrCreate(['name' => $name, 'guard_name' => $vendorGuard]);
+        }
+
+        $countVendorPermissions = Permission::where('guard_name', $vendorGuard)->count();
+        $this->command->info('Permissions seeded: ' . $countVendorPermissions . ' permissions (guard: ' . $vendorGuard . ').');
     }
 }
