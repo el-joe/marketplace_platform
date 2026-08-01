@@ -2,11 +2,9 @@
 
 namespace App\Observers;
 
-use App\Http\Controllers\Api\Customer\ProductDetailController;
 use App\Jobs\RecomputeListingShippingMethodsJob;
 use App\Models\VendorListing;
 use App\Services\CachedListingResolver;
-use Illuminate\Support\Facades\Cache;
 
 class VendorListingObserver
 {
@@ -21,7 +19,6 @@ class VendorListingObserver
             [$listing->productVariant->product->category_id]
         ));
 
-        $this->forgetVariantMatrixCache($listing);
         $this->cachedListingResolver->bustVendorListing($listing);
     }
 
@@ -33,10 +30,6 @@ class VendorListingObserver
             ));
         }
 
-        if ($listing->wasChanged(['status', 'price'])) {
-            $this->forgetVariantMatrixCache($listing);
-        }
-
         if ($listing->wasChanged(['status', 'price', 'score', 'rating_avg', 'rating_count'])) {
             $this->cachedListingResolver->bustVendorListing($listing);
         }
@@ -44,24 +37,6 @@ class VendorListingObserver
 
     public function deleted(VendorListing $listing): void
     {
-        $this->forgetVariantMatrixCache($listing);
         $this->cachedListingResolver->bustVendorListing($listing);
-    }
-
-    private function forgetVariantMatrixCache(VendorListing $listing): void
-    {
-        $variant = $listing->productVariant;
-
-        if (!$variant) {
-            return;
-        }
-
-        $productId = $variant->product_id;
-
-        foreach ($variant->product->variants()->pluck('id') as $variantId) {
-            Cache::forget(
-                ProductDetailController::variantMatrixCacheKey($productId, $listing->country_id, false) . ".{$variantId}"
-            );
-        }
     }
 }

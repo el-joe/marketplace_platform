@@ -477,19 +477,18 @@ function initCreateForm() {
     const cfg = window.LISTINGS_CREATE;
     if (!form || !cfg) return;
 
-    const countrySelect = form.querySelector('select[name="country_id"]');
+    const countryInput = form.querySelector('input[name="country_id"]');
     const fulfillmentSelect = form.querySelector('select[name="fulfillment_model"]');
 
     const reloadWarehouses = () => {
-        loadWarehousesByCountry(countrySelect?.value, fulfillmentSelect?.value);
+        loadWarehousesByCountry(countryInput?.value, fulfillmentSelect?.value);
     };
 
-    // Reload warehouses when country or fulfillment model changes
-    if (countrySelect) countrySelect.addEventListener('change', reloadWarehouses);
+    // Reload warehouses when fulfillment model changes
     if (fulfillmentSelect) fulfillmentSelect.addEventListener('change', reloadWarehouses);
 
     // Trigger immediately to populate for the pre-selected vendor country
-    if (countrySelect?.value) reloadWarehouses();
+    if (countryInput?.value) reloadWarehouses();
 
     // Reload available shipping methods when fulfillment model changes (variant already selected)
     fulfillmentSelect?.addEventListener('change', () => {
