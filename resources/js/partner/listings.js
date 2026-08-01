@@ -512,7 +512,15 @@ function initCreateForm() {
         }
 
         const formData = new FormData(form);
-        const payload = Object.fromEntries(formData.entries());
+        const payload = {};
+        for (const [key, value] of formData.entries()) {
+            if (key.endsWith('[]')) {
+                const cleanKey = key.slice(0, -2);
+                (payload[cleanKey] ??= []).push(value);
+            } else {
+                payload[key] = value;
+            }
+        }
 
         if (hasVariants) {
             // Multi-variant: send the explicitly chosen variant id

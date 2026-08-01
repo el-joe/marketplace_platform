@@ -4,7 +4,7 @@
 @section('page-title', __('partner.listings.add_product_listing_title'))
 
 @push('scripts')
-    @vite('resources/js/partner/listings.js')
+    @vite(['resources/js/components/select2.js', 'resources/js/partner/listings.js'])
     <script>
         window.LISTINGS_CREATE = {
             productSearchUrl: '{{ route('partner.listings.product-search') }}',
@@ -362,6 +362,35 @@
                                     class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
                                     placeholder="{{ __('common.optional') }}">
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Marketer Promotion --}}
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4"
+                        x-data="{ promote: false }">
+                        <label class="flex items-start gap-2 cursor-pointer">
+                            <input type="checkbox" name="promote_to_marketers" value="1" x-model="promote"
+                                class="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400/40">
+                            <span class="text-sm text-gray-700">
+                                ترويج هذه القائمة عبر المسوّقين / Promote this listing to marketers
+                                <span class="block text-xs text-gray-400 mt-0.5">
+                                    فعّل هذا الخيار لاختيار المؤثرين وإرسال طلب ترويج لهم مباشرة بعد إنشاء القائمة.
+                                </span>
+                            </span>
+                        </label>
+
+                        <div x-show="promote" x-cloak class="space-y-2"
+                            x-effect="promote && $nextTick(() => window.initSelect2 && window.initSelect2())">
+                            <x-form.select
+                                name="marketer_ids"
+                                label="اختر المؤثرين / المشاهير (بحد أقصى 10)"
+                                :multiple="true"
+                                :select2="true"
+                                placeholder="ابحث واختر المؤثرين..."
+                                :options="$marketers->mapWithKeys(fn ($m) => [
+                                    $m->id => ($m->display_name ?? $m->name) . ' — ' . number_format($m->followers_count ?? 0) . ' متابع — ' . $m->niche,
+                                ])"
+                            />
                         </div>
                     </div>
 

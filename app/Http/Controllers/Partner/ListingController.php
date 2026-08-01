@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Country;
 use App\Models\InventoryMovement;
+use App\Models\Marketer;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
@@ -20,6 +21,7 @@ use App\Models\WarehouseInventory;
 use App\Models\PlatformShippingSubsidy;
 use App\Models\ShippingZone;
 use App\Notifications\Admin\ListingResubmittedNotification;
+use App\Services\InfluencerPromotionRequestService;
 use App\Services\ListingShippingResolver;
 use App\Services\ShippingWeightService;
 use App\Traits\HasDataTable;
@@ -44,6 +46,7 @@ class ListingController extends Controller
     public function __construct(
         private readonly ListingShippingResolver $shippingResolver,
         private readonly ShippingWeightService $weightService,
+        private readonly InfluencerPromotionRequestService $promotionRequestService,
     ) {
     }
 
@@ -515,12 +518,20 @@ class ListingController extends Controller
             'refurbished' => 'مُجدَّد',
         ];
 
+        $marketers = Marketer::query()
+            ->whereIn('type', ['celebrity', 'influencer'])
+            ->where('status', 'active')
+            ->where('accept_new_campaigns', true)
+            ->orderBy('followers_count', 'desc')
+            ->get(['id', 'name', 'display_name', 'profile_photo_path', 'followers_count', 'niche']);
+
         return view('partner.listings.create', compact(
             'warehouses',
             'countries',
             'fulfillmentModels',
             'conditions',
-            'countryId'
+            'countryId',
+            'marketers'
         ));
     }
 
@@ -556,6 +567,9 @@ class ListingController extends Controller
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
             'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
+            'promote_to_marketers' => ['nullable', 'boolean'],
+            'marketer_ids' => ['nullable', 'array', 'max:10', 'required_if:promote_to_marketers,1'],
+            'marketer_ids.*' => ['uuid', 'distinct', 'exists:marketers,id'],
         ]);
 
         $warehouse = Warehouse::findOrFail($request->warehouse_id);
@@ -666,6 +680,7 @@ class ListingController extends Controller
                 'handling_class' => $request->handling_class,
                 'weight_class' => $weightClass,
                 'primary_shipping_method_id' => $request->primary_shipping_method_id ?: null,
+                'available_for_marketers' => $request->boolean('promote_to_marketers'),
             ]);
 
             // Create warehouse inventory record
@@ -698,9 +713,25 @@ class ListingController extends Controller
         //     return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إنشاء القائمة. يرجى المحاولة مرة أخرى.'], 500);
         // }
 
+        $message = $status === VendorListingStatus::Active->value ? 'تم إنشاء القائمة بنجاح وهي نشطة الآن.' : 'تم إنشاء القائمة وهي قيد المراجعة.';
+
+        if ($request->boolean('promote_to_marketers') && !empty($request->marketer_ids)) {
+            try {
+                $this->promotionRequestService->createRequest([
+                    'vendor_listing_id' => $listing->id,
+                    'marketer_ids' => $request->marketer_ids,
+                ], $vendor);
+
+                $message .= ' تم إرسال طلب ترويج المؤثرين بنجاح.';
+            } catch (\Throwable $e) {
+                Log::warning('Listing created but promotion request failed', ['listing_id' => $listing->id, 'error' => $e->getMessage()]);
+                $message .= ' تعذر إرسال طلب ترويج المؤثرين: ' . $e->getMessage();
+            }
+        }
+
         return response()->json([
             'success' => true,
-            'message' => $status === VendorListingStatus::Active->value ? 'تم إنشاء القائمة بنجاح وهي نشطة الآن.' : 'تم إنشاء القائمة وهي قيد المراجعة.',
+            'message' => $message,
             'redirect' => Route::has('partner.listings.show') ? route('partner.listings.show', $listing->id) : route('partner.listings.index'),
         ]);
     }
