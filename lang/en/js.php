@@ -24,6 +24,8 @@ return [
         'loading'                   => 'Loading…',
         'searching'                 => 'Searching…',
         'search_failed'             => 'Search failed.',
+        'copied'                    => 'Copied to clipboard.',
+        'copy_failed'               => 'Failed to copy.',
         'no_products_found'         => 'No products found.',
         'something_went_wrong'      => 'Something went wrong. Please try again.',
         'not_allowed_action'        => 'You are not allowed to perform this action.',

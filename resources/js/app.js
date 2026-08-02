@@ -86,6 +86,37 @@ window.Toast = {
     info: (msg) => Toastify({ ...baseToastOpts, text: msg, style: { ...baseToastOpts.style, background: '#0284c7' } }).showToast(),
 };
 
+/* ---------- Clipboard helper ----------
+ * Wraps navigator.clipboard.writeText with a document.execCommand fallback
+ * (needed on non-secure contexts / older browsers where the async API is
+ * unavailable) and always surfaces a success/error toast.
+ */
+window.copyToClipboard = function (text, successMsg, errorMsg) {
+    const onSuccess = () => window.Toast && window.Toast.success(successMsg || t('shared.copied'));
+    const onError = () => window.Toast && window.Toast.error(errorMsg || t('shared.copy_failed'));
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(onSuccess).catch(onError);
+        return;
+    }
+
+    // Fallback for non-secure contexts / browsers without the async Clipboard API.
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        ok ? onSuccess() : onError();
+    } catch (e) {
+        onError();
+    }
+};
+
 /* ---------- SweetAlert confirm helpers ---------- */
 const swalBaseConfirm = {
     showCancelButton: true,

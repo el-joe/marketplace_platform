@@ -82,7 +82,7 @@
                             <td class="px-4 py-3">
                                 @if ($invitation->referral_link && $invitation->status === 'accepted')
                                     <button type="button"
-                                            onclick="navigator.clipboard.writeText('{{ $invitation->referral_link }}')"
+                                            onclick="copyToClipboard('{{ $invitation->referral_link }}')"
                                             class="text-xs bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1 rounded hover:bg-blue-100">
                                         <i class="fas fa-copy mr-1"></i> نسخ الرابط
                                     </button>

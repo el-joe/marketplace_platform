@@ -19,6 +19,8 @@ class MarketerCampaignInvitation extends Model
         'whatsapp_sent', 'whatsapp_sent_at',
         'replaced_invitation_id',
         'total_commission_earned', 'total_conversions',
+        'platform_fee_amount', 'platform_fee_currency',
+        'platform_fee_status', 'platform_fee_recorded_at',
     ];
 
     protected $casts = [
@@ -26,6 +28,7 @@ class MarketerCampaignInvitation extends Model
         'responded_at' => 'datetime',
         'whatsapp_sent' => 'boolean',
         'whatsapp_sent_at' => 'datetime',
+        'platform_fee_recorded_at' => 'datetime',
     ];
 
     public function campaign(): BelongsTo
@@ -66,5 +69,15 @@ class MarketerCampaignInvitation extends Model
     public function isTimedOut(): bool
     {
         return $this->status === 'timed_out' || ($this->isPending() && $this->expires_at?->isPast());
+    }
+
+    public function isInfluencerType(): bool
+    {
+        return $this->marketer?->marketer_type === 'influencer';
+    }
+
+    public function hasPendingFee(): bool
+    {
+        return $this->platform_fee_status === 'pending';
     }
 }

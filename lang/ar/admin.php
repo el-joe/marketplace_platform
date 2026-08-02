@@ -376,6 +376,7 @@ return [
         'vendor_change_requests' => 'طلبات تغيير التجار',
         'travel_agency_change_requests' => 'طلبات تغيير شركات السفر',
         'marketer_campaigns'    => 'حملات المسوّقين',
+        'marketer_campaigns_financials' => 'الإيرادات المالية',
         'marketer_settings'     => 'رسوم الإنفلوينسر',
         'all_marketers'         => 'جميع المسوّقين',
         'campaigns'             => 'الحملات',

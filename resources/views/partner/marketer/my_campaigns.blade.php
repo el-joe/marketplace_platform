@@ -92,7 +92,7 @@
                                 </code>
                                 @if ($invitation->referral_link)
                                     <button type="button"
-                                            onclick="navigator.clipboard.writeText('{{ $invitation->referral_link }}')"
+                                            onclick="copyToClipboard('{{ $invitation->referral_link }}')"
                                             class="flex-shrink-0 text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">
                                         <i class="fas fa-copy mr-1"></i> {{ __('partner.marketer_my_campaigns.copy_link') }}
                                     </button>

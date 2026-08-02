@@ -19,6 +19,12 @@
     $product = $marketerCampaign->vendorListing?->productVariant?->product
         ?? $marketerCampaign->adminListing?->productVariant?->product;
     $isPending = $marketerCampaign->status === 'pending_admin';
+    $acceptedInvitations = $marketerCampaign->invitations->where('status', 'accepted');
+    $totalFeeExpected = $acceptedInvitations->sum('platform_fee_amount');
+    $totalFeePaid     = $acceptedInvitations->where('platform_fee_status', 'paid')->sum('platform_fee_amount');
+    $totalFeePending  = $acceptedInvitations->where('platform_fee_status', 'pending')->sum('platform_fee_amount');
+    $influencerAccepted = $acceptedInvitations->filter(fn ($i) => $i->marketer?->marketer_type === 'influencer')->count();
+    $affiliateAccepted  = $acceptedInvitations->filter(fn ($i) => $i->marketer?->marketer_type === 'affiliate')->count();
 @endphp
 
 {{-- ─── Page header ─────────────────────────────────────────────────────────── --}}
@@ -36,6 +42,83 @@
         {{ __('admin.marketer_campaigns.back') }}
     </a>
 </div>
+
+{{-- Financial Summary Bar --}}
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+
+    <div class="bg-white rounded-xl border p-4 text-center">
+        <div class="text-xs text-gray-500 mb-1">رسوم المنصة</div>
+        <div class="text-lg font-bold
+            {{ $totalFeePending > 0 ? 'text-orange-600' : ($totalFeeExpected > 0 ? 'text-green-700' : 'text-gray-400') }}">
+            {{ number_format($totalFeeExpected) }}
+            {{ $marketerCampaign->currency }}
+        </div>
+        <div class="text-xs mt-1">
+            @if($totalFeePending > 0)
+                <span class="text-orange-500">انتظار: {{ number_format($totalFeePending) }}</span>
+            @elseif($totalFeeExpected > 0)
+                <span class="text-green-600">مدفوعة بالكامل</span>
+            @else
+                <span class="text-gray-400">لا توجد رسوم</span>
+            @endif
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border p-4 text-center">
+        <div class="text-xs text-gray-500 mb-1">ماركترز قبلوا</div>
+        <div class="text-sm font-semibold text-gray-800">
+            @if($influencerAccepted > 0)
+                <span class="text-purple-700">{{ $influencerAccepted }} إنفلوينسر</span>
+            @endif
+            @if($affiliateAccepted > 0)
+                @if($influencerAccepted > 0) + @endif
+                <span class="text-blue-700">{{ $affiliateAccepted }} أفيلييت</span>
+            @endif
+            @if($influencerAccepted === 0 && $affiliateAccepted === 0)
+                <span class="text-gray-400">لا يوجد بعد</span>
+            @endif
+        </div>
+        <div class="text-xs text-gray-400 mt-1">أفيلييت مجاني</div>
+    </div>
+
+    <div class="bg-white rounded-xl border p-4 text-center">
+        <div class="text-xs text-gray-500 mb-1">إجمالي البيعات</div>
+        <div class="text-lg font-bold text-gray-900">
+            {{ $marketerCampaign->conversions()->count() }}
+        </div>
+        <div class="text-xs text-gray-400 mt-1">تحويل ناجح</div>
+    </div>
+
+    <div class="bg-white rounded-xl border p-4 text-center">
+        <div class="text-xs text-gray-500 mb-1">كوميشن الماركترز (مستحق)</div>
+        <div class="text-lg font-bold text-red-600">
+            {{ number_format($marketerCampaign->total_commission_owed) }}
+            {{ $marketerCampaign->currency }}
+        </div>
+        <div class="text-xs text-gray-400 mt-1">لم يُدفع بعد</div>
+    </div>
+
+    <div class="bg-white rounded-xl border p-4 text-center">
+        <div class="text-xs text-gray-500 mb-1">ربح المنصة</div>
+        <div class="text-lg font-bold text-green-700">
+            {{ number_format($marketerCampaign->net_platform_profit) }}
+            {{ $marketerCampaign->currency }}
+        </div>
+        <div class="text-xs text-gray-400 mt-1">من الرسوم</div>
+    </div>
+
+</div>
+
+@if($totalFeePending > 0)
+<div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-4">
+    <span class="font-semibold text-orange-800">
+        يوجد رسوم منصة في انتظار التحصيل
+    </span>
+    <span class="text-sm text-orange-600 ml-2">
+        المبلغ: {{ number_format($totalFeePending) }} {{ $marketerCampaign->currency }} — راجع تبويب "الدعوات" لتسجيل كل رسوم على حدة.
+    </span>
+</div>
+@endif
 
 <div x-data="{ tab: 'details' }">
     {{-- Tab bar --}}
@@ -233,6 +316,8 @@
                                 <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.invitation_qr_code') }}</th>
                                 <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.invitation_sent_at') }}</th>
                                 <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.invitation_responded_at') }}</th>
+                                <th class="text-center px-4 py-2 font-medium text-gray-600">رسوم المنصة</th>
+                                <th class="text-center px-4 py-2 font-medium text-gray-600">حالة الرسوم</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -257,6 +342,42 @@
                                     </td>
                                     <td class="py-2 pr-4">{{ $invitation->created_at?->format('d M Y H:i') }}</td>
                                     <td class="py-2 pr-4">{{ $invitation->responded_at?->format('d M Y H:i') ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if($invitation->platform_fee_status === 'not_applicable')
+                                            <span class="text-xs text-green-600">مجاني (أفيلييت)</span>
+                                        @else
+                                            <span class="font-semibold text-gray-800">
+                                                {{ number_format($invitation->platform_fee_amount) }} {{ $invitation->platform_fee_currency }}
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if($invitation->platform_fee_status === 'not_applicable')
+                                            <span class="text-xs text-gray-300">—</span>
+                                        @elseif($invitation->platform_fee_status === 'paid')
+                                            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                                <i class="fas fa-check mr-1"></i>مدفوعة
+                                            </span>
+                                        @elseif($invitation->platform_fee_status === 'pending')
+                                            <div class="flex items-center gap-1 justify-center">
+                                                <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                                                    انتظار
+                                                </span>
+                                                @can('marketer_campaigns.approve')
+                                                <form action="{{ route('admin.marketer-campaigns.invitations.mark-fee-paid', [$marketerCampaign, $invitation]) }}"
+                                                      method="POST">
+                                                    @csrf @method('PATCH')
+                                                    <button type="submit"
+                                                            class="text-xs text-orange-600 hover:text-orange-800 underline">
+                                                        تسجيل كمدفوعة
+                                                    </button>
+                                                </form>
+                                                @endcan
+                                            </div>
+                                        @elseif($invitation->platform_fee_status === 'waived')
+                                            <span class="text-xs text-gray-400">معفاة</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

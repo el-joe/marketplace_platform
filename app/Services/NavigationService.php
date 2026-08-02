@@ -224,6 +224,13 @@ class NavigationService
                         'badge' => $this->cachedBadge('pending_marketer_campaigns', fn() => $this->countPendingMarketerCampaigns()),
                     ],
                     [
+                        'label' => __('admin.nav.marketer_campaigns_financials'),
+                        'route' => 'admin.marketer-campaigns.financials',
+                        'icon' => 'banknotes',
+                        'permission' => 'marketer_campaigns.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.marketer_settings'),
                         'route' => 'admin.marketer-settings.index',
                         'icon' => 'cog-6-tooth',

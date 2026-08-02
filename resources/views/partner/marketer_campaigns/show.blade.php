@@ -213,7 +213,7 @@
                                                        class="w-40 truncate rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-600" />
                                                 <button type="button"
                                                         class="text-xs font-medium text-primary-600 hover:underline"
-                                                        onclick="navigator.clipboard.writeText('{{ $invitation->referral_link }}'); this.textContent='{{ __('partner.marketer_campaigns_my.copied') }}'; setTimeout(() => this.textContent='{{ __('partner.marketer_campaigns_my.copy') }}', 1500)">
+                                                        onclick="copyToClipboard('{{ $invitation->referral_link }}'); const btn = this; btn.textContent='{{ __('partner.marketer_campaigns_my.copied') }}'; setTimeout(() => btn.textContent='{{ __('partner.marketer_campaigns_my.copy') }}', 1500)">
                                                     {{ __('partner.marketer_campaigns_my.copy') }}
                                                 </button>
                                             </div>

@@ -376,6 +376,7 @@ return [
         'vendor_change_requests' => 'Vendor Change Requests',
         'travel_agency_change_requests' => 'Travel Agency Change Requests',
         'marketer_campaigns'    => 'Marketer Campaigns',
+        'marketer_campaigns_financials' => 'Marketer Campaigns Revenue',
         'marketer_settings'     => 'Marketer Settings',
         'all_marketers'         => 'All Marketers',
         'campaigns'             => 'Campaigns',

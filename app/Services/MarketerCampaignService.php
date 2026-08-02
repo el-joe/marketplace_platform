@@ -299,14 +299,31 @@ class MarketerCampaignService
         }
 
         DB::transaction(function () use ($invitation, $marketerNote) {
-            $invitation->update([
-                'status'        => 'accepted',
-                'responded_at'  => now(),
-                'marketer_note' => $marketerNote,
-            ]);
-
             $campaign = $invitation->campaign;
             $marketer = $invitation->marketer;
+
+            // Platform fee applies per accepted invitation, influencer type only. Affiliate is always free.
+            $feeAmount = 0;
+            $feeStatus = 'not_applicable';
+
+            if ($marketer->marketer_type === 'influencer') {
+                $feeSetting = \App\Models\MarketerInfluencerFeeCountrySetting::where('country_id', $campaign->country_id)
+                    ->first();
+
+                $feeAmount = $feeSetting?->fee_per_influencer ?? 0;
+                $feeStatus = $feeAmount > 0 ? 'pending' : 'waived';
+            }
+
+            $invitation->update([
+                'status'                   => 'accepted',
+                'responded_at'             => now(),
+                'marketer_note'            => $marketerNote,
+                'platform_fee_amount'      => $feeAmount,
+                'platform_fee_currency'    => $campaign->currency,
+                'platform_fee_status'      => $feeStatus,
+                'platform_fee_recorded_at' => now(),
+            ]);
+
             $category = $campaign->vendorListing?->productVariant?->product?->category
                 ?? $campaign->adminListing?->productVariant?->product?->category;
 

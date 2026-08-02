@@ -9,6 +9,8 @@ return [
         'loading'                   => 'جارٍ التحميل…',
         'searching'                 => 'جارٍ البحث…',
         'search_failed'             => 'فشل البحث.',
+        'copied'                    => 'تم النسخ إلى الحافظة.',
+        'copy_failed'               => 'فشل النسخ.',
         'no_products_found'         => 'لم يتم العثور على منتجات.',
         'something_went_wrong'      => 'حدث خطأ ما، يرجى المحاولة مرة أخرى.',
         'not_allowed_action'        => 'غير مسموح لك بتنفيذ هذا الإجراء.',

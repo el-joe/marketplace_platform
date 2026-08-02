@@ -101,4 +101,18 @@ class MarketerCampaign extends Model
     {
         return $this->platform_sample_qty_snapshot + ($marketerCount * $this->per_marketer_sample_qty_snapshot);
     }
+
+    public function getNetPlatformProfitAttribute(): int
+    {
+        return (int) $this->invitations()
+            ->where('platform_fee_status', 'paid')
+            ->sum('platform_fee_amount');
+    }
+
+    public function getTotalCommissionOwedAttribute(): int
+    {
+        return (int) $this->conversions()
+            ->where('commissioned', false)
+            ->sum('commission_amount');
+    }
 }

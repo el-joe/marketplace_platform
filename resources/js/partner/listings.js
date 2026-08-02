@@ -787,11 +787,10 @@ function initCopyButtons() {
         btn.addEventListener('click', () => {
             const value = btn.dataset.value;
             if (!value) return;
-            navigator.clipboard.writeText(value).then(() => {
-                const original = btn.textContent;
-                btn.textContent = 'تم النسخ!';
-                setTimeout(() => { btn.textContent = original; }, 1500);
-            }).catch(() => toast('فشل النسخ.', 'error'));
+            window.copyToClipboard(value, 'تم النسخ!', 'فشل النسخ.');
+            const original = btn.textContent;
+            btn.textContent = 'تم النسخ!';
+            setTimeout(() => { btn.textContent = original; }, 1500);
         });
     });
 }

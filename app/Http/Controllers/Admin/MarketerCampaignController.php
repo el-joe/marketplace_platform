@@ -111,4 +111,63 @@ class MarketerCampaignController extends Controller
 
         return back()->with('success', 'تم تحديث حالة العينة.');
     }
+
+    public function markInvitationFeePaid(
+        MarketerCampaign $marketerCampaign,
+        \App\Models\MarketerCampaignInvitation $invitation
+    ) {
+        abort_unless(auth('admin')->user()->can('marketer_campaigns.approve'), 403);
+
+        abort_unless($invitation->campaign_id === $marketerCampaign->id, 403);
+
+        abort_unless($invitation->platform_fee_status === 'pending', 422,
+            'الرسوم مدفوعة بالفعل أو غير مطبقة.');
+
+        $invitation->update([
+            'platform_fee_status' => 'paid',
+        ]);
+
+        return back()->with('success', 'تم تسجيل دفع رسوم الإنفلوينسر.');
+    }
+
+    public function financials(Request $request)
+    {
+        abort_unless(auth('admin')->user()->can('marketer_campaigns.view'), 403);
+
+        $countryId = $request->input('country_id');
+        $dateFrom  = $request->input('date_from', now()->startOfMonth()->toDateString());
+        $dateTo    = $request->input('date_to', now()->toDateString());
+
+        $query = MarketerCampaign::query()
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->whereBetween('created_at', [$dateFrom, $dateTo . ' 23:59:59']);
+
+        $summaryByCurrency = \App\Models\MarketerCampaignInvitation::query()
+            ->whereHas('campaign', function ($q) use ($countryId, $dateFrom, $dateTo) {
+                $q->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+                  ->whereBetween('created_at', [$dateFrom, $dateTo . ' 23:59:59']);
+            })
+            ->where('status', 'accepted')
+            ->whereIn('platform_fee_status', ['pending', 'paid'])
+            ->select('platform_fee_currency as currency')
+            ->selectRaw('COUNT(*) as total_influencers_accepted')
+            ->selectRaw('SUM(platform_fee_amount) as total_fees_expected')
+            ->selectRaw('SUM(CASE WHEN platform_fee_status = "paid" THEN platform_fee_amount ELSE 0 END) as collected_fees')
+            ->selectRaw('SUM(CASE WHEN platform_fee_status = "pending" THEN platform_fee_amount ELSE 0 END) as pending_fees')
+            ->groupBy('platform_fee_currency')
+            ->get();
+
+        $campaigns = $query->clone()
+            ->with(['vendor', 'country', 'invitations.marketer'])
+            ->withCount('conversions')
+            ->latest()
+            ->paginate(25)
+            ->withQueryString();
+
+        $countries = \App\Models\Country::orderBy('name_en')->get();
+
+        return view('admin.marketer_campaigns.financials', compact(
+            'summaryByCurrency', 'campaigns', 'countries', 'dateFrom', 'dateTo'
+        ));
+    }
 }
