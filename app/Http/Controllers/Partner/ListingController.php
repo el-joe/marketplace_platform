@@ -487,14 +487,16 @@ class ListingController extends Controller
             ? null
             : $this->shippingResolver->resolvePrimary($listing);
 
-        $influencerPromotionItems = \App\Models\VendorInfluencerPromotionRequestItem::query()
-            ->whereHas('promotionRequest', fn ($q) => $q->where('vendor_listing_id', $listing->id))
-            ->with('marketer:id,name,display_name')
-            ->orderByDesc('created_at')
-            ->limit(50)
-            ->get();
+        $marketerCampaign = \App\Models\MarketerCampaign::where('vendor_listing_id', $listing->id)
+            ->with([
+                'invitations.marketer',
+                'tieredRules',
+                'conversions',
+            ])
+            ->latest()
+            ->first();
 
-        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods', 'defaultShippingMethod', 'influencerPromotionItems'));
+        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods', 'defaultShippingMethod', 'marketerCampaign'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────

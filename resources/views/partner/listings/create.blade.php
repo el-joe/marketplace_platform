@@ -4,7 +4,7 @@
 @section('page-title', __('partner.listings.add_product_listing_title'))
 
 @push('scripts')
-    @vite(['resources/js/components/select2.js', 'resources/js/partner/listings.js'])
+    @vite(['resources/js/components/select2.js', 'resources/js/partner/listings.js', 'resources/js/partner/listing-create-campaign.js'])
     <script>
         window.LISTINGS_CREATE = {
             productSearchUrl: '{{ route('partner.listings.product-search') }}',
@@ -325,10 +325,9 @@
                     </div>
 
                     {{-- Marketer Campaign --}}
-                    <div class="bg-white rounded-2xl border border-purple-200 p-6 space-y-4"
-                        x-data="campaignSection()">
+                    <div class="bg-white rounded-2xl border border-purple-200 p-6 space-y-4" id="campaign-section">
                         <label class="flex items-start gap-2 cursor-pointer">
-                            <input type="checkbox" name="campaign_enabled" value="1" x-model="enabled"
+                            <input type="checkbox" name="campaign_enabled" value="1" id="campaign-enabled-checkbox"
                                 class="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                             <span class="text-sm text-gray-700">
                                 <i class="fas fa-bullhorn text-purple-500 mr-1"></i>
@@ -339,14 +338,11 @@
                             </span>
                         </label>
 
-                        <template x-if="!isFbn">
-                            <p class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3">
-                                يجب اختيار نموذج التنفيذ FBN لتفعيل حملة الماركتر.
-                            </p>
-                        </template>
+                        <p class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3 hidden" id="campaign-not-fbn-warning">
+                            يجب اختيار نموذج التنفيذ FBN لتفعيل حملة الماركتر.
+                        </p>
 
-                        <div x-show="enabled && isFbn" x-cloak class="space-y-4"
-                            x-effect="enabled && $nextTick(() => window.initSelect2 && window.initSelect2())">
+                        <div class="space-y-4 hidden" id="campaign-details">
                             @if($marketerVendors->isEmpty())
                                 <p class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3">
                                     لا يوجد ماركترز متاحين في بلدك حالياً. يمكن للأدمن تفعيل ماركترز من لوحة التحكم.
@@ -358,7 +354,6 @@
                                 :multiple="true"
                                 :select2="true"
                                 placeholder="ابحث واختر الماركترز..."
-                                x-on:change="updateMarketerCounts($event)"
                             >
                                 @foreach($marketerVendors as $m)
                                     <option value="{{ $m->id }}" data-type="{{ $m->marketer_type }}">
@@ -370,7 +365,7 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">نوع الكوميشن</label>
-                                <select name="commission_type" x-model="commissionType"
+                                <select name="commission_type" id="commission-type-select"
                                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/40">
                                     <option value="fixed">ثابت</option>
                                     <option value="tiered">متدرج</option>
@@ -388,27 +383,10 @@
                                        placeholder="0">
                             </div>
 
-                            <div x-show="commissionType === 'tiered'" x-cloak>
+                            <div class="hidden" id="tiered-rules-section">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">قواعد الكوميشن المتدرج</label>
-                                <div class="space-y-2">
-                                    <template x-for="(rule, i) in tieredRules" :key="i">
-                                        <div class="flex gap-2 items-center">
-                                            <input type="number" :name="`tiered_rules[${i}][from_sale_number]`"
-                                                   x-model="rule.from_sale_number"
-                                                   placeholder="رقم البيعة (مثال: 10)"
-                                                   class="w-1/2 border border-gray-200 rounded-xl px-3 py-2 text-sm">
-                                            <input type="number" :name="`tiered_rules[${i}][commission_amount]`"
-                                                   x-model="rule.commission_amount"
-                                                   placeholder="مبلغ الكوميشن"
-                                                   class="w-1/2 border border-gray-200 rounded-xl px-3 py-2 text-sm">
-                                            <button type="button" @click="tieredRules.splice(i, 1)"
-                                                    class="text-red-500 hover:text-red-700">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </template>
-                                </div>
-                                <button type="button" @click="tieredRules.push({from_sale_number: '', commission_amount: ''})"
+                                <div class="space-y-2" id="tiered-rules-list"></div>
+                                <button type="button" id="add-tier-btn"
                                         class="mt-2 text-sm text-purple-600 hover:underline">
                                     + إضافة مستوى
                                 </button>
@@ -417,8 +395,8 @@
                             <div class="p-3 bg-purple-50 rounded-lg text-sm text-purple-800">
                                 <i class="fas fa-box-open mr-1"></i>
                                 <span class="font-semibold">إجمالي العينات المتوقع:</span>
-                                <strong x-text="totalSamples"></strong>
-                                <span class="block text-xs text-gray-500 mt-1" x-text="sampleBreakdown"></span>
+                                <strong id="total-samples-value">0</strong>
+                                <span class="block text-xs text-gray-500 mt-1" id="sample-breakdown-text"></span>
                             </div>
                         </div>
                     </div>
@@ -436,84 +414,5 @@
 
     </div>
 
-@push('scripts')
-    <script>
-        function campaignSection() {
-            return {
-                enabled: false,
-                commissionType: 'fixed',
-                tieredRules: [],
-
-                influencerCount: 0,
-                affiliateCount: 0,
-
-                influencerSampleQty: 0,
-                affiliateSampleQty: 0,
-                platformSampleQty: 0,
-                samplesLoaded: false,
-
-                get isFbn() {
-                    const fmSelect = document.querySelector('select[name="fulfillment_model"]');
-                    return fmSelect ? fmSelect.value === 'fbn' : false;
-                },
-
-                get totalSamples() {
-                    return (this.influencerCount * this.influencerSampleQty)
-                         + (this.affiliateCount * this.affiliateSampleQty)
-                         + this.platformSampleQty;
-                },
-
-                get sampleBreakdown() {
-                    if (!this.samplesLoaded) return 'سيتم حساب العينات بعد اختيار المنتج';
-                    const parts = [];
-                    if (this.influencerCount > 0)
-                        parts.push(`${this.influencerCount} إنفلوينسر × ${this.influencerSampleQty}`);
-                    if (this.affiliateCount > 0)
-                        parts.push(`${this.affiliateCount} أفيلييت × ${this.affiliateSampleQty}`);
-                    if (this.platformSampleQty > 0)
-                        parts.push(`منصة ${this.platformSampleQty}`);
-                    return parts.length
-                        ? `(${parts.join(' + ')}) = ${this.totalSamples} عينة`
-                        : `${this.totalSamples} عينة`;
-                },
-
-                async fetchCategorySamples(productId) {
-                    const url = window.LISTINGS_CREATE?.categorySamplesUrl;
-                    if (!productId || !url) return;
-                    try {
-                        const res = await fetch(`${url}?product_id=${productId}`, {
-                            headers: { 'Accept': 'application/json' },
-                        });
-                        const data = await res.json();
-                        this.influencerSampleQty = data.influencer ?? 0;
-                        this.affiliateSampleQty = data.affiliate ?? 0;
-                        this.platformSampleQty = data.platform ?? 0;
-                        this.samplesLoaded = true;
-                    } catch (e) {
-                        console.error('Failed to fetch category samples', e);
-                    }
-                },
-
-                updateMarketerCounts(event) {
-                    const select = event.target;
-                    this.influencerCount = 0;
-                    this.affiliateCount = 0;
-                    Array.from(select.selectedOptions || []).forEach(opt => {
-                        if (opt.dataset.type === 'influencer') this.influencerCount++;
-                        else if (opt.dataset.type === 'affiliate') this.affiliateCount++;
-                    });
-
-                    sampleBreakdown()
-                },
-
-                init() {
-                    document.addEventListener('listing:product-selected', (e) => {
-                        this.fetchCategorySamples(e.detail?.productId);
-                    });
-                },
-            };
-        }
-    </script>
-@endpush
 
 @endsection

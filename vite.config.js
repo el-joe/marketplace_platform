@@ -89,6 +89,7 @@ export default defineConfig({
                 'resources/js/partner/dashboard.js',
                 'resources/js/partner/orders.js',
                 'resources/js/partner/listings.js',
+                'resources/js/partner/listing-create-campaign.js',
                 'resources/js/partner/inventory.js',
                 'resources/js/partner/payouts.js',
                 'resources/js/partner/bank-accounts.js',
