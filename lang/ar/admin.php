@@ -1474,6 +1474,18 @@ return [
         'sample_dispatched_at'          => 'تاريخ الإرسال',
         'sample_delivered_at'           => 'تاريخ التسليم',
         'no_samples'                    => 'لا توجد عينات لهذه الحملة.',
+        'sample_marketer'               => 'الماركتر',
+        'sample_change_status'          => 'تغيير الحالة',
+        'sample_status_pending'         => 'انتظار',
+        'sample_status_dispatched'      => 'تم الشحن',
+        'sample_status_delivered'       => 'تم التسليم',
+        'sample_status_returned'        => 'مُرتجع',
+        'sample_action_dispatch'        => 'شحن',
+        'sample_action_deliver'         => 'تم التسليم',
+        'sample_action_return'          => 'مُرتجع',
+        'sample_confirm_return'         => 'هل تريد تسجيل هذه العينة كمُرتجعة؟',
+        'sample_total'                  => 'الإجمالي',
+        'sample_delivered_count'        => 'تم تسليمها',
     ],
 
     // ─── Ad Campaigns ────────────────────────────────────────────────────────

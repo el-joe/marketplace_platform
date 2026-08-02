@@ -44,7 +44,7 @@ class MarketerCampaignController extends Controller
             'invitations.marketer.marketerProfile',
             'tieredRules',
             'conversions.order',
-            'samples',
+            'samples.invitation.marketer',
         ]);
 
         $categoryId = $marketerCampaign->vendorListing?->productVariant?->product?->category_id
@@ -83,5 +83,32 @@ class MarketerCampaignController extends Controller
         );
 
         return back()->with('success', 'تم رفض الحملة.');
+    }
+
+    public function updateSampleStatus(
+        Request $request,
+        MarketerCampaign $marketerCampaign,
+        \App\Models\MarketerCampaignSample $sample
+    ) {
+        abort_unless(auth('admin')->user()->can('marketer_campaigns.approve'), 403);
+
+        abort_unless($sample->campaign_id === $marketerCampaign->id, 403);
+
+        $request->validate([
+            'status' => 'required|in:pending,dispatched,delivered,returned',
+        ]);
+
+        $data = ['status' => $request->status];
+
+        if ($request->status === 'dispatched' && !$sample->dispatched_at) {
+            $data['dispatched_at'] = now();
+        }
+        if ($request->status === 'delivered' && !$sample->delivered_at) {
+            $data['delivered_at'] = now();
+        }
+
+        $sample->update($data);
+
+        return back()->with('success', 'تم تحديث حالة العينة.');
     }
 }

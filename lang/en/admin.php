@@ -1469,6 +1469,18 @@ return [
         'sample_dispatched_at'          => 'Dispatched At',
         'sample_delivered_at'           => 'Delivered At',
         'no_samples'                    => 'No samples for this campaign.',
+        'sample_marketer'               => 'Marketer',
+        'sample_change_status'          => 'Change Status',
+        'sample_status_pending'         => 'Pending',
+        'sample_status_dispatched'      => 'Dispatched',
+        'sample_status_delivered'       => 'Delivered',
+        'sample_status_returned'        => 'Returned',
+        'sample_action_dispatch'        => 'Dispatch',
+        'sample_action_deliver'         => 'Mark Delivered',
+        'sample_action_return'          => 'Return',
+        'sample_confirm_return'         => 'Mark this sample as returned?',
+        'sample_total'                  => 'Total',
+        'sample_delivered_count'        => 'delivered',
     ],
 
     // ─── Ad Campaigns ────────────────────────────────────────────────────────

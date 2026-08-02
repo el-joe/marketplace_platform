@@ -312,10 +312,12 @@
                     <thead>
                         <tr class="text-left text-gray-500 border-b border-gray-100">
                             <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.sample_owner') }}</th>
+                            <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.sample_marketer') }}</th>
                             <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.sample_quantity') }}</th>
                             <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.sample_status') }}</th>
                             <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.sample_dispatched_at') }}</th>
                             <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.sample_delivered_at') }}</th>
+                            <th class="py-2 pr-4">{{ __('admin.marketer_campaigns.sample_change_status') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -324,13 +326,70 @@
                                 <td class="py-2 pr-4">
                                     {{ $sample->sample_owner === 'platform' ? __('admin.marketer_campaigns.sample_owner_platform') : __('admin.marketer_campaigns.sample_owner_marketer') }}
                                 </td>
+                                <td class="py-2 pr-4">{{ $sample->invitation?->marketer->store_name ?? '—' }}</td>
                                 <td class="py-2 pr-4">{{ $sample->quantity }}</td>
-                                <td class="py-2 pr-4"><x-badge color="gray">{{ $sample->status }}</x-badge></td>
+                                <td class="py-2 pr-4">
+                                    <x-badge color="{{ $sample->status === 'pending' ? 'warning' : ($sample->status === 'dispatched' ? 'primary' : ($sample->status === 'delivered' ? 'success' : 'danger')) }}">
+                                        {{ match($sample->status) {
+                                            'pending'    => __('admin.marketer_campaigns.sample_status_pending'),
+                                            'dispatched' => __('admin.marketer_campaigns.sample_status_dispatched'),
+                                            'delivered'  => __('admin.marketer_campaigns.sample_status_delivered'),
+                                            'returned'   => __('admin.marketer_campaigns.sample_status_returned'),
+                                            default      => $sample->status,
+                                        } }}
+                                    </x-badge>
+                                </td>
                                 <td class="py-2 pr-4">{{ $sample->dispatched_at?->format('d M Y H:i') ?? '—' }}</td>
                                 <td class="py-2 pr-4">{{ $sample->delivered_at?->format('d M Y H:i') ?? '—' }}</td>
+                                <td class="py-2 pr-4">
+                                    @if($sample->status !== 'delivered' && $sample->status !== 'returned')
+                                        <form action="{{ route('admin.marketer-campaigns.samples.update', [$marketerCampaign, $sample]) }}"
+                                              method="POST" class="inline-flex gap-1">
+                                            @csrf
+                                            @method('PATCH')
+
+                                            @if($sample->status === 'pending')
+                                                <button type="submit" name="status" value="dispatched"
+                                                        class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                                                    {{ __('admin.marketer_campaigns.sample_action_dispatch') }}
+                                                </button>
+                                            @endif
+
+                                            @if($sample->status === 'dispatched')
+                                                <button type="submit" name="status" value="delivered"
+                                                        class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                                                    {{ __('admin.marketer_campaigns.sample_action_deliver') }}
+                                                </button>
+                                            @endif
+
+                                            <button type="submit" name="status" value="returned"
+                                                    class="text-xs bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200"
+                                                    onclick="return confirm('{{ __('admin.marketer_campaigns.sample_confirm_return') }}')">
+                                                {{ __('admin.marketer_campaigns.sample_action_return') }}
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-xs text-gray-300">—</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot class="bg-gray-50 border-t-2 border-gray-100">
+                        <tr>
+                            <td colspan="2" class="py-2 pr-4 font-semibold text-gray-700">
+                                {{ __('admin.marketer_campaigns.sample_total') }}
+                            </td>
+                            <td class="py-2 pr-4 font-bold text-gray-900">
+                                {{ $marketerCampaign->samples->sum('quantity') }}
+                            </td>
+                            <td colspan="4" class="py-2 pr-4 text-xs text-gray-500">
+                                {{ $marketerCampaign->samples->where('status', 'delivered')->count() }}
+                                / {{ $marketerCampaign->samples->count() }}
+                                {{ __('admin.marketer_campaigns.sample_delivered_count') }}
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             @endif
         </x-card>

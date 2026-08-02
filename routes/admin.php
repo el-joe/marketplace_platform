@@ -829,6 +829,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{marketerCampaign}', [MarketerCampaignController::class, 'show'])->name('show');
         Route::post('/{marketerCampaign}/approve', [MarketerCampaignController::class, 'approve'])->name('approve');
         Route::post('/{marketerCampaign}/reject', [MarketerCampaignController::class, 'reject'])->name('reject');
+        Route::patch('/{marketerCampaign}/samples/{sample}', [MarketerCampaignController::class, 'updateSampleStatus'])->name('samples.update');
     });
 
     // ─── Marketer Settings (Commission & Fees) ────────────────────────────────────
