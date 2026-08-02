@@ -156,20 +156,17 @@ class MarketerCampaignService
     }
 
     /**
-     * Admin approves a campaign: sets commission split, dispatches invitations to marketers.
+     * Admin approves a campaign: dispatches invitations to marketers.
+     * Commission amounts come from marketer_commission_country_settings, not admin input.
      */
     public function approveCampaign(
         MarketerCampaign $campaign,
-        int $platformCommission,
-        int $marketerCommission,
         Admin $admin,
         array $marketerVendorIds
     ): void {
-        DB::transaction(function () use ($campaign, $platformCommission, $marketerCommission, $admin, $marketerVendorIds) {
+        DB::transaction(function () use ($campaign, $admin, $marketerVendorIds) {
             $campaign->update([
                 'status'                     => 'active',
-                'platform_commission_amount' => $platformCommission,
-                'marketer_commission_amount' => $marketerCommission,
                 'reviewed_by_admin_id'       => $admin->id,
                 'reviewed_at'                => now(),
             ]);

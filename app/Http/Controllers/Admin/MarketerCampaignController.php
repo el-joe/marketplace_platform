@@ -53,7 +53,16 @@ class MarketerCampaignController extends Controller
             ->withCount(['campaignInvitations as accepted_campaigns' => fn($q) => $q->where('status','accepted')])
             ->get();
 
-        return view('admin.marketer_campaigns.show', compact('marketerCampaign', 'availableMarketers'));
+        $categoryId = $marketerCampaign->vendorListing?->productVariant?->product?->category_id
+            ?? $marketerCampaign->adminListing?->productVariant?->product?->category_id;
+
+        $commissionSetting = $categoryId
+            ? \App\Models\MarketerCommissionCountrySetting::where('category_id', $categoryId)
+                ->where('country_id', $marketerCampaign->country_id)
+                ->first()
+            : null;
+
+        return view('admin.marketer_campaigns.show', compact('marketerCampaign', 'availableMarketers', 'commissionSetting'));
     }
 
     public function approve(Request $request, MarketerCampaign $marketerCampaign)
@@ -61,16 +70,12 @@ class MarketerCampaignController extends Controller
         abort_unless(auth('admin')->user()->can('marketer_campaigns.approve'), 403);
 
         $request->validate([
-            'platform_commission_amount' => 'required|integer|min:0',
-            'marketer_commission_amount' => 'required|integer|min:0',
             'marketer_vendor_ids'        => 'required|array|min:1',
             'marketer_vendor_ids.*'      => 'uuid|exists:vendors,id',
         ]);
 
         $this->service->approveCampaign(
             $marketerCampaign,
-            $request->integer('platform_commission_amount'),
-            $request->integer('marketer_commission_amount'),
             auth()->guard('admin')->user(),
             $request->marketer_vendor_ids
         );

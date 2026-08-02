@@ -1439,6 +1439,8 @@ return [
         'reject_form_title'             => 'رفض الحملة',
         'platform_commission_label'     => 'مبلغ عمولة المنصة',
         'marketer_commission_label'     => 'مبلغ عمولة المسوق',
+        'influencer_commission_label'   => 'كوميشن الإنفلوينسر/بيعة',
+        'affiliate_commission_label'    => 'كوميشن الأفيلييت/بيعة',
         'select_marketers_label'        => 'اختر المسوقين المتاحين',
         'vendor_requested_note'         => 'المسوقون المحددون مسبقاً أدناه هم من اختارهم البائع عند إنشاء هذه الحملة.',
         'approve_btn'                   => 'قبول الحملة وإرسال الدعوات',

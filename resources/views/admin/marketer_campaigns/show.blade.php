@@ -98,25 +98,46 @@
         </x-card>
     </div>
 
-    {{-- ── Commission + Marketers (single form spanning both tabs) ─────────── --}}
+    {{-- ── Approval ──────────────────────────────────────────────────────── --}}
+    <div x-show="tab === 'commission'">
+        <x-card title="{{ __('admin.marketer_campaigns.approve_form_title') }}">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-gray-500 mb-1">{{ __('admin.marketer_campaigns.commission_type') }}</div>
+                    <div class="font-semibold text-gray-800">{{ $marketerCampaign->commission_type ? __('admin.marketer_campaigns.commission_type_' . $marketerCampaign->commission_type) : '—' }}</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-gray-500 mb-1">{{ __('admin.marketer_campaigns.max_commission_budget') }}</div>
+                    <div class="font-semibold text-gray-800">
+                        {{ $marketerCampaign->max_commission_budget !== null ? number_format($marketerCampaign->max_commission_budget) : '—' }}
+                        {{ $marketerCampaign->currency }}
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-gray-500 mb-1">{{ __('admin.marketer_campaigns.influencer_commission_label') }}</div>
+                    <div class="font-semibold text-green-700">
+                        {{ number_format($commissionSetting?->influencer_commission_amount ?? 0) }}
+                        {{ $marketerCampaign->currency }}
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
+                    <div class="text-xs text-gray-500 mb-1">{{ __('admin.marketer_campaigns.affiliate_commission_label') }}</div>
+                    <div class="font-semibold text-green-700">
+                        {{ number_format($commissionSetting?->affiliate_commission_amount ?? 0) }}
+                        {{ $marketerCampaign->currency }}
+                    </div>
+                </div>
+            </div>
+
+            @unless($isPending)
+                <p class="text-sm text-gray-500">{{ __('admin.marketer_campaigns.not_pending_notice') }}</p>
+            @endunless
+        </x-card>
+    </div>
+
+    {{-- ── Marketers (single form) ──────────────────────────────────────── --}}
     <form method="POST" action="{{ route('admin.marketer-campaigns.approve', $marketerCampaign) }}">
         @csrf
-
-        <div x-show="tab === 'commission'">
-            <x-card title="{{ __('admin.marketer_campaigns.approve_form_title') }}">
-                @if($isPending)
-                    <div class="grid grid-cols-2 gap-4 text-sm mb-4">
-                        <x-form.input type="number" min="0" name="platform_commission_amount"
-                            label="{{ __('admin.marketer_campaigns.platform_commission_label') }}" required />
-                        <x-form.input type="number" min="0" name="marketer_commission_amount"
-                            label="{{ __('admin.marketer_campaigns.marketer_commission_label') }}" required />
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.marketer_campaigns.approve_btn') }}</button>
-                @else
-                    <p class="text-sm text-gray-500">{{ __('admin.marketer_campaigns.not_pending_notice') }}</p>
-                @endif
-            </x-card>
-        </div>
 
         <div x-show="tab === 'marketers'">
             <x-card title="{{ __('admin.marketer_campaigns.tab_marketers') }}">

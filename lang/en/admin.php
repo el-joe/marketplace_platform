@@ -1434,6 +1434,8 @@ return [
         'reject_form_title'             => 'Reject Campaign',
         'platform_commission_label'     => 'Platform Commission Amount',
         'marketer_commission_label'     => 'Marketer Commission Amount',
+        'influencer_commission_label'   => 'Influencer Commission / Sale',
+        'affiliate_commission_label'    => 'Affiliate Commission / Sale',
         'select_marketers_label'        => 'Select Available Marketers',
         'vendor_requested_note'         => 'Pre-selected below are the marketers the vendor requested when creating this campaign.',
         'approve_btn'                   => 'Approve & Send Invitations',
