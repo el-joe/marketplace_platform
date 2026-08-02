@@ -240,7 +240,6 @@
                     </div>
                 </div>
 
-                @if(auth()->guard('vendor')->user()->vendor->isMarketer())
                 {{-- Marketer Campaign --}}
                 <div class="bg-white rounded-2xl border border-purple-200 p-6 space-y-4"
                     x-data="campaignSection()">
@@ -264,6 +263,11 @@
 
                     <div x-show="enabled && isFbn" x-cloak class="space-y-4"
                         x-effect="enabled && $nextTick(() => window.initSelect2 && window.initSelect2())">
+                        @if($marketerVendors->isEmpty())
+                            <p class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3">
+                                لا يوجد ماركترز متاحين في بلدك حالياً. يمكن للأدمن تفعيل ماركترز من لوحة التحكم.
+                            </p>
+                        @else
                         <x-form.select
                             name="marketer_vendor_ids"
                             label="اختر الماركترز"
@@ -275,6 +279,7 @@
                                 $m->id => $m->business_name . ' — ' . ($m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت'),
                             ])"
                         />
+                        @endif
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">نوع الكوميشن</label>
@@ -331,7 +336,6 @@
                         </div>
                     </div>
                 </div>
-                @endif
 
                 <button type="submit"
                     class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-3 rounded-xl transition-colors text-sm">
@@ -351,7 +355,6 @@
         </div>
     </div>
 
-@if(auth()->guard('vendor')->user()->vendor->isMarketer())
 @push('scripts')
     <script>
         function campaignSection() {
@@ -371,6 +374,5 @@
         }
     </script>
 @endpush
-@endif
 
 @endsection

@@ -21,7 +21,6 @@ use App\Models\PlatformShippingSubsidy;
 use App\Models\ShippingZone;
 use App\Notifications\Admin\ListingResubmittedNotification;
 use App\Models\Vendor;
-use App\Services\InfluencerPromotionRequestService;
 use App\Services\ListingShippingResolver;
 use App\Services\MarketerCampaignService;
 use App\Services\ShippingWeightService;
@@ -47,7 +46,6 @@ class ListingController extends Controller
     public function __construct(
         private readonly ListingShippingResolver $shippingResolver,
         private readonly ShippingWeightService $weightService,
-        private readonly InfluencerPromotionRequestService $promotionRequestService,
         private readonly MarketerCampaignService $marketerCampaignService,
     ) {
     }
@@ -520,20 +518,12 @@ class ListingController extends Controller
             'refurbished' => 'مُجدَّد',
         ];
 
-        $availableMarketers = Vendor::whereNotNull('marketer_type')
+        $marketerVendors = Vendor::whereNotNull('marketer_type')
             ->where('global_status', 'active')
             ->where('country_id', $countryId)
-            ->select('id', 'business_name', 'marketer_type')
-            ->get();
-
-        $marketerVendors = $vendor->isMarketer()
-            ? Vendor::whereNotNull('marketer_type')
-                ->where('global_status', 'active')
-                ->where('country_id', $countryId)
-                ->where('id', '!=', $vendor->id)
-                ->orderBy('business_name')
-                ->get(['id', 'business_name', 'marketer_type'])
-            : collect();
+            ->where('id', '!=', $vendor->id)
+            ->orderBy('business_name')
+            ->get(['id', 'business_name', 'marketer_type']);
 
         return view('partner.listings.create', compact(
             'warehouses',
@@ -541,7 +531,6 @@ class ListingController extends Controller
             'fulfillmentModels',
             'conditions',
             'countryId',
-            'availableMarketers',
             'marketerVendors'
         ));
     }
@@ -578,9 +567,6 @@ class ListingController extends Controller
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
             'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
-            'promote_to_marketers' => ['nullable', 'boolean'],
-            'marketer_ids' => ['nullable', 'array', 'max:10', 'required_if:promote_to_marketers,1'],
-            'marketer_ids.*' => ['uuid', 'distinct', 'exists:vendors,id'],
             'campaign_enabled' => ['nullable', 'boolean'],
             'commission_type' => ['nullable', 'required_if:campaign_enabled,1', 'in:fixed,tiered,last_click'],
             'max_commission_budget' => ['nullable', 'numeric', 'min:0'],
@@ -699,7 +685,6 @@ class ListingController extends Controller
                 'handling_class' => $request->handling_class,
                 'weight_class' => $weightClass,
                 'primary_shipping_method_id' => $request->primary_shipping_method_id ?: null,
-                'available_for_marketers' => $request->boolean('promote_to_marketers'),
             ]);
 
             // Create warehouse inventory record
@@ -734,21 +719,7 @@ class ListingController extends Controller
 
         $message = $status === VendorListingStatus::Active->value ? 'تم إنشاء القائمة بنجاح وهي نشطة الآن.' : 'تم إنشاء القائمة وهي قيد المراجعة.';
 
-        if ($request->boolean('promote_to_marketers') && !empty($request->marketer_ids)) {
-            try {
-                $this->promotionRequestService->createRequest([
-                    'vendor_listing_id' => $listing->id,
-                    'marketer_ids' => $request->marketer_ids,
-                ], $vendor);
-
-                $message .= ' تم إرسال طلب ترويج المؤثرين بنجاح.';
-            } catch (\Throwable $e) {
-                Log::warning('Listing created but promotion request failed', ['listing_id' => $listing->id, 'error' => $e->getMessage()]);
-                $message .= ' تعذر إرسال طلب ترويج المؤثرين: ' . $e->getMessage();
-            }
-        }
-
-        if ($request->boolean('campaign_enabled') && $vendor->isMarketer()) {
+        if ($request->boolean('campaign_enabled')) {
             try {
                 $this->marketerCampaignService->createCampaign($vendor, array_merge($request->only([
                     'commission_type', 'max_commission_budget',
@@ -806,14 +777,12 @@ class ListingController extends Controller
         $availableShippingMethods = $this->shippingResolver->resolveForListing($listing);
 
         $vendor = $this->vendor();
-        $marketerVendors = $vendor->isMarketer()
-            ? Vendor::whereNotNull('marketer_type')
-                ->where('global_status', 'active')
-                ->where('country_id', $listing->country_id)
-                ->where('id', '!=', $vendor->id)
-                ->orderBy('business_name')
-                ->get(['id', 'business_name', 'marketer_type'])
-            : collect();
+        $marketerVendors = Vendor::whereNotNull('marketer_type')
+            ->where('global_status', 'active')
+            ->where('country_id', $listing->country_id)
+            ->where('id', '!=', $vendor->id)
+            ->orderBy('business_name')
+            ->get(['id', 'business_name', 'marketer_type']);
 
         return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions', 'availableShippingMethods', 'marketerVendors'));
     }
@@ -900,7 +869,7 @@ class ListingController extends Controller
 
         $successMessage = 'تم تحديث القائمة بنجاح.';
 
-        if ($request->boolean('campaign_enabled') && $this->vendor()->isMarketer()) {
+        if ($request->boolean('campaign_enabled')) {
             try {
                 $this->marketerCampaignService->createCampaign($this->vendor(), array_merge($request->only([
                     'commission_type', 'max_commission_budget',

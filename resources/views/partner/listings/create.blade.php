@@ -323,36 +323,6 @@
                         </div>
                     </div>
 
-                    {{-- Marketer Promotion --}}
-                    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4"
-                        x-data="{ promote: false }">
-                        <label class="flex items-start gap-2 cursor-pointer">
-                            <input type="checkbox" name="promote_to_marketers" value="1" x-model="promote"
-                                class="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400/40">
-                            <span class="text-sm text-gray-700">
-                                ترويج هذه القائمة عبر المسوّقين / Promote this listing to marketers
-                                <span class="block text-xs text-gray-400 mt-0.5">
-                                    فعّل هذا الخيار لاختيار المؤثرين وإرسال طلب ترويج لهم مباشرة بعد إنشاء القائمة.
-                                </span>
-                            </span>
-                        </label>
-
-                        <div x-show="promote" x-cloak class="space-y-2"
-                            x-effect="promote && $nextTick(() => window.initSelect2 && window.initSelect2())">
-                            <x-form.select
-                                name="marketer_ids"
-                                label="اختر المؤثرين / المشاهير (بحد أقصى 10)"
-                                :multiple="true"
-                                :select2="true"
-                                placeholder="ابحث واختر المؤثرين..."
-                                :options="$availableMarketers->mapWithKeys(fn ($m) => [
-                                    $m->id => $m->business_name . ' — ' . ($m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت'),
-                                ])"
-                            />
-                        </div>
-                    </div>
-
-                    @if(auth()->guard('vendor')->user()->vendor->isMarketer())
                     {{-- Marketer Campaign --}}
                     <div class="bg-white rounded-2xl border border-purple-200 p-6 space-y-4"
                         x-data="campaignSection()">
@@ -376,6 +346,11 @@
 
                         <div x-show="enabled && isFbn" x-cloak class="space-y-4"
                             x-effect="enabled && $nextTick(() => window.initSelect2 && window.initSelect2())">
+                            @if($marketerVendors->isEmpty())
+                                <p class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3">
+                                    لا يوجد ماركترز متاحين في بلدك حالياً. يمكن للأدمن تفعيل ماركترز من لوحة التحكم.
+                                </p>
+                            @else
                             <x-form.select
                                 name="marketer_vendor_ids"
                                 label="اختر الماركترز"
@@ -387,6 +362,7 @@
                                     $m->id => $m->business_name . ' — ' . ($m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت'),
                                 ])"
                             />
+                            @endif
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">نوع الكوميشن</label>
@@ -443,7 +419,6 @@
                             </div>
                         </div>
                     </div>
-                    @endif
 
                     <div id="create-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-4"></div>
 
@@ -458,7 +433,6 @@
 
     </div>
 
-@if(auth()->guard('vendor')->user()->vendor->isMarketer())
 @push('scripts')
     <script>
         function campaignSection() {
@@ -478,6 +452,5 @@
         }
     </script>
 @endpush
-@endif
 
 @endsection
