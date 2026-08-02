@@ -145,6 +145,22 @@ class MarketerCampaignService
                 $listing->update(['campaign_enabled' => true]);
             }
 
+            // Create platform samples immediately
+            if ($platformSampleQty > 0) {
+                MarketerCampaignSample::create([
+                    'campaign_id'   => $campaign->id,
+                    'invitation_id' => null,
+                    'sample_owner'  => 'platform',
+                    'quantity'      => $platformSampleQty,
+                    'status'        => 'pending',
+                ]);
+            }
+
+            // Dispatch invitations immediately — do not wait for admin approval
+            foreach ($marketerVendors as $marketerVendor) {
+                $this->dispatchInvitation($campaign, $marketerVendor->id);
+            }
+
             Admin::query()->get()->each(fn ($admin) => $admin->notify(new NewCampaignPendingNotification($campaign)));
             $vendor->vendorAdmins->each(fn ($va) => $va->notify(new CampaignPendingAdminNotification($campaign)));
 
@@ -156,37 +172,20 @@ class MarketerCampaignService
     }
 
     /**
-     * Admin approves a campaign: dispatches invitations to marketers.
-     * Commission amounts come from marketer_commission_country_settings, not admin input.
+     * Admin approves a campaign. Invitations were already dispatched at creation time —
+     * this just activates the campaign so conversions can be tracked.
      */
-    public function approveCampaign(
-        MarketerCampaign $campaign,
-        Admin $admin,
-        array $marketerVendorIds
-    ): void {
-        DB::transaction(function () use ($campaign, $admin, $marketerVendorIds) {
+    public function approveCampaign(MarketerCampaign $campaign, Admin $admin): void
+    {
+        DB::transaction(function () use ($campaign, $admin) {
             $campaign->update([
-                'status'                     => 'active',
-                'reviewed_by_admin_id'       => $admin->id,
-                'reviewed_at'                => now(),
+                'status'                => 'active',
+                'reviewed_by_admin_id'  => $admin->id,
+                'reviewed_at'           => now(),
             ]);
 
-            foreach ($marketerVendorIds as $marketerId) {
-                $this->dispatchInvitation($campaign, $marketerId);
-            }
-
-            if ($campaign->platform_sample_qty_snapshot > 0) {
-                MarketerCampaignSample::create([
-                    'campaign_id'   => $campaign->id,
-                    'invitation_id' => null,
-                    'sample_owner'  => 'platform',
-                    'quantity'      => $campaign->platform_sample_qty_snapshot,
-                    'status'        => 'pending',
-                ]);
-            }
-
             $campaign->vendor->vendorAdmins->each(
-                fn ($va) => $va->notify(new CampaignApprovedNotification($campaign, count($marketerVendorIds)))
+                fn ($va) => $va->notify(new CampaignApprovedNotification($campaign, $campaign->invitations()->count()))
             );
         });
     }
@@ -227,22 +226,8 @@ class MarketerCampaignService
                 'reviewed_at'   => now(),
             ]);
 
-            // NOTE: auto-approved campaigns have no commission split set by admin.
+            // Invitations and samples were already dispatched at campaign creation time.
             // Commissions are taken from category/country settings at conversion time.
-
-            foreach ($campaign->requested_marketer_vendor_ids ?? [] as $marketerId) {
-                $this->dispatchInvitation($campaign, $marketerId);
-            }
-
-            if ($campaign->platform_sample_qty_snapshot > 0) {
-                MarketerCampaignSample::create([
-                    'campaign_id'   => $campaign->id,
-                    'invitation_id' => null,
-                    'sample_owner'  => 'platform',
-                    'quantity'      => $campaign->platform_sample_qty_snapshot,
-                    'status'        => 'pending',
-                ]);
-            }
 
             $campaign->vendor->vendorAdmins->each(fn ($va) => $va->notify(new CampaignAutoApprovedNotification($campaign)));
         });
@@ -286,21 +271,12 @@ class MarketerCampaignService
 
         SendCampaignWhatsAppNotificationJob::dispatch($invitation->id);
 
-        if ($campaign->per_marketer_sample_qty_snapshot > 0) {
-            MarketerCampaignSample::create([
-                'campaign_id'   => $campaign->id,
-                'invitation_id' => $invitation->id,
-                'sample_owner'  => 'marketer',
-                'quantity'      => $campaign->per_marketer_sample_qty_snapshot,
-                'status'        => 'pending',
-            ]);
-        }
-
         return $invitation;
     }
 
     /**
-     * Marketer accepts an invitation.
+     * Marketer accepts an invitation. Samples for the marketer are created now,
+     * not at invitation time.
      */
     public function acceptInvitation(MarketerCampaignInvitation $invitation, ?string $marketerNote = null): void
     {
@@ -308,15 +284,39 @@ class MarketerCampaignService
             throw new \RuntimeException('Invitation is no longer pending.');
         }
 
-        $invitation->update([
-            'status'        => 'accepted',
-            'responded_at'  => now(),
-            'marketer_note' => $marketerNote,
-        ]);
+        DB::transaction(function () use ($invitation, $marketerNote) {
+            $invitation->update([
+                'status'        => 'accepted',
+                'responded_at'  => now(),
+                'marketer_note' => $marketerNote,
+            ]);
 
-        $invitation->campaign->vendor->vendorAdmins->each(
-            fn ($va) => $va->notify(new CampaignInvitationAcceptedNotification($invitation))
-        );
+            $campaign = $invitation->campaign;
+            $marketer = $invitation->marketer;
+            $category = $campaign->vendorListing?->productVariant?->product?->category
+                ?? $campaign->adminListing?->productVariant?->product?->category;
+
+            $sampleQty = 0;
+            if ($category && $marketer) {
+                $sampleQty = $marketer->marketer_type === 'influencer'
+                    ? ($category->influencer_sample_qty ?? 0)
+                    : ($category->affiliate_sample_qty ?? 0);
+            }
+
+            if ($sampleQty > 0) {
+                MarketerCampaignSample::create([
+                    'campaign_id'   => $campaign->id,
+                    'invitation_id' => $invitation->id,
+                    'sample_owner'  => 'marketer',
+                    'quantity'      => $sampleQty,
+                    'status'        => 'pending',
+                ]);
+            }
+
+            $campaign->vendor->vendorAdmins->each(
+                fn ($va) => $va->notify(new CampaignInvitationAcceptedNotification($invitation))
+            );
+        });
     }
 
     /**

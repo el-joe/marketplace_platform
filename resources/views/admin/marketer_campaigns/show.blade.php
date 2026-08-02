@@ -129,44 +129,52 @@
                 </div>
             </div>
 
-            @unless($isPending)
+            @if($isPending)
+                <form method="POST" action="{{ route('admin.marketer-campaigns.approve', $marketerCampaign) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.marketer_campaigns.approve_btn') }}</button>
+                </form>
+            @else
                 <p class="text-sm text-gray-500">{{ __('admin.marketer_campaigns.not_pending_notice') }}</p>
-            @endunless
+            @endif
         </x-card>
     </div>
 
-    {{-- ── Marketers (single form) ──────────────────────────────────────── --}}
-    <form method="POST" action="{{ route('admin.marketer-campaigns.approve', $marketerCampaign) }}">
-        @csrf
-
-        <div x-show="tab === 'marketers'">
-            <x-card title="{{ __('admin.marketer_campaigns.tab_marketers') }}">
-                @if($isPending)
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.marketer_campaigns.select_marketers_label') }}</label>
-                    @if($availableMarketers->isEmpty())
-                        <p class="text-sm text-gray-400">{{ __('admin.marketer_campaigns.no_marketers_available') }}</p>
-                    @else
-                        @if(!empty($marketerCampaign->requested_marketer_vendor_ids))
-                            <p class="text-xs text-gray-400 mb-2">{{ __('admin.marketer_campaigns.vendor_requested_note') }}</p>
+    {{-- ── Marketers (read-only — invitations already sent at campaign creation) ── --}}
+    <div x-show="tab === 'marketers'">
+        <x-card title="{{ __('admin.marketer_campaigns.tab_marketers') }} ({{ $marketerCampaign->invitations->count() }})">
+            @forelse($marketerCampaign->invitations as $inv)
+                <div class="flex items-center justify-between p-3 rounded-lg border mb-2
+                    {{ $inv->status === 'accepted' ? 'bg-green-50 border-green-200' :
+                       ($inv->status === 'rejected' ? 'bg-red-50 border-red-200' :
+                       ($inv->status === 'timed_out' ? 'bg-gray-50 border-gray-200' : 'bg-yellow-50 border-yellow-200')) }}">
+                    <div>
+                        <span class="font-medium text-gray-800">{{ $inv->marketer?->store_name ?? '—' }}</span>
+                        <span class="text-xs ml-2 px-2 py-0.5 rounded-full
+                            {{ $inv->marketer?->marketer_type === 'influencer' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                            {{ $inv->marketer?->marketer_type === 'influencer' ? 'إنفلوينسر' : 'أفيلييت' }}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        @if($inv->referral_code)
+                            <code class="bg-white px-2 py-1 rounded border text-xs">{{ $inv->referral_code }}</code>
                         @endif
-                        <select name="marketer_vendor_ids[]" multiple data-select2-init class="form-input w-full" required>
-                            @foreach($availableMarketers as $marketer)
-                                <option value="{{ $marketer->id }}"
-                                    @selected(in_array($marketer->id, $marketerCampaign->requested_marketer_vendor_ids ?? []))>
-                                    {{ $marketer->store_name }}
-                                    ({{ ['influencer' => 'إنفلوينسر', 'affiliate' => 'أفيلييت'][$marketer->marketer_type] ?? '—' }})
-                                    — {{ __('admin.marketer_campaigns.accepted_campaigns') }}: {{ $marketer->accepted_campaigns }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <button type="submit" class="btn btn-primary btn-sm mt-4">{{ __('admin.marketer_campaigns.approve_btn') }}</button>
-                    @endif
-                @else
-                    <p class="text-sm text-gray-500">{{ __('admin.marketer_campaigns.not_pending_notice') }}</p>
-                @endif
-            </x-card>
-        </div>
-    </form>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                            {{ $inv->status === 'accepted' ? 'bg-green-100 text-green-700' :
+                               ($inv->status === 'rejected' ? 'bg-red-100 text-red-700' :
+                               ($inv->status === 'timed_out' ? 'bg-gray-100 text-gray-600' : 'bg-yellow-100 text-yellow-700')) }}">
+                            {{ $inv->status }}
+                        </span>
+                        @if($inv->expires_at && $inv->status === 'pending')
+                            <span class="text-xs text-gray-400">{{ $inv->expires_at->diffForHumans() }}</span>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <p class="text-sm text-gray-400">{{ __('admin.marketer_campaigns.no_invitations') }}</p>
+            @endforelse
+        </x-card>
+    </div>
 
     @if($isPending)
         <div x-show="tab === 'commission'" class="mt-4">

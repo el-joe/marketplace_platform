@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{MarketerCampaign, Vendor};
+use App\Models\MarketerCampaign;
 use App\Services\MarketerCampaignService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -47,12 +47,6 @@ class MarketerCampaignController extends Controller
             'samples',
         ]);
 
-        $availableMarketers = Vendor::whereNotNull('marketer_type')
-            ->where('global_status', 'active')
-            ->where('country_id', $marketerCampaign->country_id)
-            ->withCount(['campaignInvitations as accepted_campaigns' => fn($q) => $q->where('status','accepted')])
-            ->get();
-
         $categoryId = $marketerCampaign->vendorListing?->productVariant?->product?->category_id
             ?? $marketerCampaign->adminListing?->productVariant?->product?->category_id;
 
@@ -62,25 +56,19 @@ class MarketerCampaignController extends Controller
                 ->first()
             : null;
 
-        return view('admin.marketer_campaigns.show', compact('marketerCampaign', 'availableMarketers', 'commissionSetting'));
+        return view('admin.marketer_campaigns.show', compact('marketerCampaign', 'commissionSetting'));
     }
 
     public function approve(Request $request, MarketerCampaign $marketerCampaign)
     {
         abort_unless(auth('admin')->user()->can('marketer_campaigns.approve'), 403);
 
-        $request->validate([
-            'marketer_vendor_ids'        => 'required|array|min:1',
-            'marketer_vendor_ids.*'      => 'uuid|exists:vendors,id',
-        ]);
+        abort_unless($marketerCampaign->status === 'pending_admin', 422,
+            'هذه الحملة لا يمكن قبولها في حالتها الحالية.');
 
-        $this->service->approveCampaign(
-            $marketerCampaign,
-            auth()->guard('admin')->user(),
-            $request->marketer_vendor_ids
-        );
+        $this->service->approveCampaign($marketerCampaign, auth()->guard('admin')->user());
 
-        return back()->with('success', 'تم قبول الحملة وإرسال الدعوات للماركترز.');
+        return back()->with('success', 'تم قبول الحملة وأصبحت نشطة.');
     }
 
     public function reject(Request $request, MarketerCampaign $marketerCampaign)
