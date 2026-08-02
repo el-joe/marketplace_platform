@@ -24,8 +24,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const feeTotalValueEl = document.getElementById('fee-total-value');
     const feeCurrencyEl = document.getElementById('fee-currency');
     const commissionBreakdownEl = document.getElementById('commission-breakdown-text');
+    const feeTableWrapEl = document.getElementById('marketer-fee-table-wrap');
+    const feeTableBodyEl = document.getElementById('marketer-fee-table-body');
+    const feeTableTotalEl = document.getElementById('marketer-fee-table-total');
 
     const state = {
+        selectedMarketers: [], // [{id, name, type}]
         influencerCount: 0,
         affiliateCount: 0,
         influencerSampleQty: 0,
@@ -152,6 +156,41 @@ document.addEventListener('DOMContentLoaded', function () {
         commissionBreakdownEl.textContent = lines.length ? lines.join(' | ') : 'لم يتم تحديد الكوميشن لهذه الفئة بعد';
     }
 
+    function renderMarketerFeeTable() {
+        if (!feeTableWrapEl || !feeTableBodyEl || !feeTableTotalEl) return;
+
+        if (state.selectedMarketers.length === 0) {
+            feeTableWrapEl.classList.add('hidden');
+            return;
+        }
+        feeTableWrapEl.classList.remove('hidden');
+
+        feeTableBodyEl.innerHTML = '';
+        state.selectedMarketers.forEach(m => {
+            const isInfluencer = m.type === 'influencer';
+            const fee = isInfluencer ? state.feePerInfluencer : 0;
+            const row = document.createElement('tr');
+            row.className = 'border-t border-gray-100';
+            row.innerHTML = `
+                <td class="px-4 py-2 text-gray-800"></td>
+                <td class="px-4 py-2 text-center">
+                    <span class="px-2 py-0.5 rounded-full text-xs ${isInfluencer ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
+                        ${isInfluencer ? 'إنفلوينسر' : 'أفيلييت'}
+                    </span>
+                </td>
+                <td class="px-4 py-2 text-center font-medium ${isInfluencer && fee > 0 ? 'text-orange-700' : 'text-green-600'}"></td>
+            `;
+            row.querySelector('td').textContent = m.name;
+            row.lastElementChild.textContent = (isInfluencer && fee > 0) ? `${fee} ${state.currency}` : 'مجاني';
+            feeTableBodyEl.appendChild(row);
+        });
+
+        const total = state.influencerCount * state.feePerInfluencer;
+        feeTableTotalEl.textContent = total > 0 ? `${total} ${state.currency}` : 'مجاني';
+        feeTableTotalEl.classList.toggle('text-orange-700', total > 0);
+        feeTableTotalEl.classList.toggle('text-green-600', total === 0);
+    }
+
     async function fetchCampaignPricing(productId) {
         const url = window.LISTINGS_CREATE?.campaignPricingUrl;
         const countryId = countryInput?.value;
@@ -167,8 +206,23 @@ document.addEventListener('DOMContentLoaded', function () {
             state.currency = data.currency ?? '';
             state.pricingLoaded = true;
             renderPricing();
+            renderMarketerFeeTable();
         } catch (e) {
             console.error('Failed to fetch campaign pricing', e);
+        }
+    }
+
+    async function fetchInfluencerFee() {
+        const url = window.LISTINGS_CREATE?.influencerFeeUrl;
+        if (!url) return;
+        try {
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+            state.feePerInfluencer = data.fee_per_influencer ?? 0;
+            state.currency = data.currency ?? state.currency;
+            renderMarketerFeeTable();
+        } catch (e) {
+            console.error('Failed to fetch influencer fee', e);
         }
     }
 
@@ -194,12 +248,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const select = event.target;
         state.influencerCount = 0;
         state.affiliateCount = 0;
-        Array.from(select.selectedOptions || []).forEach(opt => {
+        state.selectedMarketers = Array.from(select.selectedOptions || []).map(opt => {
             if (opt.dataset.type === 'influencer') state.influencerCount++;
             else if (opt.dataset.type === 'affiliate') state.affiliateCount++;
+            return { id: opt.value, name: opt.dataset.name || opt.text, type: opt.dataset.type || 'affiliate' };
         });
         renderSamples();
         renderPricing();
+        renderMarketerFeeTable();
     }
 
     enabledCheckbox?.addEventListener('change', renderVisibility);
@@ -223,4 +279,6 @@ document.addEventListener('DOMContentLoaded', function () {
     renderTieredVisibility();
     renderSamples();
     renderPricing();
+    renderMarketerFeeTable();
+    fetchInfluencerFee();
 });

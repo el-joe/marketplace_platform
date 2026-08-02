@@ -14,6 +14,7 @@
             availableShippingMethodsUrl: '{{ route('partner.listings.available-shipping-methods') }}',
             categorySamplesUrl: '{{ route('partner.listings.category-samples') }}',
             campaignPricingUrl: '{{ route('partner.listings.campaign-pricing') }}',
+            influencerFeeUrl: '{{ route('partner.listings.influencer-fee') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
         };
@@ -357,7 +358,8 @@
                                 placeholder="ابحث واختر الماركترز..."
                             >
                                 @foreach($marketerVendors as $m)
-                                    <option value="{{ $m->id }}" data-type="{{ $m->marketer_type }}">
+                                    <option value="{{ $m->id }}" data-type="{{ $m->marketer_type }}"
+                                            data-name="{{ $m->name ?? $m->business_name }}">
                                         {{ $m->name ?? $m->business_name }} — {{ $m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت' }}
                                     </option>
                                 @endforeach
@@ -381,6 +383,32 @@
                                         <span class="text-xs font-semibold text-gray-700">كوميشن الماركتر لكل بيعة</span>
                                     </div>
                                     <div class="text-sm text-gray-800" id="commission-breakdown-text">سيتم تحديده بعد اختيار المنتج</div>
+                                </div>
+                            </div>
+
+                            {{-- Per-marketer fee breakdown table --}}
+                            <div class="hidden" id="marketer-fee-table-wrap">
+                                <h5 class="text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-receipt text-orange-500 mr-1"></i>
+                                    تفاصيل الرسوم لكل ماركتر
+                                </h5>
+                                <div class="rounded-lg border border-gray-200 overflow-hidden">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="text-right px-4 py-2 text-gray-600 font-medium">الماركتر</th>
+                                                <th class="text-center px-4 py-2 text-gray-600 font-medium">النوع</th>
+                                                <th class="text-center px-4 py-2 text-gray-600 font-medium">الرسوم</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="marketer-fee-table-body"></tbody>
+                                        <tfoot class="bg-gray-50 border-t-2 border-gray-200">
+                                            <tr>
+                                                <td colspan="2" class="px-4 py-2 font-semibold text-gray-700 text-right">إجمالي رسوم المنصة</td>
+                                                <td class="px-4 py-2 text-center font-bold" id="marketer-fee-table-total"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
                             </div>
 

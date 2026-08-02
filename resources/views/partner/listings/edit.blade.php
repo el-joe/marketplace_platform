@@ -274,12 +274,80 @@
                             :multiple="true"
                             :select2="true"
                             placeholder="ابحث واختر الماركترز..."
-                            x-on:change="updateSampleCount($event)"
-                            :options="$marketerVendors->mapWithKeys(fn ($m) => [
-                                $m->id => $m->business_name . ' — ' . ($m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت'),
-                            ])"
-                        />
+                            x-on:change="updateSelectedMarketers($event)"
+                        >
+                            @foreach($marketerVendors as $m)
+                                <option value="{{ $m->id }}" data-type="{{ $m->marketer_type }}"
+                                        data-name="{{ $m->business_name }}">
+                                    {{ $m->business_name }} — {{ $m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت' }}
+                                </option>
+                            @endforeach
+                        </x-form.select>
                         @endif
+
+                        {{-- Per-marketer fee breakdown table --}}
+                        <div x-show="selectedMarketers.length > 0" x-cloak class="mt-4">
+                            <h5 class="text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-receipt text-orange-500 mr-1"></i>
+                                تفاصيل الرسوم لكل ماركتر
+                            </h5>
+                            <div class="rounded-lg border border-gray-200 overflow-hidden">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="text-right px-4 py-2 text-gray-600 font-medium">الماركتر</th>
+                                            <th class="text-center px-4 py-2 text-gray-600 font-medium">النوع</th>
+                                            <th class="text-center px-4 py-2 text-gray-600 font-medium">الرسوم</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="marketer in selectedMarketers" :key="marketer.id">
+                                            <tr class="border-t border-gray-100">
+                                                <td class="px-4 py-2 text-gray-800" x-text="marketer.name"></td>
+                                                <td class="px-4 py-2 text-center">
+                                                    <span class="px-2 py-0.5 rounded-full text-xs"
+                                                          :class="marketer.type === 'influencer'
+                                                              ? 'bg-purple-100 text-purple-700'
+                                                              : 'bg-blue-100 text-blue-700'"
+                                                          x-text="marketer.type === 'influencer' ? 'إنفلوينسر' : 'أفيلييت'">
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-2 text-center font-medium"
+                                                    :class="marketer.type === 'influencer' && feePerInfluencer > 0
+                                                        ? 'text-orange-700' : 'text-green-600'">
+                                                    <span x-show="marketer.type === 'influencer' && feePerInfluencer > 0"
+                                                          x-text="feePerInfluencer + ' ' + currency">
+                                                    </span>
+                                                    <span x-show="!(marketer.type === 'influencer' && feePerInfluencer > 0)"
+                                                          class="text-green-600">
+                                                        مجاني
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                    <tfoot class="bg-gray-50 border-t-2 border-gray-200">
+                                        <tr>
+                                            <td colspan="2" class="px-4 py-2 font-semibold text-gray-700 text-right">
+                                                إجمالي رسوم المنصة
+                                            </td>
+                                            <td class="px-4 py-2 text-center font-bold"
+                                                :class="totalInfluencerFee > 0 ? 'text-orange-700' : 'text-green-600'">
+                                                <span x-show="totalInfluencerFee > 0"
+                                                      x-text="totalInfluencerFee + ' ' + currency"></span>
+                                                <span x-show="totalInfluencerFee === 0" class="text-green-600">
+                                                    مجاني
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                رسوم المنصة تُحسب لكل إنفلوينسر مختار — الأفيلييت مجاني دائماً
+                            </p>
+                        </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">نوع الكوميشن</label>
@@ -329,7 +397,7 @@
 
                         <div class="p-3 bg-purple-50 rounded-lg text-sm text-purple-800">
                             <i class="fas fa-box-open mr-1"></i>
-                            إجمالي العينات المتوقع: <strong x-text="selectedMarketerCount"></strong> ماركتر مختار
+                            إجمالي العينات المتوقع: <strong x-text="selectedMarketers.length"></strong> ماركتر مختار
                             <span class="block text-xs text-gray-500 mt-1">
                                 سيتم تحديد كمية العينات النهائية تلقائياً حسب فئة المنتج بعد إنشاء الحملة.
                             </span>
@@ -362,13 +430,39 @@
                 enabled: false,
                 commissionType: 'fixed',
                 tieredRules: [],
-                selectedMarketerCount: 0,
+                selectedMarketers: [], // [{id, name, type}]
+                feePerInfluencer: 0,
+                currency: '',
                 get isFbn() {
                     const fmSelect = document.querySelector('select[name="fulfillment_model"]');
                     return fmSelect ? fmSelect.value === 'fbn' : false;
                 },
-                updateSampleCount(event) {
-                    this.selectedMarketerCount = event.target.selectedOptions ? event.target.selectedOptions.length : 0;
+                get totalInfluencerFee() {
+                    const count = this.selectedMarketers.filter(m => m.type === 'influencer').length;
+                    return count * this.feePerInfluencer;
+                },
+                updateSelectedMarketers(event) {
+                    const select = event.target;
+                    this.selectedMarketers = Array.from(select.selectedOptions || []).map(opt => ({
+                        id: opt.value,
+                        name: opt.dataset.name || opt.text,
+                        type: opt.dataset.type || 'affiliate',
+                    }));
+                },
+                async fetchInfluencerFee() {
+                    try {
+                        const res = await fetch('{{ route('partner.listings.influencer-fee') }}', {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        const data = await res.json();
+                        this.feePerInfluencer = data.fee_per_influencer ?? 0;
+                        this.currency = data.currency ?? '';
+                    } catch (e) {
+                        console.error('Failed to fetch influencer fee', e);
+                    }
+                },
+                init() {
+                    this.fetchInfluencerFee();
                 },
             };
         }

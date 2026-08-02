@@ -379,6 +379,25 @@ class ListingController extends Controller
         ]);
     }
 
+    /**
+     * Influencer platform fee for the vendor's own country. Fee is
+     * country-based only (not category-based), so no product is needed.
+     */
+    public function getInfluencerFee(): JsonResponse
+    {
+        $vendor    = auth()->guard('vendor')->user()->vendor;
+        $countryId = $vendor->country_id;
+
+        $feeSetting = \App\Models\MarketerInfluencerFeeCountrySetting::where('country_id', $countryId)->first();
+
+        $currency = Country::find($countryId)?->currency_code ?? '';
+
+        return response()->json([
+            'fee_per_influencer' => $feeSetting?->fee_per_influencer ?? 0,
+            'currency'           => $currency,
+        ]);
+    }
+
     public function slugPreview(string $product, string $variant): JsonResponse
     {
         $productModel = Product::query()->whereNull('deleted_at')->findOrFail($product);
