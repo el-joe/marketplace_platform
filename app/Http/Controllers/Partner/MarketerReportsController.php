@@ -14,7 +14,10 @@ class MarketerReportsController extends Controller
 
     public function index()
     {
-        $this->authorize('marketer_reports.view');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_reports.view'),
+            403
+        );
         $vendor = Auth::guard('vendor')->user()->vendor;
         abort_unless($vendor->isMarketer(), 403);
 

@@ -106,8 +106,6 @@ class PermissionSeeder extends Seeder
             'ad_campaigns.edit',
             'ad_campaigns.delete',
             'ad_campaigns.manage',
-            'campaign_offers.view',
-            'campaign_offers.edit',
             'vendor_change_requests.view',
             'vendor_change_requests.approve',
             'travel_agency_change_requests.view',

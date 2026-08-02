@@ -27,7 +27,10 @@ class MarketerProfileController extends Controller
 
     public function show()
     {
-        $this->authorize('marketer_profile.view');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_profile.view'),
+            403
+        );
         $vendor  = $this->vendor();
         $profile = $vendor->marketerProfile()->firstOrCreate(['vendor_id' => $vendor->id]);
 
@@ -40,7 +43,10 @@ class MarketerProfileController extends Controller
 
     public function update(Request $request)
     {
-        $this->authorize('marketer_profile.edit');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_profile.edit'),
+            403
+        );
         $vendor = $this->vendor();
 
         $request->validate([

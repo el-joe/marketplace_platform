@@ -88,7 +88,6 @@
             <x-partner-nav-item route="partner.flash-sales.index" icon="bolt" label="{{ __('partner.nav.flash_sales') }}" />
             <x-partner-nav-item route="partner.coupons.index" icon="ticket" label="{{ __('partner.nav.coupons') }}" />
             <x-partner-nav-item route="partner.ads.index" icon="megaphone" label="{{ __('partner.nav.ads') }}" />
-            <x-partner-nav-item route="partner.campaign-offers.index" icon="gift" label="{{ __('partner.nav.campaign_offers') }}" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.open_market') }}">
@@ -99,6 +98,7 @@
             <x-partner-nav-group label="{{ __('partner.nav.marketer') }}">
                 <x-partner-nav-item route="partner.marketer.profile" icon="user-circle" label="{{ __('partner.nav.marketer_profile') }}" />
                 <x-partner-nav-item route="partner.marketer.invitations.index" icon="envelope" label="{{ __('partner.nav.marketer_invitations') }}" :badge="$pendingMarketerInvitations ?: null" />
+                <x-partner-nav-item route="partner.marketer.my-campaigns" icon="star" label="{{ __('partner.nav.marketer_my_campaigns') }}" />
                 <x-partner-nav-item route="partner.marketer-campaigns.index" icon="megaphone" label="{{ __('partner.nav.marketer_campaigns_my') }}" />
                 <x-partner-nav-item route="partner.marketer.reports" icon="chart-bar" label="{{ __('partner.nav.marketer_reports') }}" />
             </x-partner-nav-group>

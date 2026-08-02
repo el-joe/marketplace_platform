@@ -95,7 +95,6 @@
                 <li><code>/admin/ad-slots</code> — {{ __('docs/panels/admin.marketing.ad_slots') }}</li>
                 <li><code>/admin/paid-ad-bookings</code> — {{ __('docs/panels/admin.marketing.paid_ad_bookings') }}</li>
                 <li><code>/admin/flash-sales</code> — {{ __('docs/panels/admin.marketing.flash_sales') }}</li>
-                <li><code>/admin/vendor-campaign-offers</code> — {{ __('docs/panels/admin.marketing.vendor_campaign_offers') }}</li>
                 <li><code>/admin/marketers-secret-promotions</code> — {{ __('docs/panels/admin.marketing.secret_promotions') }}</li>
             </ul>
         </section>

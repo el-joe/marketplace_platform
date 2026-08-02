@@ -25,7 +25,6 @@
         {{-- 3. Admin Oversight --}}
         <section>
             <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/vendor-campaigns.admin_oversight.heading') }}</h2>
-            <p class="text-gray-600"><code>/admin/vendor-campaign-offers</code> &mdash; {{ __('docs/features/vendor-campaigns.admin_oversight.p1') }}</p>
             <p class="text-gray-600">{{ __('docs/features/vendor-campaigns.admin_oversight.p2') }}</p>
         </section>
 

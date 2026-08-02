@@ -40,7 +40,6 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\AdCampaignController;
 use App\Http\Controllers\Admin\MarketerCampaignController;
 use App\Http\Controllers\Admin\MarketerSettingsController;
-use App\Http\Controllers\Admin\VendorCampaignOfferController;
 use App\Http\Controllers\Admin\AdSlotController;
 use App\Http\Controllers\Admin\PaidAdBookingController;
 use App\Http\Controllers\Admin\VendorApplicationController;
@@ -838,14 +837,6 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/fee', [MarketerSettingsController::class, 'updateInfluencerFee'])->name('update-fee');
     });
 
-    // ─── Vendor Campaign Offers ───────────────────────────────────────────────────
-    Route::prefix('vendor-campaign-offers')->name('vendor-campaign-offers.')->middleware('admin.permission:campaign_offers.view')->group(function () {
-        Route::get('/', [VendorCampaignOfferController::class, 'index'])->name('index');
-        Route::post('/datatable', [VendorCampaignOfferController::class, 'datatable'])->name('datatable');
-        Route::get('/{offer}', [VendorCampaignOfferController::class, 'show'])->name('show');
-        Route::post('/{offer}/approve', [VendorCampaignOfferController::class, 'approve'])->name('approve');
-        Route::post('/{offer}/reject', [VendorCampaignOfferController::class, 'reject'])->name('reject');
-    });
 
     // ─── Ad Slots ──────────────────────────────────────────────────────────────────
     Route::prefix('ad-slots')->name('ad-slots.')->middleware('admin.permission:ad_campaigns.view')->group(function () {

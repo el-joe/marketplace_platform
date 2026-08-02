@@ -252,18 +252,10 @@ class MarketerCampaignService
             'referral_link'           => url("/r/{$referralCode}"),
         ]);
 
-        // Generate QR code for referral link
-        try {
-            $qrCode = \Endroid\QrCode\QrCode::create($invitation->referral_link)
-                ->setSize(300)
-                ->setMargin(10);
-            $writer  = new \Endroid\QrCode\Writer\PngWriter();
-            $result  = $writer->write($qrCode);
-            $qrPath  = 'qrcodes/invitations/' . $invitation->id . '.png';
-            \Illuminate\Support\Facades\Storage::disk('public')->put($qrPath, $result->getString());
+        // Generate QR code for this invitation's referral link
+        $qrPath = $this->generateQrCode($invitation->referral_link, $invitation->id);
+        if ($qrPath) {
             $invitation->update(['qr_code_path' => $qrPath]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('QR generation failed for invitation ' . $invitation->id . ': ' . $e->getMessage());
         }
 
         ProcessInvitationTimeoutJob::dispatch($invitation->id)
@@ -272,6 +264,28 @@ class MarketerCampaignService
         SendCampaignWhatsAppNotificationJob::dispatch($invitation->id);
 
         return $invitation;
+    }
+
+    private function generateQrCode(string $url, string $invitationId): ?string
+    {
+        try {
+            $result = (new \Endroid\QrCode\Builder\Builder(
+                writer: new \Endroid\QrCode\Writer\PngWriter(),
+                data: $url,
+                size: 400,
+                margin: 15,
+            ))->build();
+
+            $path = 'qrcodes/invitations/' . $invitationId . '.png';
+            \Illuminate\Support\Facades\Storage::disk('public')->put($path, $result->getString());
+
+            return $path;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning(
+                'QR generation failed for invitation ' . $invitationId . ': ' . $e->getMessage()
+            );
+            return null;
+        }
     }
 
     /**

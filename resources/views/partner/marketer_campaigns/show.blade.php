@@ -200,7 +200,7 @@
                                 @endphp
                                 <tr>
                                     <td class="px-4 py-3 font-medium text-gray-900">{{ $invitation->marketer?->store_name ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $invitation->marketer?->marketer_type ? __('partner.campaign_offers.marketer_types.' . $invitation->marketer->marketer_type) : '—' }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $invitation->marketer?->marketer_type ? __('partner.marketer_types.' . $invitation->marketer->marketer_type) : '—' }}</td>
                                     <td class="px-4 py-3">
                                         <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $ist['cls'] }}">
                                             {{ $ist['label'] }}

@@ -1,7 +1,6 @@
 <?php
 
 use App\Jobs\AutoCompleteOrdersJob;
-use App\Jobs\ExpireVendorCampaignInvitationsJob;
 use App\Jobs\GenerateCodSettlementsJob;
 use App\Jobs\ReleaseExpiredLocksJob;
 use App\Jobs\CheckSlaBreachJob;
@@ -61,9 +60,6 @@ Schedule::command('fbn:compute-daily-overage')->dailyAt('01:00')->name('fbn-comp
 
 // Generate COD settlements for delivery agents nightly at 23:30
 Schedule::job(new GenerateCodSettlementsJob)->dailyAt('23:30')->name('generate-cod-settlements');
-
-// Expire pending vendor campaign invitations past their deadline
-Schedule::job(new ExpireVendorCampaignInvitationsJob)->dailyAt('00:15')->name('expire-vendor-campaign-invitations');
 
 // Mark active gift cards past their expiry date as expired
 Schedule::command('gift-cards:expire')

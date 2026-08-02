@@ -7,7 +7,6 @@ use App\Enums\DisputeStatus;
 use App\Enums\ReturnRequestStatus;
 use App\Enums\SupportTicketStatus;
 use App\Enums\TravelPackageStatus;
-use App\Enums\VendorCampaignOfferStatus;
 use App\Enums\VendorGlobalStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -216,13 +215,6 @@ class NavigationService
                         'icon' => 'megaphone',
                         'permission' => 'ad_campaigns.view',
                         'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.vendor_campaigns'),
-                        'route' => 'admin.vendor-campaign-offers.index',
-                        'icon' => 'rectangle-group',
-                        'permission' => 'campaign_offers.view',
-                        'badge' => $this->cachedBadge('pending_campaign_offers', fn() => $this->countPendingCampaignOffers()),
                     ],
                     [
                         'label' => __('admin.nav.marketer_campaigns'),
@@ -1066,15 +1058,6 @@ class NavigationService
     {
         try {
             return (int) \App\Models\SupportTicket::query()->where('status', SupportTicketStatus::Open->value)->count();
-        } catch (\Throwable) {
-            return 0;
-        }
-    }
-
-    protected function countPendingCampaignOffers(): int
-    {
-        try {
-            return (int) \App\Models\VendorCampaignOffer::query()->where('status', VendorCampaignOfferStatus::PendingAdmin->value)->count();
         } catch (\Throwable) {
             return 0;
         }

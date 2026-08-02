@@ -46,6 +46,31 @@ class MarketerInvitationController extends Controller
         return view('partner.marketer.invitations', compact('invitations'));
     }
 
+    public function myCampaigns()
+    {
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_invitations.view'),
+            403
+        );
+        $vendor = $this->vendor();
+
+        $acceptedInvitations = MarketerCampaignInvitation::where('marketer_vendor_id', $vendor->id)
+            ->where('status', 'accepted')
+            ->with([
+                'campaign.vendor',
+                'campaign.vendorListing.productVariant.product',
+                'campaign.adminListing.productVariant.product',
+                'campaign.country',
+                'samples',
+            ])
+            ->withCount('conversions')
+            ->withSum('conversions', 'commission_amount')
+            ->latest()
+            ->paginate(20);
+
+        return view('partner.marketer.my_campaigns', compact('acceptedInvitations'));
+    }
+
     public function accept(Request $request, MarketerCampaignInvitation $invitation)
     {
         abort_unless(

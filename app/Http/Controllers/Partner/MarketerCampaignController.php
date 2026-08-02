@@ -21,7 +21,10 @@ class MarketerCampaignController extends Controller
 
     public function index()
     {
-        $this->authorize('marketer_campaigns.view');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_campaigns.view'),
+            403
+        );
 
         $campaigns = MarketerCampaign::where('vendor_id', $this->vendorId())
             ->with([
@@ -40,7 +43,10 @@ class MarketerCampaignController extends Controller
 
     public function show(MarketerCampaign $marketerCampaign)
     {
-        $this->authorize('marketer_campaigns.view');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_campaigns.view'),
+            403
+        );
         abort_unless($marketerCampaign->vendor_id === $this->vendorId(), 403);
 
         $marketerCampaign->load([
@@ -58,7 +64,10 @@ class MarketerCampaignController extends Controller
 
     public function cancel(MarketerCampaign $marketerCampaign)
     {
-        $this->authorize('marketer_campaigns.cancel');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_campaigns.cancel'),
+            403
+        );
         abort_unless($marketerCampaign->vendor_id === $this->vendorId(), 403);
         abort_unless($marketerCampaign->status === 'pending_admin', 403);
 
