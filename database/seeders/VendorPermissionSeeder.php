@@ -55,6 +55,15 @@ class VendorPermissionSeeder extends Seeder
             'roles.create',
             'roles.edit',
             'roles.delete',
+            'marketer_campaigns.view',
+            'marketer_campaigns.create',
+            'marketer_campaigns.edit',
+            'marketer_campaigns.cancel',
+            'marketer_profile.view',
+            'marketer_profile.edit',
+            'marketer_invitations.view',
+            'marketer_invitations.respond',
+            'marketer_reports.view',
         ];
 
         foreach ($permissions as $name) {
@@ -70,6 +79,10 @@ class VendorPermissionSeeder extends Seeder
             'products.view', 'products.create', 'products.edit',
             'reviews.view', 'reviews.respond',
             'customers.view', 'settings.view', 'documents.upload',
+            'marketer_campaigns.view', 'marketer_campaigns.create', 'marketer_campaigns.edit', 'marketer_campaigns.cancel',
+            'marketer_profile.view', 'marketer_profile.edit',
+            'marketer_invitations.view', 'marketer_invitations.respond',
+            'marketer_reports.view',
         ];
 
         $staffPermissions = [
@@ -80,6 +93,10 @@ class VendorPermissionSeeder extends Seeder
             'products.view', 'products.create', 'products.edit',
             'reviews.view', 'reviews.respond',
             'customers.view',
+            'marketer_campaigns.view',
+            'marketer_profile.view',
+            'marketer_invitations.view', 'marketer_invitations.respond',
+            'marketer_reports.view',
         ];
 
         $vendorOwner = Role::where('name', 'vendor_owner')->where('guard_name', $guard)->first();

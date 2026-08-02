@@ -27,7 +27,10 @@ class MarketerInvitationController extends Controller
 
     public function index()
     {
-        $this->authorize('marketer_invitations.view');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_invitations.view'),
+            403
+        );
         $vendor = $this->vendor();
 
         $invitations = MarketerCampaignInvitation::where('marketer_vendor_id', $vendor->id)
@@ -40,7 +43,10 @@ class MarketerInvitationController extends Controller
 
     public function accept(Request $request, MarketerCampaignInvitation $invitation)
     {
-        $this->authorize('marketer_invitations.respond');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_invitations.respond'),
+            403
+        );
         $vendor = $this->vendor();
         abort_unless($invitation->marketer_vendor_id === $vendor->id, 403);
 
@@ -51,7 +57,10 @@ class MarketerInvitationController extends Controller
 
     public function reject(Request $request, MarketerCampaignInvitation $invitation)
     {
-        $this->authorize('marketer_invitations.respond');
+        abort_unless(
+            auth('vendor')->user()?->hasPermissionTo('marketer_invitations.respond'),
+            403
+        );
         $vendor = $this->vendor();
         abort_unless($invitation->marketer_vendor_id === $vendor->id, 403);
 
