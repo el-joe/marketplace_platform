@@ -322,6 +322,22 @@ class ListingController extends Controller
      * Read-only slug/URL preview for a product variant. Vendors cannot edit
      * slugs — they are product-level and managed by admins only.
      */
+    public function categorySamples(Request $request): JsonResponse
+    {
+        $productId = $request->input('product_id');
+        if (!$productId) {
+            return response()->json(['influencer' => 0, 'affiliate' => 0, 'platform' => 0]);
+        }
+
+        $category = Product::find($productId)?->category;
+
+        return response()->json([
+            'influencer' => $category?->influencer_sample_qty ?? 0,
+            'affiliate'  => $category?->affiliate_sample_qty ?? 0,
+            'platform'   => $category?->platform_sample_qty ?? 0,
+        ]);
+    }
+
     public function slugPreview(string $product, string $variant): JsonResponse
     {
         $productModel = Product::query()->whereNull('deleted_at')->findOrFail($product);
@@ -523,7 +539,7 @@ class ListingController extends Controller
             ->where('country_id', $countryId)
             ->where('id', '!=', $vendor->id)
             ->orderBy('business_name')
-            ->get(['id', 'business_name', 'marketer_type']);
+            ->get(['id', 'business_name','name', 'marketer_type']);
 
         return view('partner.listings.create', compact(
             'warehouses',

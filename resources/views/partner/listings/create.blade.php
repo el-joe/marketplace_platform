@@ -12,6 +12,7 @@
             urlInfoUrlTemplate: '{{ route('partner.listings.variants.url-info', ['variant' => '__VARIANT__']) }}',
             warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
             availableShippingMethodsUrl: '{{ route('partner.listings.available-shipping-methods') }}',
+            categorySamplesUrl: '{{ route('partner.listings.category-samples') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
         };
@@ -357,11 +358,14 @@
                                 :multiple="true"
                                 :select2="true"
                                 placeholder="ابحث واختر الماركترز..."
-                                x-on:change="updateSampleCount($event)"
-                                :options="$marketerVendors->mapWithKeys(fn ($m) => [
-                                    $m->id => $m->business_name . ' — ' . ($m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت'),
-                                ])"
-                            />
+                                x-on:change="updateMarketerCounts($event)"
+                            >
+                                @foreach($marketerVendors as $m)
+                                    <option value="{{ $m->id }}" data-type="{{ $m->marketer_type }}">
+                                        {{ $m->name ?? $m->business_name }} — {{ $m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت' }}
+                                    </option>
+                                @endforeach
+                            </x-form.select>
                             @endif
 
                             <div>
@@ -412,10 +416,9 @@
 
                             <div class="p-3 bg-purple-50 rounded-lg text-sm text-purple-800">
                                 <i class="fas fa-box-open mr-1"></i>
-                                إجمالي العينات المتوقع: <strong x-text="selectedMarketerCount"></strong> ماركتر مختار
-                                <span class="block text-xs text-gray-500 mt-1">
-                                    سيتم تحديد كمية العينات النهائية تلقائياً حسب فئة المنتج بعد إنشاء الحملة.
-                                </span>
+                                <span class="font-semibold">إجمالي العينات المتوقع:</span>
+                                <strong x-text="totalSamples"></strong>
+                                <span class="block text-xs text-gray-500 mt-1" x-text="sampleBreakdown"></span>
                             </div>
                         </div>
                     </div>
@@ -440,13 +443,73 @@
                 enabled: false,
                 commissionType: 'fixed',
                 tieredRules: [],
-                selectedMarketerCount: 0,
+
+                influencerCount: 0,
+                affiliateCount: 0,
+
+                influencerSampleQty: 0,
+                affiliateSampleQty: 0,
+                platformSampleQty: 0,
+                samplesLoaded: false,
+
                 get isFbn() {
                     const fmSelect = document.querySelector('select[name="fulfillment_model"]');
                     return fmSelect ? fmSelect.value === 'fbn' : false;
                 },
-                updateSampleCount(event) {
-                    this.selectedMarketerCount = event.target.selectedOptions ? event.target.selectedOptions.length : 0;
+
+                get totalSamples() {
+                    return (this.influencerCount * this.influencerSampleQty)
+                         + (this.affiliateCount * this.affiliateSampleQty)
+                         + this.platformSampleQty;
+                },
+
+                get sampleBreakdown() {
+                    if (!this.samplesLoaded) return 'سيتم حساب العينات بعد اختيار المنتج';
+                    const parts = [];
+                    if (this.influencerCount > 0)
+                        parts.push(`${this.influencerCount} إنفلوينسر × ${this.influencerSampleQty}`);
+                    if (this.affiliateCount > 0)
+                        parts.push(`${this.affiliateCount} أفيلييت × ${this.affiliateSampleQty}`);
+                    if (this.platformSampleQty > 0)
+                        parts.push(`منصة ${this.platformSampleQty}`);
+                    return parts.length
+                        ? `(${parts.join(' + ')}) = ${this.totalSamples} عينة`
+                        : `${this.totalSamples} عينة`;
+                },
+
+                async fetchCategorySamples(productId) {
+                    const url = window.LISTINGS_CREATE?.categorySamplesUrl;
+                    if (!productId || !url) return;
+                    try {
+                        const res = await fetch(`${url}?product_id=${productId}`, {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        const data = await res.json();
+                        this.influencerSampleQty = data.influencer ?? 0;
+                        this.affiliateSampleQty = data.affiliate ?? 0;
+                        this.platformSampleQty = data.platform ?? 0;
+                        this.samplesLoaded = true;
+                    } catch (e) {
+                        console.error('Failed to fetch category samples', e);
+                    }
+                },
+
+                updateMarketerCounts(event) {
+                    const select = event.target;
+                    this.influencerCount = 0;
+                    this.affiliateCount = 0;
+                    Array.from(select.selectedOptions || []).forEach(opt => {
+                        if (opt.dataset.type === 'influencer') this.influencerCount++;
+                        else if (opt.dataset.type === 'affiliate') this.affiliateCount++;
+                    });
+
+                    sampleBreakdown()
+                },
+
+                init() {
+                    document.addEventListener('listing:product-selected', (e) => {
+                        this.fetchCategorySamples(e.detail?.productId);
+                    });
                 },
             };
         }

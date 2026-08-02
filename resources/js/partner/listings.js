@@ -355,6 +355,10 @@ function selectVariant(data) {
 
     fetchCustomerUrlPreview(data.productId, data.variantId);
 
+    document.dispatchEvent(new CustomEvent('listing:product-selected', {
+        detail: { productId: data.productId },
+    }));
+
     // Show form, hide placeholder
     document.getElementById('listing-form-placeholder')?.classList.add('hidden');
     document.getElementById('listing-form-container')?.classList.remove('hidden');
