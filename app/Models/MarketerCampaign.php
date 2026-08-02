@@ -16,6 +16,7 @@ class MarketerCampaign extends Model
         'vendor_id', 'vendor_listing_id', 'admin_product_listing_id',
         'country_id', 'currency', 'commission_type',
         'max_commission_budget', 'platform_commission_amount', 'marketer_commission_amount',
+        'requested_marketer_vendor_ids',
         'reviewed_by_admin_id', 'reviewed_at', 'rejection_reason', 'status',
         'auto_approve_at', 'auto_approved',
         'platform_sample_qty_snapshot', 'per_marketer_sample_qty_snapshot',
@@ -26,6 +27,7 @@ class MarketerCampaign extends Model
         'reviewed_at' => 'datetime',
         'auto_approve_at' => 'datetime',
         'auto_approved' => 'boolean',
+        'requested_marketer_vendor_ids' => 'array',
     ];
 
     public function vendor(): BelongsTo

@@ -125,9 +125,13 @@
                     @if($availableMarketers->isEmpty())
                         <p class="text-sm text-gray-400">{{ __('admin.marketer_campaigns.no_marketers_available') }}</p>
                     @else
+                        @if(!empty($marketerCampaign->requested_marketer_vendor_ids))
+                            <p class="text-xs text-gray-400 mb-2">{{ __('admin.marketer_campaigns.vendor_requested_note') }}</p>
+                        @endif
                         <select name="marketer_vendor_ids[]" multiple data-select2-init class="form-input w-full" required>
                             @foreach($availableMarketers as $marketer)
-                                <option value="{{ $marketer->id }}">
+                                <option value="{{ $marketer->id }}"
+                                    @selected(in_array($marketer->id, $marketerCampaign->requested_marketer_vendor_ids ?? []))>
                                     {{ $marketer->store_name }}
                                     ({{ ['influencer' => 'إنفلوينسر', 'affiliate' => 'أفيلييت'][$marketer->marketer_type] ?? '—' }})
                                     — {{ __('admin.marketer_campaigns.accepted_campaigns') }}: {{ $marketer->accepted_campaigns }}

@@ -1440,6 +1440,7 @@ return [
         'platform_commission_label'     => 'مبلغ عمولة المنصة',
         'marketer_commission_label'     => 'مبلغ عمولة المسوق',
         'select_marketers_label'        => 'اختر المسوقين المتاحين',
+        'vendor_requested_note'         => 'المسوقون المحددون مسبقاً أدناه هم من اختارهم البائع عند إنشاء هذه الحملة.',
         'approve_btn'                   => 'قبول الحملة وإرسال الدعوات',
         'rejection_reason_label'        => 'سبب الرفض',
         'reject_btn'                    => 'رفض الحملة',

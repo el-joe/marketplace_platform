@@ -1435,6 +1435,7 @@ return [
         'platform_commission_label'     => 'Platform Commission Amount',
         'marketer_commission_label'     => 'Marketer Commission Amount',
         'select_marketers_label'        => 'Select Available Marketers',
+        'vendor_requested_note'         => 'Pre-selected below are the marketers the vendor requested when creating this campaign.',
         'approve_btn'                   => 'Approve & Send Invitations',
         'rejection_reason_label'        => 'Rejection Reason',
         'reject_btn'                    => 'Reject Campaign',

@@ -124,6 +124,7 @@ class MarketerCampaignService
                 'auto_approved'                    => false,
                 'platform_sample_qty_snapshot'     => $platformSampleQty,
                 'per_marketer_sample_qty_snapshot' => $perMarketerSampleQty,
+                'requested_marketer_vendor_ids'    => $marketerVendors->pluck('id')->values()->all(),
                 'title'                            => $data['title'] ?? null,
                 'notes'                            => $data['notes'] ?? null,
             ]);
@@ -231,6 +232,20 @@ class MarketerCampaignService
 
             // NOTE: auto-approved campaigns have no commission split set by admin.
             // Commissions are taken from category/country settings at conversion time.
+
+            foreach ($campaign->requested_marketer_vendor_ids ?? [] as $marketerId) {
+                $this->dispatchInvitation($campaign, $marketerId);
+            }
+
+            if ($campaign->platform_sample_qty_snapshot > 0) {
+                MarketerCampaignSample::create([
+                    'campaign_id'   => $campaign->id,
+                    'invitation_id' => null,
+                    'sample_owner'  => 'platform',
+                    'quantity'      => $campaign->platform_sample_qty_snapshot,
+                    'status'        => 'pending',
+                ]);
+            }
 
             $campaign->vendor->vendorAdmins->each(fn ($va) => $va->notify(new CampaignAutoApprovedNotification($campaign)));
         });
