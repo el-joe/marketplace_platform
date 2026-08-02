@@ -338,6 +338,47 @@ class ListingController extends Controller
         ]);
     }
 
+    /**
+     * Returns the influencer platform fee per slot and marketer commission
+     * per conversion for a product's category, for a given country.
+     */
+    public function campaignPricing(Request $request): JsonResponse
+    {
+        $productId = $request->input('product_id');
+        $countryId = $request->input('country_id');
+
+        if (!$productId || !$countryId) {
+            return response()->json([
+                'fee_per_influencer'           => 0,
+                'influencer_commission_amount' => 0,
+                'affiliate_commission_amount'  => 0,
+                'currency'                     => '',
+                'affiliate_fee_is_free'        => true,
+            ]);
+        }
+
+        $category = Product::find($productId)?->category;
+
+        $feeSetting = \App\Models\MarketerInfluencerFeeCountrySetting::where('country_id', $countryId)->first();
+
+        $commissionSetting = $category
+            ? \App\Models\MarketerCommissionCountrySetting::where('category_id', $category->id)
+                ->where('country_id', $countryId)
+                ->first()
+            : null;
+
+        $currency = Country::find($countryId)?->currency_code ?? '';
+
+        return response()->json([
+            'fee_per_influencer'           => $feeSetting?->fee_per_influencer ?? 0,
+            'influencer_commission_amount' => $commissionSetting?->influencer_commission_amount ?? 0,
+            'affiliate_commission_amount'  => $commissionSetting?->affiliate_commission_amount ?? 0,
+            'currency'                     => $currency,
+            'affiliate_fee_is_free'        => true,
+            'category_name'                => $category?->name_ar ?? $category?->name_en ?? '',
+        ]);
+    }
+
     public function slugPreview(string $product, string $variant): JsonResponse
     {
         $productModel = Product::query()->whereNull('deleted_at')->findOrFail($product);

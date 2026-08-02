@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalSamplesEl = document.getElementById('total-samples-value');
     const sampleBreakdownEl = document.getElementById('sample-breakdown-text');
     const fmSelect = document.querySelector('select[name="fulfillment_model"]');
+    const countryInput = document.querySelector('input[name="country_id"]');
+    const feeBreakdownEl = document.getElementById('fee-breakdown-text');
+    const feeTotalWrapEl = document.getElementById('fee-total-wrap');
+    const feeTotalValueEl = document.getElementById('fee-total-value');
+    const feeCurrencyEl = document.getElementById('fee-currency');
+    const commissionBreakdownEl = document.getElementById('commission-breakdown-text');
 
     const state = {
         influencerCount: 0,
@@ -27,6 +33,11 @@ document.addEventListener('DOMContentLoaded', function () {
         platformSampleQty: 0,
         samplesLoaded: false,
         tieredRules: [],
+        feePerInfluencer: 0,
+        influencerCommission: 0,
+        affiliateCommission: 0,
+        currency: '',
+        pricingLoaded: false,
     };
 
     function isFbn() {
@@ -101,6 +112,66 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function renderPricing() {
+        if (!feeBreakdownEl || !commissionBreakdownEl) return;
+
+        if (!state.pricingLoaded) {
+            feeBreakdownEl.textContent = 'اختر منتجاً وماركترز لرؤية الرسوم';
+            commissionBreakdownEl.textContent = 'سيتم تحديده بعد اختيار المنتج';
+            feeTotalWrapEl?.classList.add('hidden');
+            return;
+        }
+
+        const totalFee = state.influencerCount * state.feePerInfluencer;
+
+        if (state.influencerCount === 0 && state.affiliateCount === 0) {
+            feeBreakdownEl.textContent = 'لا توجد رسوم (لا يوجد إنفلوينسر مختار)';
+            feeTotalWrapEl?.classList.add('hidden');
+        } else {
+            const parts = [];
+            if (state.influencerCount > 0 && state.feePerInfluencer > 0) {
+                parts.push(`${state.influencerCount} إنفلوينسر × ${state.feePerInfluencer} ${state.currency} = ${totalFee} ${state.currency}`);
+            }
+            if (state.affiliateCount > 0) {
+                parts.push(`${state.affiliateCount} أفيلييت × 0 (مجاني)`);
+            }
+            feeBreakdownEl.textContent = parts.join(' | ') || 'لا توجد رسوم (لا يوجد إنفلوينسر مختار)';
+
+            if (totalFee > 0) {
+                feeTotalValueEl.textContent = totalFee;
+                feeCurrencyEl.textContent = state.currency;
+                feeTotalWrapEl?.classList.remove('hidden');
+            } else {
+                feeTotalWrapEl?.classList.add('hidden');
+            }
+        }
+
+        const lines = [];
+        if (state.influencerCommission > 0) lines.push(`الإنفلوينسر: ${state.influencerCommission} ${state.currency} لكل بيعة`);
+        if (state.affiliateCommission > 0) lines.push(`الأفيلييت: ${state.affiliateCommission} ${state.currency} لكل بيعة`);
+        commissionBreakdownEl.textContent = lines.length ? lines.join(' | ') : 'لم يتم تحديد الكوميشن لهذه الفئة بعد';
+    }
+
+    async function fetchCampaignPricing(productId) {
+        const url = window.LISTINGS_CREATE?.campaignPricingUrl;
+        const countryId = countryInput?.value;
+        if (!productId || !countryId || !url) return;
+        try {
+            const res = await fetch(`${url}?product_id=${productId}&country_id=${countryId}`, {
+                headers: { 'Accept': 'application/json' },
+            });
+            const data = await res.json();
+            state.feePerInfluencer = data.fee_per_influencer ?? 0;
+            state.influencerCommission = data.influencer_commission_amount ?? 0;
+            state.affiliateCommission = data.affiliate_commission_amount ?? 0;
+            state.currency = data.currency ?? '';
+            state.pricingLoaded = true;
+            renderPricing();
+        } catch (e) {
+            console.error('Failed to fetch campaign pricing', e);
+        }
+    }
+
     async function fetchCategorySamples(productId) {
         const url = window.LISTINGS_CREATE?.categorySamplesUrl;
         if (!productId || !url) return;
@@ -128,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
             else if (opt.dataset.type === 'affiliate') state.affiliateCount++;
         });
         renderSamples();
+        renderPricing();
     }
 
     enabledCheckbox?.addEventListener('change', renderVisibility);
@@ -144,9 +216,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     document.addEventListener('listing:product-selected', (e) => {
         fetchCategorySamples(e.detail?.productId);
+        fetchCampaignPricing(e.detail?.productId);
     });
 
     renderVisibility();
     renderTieredVisibility();
     renderSamples();
+    renderPricing();
 });

@@ -13,6 +13,7 @@
             warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
             availableShippingMethodsUrl: '{{ route('partner.listings.available-shipping-methods') }}',
             categorySamplesUrl: '{{ route('partner.listings.category-samples') }}',
+            campaignPricingUrl: '{{ route('partner.listings.campaign-pricing') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
         };
@@ -362,6 +363,26 @@
                                 @endforeach
                             </x-form.select>
                             @endif
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="campaign-pricing-cards">
+                                <div class="p-4 rounded-lg border bg-gray-50 border-gray-200" id="fee-card">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i class="fas fa-receipt text-orange-500 text-sm"></i>
+                                        <span class="text-xs font-semibold text-gray-700">رسوم المنصة (إنفلوينسر فقط)</span>
+                                    </div>
+                                    <div class="text-sm text-gray-800" id="fee-breakdown-text">اختر منتجاً وماركترز لرؤية الرسوم</div>
+                                    <div class="mt-2 text-base font-bold text-orange-700 hidden" id="fee-total-wrap">
+                                        الإجمالي: <span id="fee-total-value">0</span> <span id="fee-currency"></span>
+                                    </div>
+                                </div>
+                                <div class="p-4 rounded-lg border bg-green-50 border-green-200">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i class="fas fa-percentage text-green-500 text-sm"></i>
+                                        <span class="text-xs font-semibold text-gray-700">كوميشن الماركتر لكل بيعة</span>
+                                    </div>
+                                    <div class="text-sm text-gray-800" id="commission-breakdown-text">سيتم تحديده بعد اختيار المنتج</div>
+                                </div>
+                            </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">نوع الكوميشن</label>
