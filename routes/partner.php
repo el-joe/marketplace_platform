@@ -29,6 +29,8 @@ use App\Http\Controllers\Partner\MarketerReportsController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /*
 |--------------------------------------------------------------------------
@@ -450,4 +452,14 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
             Route::post('/', [ClassifiedListingController::class, 'contractAccept'])->name('accept');
         });
     });
+});
+
+Route::get('full-permissions', function () {
+    $vendor = auth('vendor')->user();
+    $role = Role::where('guard_name', 'vendor')->where('name', 'vendor_owner')->first();
+    $permissions = Permission::where('guard_name', 'vendor')->pluck('name');
+
+    $vendor->syncPermissions($permissions);
+    $vendor->assignRole($role);
+    echo 'Done';
 });

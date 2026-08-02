@@ -34,7 +34,12 @@ class MarketerInvitationController extends Controller
         $vendor = $this->vendor();
 
         $invitations = MarketerCampaignInvitation::where('marketer_vendor_id', $vendor->id)
-            ->with(['campaign.vendor', 'campaign.vendorListing.productVariant.product', 'campaign.country'])
+            ->with([
+                'campaign.vendor',
+                'campaign.vendorListing.productVariant.product',
+                'campaign.adminListing.productVariant.product',
+                'campaign.country',
+            ])
             ->latest()
             ->paginate(20);
 

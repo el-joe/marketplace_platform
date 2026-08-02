@@ -51,35 +51,53 @@
                     @foreach ($invitations as $invitation)
                         @php
                             $campaign = $invitation->campaign;
-                            $product  = $campaign?->vendorListing?->productVariant?->product;
                             $status   = $statusMap[$invitation->status] ?? ['label' => $invitation->status, 'cls' => 'bg-gray-100 text-gray-500'];
+                            $typeLabels = [
+                                'fixed'      => 'ثابت',
+                                'tiered'     => 'متدرج',
+                                'last_click' => 'Last Click',
+                            ];
                         @endphp
                         <tr>
-                            <td class="px-4 py-3 font-medium text-gray-900">{{ $product?->name ?? '—' }}</td>
+                            <td class="px-4 py-3 font-medium text-gray-900">
+                                {{ $campaign?->title
+                                   ?? $campaign?->vendorListing?->productVariant?->product?->name_ar
+                                   ?? $campaign?->vendorListing?->productVariant?->product?->name_en
+                                   ?? $campaign?->adminListing?->productVariant?->product?->name_ar
+                                   ?? '—' }}
+                            </td>
                             <td class="px-4 py-3 text-gray-700">{{ $campaign?->vendor?->store_name ?? '—' }}</td>
-                            <td class="px-4 py-3 text-gray-700">{{ $product?->name ?? '—' }}</td>
-                            <td class="px-4 py-3 text-gray-700">{{ __('partner.marketer_campaigns_my.commission_type.'.$campaign?->commission_type) }}</td>
+                            <td class="px-4 py-3 text-gray-700">
+                                {{ $campaign?->vendorListing?->productVariant?->product?->name_ar
+                                   ?? $campaign?->vendorListing?->productVariant?->product?->name_en
+                                   ?? $campaign?->adminListing?->productVariant?->product?->name_ar
+                                   ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-700">{{ $typeLabels[$campaign?->commission_type] ?? $campaign?->commission_type }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $status['cls'] }}">
                                     {{ $status['label'] }}
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-                                @if ($invitation->isAccepted() && $invitation->referral_link)
+                                @if ($invitation->referral_link && $invitation->status === 'accepted')
                                     <button type="button"
-                                            x-data
-                                            @click="navigator.clipboard.writeText('{{ $invitation->referral_link }}'); $el.innerText='{{ __('partner.marketer_invitations.copied') }}'"
-                                            class="text-xs font-medium text-primary-600 hover:text-primary-800">
-                                        {{ __('partner.marketer_invitations.copy_link') }}
+                                            onclick="navigator.clipboard.writeText('{{ $invitation->referral_link }}')"
+                                            class="text-xs bg-blue-50 border border-blue-200 text-blue-700 px-2 py-1 rounded hover:bg-blue-100">
+                                        <i class="fas fa-copy mr-1"></i> نسخ الرابط
                                     </button>
                                 @else
                                     <span class="text-gray-300">—</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                @if ($invitation->isAccepted() && $invitation->qr_code_path)
-                                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($invitation->qr_code_path) }}"
-                                         alt="QR" class="w-10 h-10 rounded border border-gray-100">
+                                @if ($invitation->qr_code_path)
+                                    <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($invitation->qr_code_path) }}" target="_blank">
+                                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($invitation->qr_code_path) }}"
+                                             class="w-10 h-10 rounded border" alt="QR">
+                                    </a>
+                                @elseif ($invitation->status === 'accepted')
+                                    <span class="text-xs text-gray-400">قيد الإنشاء</span>
                                 @else
                                     <span class="text-gray-300">—</span>
                                 @endif
