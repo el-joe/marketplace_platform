@@ -345,8 +345,8 @@
                                 :multiple="true"
                                 :select2="true"
                                 placeholder="ابحث واختر المؤثرين..."
-                                :options="$marketers->mapWithKeys(fn ($m) => [
-                                    $m->id => ($m->display_name ?? $m->name) . ' — ' . number_format($m->followers_count ?? 0) . ' متابع — ' . $m->niche,
+                                :options="$availableMarketers->mapWithKeys(fn ($m) => [
+                                    $m->id => $m->business_name . ' — ' . ($m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت'),
                                 ])"
                             />
                         </div>

@@ -11,7 +11,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Country;
 use App\Models\InventoryMovement;
-use App\Models\Marketer;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
@@ -521,12 +520,11 @@ class ListingController extends Controller
             'refurbished' => 'مُجدَّد',
         ];
 
-        $marketers = Marketer::query()
-            ->whereIn('type', ['celebrity', 'influencer'])
-            ->where('status', 'active')
-            ->where('accept_new_campaigns', true)
-            ->orderBy('followers_count', 'desc')
-            ->get(['id', 'name', 'display_name', 'profile_photo_path', 'followers_count', 'niche']);
+        $availableMarketers = Vendor::whereNotNull('marketer_type')
+            ->where('global_status', 'active')
+            ->where('country_id', $countryId)
+            ->select('id', 'business_name', 'marketer_type')
+            ->get();
 
         $marketerVendors = $vendor->isMarketer()
             ? Vendor::whereNotNull('marketer_type')
@@ -543,7 +541,7 @@ class ListingController extends Controller
             'fulfillmentModels',
             'conditions',
             'countryId',
-            'marketers',
+            'availableMarketers',
             'marketerVendors'
         ));
     }
@@ -582,7 +580,7 @@ class ListingController extends Controller
             'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
             'promote_to_marketers' => ['nullable', 'boolean'],
             'marketer_ids' => ['nullable', 'array', 'max:10', 'required_if:promote_to_marketers,1'],
-            'marketer_ids.*' => ['uuid', 'distinct', 'exists:marketers,id'],
+            'marketer_ids.*' => ['uuid', 'distinct', 'exists:vendors,id'],
             'campaign_enabled' => ['nullable', 'boolean'],
             'commission_type' => ['nullable', 'required_if:campaign_enabled,1', 'in:fixed,tiered,last_click'],
             'max_commission_budget' => ['nullable', 'numeric', 'min:0'],
