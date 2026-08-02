@@ -14,7 +14,7 @@
    @class([
        'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150',
        'bg-yellow-400/10 text-yellow-400'       => $isActive,
-       'text-gray-400 hover:text-white hover:bg-gray-800/70' => !$isActive,
+       'text-gray-300 hover:text-white hover:bg-gray-700/70' => !$isActive,
    ])>
     <x-heroicon :name="$icon" class="w-4 h-4 flex-shrink-0" />
     <span class="flex-1">{{ $label }}</span>
