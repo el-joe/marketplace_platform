@@ -245,21 +245,33 @@
                     </div>
                     <div id="specifications-rows" class="space-y-2">
                         @foreach(($specifications ?? []) as $i => $spec)
-                        <div class="specification-row flex items-start gap-2">
+                        <div class="flex gap-3 items-start specification-row">
                             <input type="hidden" name="specifications[{{ $i }}][id]" value="{{ $spec->id }}">
-                            <input type="text" name="specifications[{{ $i }}][key_en]" value="{{ old("specifications.$i.key_en", $spec->key_en) }}"
-                                dir="ltr" maxlength="255" placeholder="{{ __('admin.products.spec_key_en_placeholder') }}"
-                                class="form-input text-sm py-1.5 w-1/4" />
-                            <input type="text" name="specifications[{{ $i }}][key_ar]" value="{{ old("specifications.$i.key_ar", $spec->key_ar) }}"
-                                dir="rtl" maxlength="255" placeholder="{{ __('admin.products.spec_key_ar_placeholder') }}"
-                                class="form-input text-sm py-1.5 w-1/4" />
-                            <input type="text" name="specifications[{{ $i }}][value_en]" value="{{ old("specifications.$i.value_en", $spec->value_en) }}"
-                                dir="ltr" maxlength="500" placeholder="{{ __('admin.products.spec_value_en_placeholder') }}"
-                                class="form-input text-sm py-1.5 w-1/4" />
-                            <input type="text" name="specifications[{{ $i }}][value_ar]" value="{{ old("specifications.$i.value_ar", $spec->value_ar) }}"
-                                dir="rtl" maxlength="500" placeholder="{{ __('admin.products.spec_value_ar_placeholder') }}"
-                                class="form-input text-sm py-1.5 w-1/4" />
-                            <button type="button" class="remove-specification-row shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="{{ __('admin.remove') }}">
+                            <div class="flex-1">
+                                <label class="block text-xs text-gray-500 mb-1">Key (EN)</label>
+                                <input type="text" name="specifications[{{ $i }}][key_en]" value="{{ old("specifications.$i.key_en", $spec->key_en) }}"
+                                    dir="ltr" maxlength="255" placeholder="e.g. Material"
+                                    class="w-full border-gray-300 rounded-md text-sm" />
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-xs text-gray-500 mb-1">Key (AR)</label>
+                                <input type="text" name="specifications[{{ $i }}][key_ar]" value="{{ old("specifications.$i.key_ar", $spec->key_ar) }}"
+                                    dir="rtl" maxlength="255" placeholder="مثال: المادة"
+                                    class="w-full border-gray-300 rounded-md text-sm" />
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-xs text-gray-500 mb-1">Value (EN)</label>
+                                <input type="text" name="specifications[{{ $i }}][value_en]" value="{{ old("specifications.$i.value_en", $spec->value_en) }}"
+                                    dir="ltr" maxlength="500" placeholder="e.g. 100% Cotton"
+                                    class="w-full border-gray-300 rounded-md text-sm" />
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-xs text-gray-500 mb-1">Value (AR)</label>
+                                <input type="text" name="specifications[{{ $i }}][value_ar]" value="{{ old("specifications.$i.value_ar", $spec->value_ar) }}"
+                                    dir="rtl" maxlength="500" placeholder="مثال: قطن 100%"
+                                    class="w-full border-gray-300 rounded-md text-sm" />
+                            </div>
+                            <button type="button" class="remove-specification-row mt-5 shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="{{ __('admin.remove') }}">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                                 </svg>
