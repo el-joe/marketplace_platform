@@ -111,6 +111,9 @@ class DatabaseSeeder extends Seeder
 
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,
+
+                // ── Home page CMS blocks (per-country) ──────────────────────────
+            HomePageSeeder::class,
         ]);
 
         // ── Dashboard QA lifecycle orders (opt-in, TEST/DEV only) ─────────

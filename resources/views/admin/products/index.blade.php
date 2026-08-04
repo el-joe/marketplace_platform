@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @push('styles')
-    @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
+    @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/components/select2.js', 'resources/js/components/flatpickr.js'])
 @endpush
 
 @section('title', __('admin.products.title'))
@@ -66,19 +66,19 @@
                 'options' => ['draft' => __('admin.products.draft_status'), 'active' => __('admin.products.active_status'), 'discontinued' => __('admin.products.discontinued_status'), 'restricted' => __('admin.products.restricted_status')]
             ],
             [
-                'type' => 'async_select',
+                'type' => 'select',
                 'name' => 'category_id',
                 'label' => __('admin.category'),
-                'url' => route('admin.categories.search'),
-                'param' => 'q',
+                'options' => $categories->toArray(),
+                'searchable' => true,
                 'placeholder' => __('admin.products.all_categories')
             ],
             [
-                'type' => 'async_select',
+                'type' => 'select',
                 'name' => 'brand_id',
                 'label' => __('admin.brand'),
-                'url' => route('admin.brands.search'),
-                'param' => 'q',
+                'options' => $brands->toArray(),
+                'searchable' => true,
                 'placeholder' => __('admin.products.all_brands')
             ],
             [

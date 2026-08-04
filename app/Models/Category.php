@@ -11,10 +11,11 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use App\Models\ShippingMethod;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Kalnoy\Nestedset\NodeTrait;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Category extends Model
 {
-    use NodeTrait, SoftDeletes;
+    use HasFactory, NodeTrait, SoftDeletes;
 
     // Override kalnoy/nestedset defaults (_lft/_rgt) to match actual DB columns
     public function getLftName(): string

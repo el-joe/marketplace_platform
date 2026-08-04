@@ -31,7 +31,8 @@ min_length: int (for 'async_select' type, default 2)
             placeholder="{{ $placeholder ?: __('admin.filter_field_placeholder') }}" class="form-input text-sm">
 
     @elseif($type === 'select')
-        <select id="{{ $tableId }}-filter-{{ $name }}" name="{{ $name }}" class="form-select text-sm">
+        <select id="{{ $tableId }}-filter-{{ $name }}" name="{{ $name }}" class="form-select text-sm"
+            @if($filter['searchable'] ?? false) data-select2-init @endif>
             <option value="">{{ $placeholder ?: __('admin.all') }}</option>
             @foreach($options as $val => $lbl)
                 <option value="{{ $val }}">{{ $lbl }}</option>

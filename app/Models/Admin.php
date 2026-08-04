@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AdminStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -13,7 +14,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class Admin extends Authenticatable
 {
-    use HasUuids, Notifiable, HasRoles;
+    use HasFactory, HasUuids, Notifiable, HasRoles;
 
     protected string $guard_name = 'admin';
 
