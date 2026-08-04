@@ -90,11 +90,6 @@ return new class extends Migration
             $table->renameColumn('total_earnings_cents', 'total_earnings');
         });
 
-        Schema::table('delivery_agents', function (Blueprint $table) {
-            $table->renameColumn('base_salary_cents', 'base_salary');
-            $table->renameColumn('per_delivery_fee_cents', 'per_delivery_fee');
-        });
-
         Schema::table('delivery_assignments', function (Blueprint $table) {
             $table->renameColumn('cod_amount_collected_cents', 'cod_amount_collected');
         });
@@ -116,11 +111,6 @@ return new class extends Migration
         Schema::table('gift_card_transactions', function (Blueprint $table) {
             $table->renameColumn('amount_cents', 'amount');
             $table->renameColumn('balance_after_cents', 'balance_after');
-        });
-
-        Schema::table('gift_cards', function (Blueprint $table) {
-            $table->renameColumn('balance_cents', 'balance');
-            $table->renameColumn('denomination_cents', 'denomination');
         });
 
         if (Schema::hasTable('marketer_campaigns')) {
@@ -396,11 +386,6 @@ return new class extends Migration
             $table->renameColumn('total_earnings', 'total_earnings_cents');
         });
 
-        Schema::table('delivery_agents', function (Blueprint $table) {
-            $table->renameColumn('base_salary', 'base_salary_cents');
-            $table->renameColumn('per_delivery_fee', 'per_delivery_fee_cents');
-        });
-
         Schema::table('delivery_assignments', function (Blueprint $table) {
             $table->renameColumn('cod_amount_collected', 'cod_amount_collected_cents');
         });
@@ -422,11 +407,6 @@ return new class extends Migration
         Schema::table('gift_card_transactions', function (Blueprint $table) {
             $table->renameColumn('amount', 'amount_cents');
             $table->renameColumn('balance_after', 'balance_after_cents');
-        });
-
-        Schema::table('gift_cards', function (Blueprint $table) {
-            $table->renameColumn('balance', 'balance_cents');
-            $table->renameColumn('denomination', 'denomination_cents');
         });
 
         if (Schema::hasTable('marketer_campaigns')) {
