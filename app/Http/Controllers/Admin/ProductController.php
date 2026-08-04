@@ -1137,6 +1137,7 @@ class ProductController extends Controller
                     ->update([
                         'is_available' => (bool) ($setting['is_available'] ?? true),
                         'name_override_en' => $setting['name_override_en'] ?? null ?: null,
+                        'name_override_ar' => $setting['name_override_ar'] ?? null ?: null,
                         'requires_local_cert' => (bool) ($setting['requires_local_cert'] ?? false),
                         'updated_at' => now(),
                     ]);
@@ -1147,6 +1148,7 @@ class ProductController extends Controller
                     'country_id' => $country->id,
                     'is_available' => (bool) ($setting['is_available'] ?? true),
                     'name_override_en' => $setting['name_override_en'] ?? null ?: null,
+                    'name_override_ar' => $setting['name_override_ar'] ?? null ?: null,
                     'requires_local_cert' => (bool) ($setting['requires_local_cert'] ?? false),
                     'created_at' => now(),
                     'updated_at' => now(),

@@ -326,12 +326,22 @@ function initHighlightRows() {
     $(document).on('click', '#add-highlight-row', function () {
         const i = $('#highlights-rows .highlight-row').length;
         const removeLabel = esc((window.TRANSLATIONS || {}).removeLabel || 'Remove');
+        const enLabel = esc((window.TRANSLATIONS || {}).highlightEnLabel || 'Highlight (EN)');
+        const arLabel = esc((window.TRANSLATIONS || {}).highlightArLabel || 'Highlight (AR)');
+        const enPlaceholder = esc((window.TRANSLATIONS || {}).highlightEnPlaceholder || 'e.g. Water resistant up to 50 meters');
+        const arPlaceholder = esc((window.TRANSLATIONS || {}).highlightArPlaceholder || 'مثال: مقاوم للماء حتى 50 متر');
         const row = `
-<div class="highlight-row flex items-start gap-2">
+<div class="highlight-row flex gap-3 items-start">
   <input type="hidden" name="highlights[${i}][id]" value="">
-  <input type="text" name="highlights[${i}][text_en]" dir="ltr" maxlength="500" class="form-input text-sm py-1.5 w-1/2" />
-  <input type="text" name="highlights[${i}][text_ar]" dir="rtl" maxlength="500" class="form-input text-sm py-1.5 w-1/2" />
-  <button type="button" class="remove-highlight-row shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="${removeLabel}">
+  <div class="flex-1">
+    <label class="block text-xs text-gray-500 mb-1">${enLabel}</label>
+    <input type="text" name="highlights[${i}][text_en]" placeholder="${enPlaceholder}" dir="ltr" maxlength="500" class="form-input text-sm py-1.5 w-full" />
+  </div>
+  <div class="flex-1">
+    <label class="block text-xs text-gray-500 mb-1">${arLabel}</label>
+    <input type="text" name="highlights[${i}][text_ar]" placeholder="${arPlaceholder}" dir="rtl" maxlength="500" class="form-input text-sm py-1.5 w-full" />
+  </div>
+  <button type="button" class="remove-highlight-row mt-5 shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="${removeLabel}">
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
       <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
     </svg>

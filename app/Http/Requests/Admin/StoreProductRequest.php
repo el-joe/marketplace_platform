@@ -48,8 +48,9 @@ class StoreProductRequest extends FormRequest
             // Country settings
             'countries' => ['nullable', 'array'],
             'countries.*.is_available' => ['nullable', 'boolean'],
-            'countries.*.name_override' => ['nullable', 'string', 'max:255'],
-            'countries.*.requires_cert' => ['nullable', 'boolean'],
+            'countries.*.name_override_en' => ['nullable', 'string', 'max:255'],
+            'countries.*.name_override_ar' => ['nullable', 'string', 'max:255'],
+            'countries.*.requires_local_cert' => ['nullable', 'boolean'],
 
             // Highlights
             'highlights' => ['nullable', 'array'],

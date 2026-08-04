@@ -211,15 +211,21 @@
                     </div>
                     <div id="highlights-rows" class="space-y-2">
                         @foreach(($highlights ?? []) as $i => $highlight)
-                        <div class="highlight-row flex items-start gap-2">
+                        <div class="highlight-row flex gap-3 items-start">
                             <input type="hidden" name="highlights[{{ $i }}][id]" value="{{ $highlight->id }}">
-                            <input type="text" name="highlights[{{ $i }}][text_en]" value="{{ old("highlights.$i.text_en", $highlight->text_en) }}"
-                                dir="ltr" maxlength="500" placeholder="{{ __('admin.products.highlight_en_placeholder') }}"
-                                class="form-input text-sm py-1.5 w-1/2" />
-                            <input type="text" name="highlights[{{ $i }}][text_ar]" value="{{ old("highlights.$i.text_ar", $highlight->text_ar) }}"
-                                dir="rtl" maxlength="500" placeholder="{{ __('admin.products.highlight_ar_placeholder') }}"
-                                class="form-input text-sm py-1.5 w-1/2" />
-                            <button type="button" class="remove-highlight-row shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="{{ __('admin.remove') }}">
+                            <div class="flex-1">
+                                <label class="block text-xs text-gray-500 mb-1">{{ __('admin.products.highlight_en_label') }}</label>
+                                <input type="text" name="highlights[{{ $i }}][text_en]" value="{{ old("highlights.$i.text_en", $highlight->text_en) }}"
+                                    dir="ltr" maxlength="500" placeholder="{{ __('admin.products.highlight_en_placeholder') }}"
+                                    class="form-input text-sm py-1.5 w-full" />
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-xs text-gray-500 mb-1">{{ __('admin.products.highlight_ar_label') }}</label>
+                                <input type="text" name="highlights[{{ $i }}][text_ar]" value="{{ old("highlights.$i.text_ar", $highlight->text_ar) }}"
+                                    dir="rtl" maxlength="500" placeholder="{{ __('admin.products.highlight_ar_placeholder') }}"
+                                    class="form-input text-sm py-1.5 w-full" />
+                            </div>
+                            <button type="button" class="remove-highlight-row mt-5 shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="{{ __('admin.remove') }}">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                                 </svg>
@@ -600,7 +606,8 @@
                             <tr>
                                 <th class="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.country_column') }}</th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">{{ __('admin.products.available_column') }}</th>
-                                <th class="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.name_override_column') }}</th>
+                                <th class="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.name_override_en_column') }}</th>
+                                <th class="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.name_override_ar_column') }}</th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">{{ __('admin.products.cert_required_column') }}</th>
                             </tr>
                         </thead>
@@ -608,9 +615,10 @@
                             @forelse($countries ?? [] as $country)
                             @php
                                 $cs = isset($countrySettings) ? ($countrySettings[$country->id] ?? null) : null;
-                                $cAvailable    = (bool) old("countries.{$country->id}.is_available",  $cs?->is_available  ?? true);
-                                $cNameOverride = old("countries.{$country->id}.name_override_en",    $cs?->name_override_en ?? '');
-                                $cCert         = (bool) old("countries.{$country->id}.requires_local_cert", $cs?->requires_local_cert ?? false);
+                                $cAvailable      = (bool) old("countries.{$country->id}.is_available",  $cs?->is_available  ?? true);
+                                $cNameOverrideEn = old("countries.{$country->id}.name_override_en", $cs?->name_override_en ?? '');
+                                $cNameOverrideAr = old("countries.{$country->id}.name_override_ar", $cs?->name_override_ar ?? '');
+                                $cCert           = (bool) old("countries.{$country->id}.requires_local_cert", $cs?->requires_local_cert ?? false);
                             @endphp
                             <tr class="hover:bg-gray-50 country-row" x-data="{ avail: {{ $cAvailable ? 'true' : 'false' }} }">
                                 <td class="px-6 py-3 font-medium text-gray-900">
@@ -633,9 +641,19 @@
                                 <td class="px-6 py-3">
                                     <input type="text"
                                         name="countries[{{ $country->id }}][name_override_en]"
-                                        value="{{ $cNameOverride }}"
+                                        value="{{ $cNameOverrideEn }}"
                                         :disabled="!avail"
                                         placeholder="{{ __('admin.product_form.countries_placeholder.same_as_default') }}"
+                                        class="form-input text-sm py-1.5 w-full disabled:opacity-40 disabled:cursor-not-allowed"
+                                    />
+                                </td>
+                                <td class="px-6 py-3">
+                                    <input type="text"
+                                        name="countries[{{ $country->id }}][name_override_ar]"
+                                        value="{{ $cNameOverrideAr }}"
+                                        dir="rtl"
+                                        :disabled="!avail"
+                                        placeholder="{{ __('admin.product_form.countries_placeholder.same_as_default_ar') }}"
                                         class="form-input text-sm py-1.5 w-full disabled:opacity-40 disabled:cursor-not-allowed"
                                     />
                                 </td>
@@ -651,7 +669,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-400 italic">
+                                <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400 italic">
                                     {{ __('admin.products.no_countries_configured') }}
                                 </td>
                             </tr>
@@ -774,7 +792,6 @@
                 </label>
 
                 <x-form.toggle name="is_featured"         label="{{ __('admin.featured_on_homepage') }}" :value="$bool('is_featured')" />
-                <x-form.toggle name="requires_brand_auth" label="{{ __('admin.requires_brand_auth') }}"  :value="$bool('requires_brand_auth')" />
                 <x-form.toggle name="is_hazardous"        label="{{ __('admin.is_hazardous') }}"       :value="$bool('is_hazardous')" />
 
                 {{-- is_age_restricted — synced to Alpine isAgeRestricted --}}
@@ -838,6 +855,10 @@
             generateVariantsFailed: @json(__('admin.products.generate_variants_failed')),
             skuAutoGeneratePlaceholder: @json(__('admin.products.sku_auto_generate_placeholder')),
             removeLabel: @json(__('admin.products.remove')),
+            highlightEnLabel: @json(__('admin.products.highlight_en_label')),
+            highlightArLabel: @json(__('admin.products.highlight_ar_label')),
+            highlightEnPlaceholder: @json(__('admin.products.highlight_en_placeholder')),
+            highlightArPlaceholder: @json(__('admin.products.highlight_ar_placeholder')),
             regenerateSlugSuccess: @json(__('admin.products.regenerate_slug_success')),
             regenerateSlugFailed: @json(__('admin.products.regenerate_slug_failed')),
             productTitlePlaceholder: @json(__('admin.products.product_title_placeholder')),
