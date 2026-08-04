@@ -102,7 +102,7 @@ class PayoutController extends Controller
             'excel' => $this->exportExcel('payouts', $headers, $rows),
             'csv' => $this->exportCsv('payouts', $headers, $rows),
             'word' => $this->exportWord('payouts', 'Payouts', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 

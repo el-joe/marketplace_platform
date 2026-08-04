@@ -47,10 +47,10 @@ class CheckoutController extends Controller
         try {
             $preview = $this->calculationService->calculate($customer, $validated['cart_items'], $validated);
         } catch (ValidationException $e) {
-            return ApiResponse::error('Checkout calculation failed.', $this->flattenErrors($e), 422);
+            return ApiResponse::error(__('customer_api.checkout.calculation_failed'), $this->flattenErrors($e), 422);
         }
 
-        return ApiResponse::success($preview, 'Checkout preview calculated');
+        return ApiResponse::success($preview, __('customer_api.checkout.preview_calculated'));
     }
 
     public function validateCoupon(Request $request): JsonResponse
@@ -60,7 +60,7 @@ class CheckoutController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray(), 422);
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray(), 422);
         }
 
         /** @var Customer $customer */
@@ -69,32 +69,32 @@ class CheckoutController extends Controller
 
         $coupon = Coupon::where('code', $request->input('coupon_code'))->first();
         if (! $coupon) {
-            return ApiResponse::error('Invalid coupon code.', [], 422);
+            return ApiResponse::error(__('customer_api.checkout.invalid_coupon_code'), [], 422);
         }
 
         $now = now();
         if (! $coupon->is_active) {
-            return ApiResponse::error('Coupon is not active.', [], 422);
+            return ApiResponse::error(__('customer_api.checkout.coupon_not_active'), [], 422);
         }
         if (($coupon->valid_from && $now->lt($coupon->valid_from)) || ($coupon->valid_until && $now->gt($coupon->valid_until))) {
-            return ApiResponse::error('Coupon is not valid at this time.', [], 422);
+            return ApiResponse::error(__('customer_api.checkout.coupon_not_valid_now'), [], 422);
         }
         if ($coupon->usage_limit_total !== null && $coupon->times_used >= $coupon->usage_limit_total) {
-            return ApiResponse::error('Coupon usage limit reached.', [], 422);
+            return ApiResponse::error(__('customer_api.checkout.coupon_usage_limit_reached'), [], 422);
         }
         if ($coupon->usage_limit_per_customer !== null) {
             $used = CouponUsage::where('coupon_id', $coupon->id)->where('customer_id', $customer->id)->count();
             if ($used >= $coupon->usage_limit_per_customer) {
-                return ApiResponse::error('You have already used this coupon the maximum number of times.', [], 422);
+                return ApiResponse::error(__('customer_api.checkout.coupon_max_uses_reached'), [], 422);
             }
         }
         if ($coupon->currency !== null && $coupon->currency !== $country->currency_code) {
-            return ApiResponse::error('Coupon currency does not match your country.', [], 422);
+            return ApiResponse::error(__('customer_api.checkout.coupon_currency_mismatch'), [], 422);
         }
 
         return ApiResponse::success(
             (new CouponValidationResource($coupon))->toArray($request),
-            'Coupon is valid',
+            __('customer_api.checkout.coupon_valid'),
         );
     }
 
@@ -113,13 +113,13 @@ class CheckoutController extends Controller
         if ($existing) {
             $order = Order::find($existing->order_id);
 
-            return ApiResponse::error('Order already placed.', ['order_number' => $order?->order_number], 409);
+            return ApiResponse::error(__('customer_api.checkout.order_already_placed'), ['order_number' => $order?->order_number], 409);
         }
 
         try {
             $preview = $this->calculationService->calculate($customer, $validated['cart_items'], $validated);
         } catch (ValidationException $e) {
-            return ApiResponse::error('Checkout calculation failed.', $this->flattenErrors($e), 422);
+            return ApiResponse::error(__('customer_api.checkout.calculation_failed'), $this->flattenErrors($e), 422);
         }
 
         $address = Address::find($validated['address_id']);
@@ -209,7 +209,7 @@ class CheckoutController extends Controller
                                 ->first();
 
                             if (! $inventory || $inventory->quantity_available < $item['quantity']) {
-                                throw new \DomainException('Insufficient stock for one or more items. Please update your cart.');
+                                throw new \DomainException(__('customer_api.checkout.insufficient_stock'));
                             }
 
                             $inventory->increment('quantity_reserved', $item['quantity']);
@@ -272,7 +272,7 @@ class CheckoutController extends Controller
                     $giftCard = GiftCard::where('id', $giftCard->id)->lockForUpdate()->first();
 
                     if ($giftCard->getRawOriginal('balance') < $preview['gift_card_deduction']) {
-                        throw new \DomainException('Gift card balance changed. Please try again.');
+                        throw new \DomainException(__('customer_api.checkout.gift_card_balance_changed'));
                     }
 
                     $giftCard->decrement('balance', $preview['gift_card_deduction']);
@@ -295,7 +295,7 @@ class CheckoutController extends Controller
                         ->first();
 
                     if (! $wallet || $wallet->is_frozen || $wallet->getRawOriginal('balance') < $preview['wallet_deduction']) {
-                        throw new \DomainException('Wallet balance changed or wallet is frozen. Please try again.');
+                        throw new \DomainException(__('customer_api.checkout.wallet_balance_changed'));
                     }
 
                     $wallet->decrement('balance', $preview['wallet_deduction']);
@@ -358,7 +358,7 @@ class CheckoutController extends Controller
 
         return ApiResponse::success(
             (new CheckoutOrderResource($order))->toArray($request),
-            'Order placed successfully',
+            __('customer_api.checkout.order_placed_successfully'),
             201,
         );
     }
@@ -389,7 +389,7 @@ class CheckoutController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray(), 422);
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray(), 422);
         }
 
         return $validator->validated();

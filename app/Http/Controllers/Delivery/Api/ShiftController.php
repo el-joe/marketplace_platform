@@ -29,7 +29,7 @@ class ShiftController extends Controller
 
         return ApiResponse::success(
             ['shift' => new ShiftStatusResource($shift)],
-            'Shift started.'
+            __('delivery.messages.shift.started')
         );
     }
 
@@ -44,7 +44,7 @@ class ShiftController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return ApiResponse::success(null, 'Shift ended.');
+        return ApiResponse::success(null, __('delivery.messages.shift.ended'));
     }
 
     public function setAvailability(Request $request): JsonResponse
@@ -57,14 +57,16 @@ class ShiftController extends Controller
         $agent = auth('delivery_api')->user();
 
         if ($agent->status !== DeliveryAgentStatus::OnShift) {
-            return ApiResponse::error('You must be on shift to toggle availability.', [], 422);
+            return ApiResponse::error(__('delivery.messages.shift.must_be_on_shift'), [], 422);
         }
 
         $agent->update(['is_available' => $request->boolean('is_available')]);
 
         return ApiResponse::success(
             ['is_available' => $agent->is_available],
-            $agent->is_available ? 'You are now available for deliveries.' : 'You are now on a break.'
+            $agent->is_available
+                ? __('delivery.messages.shift.now_available')
+                : __('delivery.messages.shift.now_on_break')
         );
     }
 }

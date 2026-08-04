@@ -97,7 +97,7 @@ class WarehouseController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => ['id' => $warehouse->id],
-                'message' => 'Warehouse registered successfully.',
+                'message' => __('partner.warehouses.messages.registered_success'),
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -209,7 +209,7 @@ class WarehouseController extends Controller
                 $this->vendor()
             );
 
-            return response()->json(['success' => true, 'message' => 'Warehouse updated.']);
+            return response()->json(['success' => true, 'message' => __('partner.warehouses.messages.updated')]);
         } catch (AuthorizationException) {
             abort(403);
         }
@@ -327,7 +327,7 @@ class WarehouseController extends Controller
                     'quantity_on_hand' => $updated->quantity_on_hand,
                     'quantity_available' => $updated->quantity_available,
                 ],
-                'message' => 'Stock adjusted.',
+                'message' => __('partner.warehouses.messages.stock_adjusted'),
             ]);
         } catch (AuthorizationException) {
             abort(403);
@@ -478,7 +478,7 @@ class WarehouseController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => ['id' => $transfer->id],
-                'message' => 'Transfer created.',
+                'message' => __('partner.warehouses.messages.transfer_created'),
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -519,7 +519,7 @@ class WarehouseController extends Controller
         try {
             $this->service->shipTransfer($transfer, $request->validated(), $this->vendor());
 
-            return response()->json(['success' => true, 'message' => 'Transfer marked as shipped.']);
+            return response()->json(['success' => true, 'message' => __('partner.warehouses.messages.transfer_shipped')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }

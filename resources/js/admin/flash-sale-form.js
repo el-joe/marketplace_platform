@@ -13,14 +13,12 @@ import flatpickr from 'flatpickr';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const T = () => window.TRANSLATIONS || {};
-
 const TIMELINE_FIELDS = () => [
-    { name: 'submission_opens_at', label: T().timelineSubOpens || 'Sub. Opens', color: '#3B82F6' },
-    { name: 'submission_closes_at', label: T().timelineSubCloses || 'Sub. Closes', color: '#F59E0B' },
-    { name: 'review_deadline_at', label: T().timelineReview || 'Review', color: '#8B5CF6' },
-    { name: 'sale_starts_at', label: T().timelineSaleStart || 'Sale Start', color: '#10B981' },
-    { name: 'sale_ends_at', label: T().timelineSaleEnd || 'Sale End', color: '#EF4444' },
+    { name: 'submission_opens_at', label: t('admin.flash_sale_form.sub_opens_label'), color: '#3B82F6' },
+    { name: 'submission_closes_at', label: t('admin.flash_sale_form.sub_closes_label'), color: '#F59E0B' },
+    { name: 'review_deadline_at', label: t('admin.flash_sale_form.review_label'), color: '#8B5CF6' },
+    { name: 'sale_starts_at', label: t('admin.flash_sale_form.sale_start_label'), color: '#10B981' },
+    { name: 'sale_ends_at', label: t('admin.flash_sale_form.sale_end_label'), color: '#EF4444' },
 ];
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
@@ -92,7 +90,7 @@ function renderTimelineVisual() {
     }).filter(d => d.ts !== null);
 
     if (dates.length < 2) {
-        container.innerHTML = `<p class="text-xs text-gray-400 mt-2">${T().timelineFillDatesHint || 'Fill in dates to see timeline preview.'}</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-400 mt-2">${t('admin.flash_sale_form.fill_dates_hint')}</p>`;
         return;
     }
 
@@ -130,7 +128,7 @@ function initPreviewUpdates() {
     const previewName = document.getElementById('preview-sale-name');
     if (nameEn && previewName) {
         nameEn.addEventListener('input', () => {
-            previewName.textContent = nameEn.value || T().previewNamePlaceholder || 'Flash Sale Name';
+            previewName.textContent = nameEn.value || t('admin.flash_sale_form.flash_sale_name_label');
         });
     }
 
@@ -213,7 +211,7 @@ function handleFormSubmit(e) {
 
     if (btn) {
         btn.disabled = true;
-        btn.textContent = T().saving || 'Saving…';
+        btn.textContent = t('shared.saving');
     }
 
     $.ajax({
@@ -225,8 +223,8 @@ function handleFormSubmit(e) {
             if (res.redirect) {
                 window.location.href = res.redirect;
             } else {
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: res.message || T().saved || 'Saved.' } }));
-                if (btn) { btn.disabled = false; btn.textContent = T().saveChanges || 'Save Changes'; }
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: res.message || t('shared.saved') } }));
+                if (btn) { btn.disabled = false; btn.textContent = t('admin.flash_sale_form.save_changes_label'); }
             }
         },
         error(xhr) {
@@ -234,9 +232,9 @@ function handleFormSubmit(e) {
             if (xhr.status === 422 && body?.errors) {
                 displayValidationErrors(form, body.errors);
             } else {
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: body?.message || T().genericError || 'An error occurred.' } }));
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: body?.message || t('admin.flash_sale_form.error_occurred') } }));
             }
-            if (btn) { btn.disabled = false; btn.textContent = btn.dataset.originalText || T().save || 'Save'; }
+            if (btn) { btn.disabled = false; btn.textContent = btn.dataset.originalText || t('admin.flash_sale_form.save_label'); }
         },
     });
 }
@@ -265,10 +263,10 @@ function displayValidationErrors(form, errors) {
 // ─── Status transitions ───────────────────────────────────────────────────────
 
 const TRANSITION_CONFIRMS = () => ({
-    close_submissions: T().confirmCloseSubmissions || 'Close submissions early? Vendors will no longer be able to submit.',
-    end_sale: T().confirmEndSale || 'End the sale early? This cannot be undone.',
-    mark_approved: T().confirmMarkApproved || 'Mark this sale as approved and ready to go live?',
-    start_sale: T().confirmStartSale || 'Start the sale now? This will make it live immediately.',
+    close_submissions: t('admin.flash_sale_form.close_submissions_confirm'),
+    end_sale: t('admin.flash_sale_form.end_sale_confirm'),
+    mark_approved: t('admin.flash_sale_form.approve_sale_confirm'),
+    start_sale: t('admin.flash_sale_form.start_sale_confirm'),
     open_submissions: null,
 });
 
@@ -311,7 +309,7 @@ function doTransition(action, reason = '') {
             _token: $('meta[name="csrf-token"]').attr('content'),
         },
         success(res) {
-            const msg = res.message || T().statusUpdated || 'Status updated.';
+            const msg = res.message || t('admin.flash_sale_form.status_updated');
             // Use toast if available, otherwise alert
             if (window.dispatchEvent) {
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: msg } }));
@@ -321,7 +319,7 @@ function doTransition(action, reason = '') {
         },
         error(xhr) {
             $('[data-transition]').prop('disabled', false);
-            const msg = xhr.responseJSON?.message || T().actionFailed || 'Action failed. Please try again.';
+            const msg = xhr.responseJSON?.message || t('admin.flash_sale_form.action_failed_retry');
             if (window.dispatchEvent) {
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
             } else {
@@ -350,7 +348,7 @@ function initCancelModal() {
         reasonEl?.classList.remove('input-error');
 
         const btn = document.getElementById('cancel-submit-btn');
-        if (btn) { btn.disabled = true; btn.textContent = T().cancelling || 'Cancelling…'; }
+        if (btn) { btn.disabled = true; btn.textContent = t('admin.flash_sale_form.cancelling_label'); }
 
         $('#cancel-modal').modal('close');
         doTransition('cancel', reason);

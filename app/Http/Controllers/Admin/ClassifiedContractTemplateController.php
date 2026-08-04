@@ -34,7 +34,7 @@ class ClassifiedContractTemplateController extends Controller
 
         $template = ClassifiedContractTemplate::create($validated);
 
-        return response()->json(['message' => 'Template created.', 'template' => $template], 201);
+        return response()->json(['message' => __('admin.classified_contract_templates.created'), 'template' => $template], 201);
     }
 
     public function update(Request $request, ClassifiedContractTemplate $contractTemplate): JsonResponse
@@ -61,7 +61,7 @@ class ClassifiedContractTemplateController extends Controller
             $template = ClassifiedContractTemplate::create($validated);
 
             return response()->json([
-                'message'     => 'Content changed — a new template version was created. The previous version has been deactivated.',
+                'message'     => __('admin.classified_contract_templates.new_version_created'),
                 'template'    => $template,
                 'new_version' => true,
             ], 201);
@@ -74,7 +74,7 @@ class ClassifiedContractTemplateController extends Controller
         ]);
 
         return response()->json([
-            'message'     => 'Template updated.',
+            'message'     => __('admin.classified_contract_templates.updated'),
             'template'    => $contractTemplate->fresh(),
             'new_version' => false,
         ]);
@@ -85,19 +85,19 @@ class ClassifiedContractTemplateController extends Controller
         $categoryCount = ClassifiedCategory::where('contract_template_id', $contractTemplate->id)->count();
         if ($categoryCount > 0) {
             return response()->json([
-                'message' => "Cannot delete: {$categoryCount} " . str('category')->plural($categoryCount) . " reference this template. Update those categories first.",
+                'message' => __('admin.classified_contract_templates.cannot_delete_has_categories', ['count' => $categoryCount]),
             ], 422);
         }
 
         $listingCount = \App\Models\ClassifiedListing::where('contract_template_id', $contractTemplate->id)->count();
         if ($listingCount > 0) {
             return response()->json([
-                'message' => "Cannot delete: {$listingCount} " . str('listing')->plural($listingCount) . " reference this template.",
+                'message' => __('admin.classified_contract_templates.cannot_delete_has_listings', ['count' => $listingCount]),
             ], 422);
         }
 
         $contractTemplate->delete();
 
-        return response()->json(['message' => 'Template deleted.']);
+        return response()->json(['message' => __('admin.classified_contract_templates.deleted')]);
     }
 }

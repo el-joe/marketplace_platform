@@ -88,7 +88,7 @@ class ReturnController extends Controller
             'excel' => $this->exportExcel('returns', $headers, $rows),
             'csv' => $this->exportCsv('returns', $headers, $rows),
             'word' => $this->exportWord('returns', 'Returns', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('partner.returns.messages.invalid_export_format')),
         };
     }
 
@@ -119,7 +119,7 @@ class ReturnController extends Controller
             ->firstOrFail();
 
         if ($returnRequest->status !== ReturnRequestStatus::Requested) {
-            return back()->withErrors(['status' => 'This return can no longer be reviewed.']);
+            return back()->withErrors(['status' => __('partner.returns.messages.cannot_be_reviewed')]);
         }
 
         DB::transaction(function () use ($returnRequest) {
@@ -127,7 +127,7 @@ class ReturnController extends Controller
             Notification::send($returnRequest->customer, new ReturnApprovedNotification($returnRequest));
         });
 
-        return back()->with('success', 'Return approved. Pickup will be arranged.');
+        return back()->with('success', __('partner.returns.messages.approved'));
     }
 
     public function reject(Request $request, string $returnNumber): RedirectResponse
@@ -141,7 +141,7 @@ class ReturnController extends Controller
         $request->validate(['rejection_reason' => 'required|string|max:500']);
 
         if ($returnRequest->status !== ReturnRequestStatus::Requested) {
-            return back()->withErrors(['status' => 'This return can no longer be reviewed.']);
+            return back()->withErrors(['status' => __('partner.returns.messages.cannot_be_reviewed')]);
         }
 
         DB::transaction(function () use ($returnRequest, $request) {
@@ -152,6 +152,6 @@ class ReturnController extends Controller
             Notification::send($returnRequest->customer, new ReturnRejectedNotification($returnRequest));
         });
 
-        return back()->with('success', 'Return request rejected.');
+        return back()->with('success', __('partner.returns.messages.rejected'));
     }
 }

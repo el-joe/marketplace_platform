@@ -26,7 +26,7 @@ class LocationController extends Controller
         if (RateLimiter::tooManyAttempts($key, 1)) {
             $seconds = RateLimiter::availableIn($key);
             return response()->json([
-                'message' => "Please wait {$seconds} seconds before updating location.",
+                'message' => __('delivery.messages.location.please_wait_seconds', ['seconds' => $seconds]),
             ], 429);
         }
 
@@ -73,7 +73,9 @@ class LocationController extends Controller
         return response()->json([
             'success' => true,
             'is_available' => $agent->is_available,
-            'message' => $agent->is_available ? 'You are now available.' : 'You are now offline.',
+            'message' => $agent->is_available
+                ? __('delivery.messages.location.now_available')
+                : __('delivery.messages.location.now_offline'),
         ]);
     }
 }

@@ -64,7 +64,7 @@ class CustomerCouponController extends Controller
                 'estimated_total' => $cart->estimated_total,
                 'currency' => $cart->currency,
             ],
-        ], 'Coupon applied successfully');
+        ], __('customer_api.coupon.applied'));
     }
 
     public function remove(Request $request): JsonResponse
@@ -97,6 +97,6 @@ class CustomerCouponController extends Controller
                 'estimated_total' => $cart->estimated_total,
                 'currency' => $cart->currency,
             ],
-        ], 'Coupon removed successfully');
+        ], __('customer_api.coupon.removed'));
     }
 }

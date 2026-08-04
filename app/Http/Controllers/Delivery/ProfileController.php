@@ -32,11 +32,11 @@ class ProfileController extends Controller
         ]);
 
         if (!Hash::check($validated['current_password'], $agent->password)) {
-            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+            return back()->withErrors(['current_password' => __('delivery.messages.profile.current_password_incorrect')]);
         }
 
         $agent->update(['password' => $validated['password']]);
 
-        return back()->with('success', 'Password updated successfully.');
+        return back()->with('success', __('delivery.messages.profile.password_updated'));
     }
 }

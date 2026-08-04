@@ -387,6 +387,10 @@ return [
                 'transfer' => '⇄ نقل',
             ],
         ],
+        'commission_type_fixed' => 'ثابت',
+        'commission_type_tiered' => 'متدرج',
+        'commission_type_last_click' => 'آخر نقرة',
+        'fix_and_resubmit' => 'قم بإصلاح المشكلة أعلاه، ثم احفظ وأعد الإرسال.',
     ],
 
     'auth' => [
@@ -522,6 +526,9 @@ return [
             'category' => 'فئات',
             'mixed' => 'مختلط',
         ],
+        'messages' => [
+            'listings_not_owned' => 'واحد أو أكثر من المنتجات المحددة لا ينتمي إلى متجرك.',
+        ],
     ],
 
     'ai_tools' => [
@@ -548,6 +555,14 @@ return [
         'enhancement_failed' => 'فشل التحسين',
         'generation_failed' => 'فشل التوليد',
         'unknown_error' => 'خطأ غير معروف',
+        'messages' => [
+            'unauthorized' => 'غير مصرح',
+            'no_image_credits' => 'لا توجد أرصدة متبقية لتحسين الصور.',
+            'no_video_credits' => 'لا توجد أرصدة متبقية لتوليد الفيديو.',
+            'enhanced_applied' => 'تم تطبيق الصورة المحسّنة بنجاح.',
+            'image_enhancement_queued' => 'تم إدراج تحسين الصورة في قائمة الانتظار. سنُعلمك عند جاهزيتها.',
+            'video_generation_queued' => 'تم إدراج توليد الفيديو في قائمة الانتظار. قد يستغرق ذلك بضع دقائق.',
+        ],
     ],
 
     'bank_accounts' => [
@@ -875,6 +890,13 @@ return [
         'carrier_optional' => 'شركة الشحن (اختياري)',
         'tracking_optional' => 'رقم التتبع (اختياري)',
         'confirm_shipment' => 'تأكيد الشحن',
+        'messages' => [
+            'registered_success' => 'تم تسجيل المستودع بنجاح.',
+            'updated' => 'تم تحديث المستودع.',
+            'stock_adjusted' => 'تم تعديل المخزون.',
+            'transfer_created' => 'تم إنشاء التحويل.',
+            'transfer_shipped' => 'تم شحن التحويل.',
+        ],
     ],
 
     'wallet' => [
@@ -894,6 +916,9 @@ return [
         'status_approved' => 'موافق عليه',
         'status_processed' => 'تمت المعالجة',
         'status_rejected' => 'مرفوض',
+        'messages' => [
+            'withdrawal_submitted' => 'تم إرسال طلب السحب بنجاح.',
+        ],
     ],
 
     'payouts' => [
@@ -1010,6 +1035,13 @@ return [
         'permissions' => 'الصلاحيات',
         'selected' => 'محدد',
         'save_changes' => 'حفظ التغييرات',
+        'messages' => [
+            'created' => 'تم إنشاء الدور بنجاح.',
+            'default_cannot_edit' => 'لا يمكن تعديل الأدوار الافتراضية.',
+            'create_failed' => 'فشل إنشاء الدور.',
+            'update_failed' => 'فشل تحديث الدور.',
+            'default_cannot_delete' => 'لا يمكن حذف الأدوار الافتراضية.',
+        ],
     ],
 
     'profile' => [
@@ -1268,6 +1300,12 @@ return [
         'message_placeholder' => 'اكتب رسالتك أو أضف أدلة للإدارة...',
         'attachments_optional' => 'مرفقات (اختياري، حتى 5 ملفات)',
         'send' => 'إرسال',
+        'messages' => [
+            'invalid_export_format' => 'صيغة تصدير غير صالحة.',
+            'approved' => 'تمت الموافقة على الإرجاع. سيتم ترتيب الاستلام.',
+            'rejected' => 'تم رفض طلب الإرجاع.',
+            'cannot_be_reviewed' => 'لم يعد بالإمكان مراجعة هذا الإرجاع.',
+        ],
     ],
 
     'subscriptions' => [
@@ -1422,6 +1460,10 @@ return [
         'grand_total' => 'الإجمالي الكلي',
         'delivery_fee_payout_note' => 'سيتم خصم رسوم التوصيل من دفعتك القادمة.',
         'confirm_and_submit' => 'تأكيد وإرسال',
+        'messages' => [
+            'currency_mismatch' => 'يجب أن تستخدم جميع الأصناف في الطلب الواحد نفس العملة.',
+            'submitted_with_number' => 'تم إرسال الطلب رقم :number بنجاح.',
+        ],
     ],
 
     'marketer_samples' => [
@@ -1490,6 +1532,9 @@ return [
         'claim_rejected' => 'تم رفض المطالبة',
         'resolution_title' => 'القرار',
         'resolution_text' => 'تم إضافة تعويض بقيمة :amount إلى محفظتك.',
+        'messages' => [
+            'submitted' => 'تم إرسال المطالبة رقم :number بنجاح.',
+        ],
     ],
 
     'classifieds_extra' => [
@@ -1847,6 +1892,14 @@ return [
         'cancel_request_confirm' => 'هل أنت متأكد من إلغاء هذا الطلب؟',
         'tracking_placeholder' => 'رقم التتبع',
         'save_tracking' => 'حفظ رقم التتبع',
+        'messages' => [
+            'inbound_request_submitted' => 'تم إرسال طلب الوارد :number بنجاح.',
+            'cannot_cancel_current_state' => 'لا يمكن إلغاء هذا الطلب في حالته الحالية.',
+            'cancelled_by_vendor' => 'تم الإلغاء من قبل التاجر',
+            'inbound_request_cancelled' => 'تم إلغاء طلب الوارد.',
+            'cannot_update_tracking_stage' => 'لا يمكن تحديث التتبع في هذه المرحلة.',
+            'tracking_number_saved' => 'تم حفظ رقم التتبع.',
+        ],
     ],
 
     'suspended' => [
@@ -1949,6 +2002,10 @@ return [
             'extra_amount_label' => 'مبلغ الشحن الإضافي',
             'cancel' => 'إلغاء',
             'save' => 'حفظ',
+        ],
+        'messages' => [
+            'saved' => 'تم حفظ رسوم الشحن الإضافية للمستودع.',
+            'updated' => 'تم تحديث رسوم الشحن الإضافية للمستودع.',
         ],
     ],
 
@@ -2069,6 +2126,12 @@ return [
             'cancel' => 'إلغاء',
             'save_changes' => 'حفظ التغييرات',
             'create_coupon' => 'إنشاء كوبون',
+        ],
+        'messages' => [
+            'vendor_scope_restricted' => 'يمكن للبائعين فقط إنشاء كوبونات على مستوى المتجر أو المنتج.',
+            'coupon_status_updated' => 'تم تحديث حالة الكوبون.',
+            'coupon_deleted' => 'تم حذف الكوبون.',
+            'coupon_used_cannot_delete' => 'تم استخدام هذا الكوبون بالفعل ولا يمكن حذفه.',
         ],
     ],
 
@@ -2264,6 +2327,50 @@ return [
             'order' => 'رقم الطلب',
             'commission' => 'العمولة',
             'date' => 'التاريخ',
+        ],
+    ],
+
+    'exceptional_zone_alerts' => [
+        'page_title' => 'مناطق الشحن الاستثنائية',
+        'title' => 'مناطق الشحن الاستثنائية',
+        'subtitle' => 'أخطر الإدارة عندما يفرض شركة الشحن رسومًا أعلى من السعر القياسي للعميل في مدن محددة. ستقوم الإدارة بإعداد دعم لتقاسم التكلفة في حال الموافقة.',
+        'alert_admin' => 'إخطار الإدارة',
+        'alert_history' => 'سجل التنبيهات',
+        'table_warehouse' => 'المستودع',
+        'table_cities' => 'المدن',
+        'table_carrier' => 'شركة الشحن',
+        'table_reported_fee' => 'الرسوم المبلّغ عنها',
+        'table_status' => 'الحالة',
+        'table_admin_note' => 'ملاحظة الإدارة',
+        'table_date' => 'التاريخ',
+        'all_carriers' => 'جميع شركات الشحن',
+        'cancel_confirm' => 'إلغاء هذا التنبيه؟',
+        'cancel' => 'إلغاء',
+        'no_alerts_title' => 'لا توجد تنبيهات بعد',
+        'no_alerts_hint' => 'استخدم "إخطار الإدارة" أعلاه إذا كانت شركة الشحن تفرض عليك رسومًا أعلى من سعر العميل في بعض المدن.',
+        'modal_title' => 'إخطار الإدارة: منطقة استثنائية',
+        'warehouse_label' => 'المستودع',
+        'select_warehouse_placeholder' => 'اختر مستودعًا…',
+        'cities_label' => 'المدن',
+        'select_warehouse_first' => 'اختر مستودعًا أولاً.',
+        'loading_cities' => 'جارٍ تحميل المدن…',
+        'no_active_cities' => 'لم يتم العثور على مدن نشطة لدولة هذا المستودع.',
+        'no_zone_assigned' => '(لم يتم تعيين منطقة)',
+        'carrier_label' => 'شركة الشحن',
+        'carrier_optional_hint' => '(اتركه فارغًا = ينطبق على جميع شركات الشحن)',
+        'carrier_fee_label' => 'رسوم الشحن التي تدفعها',
+        'carrier_fee_placeholder' => 'مثال: 3000 لـ 3 ر.ع',
+        'carrier_fee_hint' => 'أدخل القيمة كعدد صحيح — بوحدات العملة الأساسية بدون كسور عشرية (مثال: 3000 = 3 ر.ع إذا كانت العملة ر.ع).',
+        'note_to_admin_label' => 'ملاحظة للإدارة',
+        'optional' => '(اختياري)',
+        'note_placeholder' => 'عدد الطلبات المتوقع شهريًا لهذه المدن، ولماذا يهمك ذلك، إلخ.',
+        'submit_alert' => 'إرسال التنبيه',
+        'messages' => [
+            'cities_country_mismatch' => 'يجب أن تكون جميع المدن المختارة في نفس دولة المستودع.',
+            'overlap_pending_alert' => 'لديك بالفعل تنبيه قيد الانتظار لهذا المستودع يشمل بعض هذه المدن.',
+            'submitted' => 'تم إرسال تنبيهك. ستقوم الإدارة بمراجعته قريبًا.',
+            'only_pending_can_be_cancelled' => 'يمكن إلغاء التنبيهات قيد الانتظار فقط.',
+            'cancelled' => 'تم إلغاء التنبيه.',
         ],
     ],
 ];

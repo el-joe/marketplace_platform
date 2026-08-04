@@ -399,6 +399,10 @@ return [
                 'transfer' => '⇄ Transfer',
             ],
         ],
+        'commission_type_fixed' => 'Fixed',
+        'commission_type_tiered' => 'Tiered',
+        'commission_type_last_click' => 'Last Click',
+        'fix_and_resubmit' => 'Fix the issue above, then save and resubmit.',
     ],
 
     'ads' => [
@@ -522,6 +526,9 @@ return [
             'category' => 'Categories',
             'mixed' => 'Mixed',
         ],
+        'messages' => [
+            'listings_not_owned' => 'One or more selected products do not belong to your store.',
+        ],
     ],
 
     'ai_tools' => [
@@ -548,6 +555,14 @@ return [
         'enhancement_failed' => 'Enhancement failed',
         'generation_failed' => 'Generation failed',
         'unknown_error' => 'Unknown error',
+        'messages' => [
+            'unauthorized' => 'Unauthorized',
+            'no_image_credits' => 'No image enhancement credits remaining.',
+            'no_video_credits' => 'No video generation credits remaining.',
+            'enhanced_applied' => 'Enhanced image applied successfully.',
+            'image_enhancement_queued' => 'Image enhancement queued. We will notify you when it\'s ready.',
+            'video_generation_queued' => 'Video generation queued. This may take a few minutes.',
+        ],
     ],
 
     'bank_accounts' => [
@@ -875,6 +890,13 @@ return [
         'carrier_optional' => 'Carrier (optional)',
         'tracking_optional' => 'Tracking number (optional)',
         'confirm_shipment' => 'Confirm Shipment',
+        'messages' => [
+            'registered_success' => 'Warehouse registered successfully.',
+            'updated' => 'Warehouse updated.',
+            'stock_adjusted' => 'Stock adjusted.',
+            'transfer_created' => 'Transfer created.',
+            'transfer_shipped' => 'Transfer marked as shipped.',
+        ],
     ],
 
     'wallet' => [
@@ -894,6 +916,9 @@ return [
         'status_approved' => 'Approved',
         'status_processed' => 'Processed',
         'status_rejected' => 'Rejected',
+        'messages' => [
+            'withdrawal_submitted' => 'Withdrawal request submitted successfully.',
+        ],
     ],
 
     'payouts' => [
@@ -1010,6 +1035,13 @@ return [
         'permissions' => 'Permissions',
         'selected' => 'selected',
         'save_changes' => 'Save Changes',
+        'messages' => [
+            'created' => 'Role created successfully.',
+            'default_cannot_edit' => 'Default roles cannot be edited.',
+            'create_failed' => 'Failed to create role.',
+            'update_failed' => 'Failed to update role.',
+            'default_cannot_delete' => 'Default roles cannot be deleted.',
+        ],
     ],
 
     'profile' => [
@@ -1268,6 +1300,12 @@ return [
         'message_placeholder' => 'Write your message or add evidence for the admin...',
         'attachments_optional' => 'Attachments (optional, up to 5 files)',
         'send' => 'Send',
+        'messages' => [
+            'invalid_export_format' => 'Invalid export format.',
+            'approved' => 'Return approved. Pickup will be arranged.',
+            'rejected' => 'Return request rejected.',
+            'cannot_be_reviewed' => 'This return can no longer be reviewed.',
+        ],
     ],
 
     'subscriptions' => [
@@ -1422,6 +1460,10 @@ return [
         'grand_total' => 'Grand Total',
         'delivery_fee_payout_note' => 'Delivery fee will be deducted from your next payout.',
         'confirm_and_submit' => 'Confirm & Submit',
+        'messages' => [
+            'currency_mismatch' => 'All items in a single order must use the same currency.',
+            'submitted_with_number' => 'Request #:number submitted successfully.',
+        ],
     ],
 
     'marketer_samples' => [
@@ -1490,6 +1532,9 @@ return [
         'claim_rejected' => 'Claim Rejected',
         'resolution_title' => 'Resolution',
         'resolution_text' => 'Compensation of :amount has been credited to your wallet.',
+        'messages' => [
+            'submitted' => 'Claim #:number submitted successfully.',
+        ],
     ],
 
     'classifieds_extra' => [
@@ -1847,6 +1892,14 @@ return [
         'cancel_request_confirm' => 'Are you sure you want to cancel this request?',
         'tracking_placeholder' => 'Tracking number',
         'save_tracking' => 'Save Tracking',
+        'messages' => [
+            'inbound_request_submitted' => 'Inbound request :number submitted successfully.',
+            'cannot_cancel_current_state' => 'This request cannot be cancelled in its current state.',
+            'cancelled_by_vendor' => 'Cancelled by vendor',
+            'inbound_request_cancelled' => 'Inbound request cancelled.',
+            'cannot_update_tracking_stage' => 'Cannot update tracking at this stage.',
+            'tracking_number_saved' => 'Tracking number saved.',
+        ],
     ],
 
     'suspended' => [
@@ -1949,6 +2002,10 @@ return [
             'extra_amount_label' => 'Extra Shipping Amount',
             'cancel' => 'Cancel',
             'save' => 'Save',
+        ],
+        'messages' => [
+            'saved' => 'Warehouse surcharge saved.',
+            'updated' => 'Warehouse surcharge updated.',
         ],
     ],
 
@@ -2069,6 +2126,12 @@ return [
             'cancel' => 'Cancel',
             'save_changes' => 'Save changes',
             'create_coupon' => 'Create coupon',
+        ],
+        'messages' => [
+            'vendor_scope_restricted' => 'Vendors may only create vendor or product scoped coupons.',
+            'coupon_status_updated' => 'Coupon status updated.',
+            'coupon_deleted' => 'Coupon deleted.',
+            'coupon_used_cannot_delete' => 'This coupon has already been used and cannot be deleted.',
         ],
     ],
 
@@ -2264,6 +2327,50 @@ return [
             'order' => 'Order #',
             'commission' => 'Commission',
             'date' => 'Date',
+        ],
+    ],
+
+    'exceptional_zone_alerts' => [
+        'page_title' => 'Exceptional Shipping Zones',
+        'title' => 'Exceptional Shipping Zones',
+        'subtitle' => 'Alert the admin when your carrier charges more than the standard customer rate for specific cities. Admin will configure a cost-split subsidy if approved.',
+        'alert_admin' => 'Alert Admin',
+        'alert_history' => 'Alert History',
+        'table_warehouse' => 'Warehouse',
+        'table_cities' => 'Cities',
+        'table_carrier' => 'Carrier',
+        'table_reported_fee' => 'Reported Fee',
+        'table_status' => 'Status',
+        'table_admin_note' => 'Admin Note',
+        'table_date' => 'Date',
+        'all_carriers' => 'All carriers',
+        'cancel_confirm' => 'Cancel this alert?',
+        'cancel' => 'Cancel',
+        'no_alerts_title' => 'No alerts yet',
+        'no_alerts_hint' => 'Use "Alert Admin" above if a carrier is charging you more than the customer rate for some cities.',
+        'modal_title' => 'Alert Admin: Exceptional Zone',
+        'warehouse_label' => 'Warehouse',
+        'select_warehouse_placeholder' => 'Select a warehouse…',
+        'cities_label' => 'Cities',
+        'select_warehouse_first' => 'Select a warehouse first.',
+        'loading_cities' => 'Loading cities…',
+        'no_active_cities' => "No active cities found for this warehouse's country.",
+        'no_zone_assigned' => '(no zone assigned)',
+        'carrier_label' => 'Carrier',
+        'carrier_optional_hint' => '(leave empty = applies to all carriers)',
+        'carrier_fee_label' => 'Carrier Fee You Pay',
+        'carrier_fee_placeholder' => 'e.g. 3000 for 3 OMR',
+        'carrier_fee_hint' => 'Enter the BIGINT value — base currency units, no decimals (e.g. 3000 = 3 OMR if currency is OMR).',
+        'note_to_admin_label' => 'Note to Admin',
+        'optional' => '(optional)',
+        'note_placeholder' => 'Expected monthly orders to these cities, why it matters to you, etc.',
+        'submit_alert' => 'Submit Alert',
+        'messages' => [
+            'cities_country_mismatch' => 'All selected cities must be in the same country as the warehouse.',
+            'overlap_pending_alert' => 'You already have a pending alert for this warehouse that includes some of these cities.',
+            'submitted' => 'Your alert has been submitted. Admin will review it shortly.',
+            'only_pending_can_be_cancelled' => 'Only pending alerts can be cancelled.',
+            'cancelled' => 'Alert cancelled.',
         ],
     ],
 ];

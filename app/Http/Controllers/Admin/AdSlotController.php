@@ -63,8 +63,8 @@ class AdSlotController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, function (PaidAdSlot $row) use ($canEdit) {
             $isAvailBadge = $row->is_available
-                ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">Available</span>'
-                : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Unavailable</span>';
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">' . __('admin.ad_campaigns.available_badge') . '</span>'
+                : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">' . __('admin.ad_campaigns.unavailable_badge') . '</span>';
 
             $rate = '$' . number_format($row->base_rate / 100, 2);
             $pricingModelLabel = ucwords(str_replace('_', '/', $row->pricing_model->value));
@@ -73,9 +73,9 @@ class AdSlotController extends Controller
             $bookingsUrl = route('admin.ad-slots.bookings', $row->id);
 
             $actions = '<div class="flex items-center gap-1">';
-            $actions .= "<a href=\"{$bookingsUrl}\" class=\"btn btn-xs btn-secondary\">Bookings</a>";
+            $actions .= "<a href=\"{$bookingsUrl}\" class=\"btn btn-xs btn-secondary\">" . __('admin.ad_campaigns.bookings_link') . "</a>";
             if ($canEdit) {
-                $actions .= "<a href=\"{$editUrl}\" class=\"btn btn-xs btn-ghost\">Edit</a>";
+                $actions .= "<a href=\"{$editUrl}\" class=\"btn btn-xs btn-ghost\">" . __('admin.edit') . "</a>";
             }
             $actions .= '</div>';
 
@@ -84,7 +84,7 @@ class AdSlotController extends Controller
                 'placement' => e($row->placementDefinition?->name ?? '—'),
                 'country' => $row->country
                     ? ($row->country->flag_emoji ? $row->country->flag_emoji . ' ' : '') . e($row->country->name_en)
-                    : '<span class="text-gray-400 text-xs">Global</span>',
+                    : '<span class="text-gray-400 text-xs">' . __('admin.ad_campaigns.global_label') . '</span>',
                 'pricing_model' => $pricingModelLabel,
                 'base_rate' => $rate . ' <span class="text-xs text-gray-400">/ ' . strtolower($row->pricing_model->value) . '</span>',
                 'booking_days' => $row->min_booking_days . ' – ' . ($row->max_booking_days ?? '∞') . ' days',
@@ -149,7 +149,7 @@ class AdSlotController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Ad slot created.',
+            'message' => __('admin.ad_campaigns.ad_slot_created'),
             'redirect' => route('admin.ad-slots.index'),
         ]);
     }
@@ -205,7 +205,7 @@ class AdSlotController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Ad slot updated.',
+            'message' => __('admin.ad_campaigns.ad_slot_updated'),
             'redirect' => route('admin.ad-slots.index'),
         ]);
     }
@@ -223,13 +223,13 @@ class AdSlotController extends Controller
 
         if ($activeBookings) {
             return response()->json([
-                'message' => 'This slot has active or pending bookings and cannot be deleted. Deactivate the slot instead.',
+                'message' => __('admin.ad_campaigns.ad_slot_has_bookings'),
             ], 422);
         }
 
         $adSlot->delete();
 
-        return response()->json(['message' => 'Ad slot deleted.']);
+        return response()->json(['message' => __('admin.ad_campaigns.ad_slot_deleted')]);
     }
 
     // ─── Bookings for slot ────────────────────────────────────────────────────

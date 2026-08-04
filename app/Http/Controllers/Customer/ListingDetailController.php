@@ -46,7 +46,7 @@ class ListingDetailController extends Controller
         $listing = $this->resolveListing($identifier, $country);
 
         if (!$listing) {
-            return ApiResponse::error('Listing not found or not available in this country.', [], 404);
+            return ApiResponse::error(__('common.exceptions.listing_detail.not_found'), [], 404);
         }
 
         $siblings = $listing instanceof VendorListing

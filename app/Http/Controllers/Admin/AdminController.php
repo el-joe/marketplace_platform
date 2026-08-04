@@ -39,8 +39,8 @@ class AdminController extends Controller
     {
         return view('admin.admins.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Administrators'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.admins_section.administrators')],
             ],
             'roles' => Role::where('guard_name', 'admin')->orderBy('name')->get(['id', 'name']),
             'countries' => Country::orderBy('name_en')->get(['id', 'name_en']),
@@ -122,9 +122,9 @@ class AdminController extends Controller
     {
         return view('admin.admins.create', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Administrators', 'url' => route('admin.admins.index')],
-                ['label' => 'New Administrator'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.admins_section.administrators'), 'url' => route('admin.admins.index')],
+                ['label' => __('admin.admins_section.new_admin')],
             ],
             'allRoles' => Role::where('guard_name', 'admin')->with('permissions')->orderBy('name')->get(),
             'countries' => Country::orderBy('name_en')->get(['id', 'name_en']),
@@ -135,7 +135,7 @@ class AdminController extends Controller
     {
         $authAdmin = auth('admin')->user();
         if (!$authAdmin->hasPermissionTo('admins.create')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json(['message' => __('admin.admins_section.forbidden')], 403);
         }
 
         $password = Str::password(12);
@@ -157,7 +157,7 @@ class AdminController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('AdminController@store failed', ['error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to create administrator.'], 500);
+            return response()->json(['message' => __('admin.admins_section.create_failed')], 500);
         }
 
         return response()->json([
@@ -184,8 +184,8 @@ class AdminController extends Controller
             'countries' => Country::orderBy('name_en')->get(['id', 'name_en']),
             'vendorsAssignedOnly' => $admin->hasDirectPermission('vendors.assigned_only'),
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Administrators', 'url' => route('admin.admins.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.admins_section.administrators'), 'url' => route('admin.admins.index')],
                 ['label' => e($admin->name)],
             ],
         ]);
@@ -195,15 +195,15 @@ class AdminController extends Controller
     {
         $authAdmin = auth('admin')->user();
         if (!$authAdmin->hasPermissionTo('admins.edit')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json(['message' => __('admin.admins_section.forbidden')], 403);
         }
 
         if ($admin->hasRole('super_admin') && !$authAdmin->hasRole('super_admin')) {
-            return response()->json(['message' => 'Cannot edit a super_admin account.'], 403);
+            return response()->json(['message' => __('admin.admins_section.cannot_edit_super_admin')], 403);
         }
 
         if ($authAdmin->id === $admin->id && $request->status === AdminStatus::Inactive->value) {
-            return response()->json(['message' => 'Cannot deactivate your own account.'], 422);
+            return response()->json(['message' => __('admin.admins_section.cannot_deactivate_self')], 422);
         }
 
         DB::beginTransaction();
@@ -223,7 +223,7 @@ class AdminController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('AdminController@update failed', ['admin' => $admin->id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update administrator.'], 500);
+            return response()->json(['message' => __('admin.admins_section.update_failed')], 500);
         }
 
         return response()->json(['success' => true]);
@@ -272,16 +272,16 @@ class AdminController extends Controller
         $authAdmin = auth('admin')->user();
 
         if (!$authAdmin->hasPermissionTo('admins.delete')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json(['message' => __('admin.admins_section.forbidden')], 403);
         }
 
         if ($authAdmin->id === $admin->id) {
-            return response()->json(['message' => 'Cannot delete your own account.'], 422);
+            return response()->json(['message' => __('admin.admins_section.cannot_delete_self')], 422);
         }
 
         if ($admin->hasRole('super_admin')) {
             if (Admin::role('super_admin', 'admin')->count() <= 1) {
-                return response()->json(['message' => 'Cannot delete the last super_admin.'], 422);
+                return response()->json(['message' => __('admin.admins_section.cannot_delete_last_super_admin')], 422);
             }
         }
 
@@ -318,7 +318,7 @@ class AdminController extends Controller
     {
         $authAdmin = auth('admin')->user();
         if (!$authAdmin->hasPermissionTo('admins.edit')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json(['message' => __('admin.admins_section.forbidden')], 403);
         }
 
         $password = Str::password(12);
@@ -329,7 +329,7 @@ class AdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Password has been reset. The admin will receive an email with their new credentials.',
+            'message' => __('admin.admins_section.password_reset_email_sent'),
         ]);
     }
 
@@ -341,11 +341,11 @@ class AdminController extends Controller
     {
         $authAdmin = auth('admin')->user();
         if (!$authAdmin->hasPermissionTo('admins.edit')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json(['message' => __('admin.admins_section.forbidden')], 403);
         }
 
         if ($authAdmin->id === $admin->id) {
-            return response()->json(['message' => 'Cannot change your own status.'], 422);
+            return response()->json(['message' => __('admin.admins_section.cannot_change_own_status')], 422);
         }
 
         $newStatus = $admin->status === AdminStatus::Active ? AdminStatus::Inactive : AdminStatus::Active;
@@ -367,11 +367,11 @@ class AdminController extends Controller
         }
 
         if ($authAdmin->id === $admin->id) {
-            return back()->with('error', 'Cannot impersonate yourself.');
+            return back()->with('error', __('admin.admins_section.cannot_impersonate_self'));
         }
 
         if ($admin->hasRole('super_admin')) {
-            return back()->with('error', 'Cannot impersonate a super admin.');
+            return back()->with('error', __('admin.admins_section.cannot_impersonate_super_admin'));
         }
 
         session(['impersonating_original_id' => $authAdmin->id]);
@@ -388,7 +388,7 @@ class AdminController extends Controller
         Auth::guard('admin')->login($admin);
 
         return redirect()->route('admin.dashboard')
-            ->with('success', 'Now acting as ' . $admin->name . '. Use "Stop impersonating" to return.');
+            ->with('success', __('admin.admins_section.now_impersonating', ['name' => $admin->name]));
     }
 
     public function stopImpersonating(): RedirectResponse
@@ -420,7 +420,7 @@ class AdminController extends Controller
         session()->forget('impersonating_original_id');
 
         return redirect()->route('admin.admins.index')
-            ->with('success', 'Stopped impersonating.');
+            ->with('success', __('admin.admins_section.stopped_impersonating'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -431,7 +431,7 @@ class AdminController extends Controller
     {
         $authAdmin = auth('admin')->user();
         if (!$authAdmin->hasPermissionTo('admins.view')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json(['message' => __('admin.admins_section.forbidden')], 403);
         }
 
         $sessions = AdminLoginSession::query()

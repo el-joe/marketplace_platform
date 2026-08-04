@@ -51,7 +51,7 @@ class FallbackStatusController extends Controller
 
         return ApiResponse::success(
             new FallbackStatusResource($data),
-            'Fallback routing visibility retrieved.',
+            __('carrier.api.fallback_routing_retrieved'),
         );
     }
 }

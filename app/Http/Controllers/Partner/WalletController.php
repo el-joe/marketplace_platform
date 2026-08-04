@@ -39,6 +39,6 @@ class WalletController extends Controller
             'bank_iban' => $data['bank_iban'],
         ]);
 
-        return back()->with('success', 'Withdrawal request submitted successfully.');
+        return back()->with('success', __('partner.wallet.messages.withdrawal_submitted'));
     }
 }

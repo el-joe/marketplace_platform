@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'بوابة شركات السفر') | بوابة شركات السفر</title>
+    <title>@yield('title', __('common.travel_agency_portal_title')) | {{ __('common.travel_agency_portal_title') }}</title>
     <link href="https://fonts.bunny.net/css?family=cairo:400,600,700,800&display=swap" rel="stylesheet">
     <script>
     window.trans = @json(__('js'));

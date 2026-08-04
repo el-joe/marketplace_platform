@@ -45,13 +45,13 @@ class AiToolsController extends Controller
 
         // Ensure the listing belongs to this vendor
         if ($listing->vendor_id !== $vendor->vendor_id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['error' => __('partner.ai_tools.messages.unauthorized')], 403);
         }
 
         $credit = AiFeatureCredit::balanceFor('vendor', $vendor->vendor_id, AiFeatureCredit::FEATURE_IMAGE_ENHANCEMENT);
 
         if (! $credit->hasCredits()) {
-            return response()->json(['error' => 'No image enhancement credits remaining.'], 422);
+            return response()->json(['error' => __('partner.ai_tools.messages.no_image_credits')], 422);
         }
 
         $credit->consume();
@@ -69,7 +69,7 @@ class AiToolsController extends Controller
         return response()->json([
             'job_id'  => $job->id,
             'status'  => 'queued',
-            'message' => 'Image enhancement queued. We will notify you when it\'s ready.',
+            'message' => __('partner.ai_tools.messages.image_enhancement_queued'),
         ]);
     }
 
@@ -106,7 +106,7 @@ class AiToolsController extends Controller
 
         $job->update(['applied' => true]);
 
-        return response()->json(['message' => 'Enhanced image applied successfully.']);
+        return response()->json(['message' => __('partner.ai_tools.messages.enhanced_applied')]);
     }
 
     // ── Video Generation ──────────────────────────────────────────────────
@@ -125,7 +125,7 @@ class AiToolsController extends Controller
         $credit = AiFeatureCredit::balanceFor('vendor', $vendor->vendor_id, AiFeatureCredit::FEATURE_VIDEO_GENERATION);
 
         if (! $credit->hasCredits()) {
-            return response()->json(['error' => 'No video generation credits remaining.'], 422);
+            return response()->json(['error' => __('partner.ai_tools.messages.no_video_credits')], 422);
         }
 
         $credit->consume();
@@ -145,7 +145,7 @@ class AiToolsController extends Controller
         return response()->json([
             'job_id'  => $videoJob->id,
             'status'  => 'queued',
-            'message' => 'Video generation queued. This may take a few minutes.',
+            'message' => __('partner.ai_tools.messages.video_generation_queued'),
         ]);
     }
 

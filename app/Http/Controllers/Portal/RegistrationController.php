@@ -70,15 +70,15 @@ class RegistrationController extends Controller
     {
         if ($step === 1) {
             return [
-                'email.unique' => 'هذا البريد الإلكتروني مسجل مسبقاً.',
-                'password.min' => 'كلمة المرور يجب أن تكون ٨ أحرف على الأقل.',
-                'password.confirmed' => 'كلمة المرور وتأكيدها غير متطابقتين.',
+                'email.unique' => __('portal.registration.email_unique'),
+                'password.min' => __('portal.registration.password_min'),
+                'password.confirmed' => __('portal.registration.password_confirmed'),
             ];
         }
         if ($step === 2) {
             return [
-                'store_slug.unique' => 'اسم المتجر المختصر مستخدم مسبقاً، جرب آخر.',
-                'store_slug.alpha_dash' => 'يجب أن يحتوي المختصر على أحرف وأرقام وشرطات فقط.',
+                'store_slug.unique' => __('portal.registration.store_slug_unique'),
+                'store_slug.alpha_dash' => __('portal.registration.store_slug_alpha_dash'),
             ];
         }
         return [];
@@ -256,8 +256,8 @@ class RegistrationController extends Controller
             'terms_agreed' => 'required|accepted',
             'privacy_agreed' => 'required|accepted',
         ], [
-            'terms_agreed.accepted' => 'يجب الموافقة على الشروط والأحكام.',
-            'privacy_agreed.accepted' => 'يجب الموافقة على سياسة الخصوصية.',
+            'terms_agreed.accepted' => __('portal.registration.terms_agreed_accepted'),
+            'privacy_agreed.accepted' => __('portal.registration.privacy_agreed_accepted'),
         ]);
 
         if ($validator->fails()) {
@@ -277,7 +277,7 @@ class RegistrationController extends Controller
         if (empty($step1['email']) || empty($step2['store_name']) || empty($step3['street_address'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'بيانات التسجيل غير مكتملة. ارجع وأعد إدخال البيانات.',
+                'message' => __('portal.registration.incomplete_data'),
             ], 422);
         }
 
@@ -286,7 +286,7 @@ class RegistrationController extends Controller
         if (!$country) {
             return response()->json([
                 'success' => false,
-                'message' => 'الدولة المحددة غير صالحة.',
+                'message' => __('portal.registration.invalid_country'),
             ], 422);
         }
 
@@ -303,7 +303,7 @@ class RegistrationController extends Controller
             return response()->json([
                 'success' => false,
                 'errors'  => [
-                    'documents' => ['الوثائق التالية مطلوبة: ' . implode('، ', $mandatoryMissing)],
+                    'documents' => [__('portal.registration.documents_required', ['documents' => implode(', ', $mandatoryMissing)])],
                 ],
             ], 422);
         }

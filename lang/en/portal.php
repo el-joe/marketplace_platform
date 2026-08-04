@@ -134,4 +134,32 @@ return [
         'inclusion_insurance'    => 'Travel insurance',
         'inclusion_transfers'    => 'Transfers',
     ],
+
+    'auth' => [
+        'registration_thank_you' => 'Thank you for registering! We will be in touch with you soon.',
+    ],
+
+    'advertise_request' => [
+        'special_chars_not_allowed' => 'Special characters (+, -, *, /) are not allowed. Please remove them.',
+        'invalid_phone'             => 'Please enter a valid phone number!',
+        'description_min'           => 'Please ensure the description is at least 50 characters long.',
+        'description_max'           => 'Please ensure the description is less than 1000 characters.',
+        'name_required'             => 'Please enter your full name!',
+        'email_required'            => 'Please enter a valid email address!',
+        'company_name_required'     => 'Please enter your company name!',
+        'description_required'      => 'Please enter your request details!',
+    ],
+
+    'registration' => [
+        'email_unique'            => 'This email is already registered.',
+        'password_min'            => 'Password must be at least 8 characters.',
+        'password_confirmed'      => 'Password and confirmation do not match.',
+        'store_slug_unique'       => 'This store slug is already in use, please try another.',
+        'store_slug_alpha_dash'   => 'The slug may only contain letters, numbers, and dashes.',
+        'terms_agreed_accepted'   => 'You must agree to the Terms and Conditions.',
+        'privacy_agreed_accepted' => 'You must agree to the Privacy Policy.',
+        'incomplete_data'         => 'Registration data is incomplete. Please go back and re-enter the data.',
+        'invalid_country'         => 'The selected country is invalid.',
+        'documents_required'      => 'The following documents are required: :documents',
+    ],
 ];

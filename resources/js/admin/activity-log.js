@@ -155,7 +155,7 @@ $(function () {
             renderActivityDetail(res.data);
             $('#activity-detail-modal').modal('open');
         }).fail(function () {
-            window.Toast?.error(window.TRANSLATIONS?.failedToLoadDetail || 'Failed to load activity detail.');
+            window.Toast?.error(t('admin.activity_log.failed_to_load_detail'));
         });
     }
 

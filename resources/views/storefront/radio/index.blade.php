@@ -35,7 +35,7 @@
                     @endif
                     @if($channel->is_live)
                     <span class="absolute -top-1 -right-1 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full uppercase animate-pulse">
-                        LIVE
+                        {{ __('common.storefront_nav.live') }}
                     </span>
                     @endif
                 </div>

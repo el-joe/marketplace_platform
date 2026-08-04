@@ -54,14 +54,14 @@ class ClassifiedCategoryController extends Controller
         // Cycle guard: a category cannot be its own ancestor
         if (!empty($validated['parent_id'])) {
             if ($this->wouldCreateCycle(null, $validated['parent_id'])) {
-                return response()->json(['message' => 'Selected parent would create a category cycle.'], 422);
+                return response()->json(['message' => __('admin.classified_categories.parent_cycle')], 422);
             }
         }
 
         $category = ClassifiedCategory::create($validated);
 
         return response()->json([
-            'message'  => 'Category created.',
+            'message'  => __('admin.classified_categories.created'),
             'category' => $category->load('contractTemplate'),
         ], 201);
     }
@@ -85,14 +85,14 @@ class ClassifiedCategoryController extends Controller
 
         if (!empty($validated['parent_id'])) {
             if ($this->wouldCreateCycle($category->id, $validated['parent_id'])) {
-                return response()->json(['message' => 'Selected parent would create a category cycle.'], 422);
+                return response()->json(['message' => __('admin.classified_categories.parent_cycle')], 422);
             }
         }
 
         $category->update($validated);
 
         return response()->json([
-            'message'  => 'Category updated.',
+            'message'  => __('admin.classified_categories.updated'),
             'category' => $category->load('contractTemplate'),
         ]);
     }
@@ -101,27 +101,31 @@ class ClassifiedCategoryController extends Controller
     {
         if ($category->children()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete: this category has child categories. Delete or reassign children first.',
+                'message' => __('admin.classified_categories.cannot_delete_has_children'),
             ], 422);
         }
 
         if ($category->listings()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete: there are listings referencing this category. Reassign or delete those listings first.',
+                'message' => __('admin.classified_categories.cannot_delete_has_listings'),
             ], 422);
         }
 
         $category->delete();
 
-        return response()->json(['message' => 'Category deleted.']);
+        return response()->json(['message' => __('admin.classified_categories.deleted')]);
     }
 
     public function toggleActive(ClassifiedCategory $category): JsonResponse
     {
         $category->update(['is_active' => !$category->is_active]);
 
+        $statusLabel = $category->is_active
+            ? __('admin.classified_categories.activated')
+            : __('admin.classified_categories.deactivated');
+
         return response()->json([
-            'message'   => 'Category ' . ($category->is_active ? 'activated' : 'deactivated') . '.',
+            'message'   => __('admin.classified_categories.status_toggled', ['status' => $statusLabel]),
             'is_active' => $category->is_active,
         ]);
     }
@@ -139,7 +143,7 @@ class ClassifiedCategoryController extends Controller
             }
         });
 
-        return response()->json(['message' => 'Order saved.']);
+        return response()->json(['message' => __('admin.classified_categories.order_saved')]);
     }
 
     private function wouldCreateCycle(?string $categoryId, string $proposedParentId): bool

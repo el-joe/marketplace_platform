@@ -93,7 +93,7 @@ class AssignmentController extends Controller
             'excel' => $this->exportExcel('delivery-assignments', $headers, $rows),
             'csv' => $this->exportCsv('delivery-assignments', $headers, $rows),
             'word' => $this->exportWord('delivery-assignments', 'Delivery Assignments', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('delivery.messages.common.invalid_export_format')),
         };
     }
 
@@ -117,7 +117,7 @@ class AssignmentController extends Controller
         $this->authorizeAssignment($assignment);
 
         if ($assignment->status !== DeliveryAssignment::STATUS_ASSIGNED) {
-            return response()->json(['message' => 'Assignment cannot be accepted in its current state.'], 422);
+            return response()->json(['message' => __('delivery.messages.assignments.cannot_accept_state')], 422);
         }
 
         $assignment->update([
@@ -125,7 +125,7 @@ class AssignmentController extends Controller
             'accepted_at' => now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Assignment accepted.']);
+        return response()->json(['success' => true, 'message' => __('delivery.messages.assignments.accepted')]);
     }
 
     /** Agent marks item as picked up (accepted → picked_up). */
@@ -134,7 +134,7 @@ class AssignmentController extends Controller
         $this->authorizeAssignment($assignment);
 
         if ($assignment->status !== DeliveryAssignment::STATUS_ACCEPTED) {
-            return response()->json(['message' => 'Assignment is not in accepted state.'], 422);
+            return response()->json(['message' => __('delivery.messages.assignments.not_accepted_state')], 422);
         }
 
         $validated = $request->validate([
@@ -162,7 +162,7 @@ class AssignmentController extends Controller
             $assignment->subOrder->update(['status' => 'out_for_delivery']);
         }
 
-        return response()->json(['success' => true, 'message' => 'Marked as picked up.']);
+        return response()->json(['success' => true, 'message' => __('delivery.messages.assignments.marked_picked_up')]);
     }
 
     /** Agent delivers — validates OTP, stores proof, updates all related records. */
@@ -171,7 +171,7 @@ class AssignmentController extends Controller
         $this->authorizeAssignment($assignment);
 
         if ($assignment->status !== DeliveryAssignment::STATUS_PICKED_UP) {
-            return response()->json(['message' => 'Assignment is not in picked-up state.'], 422);
+            return response()->json(['message' => __('delivery.messages.assignments.not_picked_up_state')], 422);
         }
 
         $assignment->load('subOrder.order');
@@ -191,7 +191,7 @@ class AssignmentController extends Controller
 
         // OTP validation (max 3 attempts)
         if ($assignment->otp_attempts >= 3) {
-            return response()->json(['message' => 'Too many OTP attempts. Contact support.'], 422);
+            return response()->json(['message' => __('delivery.messages.assignments.too_many_otp_attempts')], 422);
         }
 
         $expectedOtp = $assignment->delivery_otp
@@ -202,7 +202,7 @@ class AssignmentController extends Controller
             $remaining = 3 - $assignment->fresh()->otp_attempts;
 
             return response()->json([
-                'message' => "Invalid OTP. {$remaining} attempt(s) remaining.",
+                'message' => __('delivery.messages.assignments.invalid_otp_remaining', ['remaining' => $remaining]),
                 'remaining' => $remaining,
             ], 422);
         }
@@ -220,7 +220,10 @@ class AssignmentController extends Controller
                     $expectedFormatted = number_format($expectedCents / 100, 2);
                     $collectedFormatted = number_format($collectedCents / 100, 2);
                     return response()->json([
-                        'message' => "المبلغ المُدخل ({$collectedFormatted}) لا يتطابق مع المبلغ المتوقع ({$expectedFormatted}). يرجى التأكد.",
+                        'message' => __('delivery.messages.assignments.cod_amount_mismatch', [
+                            'collected' => $collectedFormatted,
+                            'expected' => $expectedFormatted,
+                        ]),
                         'requires_discrepancy_note' => true,
                         'expected' => $expectedCents,
                         'collected' => $collectedCents,
@@ -311,7 +314,7 @@ class AssignmentController extends Controller
             }
         });
 
-        return response()->json(['success' => true, 'message' => 'Delivery confirmed!']);
+        return response()->json(['success' => true, 'message' => __('delivery.messages.assignments.delivery_confirmed')]);
     }
 
     /** Agent marks delivery as failed. */
@@ -325,7 +328,7 @@ class AssignmentController extends Controller
                 DeliveryAssignment::STATUS_PICKED_UP,
             ])
         ) {
-            return response()->json(['message' => 'Cannot fail assignment in current state.'], 422);
+            return response()->json(['message' => __('delivery.messages.assignments.cannot_fail_state')], 422);
         }
 
         $validated = $request->validate([
@@ -344,7 +347,7 @@ class AssignmentController extends Controller
             'delivery_longitude' => $validated['longitude'] ?? null,
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Assignment marked as failed.']);
+        return response()->json(['success' => true, 'message' => __('delivery.messages.assignments.marked_failed')]);
     }
 
     /** Ensures the assignment belongs to the authenticated agent. */
@@ -353,6 +356,6 @@ class AssignmentController extends Controller
         /** @var DeliveryAgent $agent */
         $agent = Auth::guard('delivery')->user();
 
-        abort_if($assignment->agent_id !== $agent->id, 403, 'Forbidden.');
+        abort_if($assignment->agent_id !== $agent->id, 403, __('delivery.messages.common.forbidden'));
     }
 }

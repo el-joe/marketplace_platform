@@ -81,7 +81,7 @@ class PackagingSupplyController extends Controller
             $supply = $supplies[$item['supply_id']];
 
             if ($currency && $currency !== $supply->currency) {
-                abort(422, 'All items in a single order must use the same currency.');
+                abort(422, __('partner.packaging_supplies.messages.currency_mismatch'));
             }
             $currency = $supply->currency;
 
@@ -120,7 +120,7 @@ class PackagingSupplyController extends Controller
 
         return redirect()
             ->route('partner.packaging-supplies.my-requests')
-            ->with('success', "Request #{$supplyRequest->request_number} submitted successfully.");
+            ->with('success', __('partner.packaging_supplies.messages.submitted_with_number', ['number' => $supplyRequest->request_number]));
     }
 
     public function myRequests(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
@@ -181,7 +181,7 @@ class PackagingSupplyController extends Controller
             'excel' => $this->exportExcel('packaging-supply-requests', $headers, $rows),
             'csv' => $this->exportCsv('packaging-supply-requests', $headers, $rows),
             'word' => $this->exportWord('packaging-supply-requests', 'Packaging Supply Requests', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 

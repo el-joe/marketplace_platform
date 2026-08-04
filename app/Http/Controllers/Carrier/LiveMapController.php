@@ -22,14 +22,14 @@ class LiveMapController extends Controller
         $supervisor = auth('shipping_supervisor_api')->user();
 
         if (! $supervisor->hasPermission('view_orders') && ! $supervisor->hasPermission('view_reports')) {
-            return ApiResponse::error('Forbidden.', [], 403);
+            return ApiResponse::error(__('carrier.api.forbidden'), [], 403);
         }
 
         $data = $this->liveMapService->getCompanyMapData($supervisor->company);
 
         return ApiResponse::success(
             new LiveMapResource($data),
-            'Live map data retrieved.',
+            __('carrier.api.live_map_retrieved'),
         );
     }
 }

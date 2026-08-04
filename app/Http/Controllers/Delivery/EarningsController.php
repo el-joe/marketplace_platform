@@ -95,7 +95,7 @@ class EarningsController extends Controller
             'excel' => $this->exportExcel('delivery-earnings', $headers, $rows),
             'csv' => $this->exportCsv('delivery-earnings', $headers, $rows),
             'word' => $this->exportWord('delivery-earnings', 'Delivery Earnings', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('delivery.messages.common.invalid_export_format')),
         };
     }
 

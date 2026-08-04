@@ -8,6 +8,7 @@
         window.CHANGE_REQUESTS = {
             csrf: '{{ csrf_token() }}',
             cancelUrlBase: '{{ url('change-requests') }}',
+            cancelFailedMessage: @json(__('travel.change_requests.cancel_failed')),
         };
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.btn-cancel-request').forEach(function (btn) {
@@ -26,7 +27,7 @@
                     if (res.ok && data.success) {
                         window.location.reload();
                     } else {
-                        alert(data.message ?? 'Unable to cancel this request.');
+                        alert(data.message ?? window.CHANGE_REQUESTS.cancelFailedMessage);
                         btn.disabled = false;
                     }
                 });

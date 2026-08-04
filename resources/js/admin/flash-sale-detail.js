@@ -50,10 +50,10 @@ const T = () => window.TRANSLATIONS || {};
 
 const STATUS_BADGES = () => ({
     submitted: { label: T().statusSubmitted || 'Submitted', color: 'gray' },
-    under_review: { label: T().statusUnderReview || 'Under Review', color: 'warning' },
+    under_review: { label: t('admin.flash_sale_detail.under_review_label'), color: 'warning' },
     approved: { label: T().statusApproved || 'Approved', color: 'primary' },
     live: { label: T().statusLive || 'Live', color: 'success' },
-    sold_out: { label: T().statusSoldOut || 'Sold Out', color: 'danger' },
+    sold_out: { label: t('admin.flash_sale_detail.sold_out_label'), color: 'danger' },
     rejected: { label: T().statusRejected || 'Rejected', color: 'danger' },
     withdrawn: { label: T().statusWithdrawn || 'Withdrawn', color: 'gray' },
     ended: { label: T().statusEnded || 'Ended', color: 'gray' },
@@ -86,7 +86,7 @@ function initSubmissionsTable() {
                         ? `<img src="${row.product_image_url}" class="w-8 h-8 rounded object-cover flex-shrink-0">`
                         : `<div class="w-8 h-8 rounded bg-gray-100"></div>`;
                     const suspect = row.is_suspect
-                        ? `<span class="ml-1 text-amber-500" title="${T().possibleFakeDiscount || 'Possible fake discount'}">⚠</span>`
+                        ? `<span class="ml-1 text-amber-500" title="${t('admin.flash_sale_detail.possible_fake_discount')}">⚠</span>`
                         : '';
                     const subtitle = row.type === 'admin'
                         ? (row.platform_sku || '')
@@ -106,7 +106,7 @@ function initSubmissionsTable() {
             },
             {
                 data: 'flash_price_formatted',
-                title: T().flashPrice || 'Flash Price',
+                title: t('admin.flash_sale_detail.flash_price_label'),
                 className: 'text-right font-semibold',
                 render: (d, t, row) => {
                     const ok = row.discount_ok;
@@ -194,7 +194,7 @@ function updateBulkRejectVisibility() {
     if (!btn) return;
     if (selectedSubmissionIds.size > 0) {
         btn.classList.remove('hidden');
-        btn.textContent = (T().bulkRejectCount || 'Bulk Reject (:count)').replace(':count', selectedSubmissionIds.size);
+        btn.textContent = t('admin.flash_sale_detail.bulk_reject_label', { count: selectedSubmissionIds.size });
     } else {
         btn.classList.add('hidden');
     }
@@ -231,7 +231,7 @@ function openReviewModal(submissionId) {
         .done(res => populateReviewModal(res.data))
         .fail(() => {
             document.getElementById('review-price-chart').innerHTML =
-                `<span class="text-xs text-danger-600">${T().failedLoadPricing || 'Failed to load pricing data.'}</span>`;
+                `<span class="text-xs text-danger-600">${t('admin.flash_sale_detail.failed_load_pricing')}</span>`;
         });
 }
 
@@ -271,7 +271,7 @@ function populateReviewModal(data) {
 function renderMiniPriceChart(history) {
     const container = document.getElementById('review-price-chart');
     if (!history.length) {
-        container.innerHTML = `<span class="text-xs text-gray-400">${T().noPriceHistoryData || 'No price history data.'}</span>`;
+        container.innerHTML = `<span class="text-xs text-gray-400">${t('admin.flash_sale_detail.no_price_history')}</span>`;
         return;
     }
 
@@ -300,7 +300,7 @@ function confirmReview() {
         const fraudWarn = document.getElementById('fraud-warning');
         const override = document.getElementById('override-fraud-check');
         if (!fraudWarn.classList.contains('hidden') && !override?.checked) {
-            alert(T().acknowledgeWarningRequired || 'Please acknowledge the pricing warning before approving.');
+            alert(t('admin.flash_sale_detail.acknowledge_warning'));
             return;
         }
     }
@@ -323,9 +323,9 @@ function confirmReview() {
         },
         success(res) {
             btn.disabled = false;
-            btn.textContent = T().confirmDecision || 'Confirm Decision';
+            btn.textContent = t('admin.flash_sale_detail.confirm_decision_label');
             $('#review-modal').modal('close');
-            window.Toast.success(res.message || T().decisionSaved || 'Submission reviewed.');
+            window.Toast.success(res.message || t('admin.flash_sale_detail.submission_reviewed'));
             if ($.fn.DataTable.isDataTable('#submissions-table')) {
                 $('#submissions-table').DataTable().ajax.reload(null, false);
             }
@@ -333,7 +333,7 @@ function confirmReview() {
         error(xhr) {
             btn.disabled = false;
             btn.textContent = T().confirmDecision || 'Confirm Decision';
-            const msg = xhr.responseJSON?.message || T().reviewFailed || 'Review failed.';
+            const msg = xhr.responseJSON?.message || t('admin.flash_sale_detail.review_failed');
             window.Toast.error(msg);
         },
     });
@@ -375,7 +375,7 @@ function initBulkReject() {
                 }
             },
             error(xhr) {
-                const msg = xhr.responseJSON?.message || T().bulkRejectFailed || 'Bulk reject failed.';
+                const msg = xhr.responseJSON?.message || t('admin.flash_sale_detail.bulk_reject_failed');
                 window.Toast.error(msg);
             },
         });
@@ -395,7 +395,7 @@ function initTransitionButtons() {
         }
 
         if (needsConfirm) {
-            if (!confirm(T().confirmGenericAction || 'Are you sure you want to proceed with this action?')) return;
+            if (!confirm(t('admin.flash_sale_detail.confirm_proceed'))) return;
         }
 
         doTransition(action);
@@ -412,11 +412,11 @@ function doTransition(action, reason = '') {
             _token: $('meta[name="csrf-token"]').attr('content'),
         },
         success(res) {
-            window.Toast.success(res.message || T().statusUpdated || 'Status updated.');
+            window.Toast.success(res.message || t('admin.flash_sale_detail.status_updated'));
             setTimeout(() => window.location.reload(), 800);
         },
         error(xhr) {
-            const msg = xhr.responseJSON?.message || T().transitionFailed || 'Transition failed.';
+            const msg = xhr.responseJSON?.message || t('admin.flash_sale_detail.transition_failed');
             window.Toast.error(msg);
         },
     });
@@ -499,7 +499,7 @@ function initInvitationsTable() {
                 render: (d, t, row) => {
                     if (!row.can_resend) return '';
                     return `<button type="button" class="btn btn-ghost btn-xs btn-resend-invitation"
-                        data-id="${row.id}" title="${T().resendNotificationTooltip || 'Resend notification'}">
+                        data-id="${row.id}" title="${t('admin.flash_sale_detail.resend_notification_label')}">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -540,11 +540,11 @@ function initInvitationsTable() {
             data: { _token: $('meta[name="csrf-token"]').attr('content') },
             success(res) {
                 btn.disabled = false;
-                window.Toast.success(res.message || T().notificationQueued || 'Notification queued.');
+                window.Toast.success(res.message || t('admin.flash_sale_detail.notification_queued'));
             },
             error(xhr) {
                 btn.disabled = false;
-                const msg = xhr.responseJSON?.message || T().resendFailed || 'Resend failed.';
+                const msg = xhr.responseJSON?.message || t('admin.flash_sale_detail.resend_failed');
                 window.Toast.error(msg);
             },
         });
@@ -582,7 +582,7 @@ function initAutoInvite() {
                 }
             })
             .fail(() => {
-                document.getElementById('auto-invite-loading').textContent = T().failedLoadEligibleCount || 'Failed to load eligible vendor count.';
+                document.getElementById('auto-invite-loading').textContent = t('admin.flash_sale_detail.failed_load_eligible_count');
             });
     });
 
@@ -597,7 +597,7 @@ function initAutoInvite() {
             data: { _token: $('meta[name="csrf-token"]').attr('content') },
             success(res) {
                 btn.disabled = false;
-                btn.textContent = T().sendInvitations || 'Send Invitations';
+                btn.textContent = t('admin.flash_sale_detail.send_invitations_label');
                 $('#auto-invite-modal').modal('close');
                 window.Toast.success(res.message || (T().vendorsInvitedResult || ':count vendor(s) invited.').replace(':count', res.count));
                 if ($.fn.DataTable.isDataTable('#invitations-table')) {
@@ -607,7 +607,7 @@ function initAutoInvite() {
             error(xhr) {
                 btn.disabled = false;
                 btn.textContent = T().sendInvitations || 'Send Invitations';
-                const msg = xhr.responseJSON?.message || T().inviteFailed || 'Invite failed.';
+                const msg = xhr.responseJSON?.message || t('admin.flash_sale_detail.invite_failed');
                 window.Toast.error(msg);
             },
         });
@@ -618,8 +618,8 @@ function buildCriteriaHint() {
     const parts = [];
     if (window.MIN_DISCOUNT_PCT) parts.push((T().minDiscountCriteria || 'min discount :pct%').replace(':pct', window.MIN_DISCOUNT_PCT));
     const hint = parts.length
-        ? (T().activeCriteriaHint || 'Active criteria: :criteria. All eligible vendors may already be invited.').replace(':criteria', parts.join(', '))
-        : (T().noCriteriaHint || 'All eligible vendors may already be invited, or no active vendors meet the criteria.');
+        ? t('admin.flash_sale_detail.active_criteria_label', { criteria: parts.join(', ') })
+        : t('admin.flash_sale_detail.all_eligible_invited');
     const el = document.getElementById('auto-invite-criteria-hint');
     if (el) el.textContent = hint;
 }
@@ -644,13 +644,13 @@ function initManualInvite() {
             },
             success(res) {
                 $('#manual-invite-modal').modal('close');
-                window.Toast.success(res.message || T().vendorsInvitedGeneric || 'Vendors invited.');
+                window.Toast.success(res.message || t('admin.flash_sale_detail.vendors_invited'));
                 if ($.fn.DataTable.isDataTable('#invitations-table')) {
                     $('#invitations-table').DataTable().ajax.reload(null, false);
                 }
             },
             error(xhr) {
-                const msg = xhr.responseJSON?.message || T().inviteVendorsFailed || 'Failed to invite vendors.';
+                const msg = xhr.responseJSON?.message || t('admin.flash_sale_detail.failed_invite_vendors');
                 window.Toast.error(msg);
             },
         });
@@ -728,9 +728,9 @@ function submitAddProduct() {
         data,
         success(res) {
             btn.disabled = false;
-            btn.textContent = T().addProduct || 'Add Product';
+            btn.textContent = t('admin.flash_sale_detail.add_product_label');
             $('#add-product-modal').modal('close');
-            window.Toast.success(res.message || T().submissionCreatedMessage || 'Submission added.');
+            window.Toast.success(res.message || t('admin.flash_sale_detail.submission_added'));
             if ($.fn.DataTable.isDataTable('#submissions-table')) {
                 $('#submissions-table').DataTable().ajax.reload(null, false);
             }
@@ -740,7 +740,7 @@ function submitAddProduct() {
             btn.textContent = T().addProduct || 'Add Product';
             const msg = xhr.responseJSON?.message
                 || Object.values(xhr.responseJSON?.errors || {})[0]?.[0]
-                || T().submissionCreateFailed || 'Failed to add submission.';
+                || t('admin.flash_sale_detail.failed_add_submission');
             window.Toast.error(msg);
         },
     });
@@ -791,7 +791,7 @@ function updateLiveStats(data) {
                 <td class="px-4 py-3 text-right font-mono text-sm">${s.quantity_sold}</td>
                 <td class="px-4 py-3 text-right font-mono text-sm">${s.quantity_remaining}</td>
                 <td class="px-4 py-3 text-right font-mono text-sm">${s.revenue_formatted}</td>
-            </tr>`).join('') || `<tr><td colspan="4" class="py-6 text-center text-gray-400 text-sm">${T().noDataYet || 'No data yet.'}</td></tr>`;
+            </tr>`).join('') || `<tr><td colspan="4" class="py-6 text-center text-gray-400 text-sm">${t('admin.flash_sale_detail.no_data_yet')}</td></tr>`;
     }
 }
 
@@ -802,7 +802,7 @@ function loadAnalytics() {
         .done(res => renderAnalytics(res.data))
         .fail(() => {
             const el = document.getElementById('analytics-tbody');
-            if (el) el.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-gray-400 text-sm">${T().analyticsUnavailable || 'Analytics unavailable.'}</td></tr>`;
+            if (el) el.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-gray-400 text-sm">${t('admin.flash_sale_detail.analytics_unavailable')}</td></tr>`;
         });
 }
 
@@ -827,7 +827,7 @@ function renderAnalytics(data) {
                 <td class="px-4 py-2 text-right font-mono text-sm">${row.units_sold}</td>
                 <td class="px-4 py-2 text-right font-mono text-sm">${formatMoney(row.gross_revenue)}</td>
                 <td class="px-4 py-2 text-right font-mono text-sm">${formatMoney(row.discount_given)}</td>
-            </tr>`).join('') || `<tr><td colspan="4" class="py-4 text-center text-gray-400 text-sm">${T().noDailyData || 'No daily data.'}</td></tr>`;
+            </tr>`).join('') || `<tr><td colspan="4" class="py-4 text-center text-gray-400 text-sm">${t('admin.flash_sale_detail.no_daily_data')}</td></tr>`;
     }
 }
 

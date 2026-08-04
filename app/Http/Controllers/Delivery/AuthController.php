@@ -41,7 +41,7 @@ class AuthController extends Controller
 
         return back()
             ->withInput($request->only('phone'))
-            ->withErrors(['phone' => 'These credentials do not match our records.']);
+            ->withErrors(['phone' => __('delivery.messages.auth.invalid_credentials_web')]);
     }
 
     public function logout(Request $request): RedirectResponse

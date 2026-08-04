@@ -152,7 +152,7 @@ class InventoryController extends Controller
             'excel' => $this->exportExcel('inventory', $headers, $rows),
             'csv' => $this->exportCsv('inventory', $headers, $rows),
             'word' => $this->exportWord('inventory', 'Inventory', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 

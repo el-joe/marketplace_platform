@@ -37,7 +37,7 @@ function buildServerConfig(uploadUrl, deleteUrl) {
             },
             onerror: (response) => {
                 const data = JSON.parse(response);
-                return data.message ?? 'Upload failed';
+                return data.message ?? t('shared.upload.upload_failed');
             },
         },
         revert: deleteUrl ? {
@@ -95,7 +95,7 @@ function initFilePond(input) {
         acceptedFileTypes: input.accept !== '*' ? input.accept.split(',').map((s) => s.trim()) : null,
         allowImagePreview: true,
         imagePreviewHeight: 100,
-        labelIdle: 'Drag & drop files or <span class="filepond--label-action">Browse</span>',
+        labelIdle: t('shared.upload.drop_files_label'),
         server: uploadUrl ? buildServerConfig(uploadUrl, deleteUrl) : null,
         files: buildExistingFiles(existing),
     });

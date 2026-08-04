@@ -104,6 +104,22 @@ return [
         'footer_copyright' => '&copy; :year — جميع الحقوق محفوظة',
     ],
 
+    'gift_card_delivery' => [
+        'image_alt'          => 'بطاقة هدايا نون',
+        'heading_gift'       => 'لقد تلقيت بطاقة هدايا من :buyer_name!',
+        'heading_self'       => 'بطاقة الهدايا الخاصة بك جاهزة!',
+        'greeting'           => 'مرحباً :name،',
+        'intro_gift'         => 'أرسل لك :buyer_name بطاقة هدايا نون. إليك تفاصيل الاسترداد:',
+        'intro_self'         => 'إليك تفاصيل الاسترداد:',
+        'code_label'         => 'الرمز',
+        'pin_label'          => 'الرقم السري:',
+        'amount_label'       => 'المبلغ:',
+        'expiry_label'       => 'تاريخ الانتهاء:',
+        'how_to_use_title'   => 'كيفية الاستخدام',
+        'how_to_use_body'    => 'انتقل إلى الملف الشخصي ← المحفظة ← استرداد ← تبويب بطاقة الهدايا ← أدخل الرمز والرقم السري.',
+        'thanks'             => 'شكراً،<br>:app_name',
+    ],
+
     'marketer_welcome' => [
         'subject'          => 'تمت الموافقة على حسابك كمسوّق',
         'title'            => 'تمت الموافقة على حسابك',

@@ -92,9 +92,9 @@ class RoleController extends Controller
             DB::rollBack();
             Log::error('Partner\\RoleController@store failed', ['error' => $e->getMessage()]);
             if ($request->wantsJson()) {
-                return response()->json(['message' => 'Failed to create role.'], 500);
+                return response()->json(['message' => __('partner.roles.messages.create_failed')], 500);
             }
-            return back()->withInput()->withErrors(['error' => 'Failed to create role.']);
+            return back()->withInput()->withErrors(['error' => __('partner.roles.messages.create_failed')]);
         }
 
         if ($request->wantsJson()) {
@@ -102,7 +102,7 @@ class RoleController extends Controller
         }
 
         return redirect()->route('partner.roles.edit', $role->id)
-            ->with('success', 'Role created successfully.');
+            ->with('success', __('partner.roles.messages.created'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ class RoleController extends Controller
         $this->guardVendorRole($role);
 
         if (in_array($role->name, self::PROTECTED_ROLES, true)) {
-            abort(403, 'Default roles cannot be edited.');
+            abort(403, __('partner.roles.messages.default_cannot_edit'));
         }
 
         return view('partner.roles.edit', [
@@ -128,7 +128,7 @@ class RoleController extends Controller
         $this->guardVendorRole($role);
 
         if (in_array($role->name, self::PROTECTED_ROLES, true)) {
-            return response()->json(['message' => 'Default roles cannot be edited.'], 422);
+            return response()->json(['message' => __('partner.roles.messages.default_cannot_edit')], 422);
         }
 
         $request->validate([
@@ -150,7 +150,7 @@ class RoleController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Partner\\RoleController@update failed', ['role' => $role->id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update role.'], 500);
+            return response()->json(['message' => __('partner.roles.messages.update_failed')], 500);
         }
 
         return response()->json(['success' => true]);
@@ -165,7 +165,7 @@ class RoleController extends Controller
         $this->guardVendorRole($role);
 
         if (in_array($role->name, self::PROTECTED_ROLES, true)) {
-            return response()->json(['message' => 'Default roles cannot be deleted.'], 422);
+            return response()->json(['message' => __('partner.roles.messages.default_cannot_delete')], 422);
         }
 
         $memberCount = DB::table('model_has_roles')

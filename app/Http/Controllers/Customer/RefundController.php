@@ -32,7 +32,7 @@ class RefundController extends Controller
             ->first();
 
         if (!$refund) {
-            return ApiResponse::error('Refund not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.refund.not_found'), [], 404);
         }
 
         return ApiResponse::success(new RefundResource($refund));

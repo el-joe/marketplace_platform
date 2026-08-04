@@ -14,7 +14,7 @@ class CouponController extends Controller
     {
         $coupon = Coupon::where('code', $code)->first();
 
-        abort_if(! $coupon, 404, 'Coupon not found.');
+        abort_if(! $coupon, 404, __('common.exceptions.cart.coupon_not_found'));
 
         return ApiResponse::success(new CouponResource($coupon));
     }

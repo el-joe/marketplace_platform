@@ -100,7 +100,7 @@ class CartController extends Controller
         $customer = auth('customer')->user();
 
         if (!$customer) {
-            return ApiResponse::error('You must be logged in to use your wallet.', [], 401);
+            return ApiResponse::error(__('common.exceptions.cart.wallet_login_required'), [], 401);
         }
 
         $cart = $this->resolveCart($request);
@@ -120,7 +120,7 @@ class CartController extends Controller
 
         return $this->cartResponse($cart, [
             'wallet' => $this->resolveWalletInfo($cart),
-        ], 'Wallet usage updated');
+        ], __('common.exceptions.cart.wallet_usage_updated'));
     }
 
     /**
@@ -290,7 +290,7 @@ class CartController extends Controller
         return $this->cartResponse($cart, [
             'item' => new CartItemResource($item),
             'listing_ref' => $isAdmin ? null : $this->listingIdentifierService->buildListingRef($item->vendorListing),
-        ], 'Item added to cart', 201);
+        ], __('common.exceptions.cart.item_added'), 201);
     }
 
     public function addItems(AddCartItemsRequest $request): JsonResponse
@@ -304,7 +304,7 @@ class CartController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return $this->cartResponse($cart, [], 'Items added to cart', 201);
+        return $this->cartResponse($cart, [], __('common.exceptions.cart.items_added'), 201);
     }
 
     public function updateItem(UpdateCartItemRequest $request, $countryId, string $id): JsonResponse
@@ -316,7 +316,7 @@ class CartController extends Controller
         try {
             $item = $this->cartService->updateItem($cart, $id, $request->quantity, $request->shipping_method_id, $request->has('shipping_method_id'), $countryId);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-            return ApiResponse::error('Cart item not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.cart.item_not_found'), [], 404);
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
@@ -333,7 +333,7 @@ class CartController extends Controller
             'cart' => new CartResource($cart),
             'item' => new CartItemResource($item),
             'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
-        ], 'Cart item updated');
+        ], __('common.exceptions.cart.item_updated'));
     }
 
     public function removeItem(Request $request, $countryId, string $id): JsonResponse
@@ -343,10 +343,10 @@ class CartController extends Controller
         try {
             $this->cartService->removeItem($cart, $id);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-            return ApiResponse::error('Cart item not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.cart.item_not_found'), [], 404);
         }
 
-        return ApiResponse::success(new CartResource($cart), 'Item removed from cart');
+        return ApiResponse::success(new CartResource($cart), __('common.exceptions.cart.item_removed'));
     }
 
     public function clear(Request $request): JsonResponse
@@ -355,7 +355,7 @@ class CartController extends Controller
 
         $this->cartService->clearCart($cart);
 
-        return ApiResponse::success(null, 'Cart cleared');
+        return ApiResponse::success(null, __('common.exceptions.cart.cleared'));
     }
 
     public function applyCoupon(ApplyCouponRequest $request): JsonResponse
@@ -366,12 +366,12 @@ class CartController extends Controller
         try {
             $coupon = $this->cartService->applyCoupon($cart, $customer, $request->code);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-            return ApiResponse::error('Coupon not found or is invalid.', [], 404);
+            return ApiResponse::error(__('common.exceptions.cart.coupon_not_found'), [], 404);
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return ApiResponse::success(new CartResource($cart), "Coupon \"{$coupon->code}\" applied");
+        return ApiResponse::success(new CartResource($cart), __('common.exceptions.cart.coupon_applied', ['code' => $coupon->code]));
     }
 
     public function removeCoupon(Request $request): JsonResponse
@@ -380,7 +380,7 @@ class CartController extends Controller
 
         $this->cartService->removeCoupon($cart);
 
-        return ApiResponse::success(new CartResource($cart), 'Coupon removed');
+        return ApiResponse::success(new CartResource($cart), __('common.exceptions.cart.coupon_removed'));
     }
 
     /**
@@ -398,20 +398,20 @@ class CartController extends Controller
             try {
                 $this->cartService->applyCoupon($cart, $customer, $code);
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-                return ApiResponse::error('Coupon not found or is invalid.', [], 404);
+                return ApiResponse::error(__('common.exceptions.cart.coupon_not_found'), [], 404);
             } catch (\DomainException $e) {
                 return ApiResponse::error($e->getMessage(), [], 422);
             }
 
             return ApiResponse::success([
                 'success' => true,
-                'message' => "Coupon \"{$code}\" applied",
+                'message' => __('common.exceptions.cart.coupon_applied', ['code' => $code]),
                 'data' => [
                     'discount_amount' => $cart->discount,
                     'type' => 'coupon',
                 ],
                 'cart' => new CartResource($cart),
-            ], "Coupon \"{$code}\" applied");
+            ], __('common.exceptions.cart.coupon_applied', ['code' => $code]));
         }
 
         try {
@@ -422,7 +422,7 @@ class CartController extends Controller
 
         return ApiResponse::success([
             'success' => true,
-            'message' => "Promo code \"{$code}\" applied",
+            'message' => __('common.exceptions.cart.promo_applied', ['code' => $code]),
             'data' => [
                 'discount_amount' => $cart->discount,
                 'type' => 'affiliate_promo',
@@ -437,7 +437,7 @@ class CartController extends Controller
 
         $this->cartService->removeAffiliatePromoCode($cart);
 
-        return ApiResponse::success(new CartResource($cart), 'Promo code removed');
+        return ApiResponse::success(new CartResource($cart), __('common.exceptions.cart.promo_removed'));
     }
 
     public function mergeCart(Request $request): JsonResponse
@@ -447,7 +447,7 @@ class CartController extends Controller
         $token = $request->input('guest_cart_token');
 
         if (!$token) {
-            return ApiResponse::error('guest_cart_token is required.', [], 422);
+            return ApiResponse::error(__('common.exceptions.cart.guest_token_required'), [], 422);
         }
 
         $cart = $this->cartService->mergeGuestCart(
@@ -457,6 +457,6 @@ class CartController extends Controller
             $country->currency_code
         );
 
-        return ApiResponse::success(new CartResource($cart), 'Cart merged successfully');
+        return ApiResponse::success(new CartResource($cart), __('common.exceptions.cart.merged'));
     }
 }

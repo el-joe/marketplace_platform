@@ -81,7 +81,7 @@ class AccountController extends Controller
 
         $listing = $this->listingService->create($customer, $request->validated());
 
-        return ApiResponse::success(new CustomerClassifiedListingDetailResource($listing), 'Listing created.', 201);
+        return ApiResponse::success(new CustomerClassifiedListingDetailResource($listing), __('common.exceptions.account_listing.created'), 201);
     }
 
     public function listingsUpdate(UpdateClassifiedListingRequest $request, $country, string $listingNumber): JsonResponse
@@ -90,12 +90,12 @@ class AccountController extends Controller
         $listing = $this->findOwnedListing($listingNumber);
 
         if (! $this->listingService->canEdit($listing)) {
-            return ApiResponse::error('Only draft or rejected listings can be edited.', [], 422);
+            return ApiResponse::error(__('common.exceptions.account_listing.edit_not_allowed'), [], 422);
         }
 
         $listing = $this->listingService->update($listing, $request->validated());
 
-        return ApiResponse::success(new CustomerClassifiedListingDetailResource($listing), 'Listing updated.');
+        return ApiResponse::success(new CustomerClassifiedListingDetailResource($listing), __('common.exceptions.account_listing.updated'));
     }
 
     public function listingsDestroy(Request $request,$country, string $listingNumber): JsonResponse
@@ -104,12 +104,12 @@ class AccountController extends Controller
         $listing = $this->findOwnedListing($listingNumber);
 
         if (! in_array($listing->status?->value, ['draft', 'rejected', 'expired'], true)) {
-            return ApiResponse::error('Only draft, rejected, or expired listings can be deleted.', [], 422);
+            return ApiResponse::error(__('common.exceptions.account_listing.delete_not_allowed'), [], 422);
         }
 
         $this->listingService->delete($listing);
 
-        return ApiResponse::success(message: 'Listing deleted.');
+        return ApiResponse::success(message: __('common.exceptions.account_listing.deleted'));
     }
 
     public function listingInquiries(Request $request,$country, string $listingNumber): JsonResponse
@@ -165,7 +165,7 @@ class AccountController extends Controller
 
         return ApiResponse::success(
             ['status' => $booking->status?->value],
-            'Booking cancelled. Refund eligibility is subject to agency review.'
+            __('common.exceptions.travel.booking_cancelled')
         );
     }
 

@@ -123,7 +123,7 @@ class BookingController extends Controller
 
         return redirect()
             ->route('travel-agency.bookings.show', $booking)
-            ->with('success', 'تم إنشاء الحجز بنجاح.');
+            ->with('success', __('travel.bookings.created_success'));
     }
 
     // ── Index ─────────────────────────────────────────────────────────────────
@@ -178,7 +178,15 @@ class BookingController extends Controller
             ->latest()
             ->get();
 
-        $headers = ['Ref', 'Package', 'Travelers', 'Total', 'Currency', 'Status', 'Date'];
+        $headers = [
+            __('travel.bookings.export.ref'),
+            __('travel.bookings.export.package'),
+            __('travel.bookings.export.travelers'),
+            __('travel.bookings.export.total'),
+            __('travel.bookings.export.currency'),
+            __('travel.bookings.export.status'),
+            __('travel.bookings.export.date'),
+        ];
 
         $rows = $bookings->map(fn (TravelBooking $booking) => [
             $booking->booking_number,
@@ -195,9 +203,9 @@ class BookingController extends Controller
 
         return match ($format) {
             'excel' => $this->exportExcel($filename, $headers, $rows),
-            'word'  => $this->exportWord($filename, 'Bookings', $rows),
+            'word'  => $this->exportWord($filename, __('travel.bookings.export.sheet_title'), $rows),
             'csv'   => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('travel.export.invalid_format')),
         };
     }
 
@@ -231,11 +239,11 @@ class BookingController extends Controller
         };
 
         if (!$allowed) {
-            return back()->withErrors(['status' => 'لا يمكن تغيير حالة هذا الحجز.']);
+            return back()->withErrors(['status' => __('travel.bookings.status_change_forbidden')]);
         }
 
         if ($newStatus === TravelBookingStatus::Confirmed && !$booking->passport_file_path) {
-            return back()->withErrors(['status' => 'لا يمكن تأكيد الحجز قبل رفع صورة جواز السفر.']);
+            return back()->withErrors(['status' => __('travel.bookings.confirm_requires_passport')]);
         }
 
         $cancellationReason = $request->input('cancellation_reason');
@@ -247,7 +255,7 @@ class BookingController extends Controller
                 if ($pkg->available_seats !== null
                     && ($pkg->seats_booked + $booking->travelers_count) > $pkg->available_seats
                 ) {
-                    abort(422, 'لا توجد مقاعد كافية لتأكيد هذا الحجز.');
+                    abort(422, __('travel.bookings.insufficient_seats'));
                 }
 
                 $pkg->increment('seats_booked', $booking->travelers_count);
@@ -298,7 +306,9 @@ class BookingController extends Controller
             'ip_address'   => $request->ip(),
         ]);
 
-        $label = $newStatus === TravelBookingStatus::Confirmed ? 'تم تأكيد الحجز.' : 'تم إلغاء الحجز.';
+        $label = $newStatus === TravelBookingStatus::Confirmed
+            ? __('travel.bookings.confirm_success')
+            : __('travel.bookings.cancel_success');
 
         return back()->with('success', $label);
     }

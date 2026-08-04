@@ -13,7 +13,7 @@
         {{ $method->badge_label_en ?: $method->name }}
     </span>
     @if($isDefault)
-        <span class="ml-1 text-[10px] uppercase tracking-wide text-gray-400">default</span>
+        <span class="ml-1 text-[10px] uppercase tracking-wide text-gray-400">{{ __('common.default') }}</span>
     @endif
 @else
     <span class="text-xs text-gray-400">{{ $fallbackText }}</span>

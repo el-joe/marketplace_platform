@@ -53,7 +53,7 @@ class OrderController extends Controller
                 'per_page' => $paginator->perPage(),
                 'total' => $paginator->total(),
             ],
-        ], 'Orders retrieved');
+        ], __('customer_api.order.retrieved'));
     }
 
     public function show(Request $request, string $orderNumber): JsonResponse
@@ -62,7 +62,7 @@ class OrderController extends Controller
         $order = $this->findOrder($customer, $orderNumber);
 
         if (! $order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('customer_api.order.not_found'), [], 404);
         }
 
         $order->load([
@@ -74,7 +74,7 @@ class OrderController extends Controller
             'statusHistories',
         ]);
 
-        return ApiResponse::success($this->buildOrderDetail($order), 'Order retrieved');
+        return ApiResponse::success($this->buildOrderDetail($order), __('customer_api.order.single_retrieved'));
     }
 
     public function showSubOrder(Request $request, string $orderNumber, string $subOrderNumber): JsonResponse
@@ -83,7 +83,7 @@ class OrderController extends Controller
         $order = $this->findOrder($customer, $orderNumber);
 
         if (! $order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('customer_api.order.not_found'), [], 404);
         }
 
         $subOrder = SubOrder::where('order_id', $order->id)
@@ -92,10 +92,10 @@ class OrderController extends Controller
             ->first();
 
         if (! $subOrder) {
-            return ApiResponse::error('Sub-order not found.', [], 404);
+            return ApiResponse::error(__('customer_api.order.sub_order_not_found'), [], 404);
         }
 
-        return ApiResponse::success((new SubOrderDetailResource($subOrder))->toArray($request), 'Sub-order retrieved');
+        return ApiResponse::success((new SubOrderDetailResource($subOrder))->toArray($request), __('customer_api.order.sub_order_retrieved'));
     }
 
     public function tracking(Request $request, string $orderNumber): JsonResponse
@@ -104,12 +104,12 @@ class OrderController extends Controller
         $order = $this->findOrder($customer, $orderNumber);
 
         if (! $order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('customer_api.order.not_found'), [], 404);
         }
 
         $order->load(['subOrders.carrier', 'subOrders.shipments.trackingEvents']);
 
-        return ApiResponse::success((new OrderTrackingResource($order))->toArray($request), 'Tracking retrieved');
+        return ApiResponse::success((new OrderTrackingResource($order))->toArray($request), __('customer_api.order.tracking_retrieved'));
     }
 
     public function cancel(Request $request, string $orderNumber): JsonResponse
@@ -118,11 +118,11 @@ class OrderController extends Controller
         $order = $this->findOrder($customer, $orderNumber);
 
         if (! $order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('customer_api.order.not_found'), [], 404);
         }
 
         if (! in_array($order->status?->value, self::CANCELLABLE_ORDER_STATUSES, true)) {
-            return ApiResponse::error('This order cannot be cancelled in its current status.', [], 422);
+            return ApiResponse::error(__('customer_api.order.cannot_cancel_status'), [], 422);
         }
 
         $order = DB::transaction(function () use ($order, $customer) {
@@ -208,7 +208,7 @@ class OrderController extends Controller
 
         $order->load(['subOrders.items', 'statusHistories']);
 
-        return ApiResponse::success($this->buildOrderDetail($order), 'Order cancelled successfully');
+        return ApiResponse::success($this->buildOrderDetail($order), __('customer_api.order.cancelled_successfully'));
     }
 
     public function invoice(Request $request, string $orderNumber): JsonResponse
@@ -217,12 +217,12 @@ class OrderController extends Controller
         $order = $this->findOrder($customer, $orderNumber);
 
         if (! $order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('customer_api.order.not_found'), [], 404);
         }
 
         $order->load(['subOrders.items', 'subOrders.vendor:id,store_name']);
 
-        return ApiResponse::success((new OrderInvoiceResource($order))->toArray($request), 'Invoice data retrieved');
+        return ApiResponse::success((new OrderInvoiceResource($order))->toArray($request), __('customer_api.order.invoice_retrieved'));
     }
 
     private function findOrder(Customer $customer, string $orderNumber): ?Order

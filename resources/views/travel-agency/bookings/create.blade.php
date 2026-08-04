@@ -189,6 +189,7 @@
 <script>
     const searchUrl = @json(route('travel-agency.bookings.customer-search'));
     const unlimitedLabel = @json(__('travel.bookings.unlimited'));
+    const noResultsLabel = @json(__('travel.bookings.no_results'));
 
     function toggleCustomerMode(mode) {
         document.getElementById('existingCustomerSection').classList.toggle('hidden', mode !== 'existing');
@@ -283,7 +284,7 @@
                 const data = await res.json();
 
                 if (!data.length) {
-                    resultsBox.innerHTML = '<p class="px-3 py-2 text-xs text-gray-400">لا توجد نتائج.</p>';
+                    resultsBox.innerHTML = `<p class="px-3 py-2 text-xs text-gray-400">${noResultsLabel}</p>`;
                 } else {
                     resultsBox.innerHTML = data.map(c => `
                         <div class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"

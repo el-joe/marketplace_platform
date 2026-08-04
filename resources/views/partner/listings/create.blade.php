@@ -416,9 +416,9 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">نوع الكوميشن</label>
                                 <select name="commission_type" id="commission-type-select"
                                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/40">
-                                    <option value="fixed">ثابت</option>
-                                    <option value="tiered">متدرج</option>
-                                    <option value="last_click">Last Click</option>
+                                    <option value="fixed">{{ __('partner.listings.commission_type_fixed') }}</option>
+                                    <option value="tiered">{{ __('partner.listings.commission_type_tiered') }}</option>
+                                    <option value="last_click">{{ __('partner.listings.commission_type_last_click') }}</option>
                                 </select>
                             </div>
 

@@ -111,6 +111,7 @@ return [
         'status_picked_up' => 'مستلم',
         'status_delivered' => 'تم التسليم',
         'status_failed' => 'فشل',
+        'order_number_prefix' => 'طلب #',
     ],
 
     'cod' => [
@@ -202,5 +203,89 @@ return [
         'confirm_new_password' => 'تأكيد كلمة المرور الجديدة',
         'update_password' => 'تحديث كلمة المرور',
         'sign_out' => 'تسجيل الخروج',
+    ],
+
+    // ─── رسائل استجابة الخادم (فلاش / JSON) ──────────────────────────
+    'messages' => [
+        'common' => [
+            'forbidden' => 'غير مسموح.',
+            'invalid_export_format' => 'صيغة تصدير غير صالحة.',
+        ],
+
+        'assignments' => [
+            'cannot_accept_state' => 'لا يمكن قبول المهمة في حالتها الحالية.',
+            'accepted' => 'تم قبول المهمة.',
+            'not_accepted_state' => 'المهمة ليست في حالة مقبولة.',
+            'marked_picked_up' => 'تم تحديدها كمُستلَمة.',
+            'picked_up_label' => 'تم تحديد الطرد كمُستلَم.',
+            'not_picked_up_state' => 'المهمة ليست في حالة الاستلام.',
+            'too_many_otp_attempts' => 'محاولات كثيرة لرمز التحقق. يرجى التواصل مع الدعم.',
+            'invalid_otp_remaining' => 'رمز تحقق غير صحيح. تبقّى :remaining محاولة.',
+            'cod_amount_mismatch' => 'المبلغ المُدخل (:collected) لا يتطابق مع المبلغ المتوقع (:expected). يرجى التأكد.',
+            'delivery_confirmed' => 'تم تأكيد التسليم!',
+            'cannot_fail_state' => 'لا يمكن تحديد المهمة كفاشلة في حالتها الحالية.',
+            'marked_failed' => 'تم تحديد المهمة كفاشلة.',
+            'already_active_assignment' => 'لديك مهمة نشطة بالفعل. أكملها أو حددها كفاشلة قبل قبول مهمة أخرى.',
+            'too_many_incorrect_otp_flagged' => 'محاولات كثيرة خاطئة لرمز التحقق. تم وضع علامة على هذه المهمة لمراجعة الدعم.',
+            'incorrect_otp_remaining' => 'رمز تحقق غير صحيح. تبقّى :remaining محاولة.',
+            'otp_verified' => 'تم التحقق من الرمز.',
+            'too_many_incorrect_otp_flagged_short' => 'محاولات كثيرة خاطئة لرمز التحقق. تم وضع علامة على المهمة لمراجعة الدعم.',
+            'incorrect_otp_cannot_confirm' => 'رمز تحقق غير صحيح. لا يمكن تأكيد التسليم.',
+            'cod_amount_required' => 'المبلغ المحصّل نقداً مطلوب لطلبات الدفع عند الاستلام.',
+            'delivery_confirmed_successfully' => 'تم تأكيد التسليم بنجاح.',
+            'customer_rejection_reason_required' => 'سبب الرفض مطلوب عندما يرفض العميل استلام طلب مدفوع إلكترونياً.',
+            'delivery_marked_failed' => 'تم تحديد التسليم كفاشل.',
+        ],
+
+        'auth' => [
+            'invalid_credentials_web' => 'بيانات الدخول لا تطابق سجلاتنا.',
+            'invalid_credentials' => 'بيانات دخول غير صحيحة.',
+            'account_suspended' => 'تم تعليق حسابك. يرجى التواصل مع الدعم.',
+            'account_not_active' => 'حسابك غير نشط.',
+            'device_registered' => 'تم تسجيل الجهاز لاستقبال الإشعارات.',
+            'device_token_removed' => 'تمت إزالة رمز الجهاز.',
+            'logged_out' => 'تم تسجيل الخروج بنجاح.',
+            'invalid_refresh_token' => 'رمز التحديث غير صالح أو منتهي الصلاحية.',
+        ],
+
+        'location' => [
+            'please_wait_seconds' => 'يرجى الانتظار :seconds ثانية قبل تحديث الموقع.',
+            'now_available' => 'أنت متاح الآن.',
+            'now_offline' => 'أنت غير متصل الآن.',
+            'updated' => 'تم تحديث الموقع.',
+        ],
+
+        'profile' => [
+            'current_password_incorrect' => 'كلمة المرور الحالية غير صحيحة.',
+            'password_updated' => 'تم تحديث كلمة المرور بنجاح.',
+            'updated' => 'تم تحديث الملف الشخصي.',
+            'invalid_document_type' => 'نوع مستند غير صالح.',
+            'document_submitted' => 'تم إرسال المستند للمراجعة.',
+        ],
+
+        'wallet' => [
+            'withdrawal_submitted' => 'تم إرسال طلب السحب بنجاح.',
+        ],
+
+        'shift' => [
+            'started' => 'تم بدء الوردية.',
+            'ended' => 'تم إنهاء الوردية.',
+            'must_be_on_shift' => 'يجب أن تكون في وردية لتبديل حالة التوفر.',
+            'now_available' => 'أنت متاح الآن للتوصيل.',
+            'now_on_break' => 'أنت في استراحة الآن.',
+        ],
+
+        'notifications' => [
+            'not_found' => 'الإشعار غير موجود.',
+            'marked_read' => 'تم التحديد كمقروء.',
+            'all_marked_read' => 'تم تحديد جميع الإشعارات كمقروءة.',
+        ],
+
+        'support_tickets' => [
+            'created' => 'تم إنشاء التذكرة.',
+            'not_found' => 'التذكرة غير موجودة.',
+            'message_sent' => 'تم إرسال الرسالة.',
+            'thank_you_feedback' => 'شكراً لملاحظاتك.',
+        ],
     ],
 ];

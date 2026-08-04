@@ -31,13 +31,13 @@ class DisputeController extends Controller
             ->first();
 
         if (!$order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.order.not_found'), [], 404);
         }
 
         $subOrder = $order->subOrders->first();
 
         if (!$subOrder) {
-            return ApiResponse::error('No sub-orders found for this order.', [], 422);
+            return ApiResponse::error(__('common.exceptions.dispute.no_suborders'), [], 422);
         }
 
         $dispute = Dispute::create([
@@ -66,7 +66,7 @@ class DisputeController extends Controller
             new DisputeOpened($dispute),
         );
 
-        return ApiResponse::success(new DisputeResource($dispute->load('messages')), 'Dispute opened.', 201);
+        return ApiResponse::success(new DisputeResource($dispute->load('messages')), __('common.exceptions.dispute.opened'), 201);
     }
 
     public function index(string $country): JsonResponse
@@ -93,7 +93,7 @@ class DisputeController extends Controller
             ->first();
 
         if (!$dispute) {
-            return ApiResponse::error('Dispute not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.dispute.not_found'), [], 404);
         }
 
         return ApiResponse::success(new DisputeResource($dispute));
@@ -109,7 +109,7 @@ class DisputeController extends Controller
             ->first();
 
         if (!$dispute) {
-            return ApiResponse::error('Dispute not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.dispute.not_found'), [], 404);
         }
 
         $message = $dispute->messages()->create([
@@ -131,6 +131,6 @@ class DisputeController extends Controller
             ]);
         }
 
-        return ApiResponse::success(new DisputeMessageResource($message), 'Message sent.', 201);
+        return ApiResponse::success(new DisputeMessageResource($message), __('common.exceptions.dispute.message_sent'), 201);
     }
 }

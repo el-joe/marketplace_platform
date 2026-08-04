@@ -127,7 +127,7 @@
                             </div>
                             @if($account->swift_code)
                                 <div class="flex justify-between">
-                                    <span class="text-gray-500">SWIFT</span>
+                                    <span class="text-gray-500">{{ __('travel.bank_accounts.swift_label') }}</span>
                                     <span class="font-mono text-xs text-gray-700">{{ $account->swift_code }}</span>
                                 </div>
                             @endif
@@ -208,7 +208,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('travel.bank_accounts.swift_label') }}</label>
                         <input type="text" name="swift_code" maxlength="11" dir="ltr"
                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400/40"
-                               placeholder="RJHISARI">
+                               placeholder="{{ __('travel.bank_accounts.swift_placeholder') }}">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">

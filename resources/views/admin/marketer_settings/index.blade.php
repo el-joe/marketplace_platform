@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'رسوم الإنفلوينسر لكل دولة')
+@section('title', __('admin.marketer_settings.title'))
 
 @section('content')
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">رسوم الإنفلوينسر لكل دولة</h1>
-        <p class="text-sm text-gray-500 mt-0.5">إدارة رسوم الإنفلوينسر لكل دولة.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.marketer_settings.title') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.marketer_settings.subtitle') }}</p>
     </div>
 
     @if (session('success'))
@@ -27,16 +27,16 @@
 
     {{-- ─── Influencer Fee per Country ────────────────────────────────────────── --}}
     <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-gray-900 mb-1">رسوم الإنفلوينسر لكل دولة</h2>
-        <p class="text-xs text-gray-500 mb-4">ملاحظة: الأفيليت مجاني ولا توجد عليه رسوم.</p>
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">{{ __('admin.marketer_settings.title') }}</h2>
+        <p class="text-xs text-gray-500 mb-4">{{ __('admin.marketer_settings.note_affiliate_free') }}</p>
 
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-3 py-2 text-right font-medium text-gray-500">الدولة</th>
-                        <th class="px-3 py-2 text-right font-medium text-gray-500">رسوم الإنفلوينسر</th>
-                        <th class="px-3 py-2 text-right font-medium text-gray-500">العملة</th>
+                        <th class="px-3 py-2 text-right font-medium text-gray-500">{{ __('admin.marketer_settings.country_column') }}</th>
+                        <th class="px-3 py-2 text-right font-medium text-gray-500">{{ __('admin.marketer_settings.fee_column') }}</th>
+                        <th class="px-3 py-2 text-right font-medium text-gray-500">{{ __('admin.marketer_settings.currency_column') }}</th>
                         <th class="px-3 py-2 text-right font-medium text-gray-500"></th>
                     </tr>
                 </thead>
@@ -62,7 +62,7 @@
                                 <td class="px-3 py-2">
                                     <button type="submit"
                                         class="inline-flex items-center rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700">
-                                        حفظ
+                                        {{ __('common.save') }}
                                     </button>
                                 </td>
                             </form>

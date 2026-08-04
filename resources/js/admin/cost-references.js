@@ -147,14 +147,14 @@ function initCostReferenceModal() {
 
     $(document).on('click', '.btn-delete-cost-reference', async function () {
         const id = $(this).data('id');
-        if (!confirm('Delete this cost reference? This cannot be undone.')) return;
+        if (!confirm(t('admin.cost_references.delete_cost_reference_confirm'))) return;
 
         try {
             await sendJson(updateUrl(window.COST_REFERENCE_ROUTES.destroy, id), 'DELETE');
-            toast('Cost reference deleted.');
+            toast(t('admin.cost_references.cost_reference_deleted'));
             window.reloadDataTable('cost-references-table');
         } catch (err) {
-            toast(err.message ?? 'Failed to delete cost reference.', 'error');
+            toast(err.message ?? t('admin.cost_references.delete_cost_reference_failed'), 'error');
         }
     });
 

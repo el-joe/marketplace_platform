@@ -40,14 +40,14 @@ class NotificationController extends Controller
             ->first();
 
         if (!$notification) {
-            return ApiResponse::error('Notification not found.', [], 404);
+            return ApiResponse::error(__('delivery.messages.notifications.not_found'), [], 404);
         }
 
         if (!$notification->read_at) {
             $notification->update(['read_at' => now()]);
         }
 
-        return ApiResponse::success(new NotificationResource($notification), 'Marked as read.');
+        return ApiResponse::success(new NotificationResource($notification), __('delivery.messages.notifications.marked_read'));
     }
 
     public function markAllRead(): JsonResponse
@@ -59,7 +59,7 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return ApiResponse::success([], 'All notifications marked as read.');
+        return ApiResponse::success([], __('delivery.messages.notifications.all_marked_read'));
     }
 
     public function unreadCount(): JsonResponse

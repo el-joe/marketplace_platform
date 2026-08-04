@@ -116,7 +116,7 @@ class TeamController extends Controller
             'excel' => $this->exportExcel('team', $headers, $rows),
             'csv' => $this->exportCsv('team', $headers, $rows),
             'word' => $this->exportWord('team', 'Team', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 

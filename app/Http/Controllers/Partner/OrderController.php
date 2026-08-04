@@ -154,7 +154,7 @@ class OrderController extends Controller
             'excel' => $this->exportExcel('orders', $headers, $rows),
             'csv' => $this->exportCsv('orders', $headers, $rows),
             'word' => $this->exportWord('orders', 'Orders', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 

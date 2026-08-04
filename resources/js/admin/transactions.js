@@ -29,9 +29,9 @@ function initCopyButtons(root = document) {
         if (!btn) return;
         const val = btn.dataset.value ?? btn.textContent.trim();
         navigator.clipboard?.writeText(val).then(() => {
-            window.Toast?.success(window.TRANSLATIONS?.copiedToClipboard || 'Copied to clipboard.');
+            window.Toast?.success(t('admin.transactions.copied_to_clipboard'));
         }).catch(() => {
-            window.Toast?.error(window.TRANSLATIONS?.copyFailed || 'Copy failed.');
+            window.Toast?.error(t('admin.transactions.copy_failed'));
         });
     });
 }
@@ -182,14 +182,14 @@ function initRefundsPage() {
 
         if (btn.classList.contains('js-approve-refund')) {
             const url = btn.dataset.url;
-            if (!confirm(window.TRANSLATIONS?.approveRefundConfirm || 'Approve this refund and queue for processing?')) return;
+            if (!confirm(t('admin.transactions.approve_refund_confirm'))) return;
             btn.disabled = true;
             try {
                 const res = await postJson(url, {});
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.refundApproved || 'Refund approved.'));
+                window.Toast?.success(res.message ?? t('admin.transactions.refund_approved'));
                 dt.ajax.reload();
             } catch (er) {
-                window.Toast?.error(er.message ?? (window.TRANSLATIONS?.approvalFailed || 'Approval failed.'));
+                window.Toast?.error(er.message ?? t('admin.transactions.approval_failed'));
                 btn.disabled = false;
             }
         }

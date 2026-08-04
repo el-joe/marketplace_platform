@@ -28,7 +28,7 @@ class GiftCardController extends Controller
             ->first();
 
         if (! $giftCard) {
-            return ApiResponse::error('Gift card is invalid, expired, or not usable in this currency.', [], 422);
+            return ApiResponse::error(__('customer_api.gift_card.invalid'), [], 422);
         }
 
         return ApiResponse::success((new GiftCardValidationResource($giftCard))->toArray($request));

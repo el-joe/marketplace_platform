@@ -58,7 +58,7 @@ class NotificationController extends Controller
             ->first();
 
         if (! $notification) {
-            return ApiResponse::error('Notification not found.', [], 404);
+            return ApiResponse::error(__('carrier.api.notification_not_found'), [], 404);
         }
 
         if ($notification->read_at === null) {
@@ -67,7 +67,7 @@ class NotificationController extends Controller
                 ->update(['read_at' => now()]);
         }
 
-        return ApiResponse::success(null, 'Notification marked as read.');
+        return ApiResponse::success(null, __('carrier.api.notification_marked_read'));
     }
 
     /**
@@ -83,7 +83,7 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return ApiResponse::success(null, 'All notifications marked as read.');
+        return ApiResponse::success(null, __('carrier.api.all_notifications_marked_read'));
     }
 
     /**

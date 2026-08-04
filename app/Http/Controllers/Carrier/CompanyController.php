@@ -49,7 +49,7 @@ class CompanyController extends Controller
 
         $updated->load('country');
 
-        return ApiResponse::success(new ShippingCompanyResource($updated), 'Company profile updated.');
+        return ApiResponse::success(new ShippingCompanyResource($updated), __('carrier.api.company_updated'));
     }
 
     // ── GET /company/served-areas ─────────────────────────────────────────────
@@ -82,6 +82,6 @@ class CompanyController extends Controller
 
         $areas = $this->companyService->resolveServedAreas($updated);
 
-        return ApiResponse::success(new ServedAreaResource($areas), 'Served areas updated.');
+        return ApiResponse::success(new ServedAreaResource($areas), __('carrier.api.served_areas_updated'));
     }
 }

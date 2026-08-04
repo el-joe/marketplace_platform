@@ -49,7 +49,7 @@ class WishlistController extends Controller
 
         $count = WishlistGroup::where('customer_id', $customer->id)->count();
         if ($count >= 20) {
-            return ApiResponse::error('You can have at most 20 wishlist groups.', [], 422);
+            return ApiResponse::error(__('customer_api.wishlist.max_groups_reached'), [], 422);
         }
 
         $maxSort = WishlistGroup::where('customer_id', $customer->id)->max('sort_order') ?? 0;
@@ -62,7 +62,7 @@ class WishlistController extends Controller
             'sort_order' => $maxSort + 1,
         ]);
 
-        return ApiResponse::success($this->groupShape($group->loadCount('items')), 'Wishlist group created.', 201);
+        return ApiResponse::success($this->groupShape($group->loadCount('items')), __('customer_api.wishlist.group_created'), 201);
     }
 
     public function updateGroup(Request $request, string $groupId): JsonResponse
@@ -72,7 +72,7 @@ class WishlistController extends Controller
         try {
             $group = $this->wishlistService->resolveGroup($groupId, $customer);
         } catch (ModelNotFoundException) {
-            return ApiResponse::error('Wishlist group not found.', [], 404);
+            return ApiResponse::error(__('customer_api.wishlist.group_not_found'), [], 404);
         }
 
         $data = $request->validate([
@@ -84,13 +84,13 @@ class WishlistController extends Controller
         if (isset($data['name'])) {
             $data['name'] = trim($data['name']);
             if ($data['name'] === '') {
-                return ApiResponse::error('Name cannot be empty.', [], 422);
+                return ApiResponse::error(__('customer_api.wishlist.name_empty'), [], 422);
             }
         }
 
         $group->update($data);
 
-        return ApiResponse::success($this->groupShape($group->loadCount('items')), 'Group updated.');
+        return ApiResponse::success($this->groupShape($group->loadCount('items')), __('customer_api.wishlist.group_updated'));
     }
 
     public function deleteGroup(Request $request, string $groupId): JsonResponse
@@ -100,16 +100,16 @@ class WishlistController extends Controller
         try {
             $group = $this->wishlistService->resolveGroup($groupId, $customer);
         } catch (ModelNotFoundException) {
-            return ApiResponse::error('Wishlist group not found.', [], 404);
+            return ApiResponse::error(__('customer_api.wishlist.group_not_found'), [], 404);
         }
 
         if ($group->is_default) {
-            return ApiResponse::error('Cannot delete your default wishlist.', [], 422);
+            return ApiResponse::error(__('customer_api.wishlist.cannot_delete_default'), [], 422);
         }
 
         $this->wishlistService->deleteGroupWithMigration($group, $customer);
 
-        return ApiResponse::success(null, 'Group deleted. Items moved to your default wishlist.');
+        return ApiResponse::success(null, __('customer_api.wishlist.group_deleted'));
     }
 
     public function showGroup(Request $request, string $groupId): JsonResponse
@@ -119,12 +119,12 @@ class WishlistController extends Controller
         try {
             $group = $this->wishlistService->resolveGroup($groupId, $customer);
         } catch (ModelNotFoundException) {
-            return ApiResponse::error('Wishlist group not found.', [], 404);
+            return ApiResponse::error(__('customer_api.wishlist.group_not_found'), [], 404);
         }
 
         $country = $this->resolveCountry($request, $customer);
         if (!$country) {
-            return ApiResponse::error('Country not found or not active.', [], 404);
+            return ApiResponse::error(__('customer_api.wishlist.country_not_found'), [], 404);
         }
 
         $paginator = WishlistItem::where('wishlist_group_id', $group->id)
@@ -180,14 +180,14 @@ class WishlistController extends Controller
         }
 
         if (!$listing) {
-            return ApiResponse::error('Listing not found or unavailable.', [], 404);
+            return ApiResponse::error(__('customer_api.wishlist.listing_not_found'), [], 404);
         }
 
         if (isset($data['group_id'])) {
             try {
                 $this->wishlistService->resolveGroup($data['group_id'], $customer);
             } catch (ModelNotFoundException) {
-                return ApiResponse::error('Wishlist group not found.', [], 404);
+                return ApiResponse::error(__('customer_api.wishlist.group_not_found'), [], 404);
             }
         }
 
@@ -209,7 +209,7 @@ class WishlistController extends Controller
                 'listing_type' => $isAdminListing ? 'admin_listing' : 'vendor_listing',
             ],
             'group' => $this->groupShape($group),
-        ], $result['already_existed'] ? 'Already in this wishlist.' : 'Added to wishlist.', $status);
+        ], $result['already_existed'] ? __('customer_api.wishlist.already_in_wishlist') : __('customer_api.wishlist.added_to_wishlist'), $status);
     }
 
     public function removeItem(Request $request, string $itemId): JsonResponse
@@ -221,7 +221,7 @@ class WishlistController extends Controller
             ->first();
 
         if (!$item) {
-            return ApiResponse::error('Wishlist item not found.', [], 404);
+            return ApiResponse::error(__('customer_api.wishlist.item_not_found'), [], 404);
         }
 
         $item->delete();
@@ -246,7 +246,7 @@ class WishlistController extends Controller
                 targetGroupId: $data['target_group_id'],
             );
         } catch (ModelNotFoundException) {
-            return ApiResponse::error('Target wishlist group not found.', [], 404);
+            return ApiResponse::error(__('customer_api.wishlist.target_group_not_found'), [], 404);
         }
 
         $targetGroup = $this->wishlistService->resolveGroup($data['target_group_id'], $customer)
@@ -255,7 +255,7 @@ class WishlistController extends Controller
         return ApiResponse::success([
             'moved_count' => $moved,
             'target_group' => $this->groupShape($targetGroup),
-        ], "{$moved} item(s) moved.");
+        ], __('customer_api.wishlist.items_moved', ['count' => $moved]));
     }
 
     public function checkListing(Request $request): JsonResponse

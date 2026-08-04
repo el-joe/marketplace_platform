@@ -8,18 +8,18 @@ import { createPartnerTable, csrfToken, postJson, toast } from '../partner/datat
 
 function scopeBadge(scope) {
     const map = {
-        vendor: ['bg-blue-100 text-blue-700', 'Store-wide'],
-        product: ['bg-purple-100 text-purple-700', 'Product'],
+        vendor: ['bg-blue-100 text-blue-700', t('partner.coupons.scope_store_wide')],
+        product: ['bg-purple-100 text-purple-700', t('partner.coupons.scope_product')],
     };
     const [cls, label] = map[scope] ?? ['bg-gray-100 text-gray-600', scope];
     return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cls}">${label}</span>`;
 }
 
 function activeBadge(isActive, isExpired) {
-    if (isExpired) return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Expired</span>';
+    if (isExpired) return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">${t('partner.coupons.status_expired')}</span>`;
     return isActive
-        ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>'
-        : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Inactive</span>';
+        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">${t('partner.coupons.status_active')}</span>`
+        : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">${t('partner.coupons.status_inactive')}</span>`;
 }
 
 function initCouponsDataTable() {
@@ -48,8 +48,8 @@ function initCouponsDataTable() {
             {
                 data: null,
                 orderable: false,
-                render: (row) => `<a href="${row.show_url}" class="text-blue-600 hover:underline text-xs font-medium">View</a>
-                    <a href="${row.edit_url}" class="ms-3 text-gray-600 hover:underline text-xs font-medium">Edit</a>`,
+                render: (row) => `<a href="${row.show_url}" class="text-blue-600 hover:underline text-xs font-medium">${t('partner.coupons.view')}</a>
+                    <a href="${row.edit_url}" class="ms-3 text-gray-600 hover:underline text-xs font-medium">${t('partner.coupons.edit')}</a>`,
             },
         ],
     });
@@ -84,12 +84,12 @@ function initCouponForm() {
         const { ok, data } = await postJson(url, { ...payload, _method: method });
 
         if (ok && data.success) {
-            toast(form.dataset.successMessage || 'Coupon saved.');
+            toast(form.dataset.successMessage || t('partner.coupons.saved'));
             if (data.redirect) window.location.href = data.redirect;
             return;
         }
 
-        const message = data?.message || 'Failed to save coupon.';
+        const message = data?.message || t('partner.coupons.save_failed');
         if (errorBox) { errorBox.textContent = message; errorBox.classList.remove('hidden'); }
     });
 }

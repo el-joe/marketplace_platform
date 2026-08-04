@@ -32,7 +32,7 @@ class DeliveryRatingController extends Controller
             ->first();
 
         if ($existing) {
-            return response()->json(['message' => 'Already rated.'], 422);
+            return response()->json(['message' => __('common.exceptions.delivery_rating.already_rated')], 422);
         }
 
         $shipment = $subOrder->shipment;
@@ -49,6 +49,6 @@ class DeliveryRatingController extends Controller
             'visible_to_customer' => false, // enforced — never expose carrier
         ]);
 
-        return response()->json(['message' => 'Rating submitted.']);
+        return response()->json(['message' => __('common.exceptions.delivery_rating.rating_submitted')]);
     }
 }

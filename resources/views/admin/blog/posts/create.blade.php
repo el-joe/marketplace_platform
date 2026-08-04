@@ -49,7 +49,7 @@
                                 <input type="text" name="title_ar" id="title-ar" required maxlength="255" dir="rtl"
                                        value="{{ old('title_ar') }}"
                                        class="form-input w-full @error('title_ar') is-invalid @enderror"
-                                       placeholder="عنوان المقال…">
+                                       placeholder="{{ __('admin.blog.title_ar_placeholder') }}">
                                 @error('title_ar') <p class="form-error">{{ $message }}</p> @enderror
                             </div>
                         </div>

@@ -32,7 +32,7 @@ class OrderController extends Controller
         $order = $this->orderService->findForCustomer($customer, $orderNumber);
 
         if (!$order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.order.not_found'), [], 404);
         }
 
         return ApiResponse::success($this->orderTrackingService->getOrderDetail($order));
@@ -44,16 +44,16 @@ class OrderController extends Controller
         $order = $this->orderService->findForCustomer($customer, $orderNumber);
 
         if (!$order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.order.not_found'), [], 404);
         }
 
         if (!$this->orderService->canCancel($order)) {
-            return ApiResponse::error('This order cannot be cancelled in its current status.', [], 422);
+            return ApiResponse::error(__('common.exceptions.order.cannot_cancel'), [], 422);
         }
 
         $this->orderService->cancel($order, $request->validated('reason'));
 
-        return ApiResponse::success(null, 'Order cancelled successfully.');
+        return ApiResponse::success(null, __('common.exceptions.order.cancelled'));
     }
 
     public function trackSubOrder(string $country, string $subOrderId): JsonResponse
@@ -62,7 +62,7 @@ class OrderController extends Controller
         $tracking = $this->orderTrackingService->getSubOrderTracking($subOrderId, $customer);
 
         if (!$tracking) {
-            return ApiResponse::error('Sub-order not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.order.suborder_not_found'), [], 404);
         }
 
         return ApiResponse::success($tracking);

@@ -49,7 +49,7 @@ class MiscController extends Controller
             ->first();
 
         if (! $countryModel) {
-            return ApiResponse::error('Country not found.', [], 404);
+            return ApiResponse::error(__('customer_api.misc.country_not_found'), [], 404);
         }
 
         $cities = City::query()
@@ -70,6 +70,6 @@ class MiscController extends Controller
 
     public function shippingMethods(Request $request): JsonResponse
     {
-        return ApiResponse::error('Not implemented.', [], 501);
+        return ApiResponse::error(__('customer_api.not_implemented'), [], 501);
     }
 }

@@ -68,7 +68,7 @@ class ClassifiedListingController extends Controller
             return back()->withErrors($e->errors());
         }
 
-        return back()->with('success', 'Listing approved and set to active.');
+        return back()->with('success', __('admin.classified_listings.approved_active'));
     }
 
     public function reject(Request $request, ClassifiedListing $listing): RedirectResponse
@@ -77,7 +77,7 @@ class ClassifiedListingController extends Controller
 
         $this->service->reject($listing, $request->reason);
 
-        return back()->with('success', 'Listing rejected.');
+        return back()->with('success', __('admin.classified_listings.rejected'));
     }
 
     public function verifyAttachment(Request $request, ClassifiedListingAttachment $attachment): JsonResponse

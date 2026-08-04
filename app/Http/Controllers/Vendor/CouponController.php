@@ -64,7 +64,7 @@ class CouponController extends Controller
         abort_unless($this->policy->create($actor), 403);
 
         if (!in_array($request->input('scope'), CouponService::VENDOR_MANAGEABLE_SCOPES, true)) {
-            abort(403, 'Vendors may only create vendor or product scoped coupons.');
+            abort(403, __('partner.coupons.messages.vendor_scope_restricted'));
         }
 
         try {
@@ -75,7 +75,7 @@ class CouponController extends Controller
 
         return ApiResponse::success(
             new VendorCouponResource($coupon->load('products:id')),
-            'Coupon created.',
+            __('partner.coupons.create.success_created'),
             201
         );
     }
@@ -88,7 +88,7 @@ class CouponController extends Controller
         abort_unless($this->policy->update($actor, $coupon), 403);
 
         if (!in_array($request->input('scope'), CouponService::VENDOR_MANAGEABLE_SCOPES, true)) {
-            abort(403, 'Vendors may only create vendor or product scoped coupons.');
+            abort(403, __('partner.coupons.messages.vendor_scope_restricted'));
         }
 
         try {
@@ -97,7 +97,7 @@ class CouponController extends Controller
             return ApiResponse::error($e->getMessage(), $e->errors());
         }
 
-        return ApiResponse::success(new VendorCouponResource($coupon->load('products:id')), 'Coupon updated.');
+        return ApiResponse::success(new VendorCouponResource($coupon->load('products:id')), __('partner.coupons.create.success_updated'));
     }
 
     public function toggleActive(string $id): JsonResponse
@@ -108,7 +108,7 @@ class CouponController extends Controller
 
         $coupon->update(['is_active' => !$coupon->is_active]);
 
-        return ApiResponse::success(['is_active' => $coupon->is_active], 'Coupon status updated.');
+        return ApiResponse::success(['is_active' => $coupon->is_active], __('partner.coupons.messages.coupon_status_updated'));
     }
 
     public function destroy(string $id): JsonResponse
@@ -119,7 +119,7 @@ class CouponController extends Controller
         abort_unless($this->policy->update($actor, $coupon), 403);
 
         if ($coupon->times_used > 0) {
-            return ApiResponse::error('This coupon has already been used and cannot be deleted.', [], 422);
+            return ApiResponse::error(__('partner.coupons.messages.coupon_used_cannot_delete'), [], 422);
         }
 
         try {
@@ -128,7 +128,7 @@ class CouponController extends Controller
             return ApiResponse::error($e->getMessage(), $e->errors());
         }
 
-        return ApiResponse::success(null, 'Coupon deleted.');
+        return ApiResponse::success(null, __('partner.coupons.messages.coupon_deleted'));
     }
 
     public function usages(string $id): JsonResponse

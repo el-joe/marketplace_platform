@@ -346,16 +346,16 @@
                 @else
                     {{-- Commission per Country --}}
                     <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">كوميشن الماركتر لكل دولة</h4>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.categories.marketer_commission_per_country') }}</h4>
 
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-3 py-2 text-right font-medium text-gray-500">الدولة</th>
-                                        <th class="px-3 py-2 text-right font-medium text-gray-500">العملة</th>
-                                        <th class="px-3 py-2 text-right font-medium text-gray-500">كوميشن الإنفلوينسر</th>
-                                        <th class="px-3 py-2 text-right font-medium text-gray-500">كوميشن الأفيليت</th>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500">{{ __('admin.categories.country_column_ar') }}</th>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500">{{ __('admin.categories.currency_column') }}</th>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500">{{ __('admin.categories.influencer_commission') }}</th>
+                                        <th class="px-3 py-2 text-right font-medium text-gray-500">{{ __('admin.categories.affiliate_commission') }}</th>
                                         <th class="px-3 py-2 text-right font-medium text-gray-500"></th>
                                     </tr>
                                 </thead>
@@ -382,7 +382,7 @@
                                                 <td class="px-3 py-2">
                                                     <button type="submit"
                                                         class="inline-flex items-center rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700">
-                                                        حفظ
+                                                        {{ __('common.save') }}
                                                     </button>
                                                 </td>
                                             </form>
@@ -395,35 +395,35 @@
 
                     {{-- Sample & Campaign Settings --}}
                     <div class="border-t border-gray-100 pt-5">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">إعدادات العينات والحملات</h4>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.categories.sample_and_campaign_settings') }}</h4>
 
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">عينات الإنفلوينسر</label>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.categories.influencer_sample_qty') }}</label>
                                 <input type="number" min="0" step="1" name="influencer_sample_qty"
                                     value="{{ old('influencer_sample_qty', $category->influencer_sample_qty ?? 0) }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">عينات الأفيليت</label>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.categories.affiliate_sample_qty') }}</label>
                                 <input type="number" min="0" step="1" name="affiliate_sample_qty"
                                     value="{{ old('affiliate_sample_qty', $category->affiliate_sample_qty ?? 0) }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">عينات المنصة</label>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.categories.platform_sample_qty') }}</label>
                                 <input type="number" min="0" step="1" name="platform_sample_qty"
                                     value="{{ old('platform_sample_qty', $category->platform_sample_qty ?? 0) }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">الحد الأدنى للمخزون للحملة</label>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.categories.min_stock_for_campaign') }}</label>
                                 <input type="number" min="0" step="1" name="min_stock_for_campaign"
                                     value="{{ old('min_stock_for_campaign', $category->min_stock_for_campaign ?? 0) }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500">
                             </div>
                         </div>
-                        <p class="mt-2 text-xs text-gray-500">تُحفظ هذه الإعدادات مع زر "{{ __('admin.categories.save_changes') }}" أعلى النموذج.</p>
+                        <p class="mt-2 text-xs text-gray-500">{{ str_replace(':button', __('admin.categories.save_changes'), __('admin.categories.settings_saved_with_button')) }}</p>
                     </div>
                 @endif
             </div>

@@ -139,13 +139,19 @@ class TeamController extends Controller
     {
         $members = $this->filteredMembersQuery($request)->get();
 
-        $headers = ['Name', 'Email', 'Role', 'Active', 'Last Login'];
+        $headers = [
+            __('travel.team.export.name'),
+            __('travel.team.export.email'),
+            __('travel.team.export.role'),
+            __('travel.team.export.active'),
+            __('travel.team.export.last_login'),
+        ];
 
         $rows = $members->map(fn (TravelAgencyMember $member) => [
             $member->name,
             $member->email,
             $this->roleDisplayLabel($member->roles->first()) ?? '—',
-            $member->is_active ? 'Yes' : 'No',
+            $member->is_active ? __('travel.team.export.yes') : __('travel.team.export.no'),
             $member->last_login_at?->toDateTimeString() ?? '',
         ]);
 
@@ -154,9 +160,9 @@ class TeamController extends Controller
 
         return match ($format) {
             'excel' => $this->exportExcel($filename, $headers, $rows),
-            'word'  => $this->exportWord($filename, 'Team', $rows),
+            'word'  => $this->exportWord($filename, __('travel.team.export.sheet_title'), $rows),
             'csv'   => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('travel.export.invalid_format')),
         };
     }
 

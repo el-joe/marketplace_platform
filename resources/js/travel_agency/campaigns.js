@@ -186,13 +186,13 @@ function initCreateWizard() {
     function renderPackageResults(rows) {
         packageResults.innerHTML = '';
         if (!rows.length) {
-            packageResults.innerHTML = '<p class="px-4 py-3 text-xs text-gray-400">لا توجد نتائج.</p>';
+            packageResults.innerHTML = `<p class="px-4 py-3 text-xs text-gray-400">${window.t('travel_agency.campaigns.no_results')}</p>`;
             packageResults.classList.remove('hidden');
             return;
         }
         rows.forEach(row => {
             const id = row.id;
-            const name = row.name ?? 'باقة';
+            const name = row.name ?? window.t('travel_agency.campaigns.unnamed_package');
             if (selectedPackages.has(id)) return; // already selected
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -202,7 +202,7 @@ function initCreateWizard() {
                     <span class="block truncate">${name}</span>
                     <span class="block text-xs text-gray-400 truncate">${row.destination ?? ''}</span>
                 </span>
-                <span class="text-xs text-primary-600 font-medium flex-shrink-0">إضافة +</span>`;
+                <span class="text-xs text-primary-600 font-medium flex-shrink-0">${window.t('travel_agency.campaigns.add_label')}</span>`;
             btn.addEventListener('click', () => {
                 addPackage(id, name);
                 packageResults.classList.add('hidden');
@@ -237,7 +237,7 @@ function initCreateWizard() {
                 <div class="min-w-0 flex-1">
                     <p class="text-sm font-medium text-gray-900 truncate">${data.name}</p>
                     <div class="mt-1 flex items-center gap-2">
-                        <label class="text-xs text-gray-500">عمولة مخصصة:</label>
+                        <label class="text-xs text-gray-500">${window.t('travel_agency.campaigns.custom_commission_label')}</label>
                         <input type="number" min="0" max="100" step="0.01" placeholder="—"
                                class="w-20 rounded border border-gray-300 px-1.5 py-0.5 text-xs focus:border-primary-500 focus:outline-none"
                                data-override-id="${id}" value="${data.override ?? ''}">
@@ -289,15 +289,18 @@ function initCreateWizard() {
 
     function updateSummary() {
         const typeLabels = {
-            product_promotion: 'ترويج باقة', store_promotion: 'ترويج الوكالة',
-            brand_deal: 'اتفاقية براند', product_specific: 'باقة محددة', flash_sale: 'عرض محدود',
+            product_promotion: window.t('travel_agency.campaigns.types.product_promotion'),
+            store_promotion: window.t('travel_agency.campaigns.types.store_promotion'),
+            brand_deal: window.t('travel_agency.campaigns.types.brand_deal'),
+            product_specific: window.t('travel_agency.campaigns.types.product_specific'),
+            flash_sale: window.t('travel_agency.campaigns.types.flash_sale'),
         };
         const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
         safeSet('summary-name', form.querySelector('#name').value || '—');
         safeSet('summary-type', typeLabels[form.querySelector('#campaign_type').value] || '—');
         safeSet('summary-commission', (form.querySelector('#offered_commission_rate').value || '0') + '%');
         safeSet('summary-dates', (form.querySelector('#starts_at').value || '—') + ' – ' + (form.querySelector('#ends_at').value || '—'));
-        safeSet('summary-packages', selectedPackages.size + ' باقات');
+        safeSet('summary-packages', selectedPackages.size + ' ' + (window.TRAVEL_AGENCY_TRANSLATIONS?.packagesWord ?? 'packages'));
     }
 
     showStep(1);
@@ -309,9 +312,9 @@ function initShowPage() {
     if (!cfg.offerId) return;
 
     // Status action buttons
-    bindAction('btn-submit-review', cfg.submitUrl, 'هل تريد إرسال هذا العرض للمراجعة؟', onStatusChange);
-    bindAction('btn-pause',         cfg.pauseUrl,  'هل تريد إيقاف هذا العرض مؤقتاً؟', onStatusChange);
-    bindAction('btn-resume',        cfg.resumeUrl, 'هل تريد استئناف هذا العرض؟', onStatusChange);
+    bindAction('btn-submit-review', cfg.submitUrl, window.TRAVEL_AGENCY_TRANSLATIONS?.confirmSubmitReview ?? 'Submit this offer for review?', onStatusChange);
+    bindAction('btn-pause',         cfg.pauseUrl,  window.TRAVEL_AGENCY_TRANSLATIONS?.confirmPauseOffer ?? 'Pause this offer?', onStatusChange);
+    bindAction('btn-resume',        cfg.resumeUrl, window.TRAVEL_AGENCY_TRANSLATIONS?.confirmResumeOffer ?? 'Resume this offer?', onStatusChange);
 
     function bindAction(btnId, url, confirm_msg, callback) {
         const btn = document.getElementById(btnId);
@@ -325,7 +328,7 @@ function initShowPage() {
                 showToast(data.message);
                 if (callback) callback(data.status);
             } else {
-                showToast(data.message ?? 'حدث خطأ.', 'error');
+                showToast(data.message ?? window.t('travel_agency.campaigns.generic_error'), 'error');
             }
         });
     }
@@ -347,7 +350,7 @@ function initShowPage() {
                 showToast(data.message);
                 setTimeout(() => { window.location.href = cfg.indexUrl || document.referrer || '/'; }, 800);
             } else {
-                showToast(data.message ?? 'حدث خطأ.', 'error');
+                showToast(data.message ?? window.t('travel_agency.campaigns.generic_error'), 'error');
             }
         });
     }
@@ -367,7 +370,7 @@ function initShowPage() {
                     btn.remove();
                 }
             } else {
-                showToast(data.message ?? 'حدث خطأ.', 'error');
+                showToast(data.message ?? window.t('travel_agency.campaigns.generic_error'), 'error');
             }
         });
     });
@@ -412,7 +415,7 @@ function initMarketerSearch() {
     function renderResults(marketers) {
         resultsBox.innerHTML = '';
         if (!marketers.length) {
-            resultsBox.innerHTML = '<p class="px-4 py-3 text-xs text-gray-400 text-center">لا توجد نتائج.</p>';
+            resultsBox.innerHTML = `<p class="px-4 py-3 text-xs text-gray-400 text-center">${window.t('travel_agency.campaigns.no_results')}</p>`;
             resultsBox.classList.remove('hidden');
             return;
         }
@@ -437,7 +440,7 @@ function initMarketerSearch() {
                     ${inQueue || alreadyInvited ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-primary-50 text-primary-700 hover:bg-primary-100'}"
                     data-marketer-id="${m.id}" data-marketer-name="${m.name}" data-marketer-type="${m.type}"
                     ${inQueue || alreadyInvited ? 'disabled' : ''}>
-                    ${inQueue ? 'مضاف' : alreadyInvited ? 'مدعو' : '+ دعوة'}
+                    ${inQueue ? window.t('travel_agency.campaigns.in_queue_label') : alreadyInvited ? window.t('travel_agency.campaigns.already_invited_label') : window.t('travel_agency.campaigns.invite_label')}
                 </button>
             `;
             card.querySelector('.btn-add-invite').addEventListener('click', () => {
@@ -499,7 +502,7 @@ function initMarketerSearch() {
             searchInput.value = '';
             setTimeout(() => location.reload(), 1200);
         } else {
-            showToast(data.message ?? 'حدث خطأ أثناء الإرسال.', 'error');
+            showToast(data.message ?? window.t('travel_agency.campaigns.send_error'), 'error');
         }
     });
 

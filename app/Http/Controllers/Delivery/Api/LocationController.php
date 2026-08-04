@@ -29,6 +29,6 @@ class LocationController extends Controller
             'latitude'    => $agent->current_latitude,
             'longitude'   => $agent->current_longitude,
             'recorded_at' => $agent->last_location_at?->toIso8601String(),
-        ], 'Location updated.');
+        ], __('delivery.messages.location.updated'));
     }
 }

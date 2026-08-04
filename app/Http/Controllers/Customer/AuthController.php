@@ -61,7 +61,7 @@ class AuthController extends Controller
 
         return ApiResponse::success(
             array_merge(['customer' => new CustomerResource($customer)], $tokens),
-            'Registration successful. Please verify your email.',
+            __('common.exceptions.auth.registration_successful'),
             201
         );
     }
@@ -77,14 +77,14 @@ class AuthController extends Controller
         $customer = Customer::where($field, $credential)->first();
 
         if (!$customer || !password_verify($request->password, $customer->password)) {
-            return ApiResponse::error('Invalid credentials.', [], 401);
+            return ApiResponse::error(__('common.exceptions.auth.invalid_credentials'), [], 401);
         }
 
         if (in_array($customer->status, [CustomerStatus::Suspended, CustomerStatus::Banned, CustomerStatus::Deleted], true)) {
             $reason = match ($customer->status) {
-                CustomerStatus::Suspended => 'Your account has been suspended.',
-                CustomerStatus::Banned    => 'Your account has been banned.',
-                CustomerStatus::Deleted   => 'This account no longer exists.',
+                CustomerStatus::Suspended => __('common.exceptions.auth.account_suspended'),
+                CustomerStatus::Banned    => __('common.exceptions.auth.account_banned'),
+                CustomerStatus::Deleted   => __('common.exceptions.auth.account_no_longer_exists'),
             };
             return ApiResponse::error($reason, [], 403);
         }
@@ -98,7 +98,7 @@ class AuthController extends Controller
 
         return ApiResponse::success(
             array_merge(['customer' => new CustomerResource($customer)], $tokens),
-            'Login successful.'
+            __('common.exceptions.auth.login_successful')
         );
     }
 
@@ -108,7 +108,7 @@ class AuthController extends Controller
     {
         auth('customer')->logout();
 
-        return ApiResponse::success(null, 'Logged out successfully.');
+        return ApiResponse::success(null, __('common.exceptions.auth.logged_out'));
     }
 
     // ── Refresh Token ─────────────────────────────────────────────────────────
@@ -118,21 +118,21 @@ class AuthController extends Controller
         try {
             $payload = JWTAuth::setToken($request->refresh_token)->getPayload();
         } catch (\Throwable) {
-            return ApiResponse::error('Invalid or expired refresh token.', [], 401);
+            return ApiResponse::error(__('common.exceptions.auth.invalid_refresh_token'), [], 401);
         }
 
         if (($payload->get('type') ?? '') !== 'refresh') {
-            return ApiResponse::error('Invalid token type.', [], 401);
+            return ApiResponse::error(__('common.exceptions.auth.invalid_token_type'), [], 401);
         }
 
         if (($payload->get('guard') ?? '') !== 'customer') {
-            return ApiResponse::error('Invalid token guard.', [], 401);
+            return ApiResponse::error(__('common.exceptions.auth.invalid_token_guard'), [], 401);
         }
 
         $customer = Customer::find($payload->getSubject());
 
         if (!$customer || $customer->status !== CustomerStatus::Active) {
-            return ApiResponse::error('Account not found or inactive.', [], 401);
+            return ApiResponse::error(__('common.exceptions.auth.account_not_found'), [], 401);
         }
 
         // Invalidate the used refresh token
@@ -140,7 +140,7 @@ class AuthController extends Controller
 
         $tokens = $this->issueTokenPair($customer);
 
-        return ApiResponse::success($tokens, 'Token refreshed.');
+        return ApiResponse::success($tokens, __('common.exceptions.auth.token_refreshed'));
     }
 
     // ── Me ────────────────────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ class AuthController extends Controller
     {
         return ApiResponse::success(
             new CustomerResource(auth('customer')->user()),
-            'Profile retrieved.'
+            __('common.exceptions.auth.profile_retrieved')
         );
     }
 
@@ -163,13 +163,13 @@ class AuthController extends Controller
             ->first();
 
         if (!$otp || !$otp->isValid()) {
-            return ApiResponse::error('Invalid or expired verification token.', [], 422);
+            return ApiResponse::error(__('common.exceptions.auth.invalid_verification_token'), [], 422);
         }
 
         $otp->update(['used_at' => now()]);
         $otp->customer->update(['email_verified_at' => now()]);
 
-        return ApiResponse::success(null, 'Email verified successfully.');
+        return ApiResponse::success(null, __('common.exceptions.auth.email_verified'));
     }
 
     public function resendVerification(Request $request): JsonResponse
@@ -178,12 +178,12 @@ class AuthController extends Controller
         $customer = auth('customer')->user();
 
         if ($customer->email_verified_at !== null) {
-            return ApiResponse::error('Email is already verified.', [], 422);
+            return ApiResponse::error(__('common.exceptions.auth.email_already_verified'), [], 422);
         }
 
         SendVerificationEmailJob::dispatch($customer);
 
-        return ApiResponse::success(null, 'Verification email sent.');
+        return ApiResponse::success(null, __('common.exceptions.auth.verification_email_sent'));
     }
 
     // ── Forgot Password ───────────────────────────────────────────────────────
@@ -212,7 +212,7 @@ class AuthController extends Controller
             // TODO: dispatch SendPasswordResetEmailJob / SMS job
         }
 
-        return ApiResponse::success(null, 'If an account with those credentials exists, a reset link has been sent.');
+        return ApiResponse::success(null, __('common.exceptions.auth.reset_link_sent'));
     }
 
     // ── Reset Password ────────────────────────────────────────────────────────
@@ -225,13 +225,13 @@ class AuthController extends Controller
             ->first();
 
         if (!$otp || !$otp->isValid()) {
-            return ApiResponse::error('Invalid or expired reset token.', [], 422);
+            return ApiResponse::error(__('common.exceptions.auth.invalid_reset_token'), [], 422);
         }
 
         $otp->update(['used_at' => now()]);
         $otp->customer->update(['password' => $request->password]);
 
-        return ApiResponse::success(null, 'Password reset successfully.');
+        return ApiResponse::success(null, __('common.exceptions.auth.password_reset'));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -6,8 +6,6 @@
  *   VENDOR_CAMPAIGN_OFFERS_DATATABLE_URL, VENDOR_CAMPAIGN_OFFERS_CSRF_TOKEN
  */
 
-const T = () => window.TRANSLATIONS || {};
-
 document.addEventListener('DOMContentLoaded', () => {
     const headers = {
         'X-CSRF-TOKEN': VENDOR_CAMPAIGN_OFFERS_CSRF_TOKEN,
@@ -55,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', e => {
         const btn = e.target.closest('.js-approve-btn');
         if (!btn) return;
-        if (!confirm(T().approveConfirm.replace(':name', btn.dataset.name))) return;
+        if (!confirm(t('admin.vendor_campaign_offers.approve_offer_confirm', { name: btn.dataset.name }))) return;
         fetch(btn.dataset.url, { method: 'POST', headers })
             .then(r => r.json())
             .then(d => { alert(d.message); table.draw(); });
@@ -78,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('reject-confirm').addEventListener('click', () => {
         const reason = reasonEl.value.trim();
-        if (!reason) { alert(T().rejectionReasonRequired); return; }
+        if (!reason) { alert(t('admin.vendor_campaign_offers.rejection_reason_required')); return; }
         fetch(rejectUrl, {
             method: 'POST',
             headers: { ...headers, 'Content-Type': 'application/json' },

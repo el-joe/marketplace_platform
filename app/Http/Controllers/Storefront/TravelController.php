@@ -64,7 +64,7 @@ class TravelController extends Controller
         $seats = $package->seatsRemaining();
         if ($seats !== null && $seats === 0) {
             return redirect()->route('travel.show', $package)
-                ->withErrors(['seats' => 'This package is sold out.']);
+                ->withErrors(['seats' => __('common.exceptions.travel.sold_out')]);
         }
 
         return view('storefront.travel.book', compact('package'));
@@ -123,7 +123,7 @@ class TravelController extends Controller
         });
 
         return redirect()->route('travel.booking.confirmed', $booking)
-            ->with('success', 'Booking confirmed! Reference: ' . $booking->booking_number);
+            ->with('success', __('common.exceptions.travel.booking_confirmed', ['reference' => $booking->booking_number]));
     }
 
     // ── Booking confirmation ───────────────────────────────────────────────────

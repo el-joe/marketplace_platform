@@ -73,7 +73,7 @@ class AgentController extends Controller
             'excel' => $this->exportExcel('carrier-agents', $headers, $rows),
             'csv' => $this->exportCsv('carrier-agents', $headers, $rows),
             'word' => $this->exportWord('carrier-agents', 'Carrier Agents', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('carrier.errors.invalid_export_format')),
         };
     }
 
@@ -109,7 +109,7 @@ class AgentController extends Controller
         ]);
 
         return redirect()->route('carrier.agents.index')
-            ->with('success', 'تم إضافة المندوب بنجاح.');
+            ->with('success', __('carrier.agents.added_success'));
     }
 
     public function suspend(string $id): RedirectResponse
@@ -119,7 +119,7 @@ class AgentController extends Controller
         $agent = $this->agentForCurrentCompany($id);
         $agent->update(['status' => DeliveryAgentStatus::Suspended]);
 
-        return back()->with('success', 'تم إيقاف المندوب.');
+        return back()->with('success', __('carrier.agents.suspended_success'));
     }
 
     public function activate(string $id): RedirectResponse
@@ -129,7 +129,7 @@ class AgentController extends Controller
         $agent = $this->agentForCurrentCompany($id);
         $agent->update(['status' => DeliveryAgentStatus::Active]);
 
-        return back()->with('success', 'تم تفعيل المندوب.');
+        return back()->with('success', __('carrier.agents.activated_success'));
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ class AgentController extends Controller
     private function requirePermission(string $perm): void
     {
         $supervisor = auth('shipping_supervisor')->user();
-        abort_unless($supervisor->hasPermission($perm), 403, 'ليس لديك صلاحية لهذه العملية.');
+        abort_unless($supervisor->hasPermission($perm), 403, __('carrier.errors.no_permission_generic'));
     }
 
     private function agentForCurrentCompany(string $id): DeliveryAgent

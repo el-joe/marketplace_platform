@@ -1,10 +1,6 @@
 import DataTable from 'datatables.net';
 import { dtLanguage } from '../components/datatable.js';
 
-// ─── Locale helpers ────────────────────────────────────────────────────────────
-
-const t = (key, fallback) => window.TRANSLATIONS?.[key] ?? fallback;
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function csrfToken() {
@@ -126,10 +122,10 @@ function initReturnShowPage() {
         this.disabled = true;
         try {
             const res = await sendJson(this.dataset.url, 'POST');
-            window.Toast?.success(res.message ?? t('approvedMessage', 'Return approved.'));
+            window.Toast?.success(res.message ?? t('admin.returns.return_approved'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('actionFailed', 'Action failed.'));
+            window.Toast?.error(err.message ?? t('admin.returns.action_failed'));
             this.disabled = false;
         }
     });
@@ -143,10 +139,10 @@ function initReturnShowPage() {
             const res = await sendJson(this.dataset.url, 'POST', {
                 rejection_reason: fd.get('rejection_reason'),
             });
-            window.Toast?.success(res.message ?? t('rejectedMessage', 'Return rejected.'));
+            window.Toast?.success(res.message ?? t('admin.returns.return_rejected'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('actionFailed', 'Action failed.'));
+            window.Toast?.error(err.message ?? t('admin.returns.action_failed'));
             if (btn) btn.disabled = false;
         }
     });
@@ -160,10 +156,10 @@ function initReturnShowPage() {
             const res = await sendJson(this.dataset.url, 'POST', {
                 scheduled_date: fd.get('scheduled_date') || null,
             });
-            window.Toast?.success(res.message ?? t('pickupScheduledMessage', 'Pickup scheduled.'));
+            window.Toast?.success(res.message ?? t('admin.returns.pickup_scheduled'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('actionFailed', 'Action failed.'));
+            window.Toast?.error(err.message ?? t('admin.returns.action_failed'));
             if (btn) btn.disabled = false;
         }
     });
@@ -172,10 +168,10 @@ function initReturnShowPage() {
         this.disabled = true;
         try {
             const res = await sendJson(this.dataset.url, 'POST');
-            window.Toast?.success(res.message ?? t('receivedMessage', 'Return marked as received.'));
+            window.Toast?.success(res.message ?? t('admin.returns.return_received'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('actionFailed', 'Action failed.'));
+            window.Toast?.error(err.message ?? t('admin.returns.action_failed'));
             this.disabled = false;
         }
     });
@@ -190,10 +186,10 @@ function initReturnShowPage() {
                 inspection_outcome: fd.get('inspection_outcome'),
                 inspection_notes: fd.get('inspection_notes') ?? '',
             });
-            window.Toast?.success(res.message ?? t('inspectedMessage', 'Inspection recorded.'));
+            window.Toast?.success(res.message ?? t('admin.returns.inspection_recorded'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('actionFailed', 'Action failed.'));
+            window.Toast?.error(err.message ?? t('admin.returns.action_failed'));
             if (btn) btn.disabled = false;
         }
     });

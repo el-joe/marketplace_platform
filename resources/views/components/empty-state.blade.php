@@ -1,10 +1,14 @@
 @props([
     'icon'        => 'inbox',
-    'title'       => 'Nothing here yet',
+    'title'       => null,
     'message'     => '',
     'actionLabel' => null,
     'actionUrl'   => null,
 ])
+
+@php
+    $title = $title ?? __('common.nothing_here_yet');
+@endphp
 
 <div {{ $attributes->merge(['class' => 'text-center py-12 px-6']) }}>
     <div class="mx-auto w-14 h-14 rounded-full bg-gray-100 inline-flex items-center justify-center text-gray-400">

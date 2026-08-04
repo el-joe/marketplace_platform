@@ -10,6 +10,7 @@
               currency: '{{ old('currency_code', 'SAR') }}',
               isPurchasable: {{ old('is_purchasable') ? 'true' : 'false' }},
               imageUrl: '{{ old('image_url') }}',
+              previewTemplate: @json(__('admin.gift_cards_section.preview_text')),
               get total() { return (Number(this.amount) || 0) * (Number(this.quantity) || 0); }
           }">
         @csrf
@@ -80,7 +81,7 @@
 
                 <div class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm rounded-lg px-4 py-3" x-show="amount > 0 && quantity > 0" x-cloak>
                     {{ __('admin.gift_cards_section.preview') }}:
-                    <span x-text="'This will generate ' + quantity + ' cards worth ' + amount + ' ' + currency + ' each = ' + total + ' ' + currency + ' total'"></span>
+                    <span x-text="previewTemplate.replaceAll(':quantity', quantity).replaceAll(':amount', amount).replaceAll(':currency', currency).replaceAll(':total', total)"></span>
                 </div>
             </div>
 

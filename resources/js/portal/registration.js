@@ -88,7 +88,7 @@ function registrationWizard() {
                 Object.assign(this.documents, saved.documents);
                 for (const type in saved.documents) {
                     if (saved.documents[type]) {
-                        this.docFilenames[type] = '(مرفوع مسبقاً)';
+                        this.docFilenames[type] = window.t('portal.registration.already_uploaded');
                     }
                 }
             }
@@ -125,11 +125,11 @@ function registrationWizard() {
         stepTitle() {
             return [
                 '', // placeholder for 0-index
-                'معلومات الحساب',
-                'معلومات المتجر',
-                'بيانات التواصل والعنوان',
-                'رفع الوثائق',
-                'مراجعة وتأكيد',
+                window.t('portal.registration.step_title_account'),
+                window.t('portal.registration.step_title_store'),
+                window.t('portal.registration.step_title_contact'),
+                window.t('portal.registration.step_title_documents'),
+                window.t('portal.registration.step_title_review'),
             ][this.step] || '';
         },
 
@@ -144,7 +144,7 @@ function registrationWizard() {
                     .map(d => d.name_ar);
 
                 if (missingMandatory.length > 0) {
-                    this.globalError = 'يرجى رفع الوثائق المطلوبة: ' + missingMandatory.join('، ');
+                    this.globalError = window.t('portal.registration.missing_mandatory_documents', { list: missingMandatory.join('، ') });
                     return;
                 }
 
@@ -154,7 +154,7 @@ function registrationWizard() {
                     .map(d => d.name_ar);
 
                 if (missingExpiry.length > 0) {
-                    this.globalError = 'يرجى إدخال تاريخ انتهاء الصلاحية لـ: ' + missingExpiry.join('، ');
+                    this.globalError = window.t('portal.registration.missing_expiry_dates', { list: missingExpiry.join('، ') });
                     return;
                 }
 
@@ -193,7 +193,7 @@ function registrationWizard() {
                         this.loadDocumentTypes(this.form.country_id);
                     }
                 } catch (e) {
-                    this.globalError = 'حدث خطأ في الشبكة. حاول مجدداً.';
+                    this.globalError = window.t('portal.registration.network_error');
                 } finally {
                     this.loading = false;
                 }
@@ -274,14 +274,14 @@ function registrationWizard() {
 
                 if (!res.ok || !data.success) {
                     this.errors = data.errors || {};
-                    this.globalError = data.message || 'حدث خطأ. تحقق من البيانات وأعد المحاولة.';
+                    this.globalError = data.message || window.t('portal.registration.submit_failed');
                     return;
                 }
 
                 // Redirect to success page
                 window.location.href = data.redirect;
             } catch (e) {
-                this.globalError = 'حدث خطأ في الشبكة. حاول مجدداً.';
+                this.globalError = window.t('portal.registration.network_error');
             } finally {
                 this.loading = false;
             }
@@ -351,7 +351,7 @@ function registrationWizard() {
             const maxKb    = docTypeMeta?.max_file_size_kb ?? 5120;
             const maxBytes = maxKb * 1024;
             if (file.size > maxBytes) {
-                this.docErrors[type] = `الملف أكبر من الحد المسموح (${Math.round(maxKb / 1024)}MB).`;
+                this.docErrors[type] = window.t('portal.registration.file_too_large', { max: Math.round(maxKb / 1024) });
                 event.target.value = '';
                 return;
             }
@@ -360,7 +360,7 @@ function registrationWizard() {
             const mimeMap = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' };
             const allowed = acceptedExts.map(e => mimeMap[e]).filter(Boolean);
             if (allowed.length && !allowed.includes(file.type)) {
-                this.docErrors[type] = 'نوع الملف غير مدعوم. الأنواع المقبولة: ' + acceptedExts.join('، ').toUpperCase() + '.';
+                this.docErrors[type] = window.t('portal.registration.unsupported_file_type', { types: acceptedExts.join('، ').toUpperCase() });
                 event.target.value = '';
                 return;
             }
@@ -382,7 +382,7 @@ function registrationWizard() {
 
                 if (!res.ok || !data.success) {
                     const msgs = data.errors ? Object.values(data.errors).flat() : [];
-                    this.docErrors[type] = msgs[0] || 'فشل الرفع. حاول مجدداً.';
+                    this.docErrors[type] = msgs[0] || window.t('portal.registration.upload_failed');
                     event.target.value = '';
                     return;
                 }
@@ -390,7 +390,7 @@ function registrationWizard() {
                 this.documents[type] = data.path;
                 this.docFilenames[type] = data.filename;
             } catch {
-                this.docErrors[type] = 'حدث خطأ في الشبكة أثناء الرفع.';
+                this.docErrors[type] = window.t('portal.registration.upload_network_error');
             } finally {
                 this.docUploading[type] = false;
                 event.target.value = '';
@@ -420,10 +420,10 @@ function registrationWizard() {
         // ── Review helpers ─────────────────────────────────────────────────
         businessTypeLabel(type) {
             return {
-                individual: 'فرد / شخصي',
-                sole_prop: 'مؤسسة فردية',
-                llc: 'شركة ذات مسؤولية محدودة',
-                corp: 'شركة مساهمة',
+                individual: window.t('portal.registration.business_type_individual'),
+                sole_prop: window.t('portal.registration.business_type_sole_prop'),
+                llc: window.t('portal.registration.business_type_llc'),
+                corp: window.t('portal.registration.business_type_corp'),
             }[type] || type;
         },
 

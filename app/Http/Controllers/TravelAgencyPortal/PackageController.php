@@ -79,7 +79,15 @@ class PackageController extends Controller
             ->latest()
             ->get();
 
-        $headers = ['Package', 'Destination', 'Price', 'Currency', 'Status', 'Bookings', 'Date'];
+        $headers = [
+            __('travel.packages.export.package'),
+            __('travel.packages.export.destination'),
+            __('travel.packages.export.price'),
+            __('travel.packages.export.currency'),
+            __('travel.packages.export.status'),
+            __('travel.packages.export.bookings'),
+            __('travel.packages.export.date'),
+        ];
 
         $rows = $packages->map(fn (TravelPackage $package) => [
             $package->title_en,
@@ -96,9 +104,9 @@ class PackageController extends Controller
 
         return match ($format) {
             'excel' => $this->exportExcel($filename, $headers, $rows),
-            'word'  => $this->exportWord($filename, 'Packages', $rows),
+            'word'  => $this->exportWord($filename, __('travel.packages.export.sheet_title'), $rows),
             'csv'   => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('travel.export.invalid_format')),
         };
     }
 
@@ -163,7 +171,7 @@ class PackageController extends Controller
         $this->handleMediaUploads($request, $package);
 
         return redirect()->route('travel-agency.packages.show', $package)
-            ->with('success', 'Package saved as draft.');
+            ->with('success', __('travel.packages.draft_saved'));
     }
 
     // ── Show ──────────────────────────────────────────────────────────────────
@@ -190,7 +198,7 @@ class PackageController extends Controller
         $this->authorise($package);
 
         if (!in_array($package->status, [TravelPackageStatus::Draft, TravelPackageStatus::PendingReview])) {
-            return back()->withErrors(['status' => 'Active packages cannot be edited. Contact support.']);
+            return back()->withErrors(['status' => __('travel.packages.active_edit_forbidden')]);
         }
 
         $data = $request->validate([
@@ -239,7 +247,7 @@ class PackageController extends Controller
         $this->handleMediaUploads($request, $package);
 
         return redirect()->route('travel-agency.packages.show', $package)
-            ->with('success', 'Package updated.');
+            ->with('success', __('travel.packages.updated'));
     }
 
     // ── Cities for country (AJAX) ─────────────────────────────────────────────
@@ -261,7 +269,7 @@ class PackageController extends Controller
         $this->authorise($package);
 
         if ($package->status !== TravelPackageStatus::Draft) {
-            return back()->withErrors(['status' => 'Only draft packages can be submitted for review.']);
+            return back()->withErrors(['status' => __('travel.packages.submit_review_only_draft')]);
         }
 
         $errors = $package->reviewReadinessErrors();
@@ -271,7 +279,7 @@ class PackageController extends Controller
 
         $package->update(['status' => TravelPackageStatus::PendingReview]);
 
-        return back()->with('success', 'Package submitted for admin review.');
+        return back()->with('success', __('travel.packages.submitted_for_review'));
     }
 
     // ── Withdraw from review ──────────────────────────────────────────────────
@@ -281,12 +289,12 @@ class PackageController extends Controller
         $this->authorise($package);
 
         if ($package->status !== TravelPackageStatus::PendingReview) {
-            return back()->withErrors(['status' => 'Only packages pending review can be withdrawn.']);
+            return back()->withErrors(['status' => __('travel.packages.withdraw_only_pending')]);
         }
 
         $package->update(['status' => TravelPackageStatus::Draft]);
 
-        return back()->with('success', 'Package withdrawn from review.');
+        return back()->with('success', __('travel.packages.withdrawn'));
     }
 
     // ── Delete media ──────────────────────────────────────────────────────────
@@ -299,7 +307,7 @@ class PackageController extends Controller
         Storage::disk('public')->delete($media->file_path);
         $media->delete();
 
-        return back()->with('success', 'Media removed.');
+        return back()->with('success', __('travel.packages.media_removed'));
     }
 
     // ── Download contract ─────────────────────────────────────────────────────

@@ -51,17 +51,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data.success) {
-                    window.Toast?.success(T().brandSavedSuccess || 'Brand saved successfully.');
+                    window.Toast?.success(t('admin.brands.brand_saved'));
                 } else {
                     const msg = data.message || data.errors
                         ? Object.values(data.errors || {}).flat().join('\n')
-                        : (T().saveFailedGeneric || 'Save failed.');
+                        : t('admin.brands.save_failed');
                     window.Toast?.error(msg);
                 }
             } catch (err) {
-                window.Toast?.error(T().networkErrorRetry || 'Network error. Please try again.');
+                window.Toast?.error(t('admin.brands.network_error'));
             } finally {
-                if (btn) { btn.disabled = false; btn.textContent = T().saveChangesBtn || 'Save Changes'; }
+                if (btn) { btn.disabled = false; btn.textContent = t('admin.brands.save_changes_label'); }
             }
         });
     }

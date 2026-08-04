@@ -141,14 +141,14 @@ function initCampaignActionModals() {
         const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.approving || 'Approving…');
         postJson(pendingApproveUrl)
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.campaignApproved || 'Campaign approved.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.campaign_approved'));
                 $('#approve-modal').modal('close');
                 campaignsTable?.ajax.reload();
                 // reload page if on show page
                 if (!campaignsTable) location.reload();
             })
             .fail(xhr => {
-                window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToApproveCampaign || 'Failed to approve campaign.'));
+                window.Toast?.error(xhr.responseJSON?.message ?? t('admin.ad_campaigns.approve_campaign_failed'));
             })
             .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.approve || 'Approve'));
     });
@@ -171,13 +171,13 @@ function initCampaignActionModals() {
         const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.rejecting || 'Rejecting…');
         postJson(pendingRejectUrl, { rejection_reason: reason })
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.campaignRejected || 'Campaign rejected.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.campaign_rejected'));
                 $('#reject-modal').modal('close');
                 campaignsTable?.ajax.reload();
                 if (!campaignsTable) location.reload();
             })
             .fail(xhr => {
-                window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToRejectCampaign || 'Failed to reject campaign.'));
+                window.Toast?.error(xhr.responseJSON?.message ?? t('admin.ad_campaigns.reject_campaign_failed'));
             })
             .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.reject || 'Reject'));
     });
@@ -194,7 +194,7 @@ function initCampaignActionModals() {
         const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.pausing || 'Pausing…');
         postJson(pendingPauseUrl)
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.campaignPaused || 'Campaign paused.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.campaign_paused'));
                 $('#pause-modal').modal('close');
                 campaignsTable?.ajax.reload();
                 if (!campaignsTable) location.reload();
@@ -215,7 +215,7 @@ function initCampaignActionModals() {
         const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.resuming || 'Resuming…');
         postJson(pendingResumeUrl)
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.campaignResumed || 'Campaign resumed.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.campaign_resumed'));
                 $('#resume-modal').modal('close');
                 campaignsTable?.ajax.reload();
                 if (!campaignsTable) location.reload();
@@ -245,12 +245,12 @@ function initFraudTable() {
             },
         },
         columns: [
-            { data: 'ip_address', title: window.TRANSLATIONS?.ipAddress || 'IP Address' },
+            { data: 'ip_address', title: t('admin.ad_campaigns.ip_address_label') },
             { data: 'campaign', title: window.TRANSLATIONS?.campaign || 'Campaign' },
             { data: 'clicks_last_hour', title: window.TRANSLATIONS?.clicksHr || 'Clicks/Hr' },
             { data: 'clicks_last_24h', title: window.TRANSLATIONS?.clicksPer24h || 'Clicks/24h' },
             { data: 'is_blocked', title: window.TRANSLATIONS?.status || 'Status', orderable: false },
-            { data: 'blocked_at', title: window.TRANSLATIONS?.blockedAt || 'Blocked At' },
+            { data: 'blocked_at', title: t('admin.ad_campaigns.blocked_at_label') },
             { data: 'block_reason', title: window.TRANSLATIONS?.reasonCol || 'Reason', orderable: false },
             { data: 'actions', title: '', orderable: false },
         ],
@@ -277,7 +277,7 @@ function initBlockIpModal() {
         const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.blocking || 'Blocking…');
         postJson(pendingBlockUrl, { block_reason: $('#block-reason-input').val().trim() })
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.ipBlocked || 'IP blocked.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.ip_blocked'));
                 $('#block-ip-modal').modal('close');
                 fraudTable?.ajax.reload();
                 // reload if we're on the show page (inline fraud tab)
@@ -286,8 +286,8 @@ function initBlockIpModal() {
                     if (row) row.remove();
                 }
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToBlockIp || 'Failed to block IP.')))
-            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.blockIpBtn || 'Block IP'));
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? t('admin.ad_campaigns.block_ip_failed')))
+            .always(() => $btn.prop('disabled', false).text(t('admin.ad_campaigns.block_ip_label')));
     });
 }
 
@@ -359,7 +359,7 @@ function initBookingActionModals() {
         const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.approving || 'Approving…');
         postJson(pendingApproveUrl)
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.bookingApproved || 'Booking approved.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.booking_approved'));
                 $('#approve-booking-modal').modal('close');
                 bookingsTable?.ajax.reload();
                 if (!bookingsTable) location.reload();
@@ -386,7 +386,7 @@ function initBookingActionModals() {
         const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.rejecting || 'Rejecting…');
         postJson(pendingRejectUrl, { rejection_reason: reason })
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.bookingRejected || 'Booking rejected.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.booking_rejected'));
                 $('#reject-booking-modal').modal('close');
                 bookingsTable?.ajax.reload();
                 if (!bookingsTable) location.reload();
@@ -407,7 +407,7 @@ function initCreativeReviewModals() {
         const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.approving || 'Approving…');
         postJson(pendingApproveCreativeUrl, { action: 'approve' })
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.creativeApproved || 'Creative approved.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.creative_approved'));
                 location.reload();
             })
             .fail(xhr => {
@@ -438,12 +438,12 @@ function initCreativeReviewModals() {
             rejection_code: $('#creative-rejection-code').val() || null,
         })
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.creativeRejected || 'Creative rejected.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.creative_rejected'));
                 $('#reject-creative-modal').modal('close');
                 location.reload();
             })
             .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.genericFailed || 'Failed.')))
-            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.rejectCreativeBtnDt || 'Reject Creative'));
+            .always(() => $btn.prop('disabled', false).text(t('admin.ad_campaigns.reject_creative_label')));
     });
 }
 
@@ -469,8 +469,8 @@ function initSlotsTable() {
             { data: 'placement', title: window.TRANSLATIONS?.slotsPlacement || 'Placement', orderable: false },
             { data: 'country', title: window.TRANSLATIONS?.slotsCountry || 'Country', orderable: false },
             { data: 'pricing_model', title: window.TRANSLATIONS?.slotsPricing || 'Pricing', orderable: false },
-            { data: 'base_rate', title: window.TRANSLATIONS?.slotsBaseRate || 'Base Rate', orderable: false },
-            { data: 'booking_days', title: window.TRANSLATIONS?.slotsBookingDays || 'Booking Days', orderable: false },
+            { data: 'base_rate', title: t('admin.ad_campaigns.base_rate_label'), orderable: false },
+            { data: 'booking_days', title: t('admin.ad_campaigns.booking_days_label'), orderable: false },
             { data: 'is_available', title: window.TRANSLATIONS?.slotsAvailable || 'Available', orderable: false },
             { data: 'actions', title: '', orderable: false },
         ],
@@ -571,7 +571,7 @@ function initProductsTable() {
 
     $(document).on('click', '.js-remove-campaign-product', function () {
         const id = $(this).data('id');
-        if (!window.confirm(window.TRANSLATIONS?.removeProductConfirm || 'Remove this product from the campaign?')) return;
+        if (!window.confirm(t('admin.ad_campaigns.remove_product_confirm'))) return;
 
         const url = el.dataset.destroyUrlTemplate.replace('__ID__', id);
         $.ajax({
@@ -580,10 +580,10 @@ function initProductsTable() {
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         })
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.productRemoved || 'Product removed from campaign.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.product_removed'));
                 productsTable?.ajax.reload(null, false);
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToRemoveProduct || 'Failed to remove product.')));
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? t('admin.ad_campaigns.remove_product_failed')));
     });
 }
 
@@ -620,11 +620,11 @@ function initAddProductModal() {
         const $btn = $(this).prop('disabled', true);
         postJson(storeUrl, payload)
             .done(res => {
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.productAdded || 'Product added to campaign.'));
+                window.Toast?.success(res.message ?? t('admin.ad_campaigns.product_added'));
                 $('#add-campaign-product-modal').modal('close');
                 productsTable?.ajax.reload(null, false);
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToAddProduct || 'Failed to add product.')))
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? t('admin.ad_campaigns.add_product_failed')))
             .always(() => $btn.prop('disabled', false));
     });
 }

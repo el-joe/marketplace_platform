@@ -465,33 +465,33 @@
              }">
             <div class="flex items-center gap-2">
                 <x-heroicon name="star" class="w-5 h-5 text-gray-500" />
-                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Influencer Promotion Tiers</h2>
+                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{{ __('admin.admin_product_listings.influencer_promotion_tiers') }}</h2>
             </div>
-            <p class="text-xs text-gray-400 -mt-2">Add to the influencer open market pool. Saved immediately — not part of the main form submit.</p>
+            <p class="text-xs text-gray-400 -mt-2">{{ __('admin.admin_product_listings.influencer_promotion_tiers_desc') }}</p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" id="tier3-toggle" x-model="tier3"
                            class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                    <span class="text-sm font-medium text-gray-700">Enable for Tier 3 (Admin Curated)</span>
+                    <span class="text-sm font-medium text-gray-700">{{ __('admin.admin_product_listings.enable_tier3') }}</span>
                 </label>
 
                 <label class="flex items-center gap-2 cursor-pointer select-none" x-show="featuredInNawy" x-cloak>
                     <input type="checkbox" id="tier4-toggle" x-model="tier4"
                            class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                    <span class="text-sm font-medium text-gray-700">Enable for Tier 4 (Nawy Now)</span>
+                    <span class="text-sm font-medium text-gray-700">{{ __('admin.admin_product_listings.enable_tier4') }}</span>
                 </label>
             </div>
 
             <div class="grid grid-cols-2 gap-4" x-show="tier3 || tier4" x-cloak>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Celebrity Commission Amount</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.celebrity_commission_amount') }}</label>
                     <input type="number" id="tier-commission-amount" min="0" step="1" x-model.number="commissionAmount"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <p class="text-xs text-gray-400 mt-1">Base-currency, whole units (BIGINT).</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.admin_product_listings.celebrity_commission_amount_hint') }}</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.currency') }}</label>
                     <select id="tier-commission-currency" x-model="commissionCurrency"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                         @foreach(['SAR', 'AED', 'EGP', 'KWD', 'OMR', 'QAR', 'BHD', 'JOD'] as $code)
@@ -504,7 +504,7 @@
             <div>
                 <button type="button" id="btn-save-promotion-tiers"
                         class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors">
-                    Save Promotion Tiers
+                    {{ __('admin.admin_product_listings.save_promotion_tiers') }}
                 </button>
             </div>
         </div>
@@ -650,10 +650,10 @@
         btn.disabled = true;
         $.when.apply($, requests)
             .done(function () {
-                window.Toast?.success('Promotion tiers updated.');
+                window.Toast?.success(@json(__('admin.admin_product_listings.promotion_tiers_updated')));
             })
             .fail(function (xhr) {
-                window.Toast?.error(xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Failed to update promotion tiers.');
+                window.Toast?.error(xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || @json(__('admin.admin_product_listings.promotion_tiers_update_failed')));
             })
             .always(function () {
                 btn.disabled = false;

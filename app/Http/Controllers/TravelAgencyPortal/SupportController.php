@@ -93,7 +93,7 @@ class SupportController extends Controller
 
         return redirect()
             ->route('travel-agency.support.show', $ticket->ticket_number)
-            ->with('success', 'تم إنشاء التذكرة بنجاح.');
+            ->with('success', __('travel.support.created_success'));
     }
 
     public function show(string $ticketNumber): View
@@ -118,7 +118,7 @@ class SupportController extends Controller
             ->firstOrFail();
 
         if (in_array($ticket->status, [SupportTicketStatus::Resolved, SupportTicketStatus::Closed], true)) {
-            return back()->withErrors(['message' => 'هذه التذكرة مغلقة ولا يمكن الرد عليها.']);
+            return back()->withErrors(['message' => __('travel.support.ticket_closed_notice')]);
         }
 
         $validated = $request->validate([
@@ -142,7 +142,7 @@ class SupportController extends Controller
             $ticket->update(['status' => SupportTicketStatus::Open]);
         }
 
-        return back()->with('success', 'تم إرسال الرد بنجاح.');
+        return back()->with('success', __('travel.support.reply_success'));
     }
 
     private function storeAttachment(Request $request, TicketMessage $message): void

@@ -9,21 +9,21 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    const T = Object.assign({
-        minSales: 'Min Sales',
-        maxSalesBlank: 'Max Sales (blank = \u221e)',
-        leaveBlankForInfinity: 'Leave blank for \u221e',
-        commissionPercent: 'Commission %',
-        removeTier: 'Remove tier',
-        addTier: 'Add Tier',
-        tierMinSalesCommissionRequired: 'Tier :n: min sales \u2265 0 and commission rate > 0 required.',
-        tierMaxSalesRequired: 'Tier :n: max sales must be \u2265 min sales.',
-        saving: 'Saving\u2026',
-        tiersSaved: 'Tiers saved!',
-        failedToSaveTiers: 'Failed to save tiers.',
-        networkErrorRetry: 'Network error \u2014 please try again.',
-        saveTiers: 'Save Tiers',
-    }, window.TRANSLATIONS || {});
+    const T = {
+        minSales: t('admin.marketer_tiers.min_sales_label'),
+        maxSalesBlank: t('admin.marketer_tiers.max_sales_blank_label'),
+        leaveBlankForInfinity: t('admin.marketer_tiers.leave_blank_for_infinity'),
+        commissionPercent: t('admin.marketer_tiers.commission_percent_label'),
+        removeTier: t('admin.marketer_tiers.remove_tier_label'),
+        addTier: t('admin.marketer_tiers.add_tier_label'),
+        tierMinSalesCommissionRequired: t('admin.marketer_tiers.tier_min_sales_commission_required'),
+        tierMaxSalesRequired: t('admin.marketer_tiers.tier_max_sales_required'),
+        saving: t('shared.saving'),
+        tiersSaved: t('admin.marketer_tiers.tiers_saved'),
+        failedToSaveTiers: t('admin.marketer_tiers.save_tiers_failed'),
+        networkErrorRetry: t('admin.marketer_tiers.network_error_retry'),
+        saveTiers: t('admin.marketer_tiers.save_tiers_label'),
+    };
     const container = document.getElementById('tiers-container');
     const saveBtn   = document.getElementById('save-tiers-btn');
     if (!container || !saveBtn) return;

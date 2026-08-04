@@ -19,6 +19,7 @@
             enterValidCommissionRate: @json(__('travel.campaigns.enter_valid_commission_rate')),
             selectCommissionType: @json(__('travel.campaigns.select_commission_type')),
             confirmWithdrawInvitation: @json(__('travel.campaigns.confirm_withdraw_invitation')),
+            packagesWord: @json(__('travel.campaigns.packages_word')),
         });
     </script>
 @endpush

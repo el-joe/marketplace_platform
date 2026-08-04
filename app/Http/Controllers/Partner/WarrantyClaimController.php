@@ -83,7 +83,7 @@ class WarrantyClaimController extends Controller
             'excel' => $this->exportExcel('warranty-claims', $headers, $rows),
             'csv' => $this->exportCsv('warranty-claims', $headers, $rows),
             'word' => $this->exportWord('warranty-claims', 'Warranty Claims', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 

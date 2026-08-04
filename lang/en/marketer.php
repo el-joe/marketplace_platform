@@ -194,7 +194,6 @@ return [
         'products_optional'        => 'Products (optional)',
         'search_products'          => 'Search products from selected vendor…',
         'add'                      => '+ Add',
-        'cancel'                   => 'Cancel',
         'submit_for_review'        => 'Submit for Review',
         'no_products_found'       => 'No products found.',
         'no_results_found'        => 'No results found.',

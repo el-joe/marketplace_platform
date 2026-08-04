@@ -78,7 +78,7 @@ class NotificationController extends Controller
             ->first();
 
         if (!$notification) {
-            return ApiResponse::error('Notification not found.', [], 404);
+            return ApiResponse::error(__('customer_api.notification.not_found'), [], 404);
         }
 
         if ($notification->read_at === null) {
@@ -99,7 +99,7 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return ApiResponse::success(null, 'All notifications marked as read.');
+        return ApiResponse::success(null, __('customer_api.notification.all_marked_read'));
     }
 
     public function registerDevice(Request $request): JsonResponse
@@ -110,7 +110,7 @@ class NotificationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray());
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray());
         }
 
         $customer = auth('customer')->user();
@@ -129,7 +129,7 @@ class NotificationController extends Controller
             ]
         );
 
-        return ApiResponse::success(null, 'Device registered.');
+        return ApiResponse::success(null, __('customer_api.notification.device_registered'));
     }
 
     public function removeDevice(Request $request): JsonResponse
@@ -139,7 +139,7 @@ class NotificationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray());
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray());
         }
 
         $customer = auth('customer')->user();
@@ -150,7 +150,7 @@ class NotificationController extends Controller
             ->where('token', $validator->validated()['token'])
             ->update(['is_active' => false]);
 
-        return ApiResponse::success(null, 'Device removed.');
+        return ApiResponse::success(null, __('customer_api.notification.device_removed'));
     }
 
     public function preferences(): JsonResponse
@@ -171,7 +171,7 @@ class NotificationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray());
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray());
         }
 
         $data = $validator->validated();
@@ -196,7 +196,7 @@ class NotificationController extends Controller
 
         return ApiResponse::success(
             (new NotificationPreferencesResource($customer))->toArray(request()),
-            'Notification preferences updated.',
+            __('customer_api.notification.preferences_updated'),
         );
     }
 }

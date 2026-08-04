@@ -403,7 +403,7 @@ class CategoryController extends Controller
             ]
         );
 
-        return back()->with('success', 'تم حفظ إعدادات الكوميشن.');
+        return back()->with('success', __('admin.categories.marketer_commission_saved'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -85,7 +85,14 @@ class CampaignController extends Controller
             ->latest()
             ->get();
 
-        $headers = ['Campaign', 'Type', 'Marketers', 'Status', 'Start', 'End'];
+        $headers = [
+            __('travel.campaigns.export.campaign'),
+            __('travel.campaigns.export.type'),
+            __('travel.campaigns.export.marketers'),
+            __('travel.campaigns.export.status'),
+            __('travel.campaigns.export.start'),
+            __('travel.campaigns.export.end'),
+        ];
 
         $rows = $offers->map(fn (TravelAgencyCampaignOffer $offer) => [
             $offer->name,
@@ -101,9 +108,9 @@ class CampaignController extends Controller
 
         return match ($format) {
             'excel' => $this->exportExcel($filename, $headers, $rows),
-            'word'  => $this->exportWord($filename, 'Campaigns', $rows),
+            'word'  => $this->exportWord($filename, __('travel.campaigns.export.sheet_title'), $rows),
             'csv'   => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('travel.export.invalid_format')),
         };
     }
 
@@ -144,9 +151,9 @@ class CampaignController extends Controller
 
         if ($packageCount !== count($validated['package_ids'])) {
             if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'إحدى الباقات المحددة لا تنتمي لوكالتك.'], 422);
+                return response()->json(['success' => false, 'message' => __('travel.campaigns.package_not_owned')], 422);
             }
-            return back()->withErrors(['package_ids' => 'إحدى الباقات المحددة لا تنتمي لوكالتك.'])->withInput();
+            return back()->withErrors(['package_ids' => __('travel.campaigns.package_not_owned')])->withInput();
         }
 
         $overridesMap = collect($validated['commission_overrides'] ?? [])
@@ -186,7 +193,7 @@ class CampaignController extends Controller
         });
 
         return redirect()->route('travel-agency.campaigns.show', $offer->id)
-            ->with('success', 'تم إنشاء العرض التسويقي. يمكنك الآن دعوة المسوّقين.');
+            ->with('success', __('travel.campaigns.offer_created'));
     }
 
     public function show(TravelAgencyCampaignOffer $offer): View
@@ -213,14 +220,14 @@ class CampaignController extends Controller
         abort_if($offer->travel_agency_id !== $this->agencyId(), 404);
 
         if ($offer->status !== VendorCampaignOfferStatus::Draft) {
-            return response()->json(['success' => false, 'message' => 'يمكن تقديم العروض ذات حالة مسودة فقط.'], 422);
+            return response()->json(['success' => false, 'message' => __('travel.campaigns.submit_only_draft')], 422);
         }
 
         $offer->update(['status' => VendorCampaignOfferStatus::PendingAdmin]);
 
         Notification::send(Admin::permission('campaign_offers.view')->get(), new TravelAgencyCampaignOfferSubmitted($offer));
 
-        return response()->json(['success' => true, 'message' => 'تم إرسال العرض للمراجعة.', 'status' => VendorCampaignOfferStatus::PendingAdmin->value]);
+        return response()->json(['success' => true, 'message' => __('travel.campaigns.submitted_success'), 'status' => VendorCampaignOfferStatus::PendingAdmin->value]);
     }
 
     public function pauseOffer(TravelAgencyCampaignOffer $offer): JsonResponse
@@ -228,7 +235,7 @@ class CampaignController extends Controller
         abort_if($offer->travel_agency_id !== $this->agencyId(), 404);
 
         if ($offer->status !== VendorCampaignOfferStatus::Active) {
-            return response()->json(['success' => false, 'message' => 'العرض غير نشط حالياً.'], 422);
+            return response()->json(['success' => false, 'message' => __('travel.campaigns.not_active')], 422);
         }
 
         $offer->update(['status' => VendorCampaignOfferStatus::Paused]);
@@ -238,7 +245,7 @@ class CampaignController extends Controller
             ->pluck('resulting_campaign_id'))
             ->update(['status' => 'paused']);
 
-        return response()->json(['success' => true, 'message' => 'تم إيقاف العرض مؤقتاً.', 'status' => VendorCampaignOfferStatus::Paused->value]);
+        return response()->json(['success' => true, 'message' => __('travel.campaigns.paused_success'), 'status' => VendorCampaignOfferStatus::Paused->value]);
     }
 
     public function resumeOffer(TravelAgencyCampaignOffer $offer): JsonResponse
@@ -246,7 +253,7 @@ class CampaignController extends Controller
         abort_if($offer->travel_agency_id !== $this->agencyId(), 404);
 
         if ($offer->status !== VendorCampaignOfferStatus::Paused) {
-            return response()->json(['success' => false, 'message' => 'العرض ليس متوقفاً.'], 422);
+            return response()->json(['success' => false, 'message' => __('travel.campaigns.not_paused')], 422);
         }
 
         $offer->update(['status' => VendorCampaignOfferStatus::Active]);
@@ -256,7 +263,7 @@ class CampaignController extends Controller
             ->pluck('resulting_campaign_id'))
             ->update(['status' => 'active']);
 
-        return response()->json(['success' => true, 'message' => 'تم استئناف العرض.', 'status' => VendorCampaignOfferStatus::Active->value]);
+        return response()->json(['success' => true, 'message' => __('travel.campaigns.resumed_success'), 'status' => VendorCampaignOfferStatus::Active->value]);
     }
 
     public function destroy(TravelAgencyCampaignOffer $offer): JsonResponse
@@ -264,12 +271,12 @@ class CampaignController extends Controller
         abort_if($offer->travel_agency_id !== $this->agencyId(), 404);
 
         if ($offer->status !== VendorCampaignOfferStatus::Draft) {
-            return response()->json(['success' => false, 'message' => 'يمكن حذف العروض ذات حالة مسودة فقط.'], 422);
+            return response()->json(['success' => false, 'message' => __('travel.campaigns.delete_only_draft')], 422);
         }
 
         $offer->delete();
 
-        return response()->json(['success' => true, 'message' => 'تم حذف العرض.']);
+        return response()->json(['success' => true, 'message' => __('travel.campaigns.deleted_success')]);
     }
 
     public function invite(Request $request, TravelAgencyCampaignOffer $offer): JsonResponse
@@ -277,7 +284,7 @@ class CampaignController extends Controller
         abort_if($offer->travel_agency_id !== $this->agencyId(), 404);
 
         if (!in_array($offer->status, [VendorCampaignOfferStatus::Active, VendorCampaignOfferStatus::Draft, VendorCampaignOfferStatus::PendingAdmin], true)) {
-            return response()->json(['success' => false, 'message' => 'لا يمكن دعوة مسوّقين لهذا العرض في حالته الحالية.'], 422);
+            return response()->json(['success' => false, 'message' => __('travel.campaigns.invite_forbidden_status')], 422);
         }
 
         $validated = $request->validate([
@@ -316,7 +323,7 @@ class CampaignController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "تمت دعوة {$created} مسوّق" . ($created !== 1 ? 'ين' : '') . '.',
+            'message' => __('travel.campaigns.invited_success', ['count' => $created]),
             'skipped' => count($skipped),
         ]);
     }
@@ -326,12 +333,12 @@ class CampaignController extends Controller
         abort_if($invitation->offer->travel_agency_id !== $this->agencyId(), 404);
 
         if ($invitation->status !== VendorCampaignInvitationStatus::Pending) {
-            return response()->json(['success' => false, 'message' => 'لا يمكن سحب دعوة تمت الاستجابة عليها.'], 422);
+            return response()->json(['success' => false, 'message' => __('travel.campaigns.withdraw_forbidden_responded')], 422);
         }
 
         $invitation->update(['status' => VendorCampaignInvitationStatus::Revoked]);
 
-        return response()->json(['success' => true, 'message' => 'تم سحب الدعوة.']);
+        return response()->json(['success' => true, 'message' => __('travel.campaigns.invite_withdrawn')]);
     }
 
     public function searchMarketers(Request $request): JsonResponse

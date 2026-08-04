@@ -28,7 +28,7 @@ class AuthController extends Controller
         $supervisor = ShippingCompanySupervisor::where('email', $request->email)->first();
 
         if (! $supervisor || ! Hash::check($request->password, $supervisor->password)) {
-            return ApiResponse::error('Invalid credentials.', [], 401);
+            return ApiResponse::error(__('carrier.api.invalid_credentials'), [], 401);
         }
 
         // Company-level gate: check before is_active so company suspension
@@ -37,7 +37,7 @@ class AuthController extends Controller
 
         if ($company->status === ShippingCompanyStatus::Pending) {
             return ApiResponse::error(
-                'Your company is pending platform approval and cannot log in yet.',
+                __('carrier.api.company_pending'),
                 ['company_status' => 'pending'],
                 403
             );
@@ -45,7 +45,7 @@ class AuthController extends Controller
 
         if ($company->status === ShippingCompanyStatus::Suspended) {
             return ApiResponse::error(
-                'Your company has been suspended by the platform. Please contact support.',
+                __('carrier.api.company_suspended'),
                 ['company_status' => 'suspended'],
                 403
             );
@@ -53,7 +53,7 @@ class AuthController extends Controller
 
         if (! $supervisor->is_active) {
             return ApiResponse::error(
-                'Your account is inactive. Contact your company administrator.',
+                __('carrier.api.account_inactive'),
                 [],
                 403
             );
@@ -111,7 +111,7 @@ class AuthController extends Controller
             ]
         );
 
-        return ApiResponse::success(null, 'Device registered for push notifications.');
+        return ApiResponse::success(null, __('carrier.api.device_registered'));
     }
 
     public function removeDeviceToken(): JsonResponse
@@ -123,7 +123,7 @@ class AuthController extends Controller
             ->where('tokenable_id', $supervisor->id)
             ->update(['is_active' => 0]);
 
-        return ApiResponse::success(null, 'Device token removed.');
+        return ApiResponse::success(null, __('carrier.api.device_token_removed'));
     }
 
     // ── Logout ────────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ class AuthController extends Controller
     public function logout(): JsonResponse
     {
         auth('shipping_supervisor_api')->logout();
-        return ApiResponse::success(null, 'Logged out successfully.');
+        return ApiResponse::success(null, __('carrier.api.logged_out'));
     }
 
     // ── Refresh Token ─────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ class AuthController extends Controller
         try {
             $newToken = auth('shipping_supervisor_api')->refresh();
         } catch (\Throwable) {
-            return ApiResponse::error('Invalid or expired refresh token.', [], 401);
+            return ApiResponse::error(__('carrier.api.invalid_refresh_token'), [], 401);
         }
 
         return ApiResponse::success([

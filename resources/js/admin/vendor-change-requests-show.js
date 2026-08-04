@@ -10,13 +10,13 @@ function submitReview(action) {
     const adminNote = form.querySelector('[name=admin_note]').value;
 
     if (action === 'reject' && !adminNote.trim()) {
-        window.Toast?.error('A note is required to reject a request.');
+        window.Toast?.error(t('admin.vendor_change_requests_show.note_required_to_reject'));
         return;
     }
 
     if (!confirm(action === 'approve'
-        ? 'Approve this change request? The changes will be applied immediately.'
-        : 'Reject this change request?')) {
+        ? t('admin.vendor_change_requests_show.approve_change_request_confirm')
+        : t('admin.vendor_change_requests_show.reject_change_request_confirm'))) {
         return;
     }
 

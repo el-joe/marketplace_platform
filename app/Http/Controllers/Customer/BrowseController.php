@@ -42,7 +42,7 @@ class BrowseController extends Controller
         ]);
 
         if (!in_array($type, ['product', 'classified', 'travel'], true)) {
-            return response()->json(['success' => false, 'message' => 'Invalid browse type.'], 404);
+            return response()->json(['success' => false, 'message' => __('common.exceptions.browse.invalid_type')], 404);
         }
 
         return match ($type) {
@@ -112,7 +112,7 @@ class BrowseController extends Controller
         $categoryNode = $this->unifiedCategories->findById($id, 'classified');
 
         if (!$categoryNode) {
-            return response()->json(['success' => false, 'message' => 'Category not found.'], 404);
+            return response()->json(['success' => false, 'message' => __('common.exceptions.browse.category_not_found')], 404);
         }
 
         $category = ClassifiedCategory::where('id', $categoryNode['id'])->firstOrFail();
@@ -162,7 +162,7 @@ class BrowseController extends Controller
             $travelCategory = TravelCategory::where('id', $id)->where('is_active', 1)->first();
 
             if (!$travelCategory) {
-                return response()->json(['success' => false, 'message' => 'Category not found.'], 404);
+                return response()->json(['success' => false, 'message' => __('common.exceptions.browse.category_not_found')], 404);
             }
         }
 

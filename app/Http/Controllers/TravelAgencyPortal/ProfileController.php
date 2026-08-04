@@ -44,7 +44,7 @@ class ProfileController extends Controller
 
         $agency->update($data);
 
-        return back()->with('success', 'تم تحديث الملف الشخصي بنجاح.');
+        return back()->with('success', __('travel.profile.updated'));
     }
 
     public function updatePassword(Request $request): RedirectResponse
@@ -57,11 +57,11 @@ class ProfileController extends Controller
         ]);
 
         if (!Hash::check($validated['current_password'], $member->password)) {
-            return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة.']);
+            return back()->withErrors(['current_password' => __('travel.profile.current_password_incorrect')]);
         }
 
         $member->update(['password' => Hash::make($validated['password'])]);
 
-        return back()->with('success', 'تم تحديث كلمة المرور بنجاح.');
+        return back()->with('success', __('travel.profile.password_updated'));
     }
 }

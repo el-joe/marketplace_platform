@@ -146,7 +146,7 @@ class FulfillmentController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Inbound request ' . $req->request_number . ' submitted successfully.',
+            'message' => __('partner.fulfillment.messages.inbound_request_submitted', ['number' => $req->request_number]),
         ]);
     }
 
@@ -161,7 +161,7 @@ class FulfillmentController extends Controller
         }
 
         if (!$inboundRequest->canBeCancelled()) {
-            return response()->json(['success' => false, 'message' => 'This request cannot be cancelled in its current state.'], 422);
+            return response()->json(['success' => false, 'message' => __('partner.fulfillment.messages.cannot_cancel_current_state')], 422);
         }
 
         // Reverse quantity_inbound
@@ -170,9 +170,9 @@ class FulfillmentController extends Controller
             ->where('quantity_inbound', '>', 0)
             ->each(fn($inv) => $inv->decrement('quantity_inbound', min($inboundRequest->quantity_requested, $inv->quantity_inbound)));
 
-        $inboundRequest->update(['status' => 'rejected', 'rejection_reason' => 'Cancelled by vendor']);
+        $inboundRequest->update(['status' => 'rejected', 'rejection_reason' => __('partner.fulfillment.messages.cancelled_by_vendor')]);
 
-        return response()->json(['success' => true, 'message' => 'Inbound request cancelled.']);
+        return response()->json(['success' => true, 'message' => __('partner.fulfillment.messages.inbound_request_cancelled')]);
     }
 
     // ── FBN: vendor adds tracking number ──────────────────────────────────────
@@ -186,7 +186,7 @@ class FulfillmentController extends Controller
         }
 
         if (!in_array($inboundRequest->status->value, ['approved', 'submitted'], true)) {
-            return response()->json(['success' => false, 'message' => 'Cannot update tracking at this stage.'], 422);
+            return response()->json(['success' => false, 'message' => __('partner.fulfillment.messages.cannot_update_tracking_stage')], 422);
         }
 
         $data = $request->validate([
@@ -215,7 +215,7 @@ class FulfillmentController extends Controller
             }
         });
 
-        return response()->json(['success' => true, 'message' => 'Tracking number saved.']);
+        return response()->json(['success' => true, 'message' => __('partner.fulfillment.messages.tracking_number_saved')]);
     }
 
     // ── FBP: inventory overview ───────────────────────────────────────────────
@@ -318,7 +318,7 @@ class FulfillmentController extends Controller
             'excel' => $this->exportExcel('storage-fees', $headers, $rows),
             'csv' => $this->exportCsv('storage-fees', $headers, $rows),
             'word' => $this->exportWord('storage-fees', 'Storage Fees', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 }

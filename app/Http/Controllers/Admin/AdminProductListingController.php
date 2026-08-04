@@ -40,8 +40,8 @@ class AdminProductListingController extends Controller
                 ->mapWithKeys(fn($status) => [$status->value => Str::headline($status->value)]),
             'stats' => $this->buildStats(),
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Admin Listings'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.admin_product_listings.title')],
             ],
         ]);
     }
@@ -230,9 +230,9 @@ class AdminProductListingController extends Controller
             'nawyCategories'  => $this->nawyCategories(),
             'selectedVariant' => null,
             'breadcrumbs'     => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Admin Listings', 'url' => route('admin.admin-product-listings.index')],
-                ['label' => 'New Listing'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.admin_product_listings.title'), 'url' => route('admin.admin-product-listings.index')],
+                ['label' => __('admin.admin_product_listings.new_listing')],
             ],
         ]);
     }
@@ -248,7 +248,7 @@ class AdminProductListingController extends Controller
 
         return redirect()
             ->route('admin.admin-product-listings.show', $listing)
-            ->with('success', 'Listing created successfully.');
+            ->with('success', __('admin.admin_product_listings.created_success'));
     }
 
     public function edit(AdminProductListing $adminProductListing): View
@@ -262,9 +262,9 @@ class AdminProductListingController extends Controller
             'nawyCategories'  => $this->nawyCategories(),
             'selectedVariant' => $adminProductListing->productVariant()->with('product')->first(),
             'breadcrumbs'     => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Admin Listings', 'url' => route('admin.admin-product-listings.index')],
-                ['label' => 'Edit Listing'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.admin_product_listings.title'), 'url' => route('admin.admin-product-listings.index')],
+                ['label' => __('admin.admin_product_listings.edit_listing_title')],
             ],
         ]);
     }
@@ -277,7 +277,7 @@ class AdminProductListingController extends Controller
 
         return redirect()
             ->route('admin.admin-product-listings.show', $adminProductListing)
-            ->with('success', 'Listing updated successfully.');
+            ->with('success', __('admin.admin_product_listings.updated_success'));
     }
 
     /** Categories eligible for the Nawy category picker: featured or explicitly sorted. */
@@ -297,12 +297,12 @@ class AdminProductListingController extends Controller
         $adminProductListing->save();
 
         if (request()->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Listing archived.']);
+            return response()->json(['success' => true, 'message' => __('admin.admin_product_listings.archived_msg')]);
         }
 
         return redirect()
             ->route('admin.admin-product-listings.index')
-            ->with('success', 'Listing archived.');
+            ->with('success', __('admin.admin_product_listings.archived_msg'));
     }
 
     public function activate(AdminProductListing $adminProductListing): JsonResponse|RedirectResponse
@@ -311,12 +311,12 @@ class AdminProductListingController extends Controller
         $adminProductListing->save();
 
         if (request()->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Listing activated.']);
+            return response()->json(['success' => true, 'message' => __('admin.admin_product_listings.activated_msg')]);
         }
 
         return redirect()
             ->route('admin.admin-product-listings.index')
-            ->with('success', 'Listing activated.');
+            ->with('success', __('admin.admin_product_listings.activated_msg'));
     }
 
     /** Nawy preview: render the storefront feed as it would appear. */
@@ -367,8 +367,8 @@ class AdminProductListingController extends Controller
             'statuses' => collect(AdminProductListingStatus::cases())
                 ->mapWithKeys(fn($status) => [$status->value => Str::headline($status->value)]),
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Admin Listings', 'url' => route('admin.admin-product-listings.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.admin_product_listings.title'), 'url' => route('admin.admin-product-listings.index')],
                 ['label' => e($adminProductListing->productVariant->product->name_en)],
             ],
         ]);
@@ -385,7 +385,7 @@ class AdminProductListingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Status updated.',
+            'message' => __('admin.admin_product_listings.status_updated'),
             'status' => $adminProductListing->status->value,
         ]);
     }
@@ -414,7 +414,7 @@ class AdminProductListingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock adjusted.',
+            'message' => __('admin.admin_product_listings.stock_adjusted'),
             'inventory' => $inventory->fresh('warehouse'),
         ]);
     }
@@ -440,7 +440,7 @@ class AdminProductListingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Shipping rule saved.',
+            'message' => __('admin.admin_product_listings.shipping_rule_saved'),
             'rule' => $rule,
         ]);
     }
@@ -483,7 +483,7 @@ class AdminProductListingController extends Controller
                 'updated_by_admin_id' => $adminId,
             ]));
             $ref->save();
-            $message = 'Product reference updated.';
+            $message = __('admin.admin_product_listings.product_reference_updated');
         } else {
             $ref = ProductCostReference::create(array_merge($data, [
                 'product_id' => $productId,
@@ -491,7 +491,7 @@ class AdminProductListingController extends Controller
                 'is_confidential' => 1,
                 'created_by_admin_id' => $adminId,
             ]));
-            $message = 'Product reference created.';
+            $message = __('admin.admin_product_listings.product_reference_created');
         }
 
         return response()->json([
@@ -553,7 +553,7 @@ class AdminProductListingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Cost reference created.',
+            'message' => __('admin.admin_product_listings.cost_reference_created'),
             'ref' => $this->serializeRef($ref->fresh()),
         ]);
     }
@@ -576,7 +576,7 @@ class AdminProductListingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Cost reference updated.',
+            'message' => __('admin.admin_product_listings.cost_reference_updated'),
             'ref' => $this->serializeRef($costReference->fresh()),
         ]);
     }
@@ -594,7 +594,7 @@ class AdminProductListingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Cost reference deleted.',
+            'message' => __('admin.admin_product_listings.cost_reference_deleted'),
         ]);
     }
 
@@ -638,9 +638,9 @@ class AdminProductListingController extends Controller
         return view('admin.admin-product-listings.categories', [
             'categories' => $categories,
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Admin Listings', 'url' => route('admin.admin-product-listings.index')],
-                ['label' => 'Nawy Now Sidebar Categories'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.admin_product_listings.title'), 'url' => route('admin.admin-product-listings.index')],
+                ['label' => __('admin.admin_product_listings.sidebar_categories')],
             ],
         ]);
     }
@@ -657,7 +657,7 @@ class AdminProductListingController extends Controller
             Category::where('id', $id)->update(['nawy_sort_order' => $position]);
         }
 
-        return response()->json(['success' => true, 'message' => 'Order saved.']);
+        return response()->json(['success' => true, 'message' => __('admin.admin_product_listings.order_saved')]);
     }
 
     /** Upload/replace the Nawy sidebar icon for a category. */
@@ -676,7 +676,7 @@ class AdminProductListingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Icon updated.',
+            'message' => __('admin.admin_product_listings.icon_updated'),
             'icon_url' => Storage::disk('public')->url($category->nawy_icon_path),
         ]);
     }

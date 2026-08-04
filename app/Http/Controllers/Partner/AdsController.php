@@ -99,7 +99,7 @@ class AdsController extends Controller
         if ($listings->count() !== count($data['vendor_listing_ids'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'One or more selected products do not belong to your store.',
+                'message' => __('partner.ads.messages.listings_not_owned'),
             ], 422);
         }
 

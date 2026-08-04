@@ -4,7 +4,6 @@ import { dtLanguage } from '../components/datatable.js';
 // ─── Locale helpers ────────────────────────────────────────────────────────────
 
 const isAr = document.documentElement.lang === 'ar';
-const t = (key, fallback) => window.TRANSLATIONS?.[key] ?? fallback;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -169,15 +168,15 @@ function initWarrantyClaimShowPage() {
                 is_internal_note: internal,
             });
 
-            window.Toast?.success(res.message ?? t('replySent', 'Reply sent.'));
-            appendMessage(message, internal, res.sender_name ?? t('supportAgent', 'Support Agent'));
+            window.Toast?.success(res.message ?? t('admin.warranty_claims.reply_sent'));
+            appendMessage(message, internal, res.sender_name ?? t('admin.warranty_claims.support_agent_label'));
             document.getElementById('reply-message').value = '';
             if (internalChk) internalChk.checked = false;
             if (replyBg) replyBg.classList.remove('border-yellow-300', 'bg-yellow-50');
 
             if (res.status) updateStatusBadge(res.status);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('replyFailed', 'Failed to send reply.'));
+            window.Toast?.error(err.message ?? t('admin.warranty_claims.failed_send_reply'));
         } finally {
             if (btn) btn.disabled = false;
         }
@@ -187,13 +186,13 @@ function initWarrantyClaimShowPage() {
     document.getElementById('status-select')?.addEventListener('change', async function () {
         try {
             const res = await sendJson(this.dataset.url, 'POST', { status: this.value });
-            window.Toast?.success(res.message ?? t('statusUpdated', 'Status updated.'));
+            window.Toast?.success(res.message ?? t('admin.warranty_claims.status_updated'));
             updateStatusBadge(this.value);
             if (this.value === 'approved' || this.value === 'resolved') {
                 setTimeout(() => location.reload(), 600);
             }
         } catch (err) {
-            window.Toast?.error(err.message ?? t('statusUpdateFailed', 'Failed to update status.'));
+            window.Toast?.error(err.message ?? t('admin.warranty_claims.failed_update_status'));
         }
     });
 
@@ -203,11 +202,11 @@ function initWarrantyClaimShowPage() {
         e.preventDefault();
         const confirmed = window.confirmDialog
             ? await window.confirmDialog({
-                title: t('resolveConfirmTitle', 'Resolve warranty claim?'),
-                text: t('resolveConfirmText', 'This will finalize the resolution and notify the customer.'),
-                confirmButtonText: t('resolveConfirmButton', 'Resolve'),
+                title: t('admin.warranty_claims.resolve_claim_title'),
+                text: t('admin.warranty_claims.resolve_claim_text'),
+                confirmButtonText: t('admin.warranty_claims.resolve_confirm_button'),
             })
-            : confirm(t('resolveConfirmTitle', 'Resolve warranty claim?'));
+            : confirm(t('admin.warranty_claims.resolve_claim_title'));
         if (!confirmed) return;
 
         const btn = document.getElementById('btn-resolve');
@@ -220,10 +219,10 @@ function initWarrantyClaimShowPage() {
                 resolution_notes: fd.get('resolution_notes') ?? '',
             };
             const res = await sendJson(resolveForm.dataset.url, 'POST', payload);
-            window.Toast?.success(res.message ?? t('resolvedMessage', 'Warranty claim resolved.'));
+            window.Toast?.success(res.message ?? t('admin.warranty_claims.claim_resolved'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('resolveFailed', 'Failed to resolve warranty claim.'));
+            window.Toast?.error(err.message ?? t('admin.warranty_claims.failed_resolve_claim'));
             if (btn) btn.disabled = false;
         }
     });
@@ -246,7 +245,7 @@ function appendMessage(text, isInternal, senderName) {
     el.innerHTML = `<div class="rounded-xl p-4 ${bgClass}">
         <div class="flex items-center gap-2 mb-2">
             <span class="text-xs font-semibold text-gray-700">${escapeHtml(senderName)}</span>
-            ${isInternal ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">${escapeHtml(t('internalNoteBadge', 'Internal note'))}</span>` : ''}
+            ${isInternal ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">${escapeHtml(t('admin.warranty_claims.internal_note_label'))}</span>` : ''}
             <span class="text-xs text-gray-400 ml-auto">${now}</span>
         </div>
         <div class="text-sm text-gray-800 whitespace-pre-wrap">${escapeHtml(text)}</div>
@@ -262,7 +261,7 @@ function updateStatusBadge(status) {
     badge.className = 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium js-status-badge';
     const cls = statusClass[status] ?? 'bg-gray-100 text-gray-500';
     badge.classList.add(...cls.split(' '));
-    badge.textContent = window.TRANSLATIONS?.statusLabels?.[status] ?? status.replace(/_/g, ' ');
+    badge.textContent = t(`admin.warranty_claims.status_labels.${status}`) || status.replace(/_/g, ' ');
 
     const sel = document.getElementById('status-select');
     if (sel) sel.value = status;

@@ -135,12 +135,12 @@
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.name') }} (English) <span class="text-red-500">*</span></label>
                 <input type="text" name="name_en" id="f-name-en" required maxlength="150"
-                       class="form-input w-full text-sm" placeholder="Getting Started">
+                       class="form-input w-full text-sm" placeholder="{{ __('admin.adsupport.modal.name_en_example') }}">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.name') }} (Arabic) <span class="text-red-500">*</span></label>
                 <input type="text" name="name_ar" id="f-name-ar" required maxlength="150" dir="rtl"
-                       class="form-input w-full text-sm" placeholder="البدء">
+                       class="form-input w-full text-sm" placeholder="{{ __('admin.adsupport.modal.name_ar_example') }}">
             </div>
         </div>
 
@@ -176,7 +176,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.description') }} (Arabic)</label>
                 <textarea name="description_ar" id="f-description-ar" rows="3" dir="rtl"
-                          class="form-input w-full text-sm" placeholder="وصف المجموعة…"></textarea>
+                          class="form-input w-full text-sm" placeholder="{{ __('admin.adsupport.modal.description_ar_placeholder') }}"></textarea>
             </div>
         </div>
 

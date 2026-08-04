@@ -69,7 +69,7 @@ class CarrierClaimController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('carrier-claims.resolve'), 403);
 
-        abort_if($carrierClaim->isResolved(), 422, 'Claim is already resolved.');
+        abort_if($carrierClaim->isResolved(), 422, __('admin.carrier_claims.already_resolved'));
 
         $data = $request->validate([
             'decision'          => ['required', 'in:approved,rejected'],
@@ -89,9 +89,13 @@ class CarrierClaimController extends Controller
             $data['resolution_notes'] ?? null,
         );
 
+        $decisionLabel = $data['decision'] === 'approved'
+            ? __('admin.carrier_claims.decision_approved')
+            : __('admin.carrier_claims.decision_rejected');
+
         return redirect()
             ->route('admin.carrier-claims.show', $carrierClaim)
-            ->with('success', 'Claim ' . $data['decision'] . ' successfully.');
+            ->with('success', __('admin.carrier_claims.resolved_success', ['decision' => $decisionLabel]));
     }
 
     public function markUnderReview(CarrierClaim $carrierClaim): RedirectResponse
@@ -101,6 +105,6 @@ class CarrierClaimController extends Controller
 
         $this->service->markUnderReview($carrierClaim);
 
-        return back()->with('success', 'Claim moved to Under Review.');
+        return back()->with('success', __('admin.carrier_claims.moved_under_review'));
     }
 }

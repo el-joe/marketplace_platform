@@ -25,7 +25,7 @@ class AddressController extends Controller
 
         return ApiResponse::success(
             AddressResource::collection($addresses),
-            'Addresses retrieved.'
+            __('common.exceptions.address.retrieved')
         );
     }
 
@@ -44,7 +44,7 @@ class AddressController extends Controller
             'country_id' => $request->attributes->get('country')?->id ?? $customer->country_id,
         ]));
 
-        return ApiResponse::success(new AddressResource($address), 'Address created.', 201);
+        return ApiResponse::success(new AddressResource($address), __('common.exceptions.address.created'), 201);
     }
 
     public function update(UpdateAddressRequest $request,$country, Address $address): JsonResponse
@@ -58,14 +58,14 @@ class AddressController extends Controller
 
         $address->update($data);
 
-        return ApiResponse::success(new AddressResource($address->fresh()), 'Address updated.');
+        return ApiResponse::success(new AddressResource($address->fresh()), __('common.exceptions.address.updated'));
     }
 
     public function destroy($country,Address $address): JsonResponse
     {
         if (!$this->addressService->canDelete($address)) {
             return ApiResponse::error(
-                'This address is in use and cannot be deleted.',
+                __('common.exceptions.address.in_use_cannot_delete'),
                 [],
                 409
             );
@@ -73,13 +73,13 @@ class AddressController extends Controller
 
         $address->delete();
 
-        return ApiResponse::success(null, 'Address deleted.');
+        return ApiResponse::success(null, __('common.exceptions.address.deleted'));
     }
 
     public function setDefault($country, Address $address): JsonResponse
     {
         $this->addressService->setDefault(auth('customer')->user(), $address);
 
-        return ApiResponse::success(new AddressResource($address->fresh()), 'Default address updated.');
+        return ApiResponse::success(new AddressResource($address->fresh()), __('common.exceptions.address.default_updated'));
     }
 }

@@ -43,7 +43,7 @@ class ListingController extends Controller
         $country = $this->resolveCountry($request);
 
         if (!$country) {
-            return ApiResponse::error('Country not found or not active.', [], 404);
+            return ApiResponse::error(__('customer_api.listing.country_not_found'), [], 404);
         }
 
         $perPage = (int) $request->query('per_page', 20);
@@ -75,14 +75,14 @@ class ListingController extends Controller
         $country = $this->resolveCountry($request);
 
         if (!$country) {
-            return ApiResponse::error('Country not found or not active.', [], 404);
+            return ApiResponse::error(__('customer_api.listing.country_not_found'), [], 404);
         }
 
         if ($isNawyNow) {
             $listing = $this->resolveAdminListing($identifier, $country);
 
             if (!$listing) {
-                return ApiResponse::error('Listing not found or not available in this country.', [], 404);
+                return ApiResponse::error(__('customer_api.listing.not_found'), [], 404);
             }
 
             return ApiResponse::success([
@@ -100,7 +100,7 @@ class ListingController extends Controller
         $listing = $this->identifiers->resolve($identifier, $type, $country);
 
         if (!$listing) {
-            return ApiResponse::error('Listing not found or not available in this country.', [], 404);
+            return ApiResponse::error(__('customer_api.listing.not_found'), [], 404);
         }
 
         $address = $this->resolveCustomerDefaultAddress($request);
@@ -132,7 +132,7 @@ class ListingController extends Controller
         $country = $this->resolveCountry($request);
 
         if (!$country) {
-            return ApiResponse::error('Country not found or not active.', [], 404);
+            return ApiResponse::error(__('customer_api.listing.country_not_found'), [], 404);
         }
 
         $listing = VendorListing::where('id', $id)
@@ -143,7 +143,7 @@ class ListingController extends Controller
             ->first();
 
         if (!$listing) {
-            return ApiResponse::error('Listing not found or not available in this country.', [], 404);
+            return ApiResponse::error(__('customer_api.listing.not_found'), [], 404);
         }
 
         $address = Address::with('city')->find($request->input('address_id'));
@@ -152,13 +152,13 @@ class ListingController extends Controller
             : null;
 
         if (!$zone) {
-            return ApiResponse::error('Unable to resolve a shipping zone for this address.', [], 422);
+            return ApiResponse::error(__('customer_api.listing.shipping_zone_unresolvable'), [], 422);
         }
 
         $method = ShippingMethod::find($request->input('shipping_method_id'));
 
         if (!$method) {
-            return ApiResponse::error('Shipping method not found.', [], 404);
+            return ApiResponse::error(__('customer_api.listing.shipping_method_not_found'), [], 404);
         }
 
         $weightGrams = $this->effectiveWeightGrams($listing);

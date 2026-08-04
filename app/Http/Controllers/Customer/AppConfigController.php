@@ -96,7 +96,7 @@ class AppConfigController extends Controller
             ->first();
 
         if (!$contextCountry || !$contextCountry->home_page_id) {
-            return response()->json(['success' => false, 'message' => 'Home page not found.'], 404);
+            return response()->json(['success' => false, 'message' => __('common.exceptions.app_config.home_page_not_found')], 404);
         }
 
         $page = Page::where('id', $contextCountry->home_page_id)
@@ -104,7 +104,7 @@ class AppConfigController extends Controller
             ->first();
 
         if (!$page) {
-            return response()->json(['success' => false, 'message' => 'Home page not found.'], 404);
+            return response()->json(['success' => false, 'message' => __('common.exceptions.app_config.home_page_not_found')], 404);
         }
 
         $customer = $request->user('customer');
@@ -113,7 +113,7 @@ class AppConfigController extends Controller
         $result = $this->renderer->renderPage($page, $country, $customer, (string) $sessionId);
 
         if (empty($result)) {
-            return response()->json(['success' => false, 'message' => 'Home page not found.'], 404);
+            return response()->json(['success' => false, 'message' => __('common.exceptions.app_config.home_page_not_found')], 404);
         }
 
         return response()->json(['success' => true, 'data' => $result]);

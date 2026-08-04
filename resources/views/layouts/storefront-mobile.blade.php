@@ -53,7 +53,7 @@
                    class="flex flex-col items-center justify-center gap-0.5 flex-1
                           {{ request()->is('/') ? 'text-primary-600' : 'text-gray-400' }}">
                     <x-heroicon name="home" class="w-6 h-6" />
-                    <span class="text-[10px] leading-none">الرئيسية</span>
+                    <span class="text-[10px] leading-none">{{ __('common.storefront_nav.home') }}</span>
                 </a>
 
                 {{-- Categories --}}
@@ -61,7 +61,7 @@
                    class="flex flex-col items-center justify-center gap-0.5 flex-1
                           {{ request()->is('*/categories*') ? 'text-primary-600' : 'text-gray-400' }}">
                     <x-heroicon name="squares-2x2" class="w-6 h-6" />
-                    <span class="text-[10px] leading-none">الأقسام</span>
+                    <span class="text-[10px] leading-none">{{ __('common.storefront_nav.categories') }}</span>
                 </a>
 
                 {{-- Now Nawy (replaces "Now Watch") --}}
@@ -77,7 +77,7 @@
                    class="flex flex-col items-center justify-center gap-0.5 flex-1
                           {{ request()->is('*/cart*') ? 'text-primary-600' : 'text-gray-400' }}">
                     <x-heroicon name="shopping-cart" class="w-6 h-6" />
-                    <span class="text-[10px] leading-none">السلة</span>
+                    <span class="text-[10px] leading-none">{{ __('common.storefront_nav.cart') }}</span>
                 </a>
 
                 {{-- Account --}}
@@ -85,7 +85,7 @@
                    class="flex flex-col items-center justify-center gap-0.5 flex-1
                           {{ request()->is('*/account*') ? 'text-primary-600' : 'text-gray-400' }}">
                     <x-heroicon name="user-circle" class="w-6 h-6" />
-                    <span class="text-[10px] leading-none">حسابي</span>
+                    <span class="text-[10px] leading-none">{{ __('common.storefront_nav.account') }}</span>
                 </a>
 
             </div>
@@ -117,7 +117,7 @@
             {{-- Info --}}
             <div class="flex-1 min-w-0">
                 <div class="text-xs font-semibold text-gray-900 truncate" x-text="channelName"></div>
-                <div class="text-[10px] text-gray-400" x-text="nowPlaying || (isLive ? 'بث مباشر' : 'يشغل')"></div>
+                <div class="text-[10px] text-gray-400" x-text="nowPlaying || (isLive ? @js(__('common.storefront_nav.live')) : @js(__('common.storefront_nav.playing')))"></div>
             </div>
 
             {{-- Live badge --}}

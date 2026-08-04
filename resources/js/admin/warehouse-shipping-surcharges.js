@@ -112,7 +112,7 @@ function initSurchargeModal() {
 
         try {
             await sendJson(updateUrl(window.WAREHOUSE_SURCHARGE_ROUTES.toggleActive, id), 'POST');
-            toast('Surcharge updated.');
+            toast(t('admin.warehouse_shipping_surcharges.surcharge_updated'));
             window.reloadDataTable('warehouse-shipping-surcharges-table');
         } catch (err) {
             toast(err.message ?? 'Failed to update.', 'error');

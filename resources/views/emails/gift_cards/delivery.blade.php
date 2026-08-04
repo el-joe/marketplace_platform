@@ -1,42 +1,41 @@
 <x-mail::message>
 @if($batch?->image_url)
-<img src="{{ $batch->image_url }}" alt="Noon Gift Card" style="max-width: 100%; border-radius: 8px;">
+<img src="{{ $batch->image_url }}" alt="{{ __('mail.gift_card_delivery.image_alt') }}" style="max-width: 100%; border-radius: 8px;">
 @endif
 
 @if($isGift)
-# You've received a gift card from {{ $buyerName }}!
+# {{ __('mail.gift_card_delivery.heading_gift', ['buyer_name' => $buyerName]) }}
 @else
-# Your gift card is ready!
+# {{ __('mail.gift_card_delivery.heading_self') }}
 @endif
 
-Hi {{ $recipientName }},
+{{ __('mail.gift_card_delivery.greeting', ['name' => $recipientName]) }}
 
 @if($isGift)
-{{ $buyerName }} sent you a Noon gift card. Here are your redemption details:
+{{ __('mail.gift_card_delivery.intro_gift', ['buyer_name' => $buyerName]) }}
 @else
-Here are your redemption details:
+{{ __('mail.gift_card_delivery.intro_self') }}
 @endif
 
 @if($isGift && $giftMessage)
 > {{ $giftMessage }}
 @endif
 
-**Code**
+**{{ __('mail.gift_card_delivery.code_label') }}**
 
 <div style="font-family: monospace; font-size: 24px; letter-spacing: 2px; font-weight: bold; margin: 12px 0;">
 {{ $card->code }}
 </div>
 
-**PIN:** {{ $plainPin }}
+**{{ __('mail.gift_card_delivery.pin_label') }}** {{ $plainPin }}
 
-**Amount:** {{ $purchase->currency_code }} {{ $purchase->amount_paid }}
+**{{ __('mail.gift_card_delivery.amount_label') }}** {{ $purchase->currency_code }} {{ $purchase->amount_paid }}
 
-**Expiry:** {{ $card->expires_at?->format('d M Y') }}
+**{{ __('mail.gift_card_delivery.expiry_label') }}** {{ $card->expires_at?->format('d M Y') }}
 
-**How to use**
+**{{ __('mail.gift_card_delivery.how_to_use_title') }}**
 
-Go to profile → Wallet → Redeem → Gift Card tab → enter your code and PIN.
+{{ __('mail.gift_card_delivery.how_to_use_body') }}
 
-Thanks,<br>
-{{ config('app.name') }}
+{!! __('mail.gift_card_delivery.thanks', ['app_name' => config('app.name')]) !!}
 </x-mail::message>

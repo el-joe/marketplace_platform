@@ -93,7 +93,7 @@ class NawyController extends Controller
     public function nawyCategories(): JsonResponse
     {
         if (!$this->appContext->isNawyNow()) {
-            return ApiResponse::error('This endpoint requires the nawy_now app context.', [], 400);
+            return ApiResponse::error(__('common.exceptions.nawy.context_required'), [], 400);
         }
 
         $categories = Category::query()
@@ -129,20 +129,20 @@ class NawyController extends Controller
     public function home(Request $request): JsonResponse
     {
         if (!$this->appContext->isNawyNow()) {
-            return ApiResponse::error('This endpoint requires the nawy_now app context.', [], 400);
+            return ApiResponse::error(__('common.exceptions.nawy.context_required'), [], 400);
         }
 
         $customer = $request->user('customer');
         $countryId = $customer?->country_id ?? $request->header('X-Country-Id');
 
         if (!$countryId) {
-            return ApiResponse::error('Unable to resolve country.', [], 400);
+            return ApiResponse::error(__('common.exceptions.nawy.country_unresolved'), [], 400);
         }
 
         $country = Country::find($countryId);
 
         if (!$country) {
-            return ApiResponse::error('Unable to resolve country.', [], 400);
+            return ApiResponse::error(__('common.exceptions.nawy.country_unresolved'), [], 400);
         }
 
         $appContextRow = AppContext::where('key', 'nawy_now')->where('is_active', true)->first();
@@ -191,7 +191,7 @@ class NawyController extends Controller
             ->find($id);
 
         if (!$listing) {
-            return ApiResponse::error('Listing not found or not available.', [], 404);
+            return ApiResponse::error(__('common.exceptions.nawy.listing_not_found'), [], 404);
         }
 
         return ApiResponse::success([

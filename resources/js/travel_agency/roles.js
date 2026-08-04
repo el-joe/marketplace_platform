@@ -27,7 +27,7 @@ if (roleForm) {
         errorBox?.classList.add('hidden');
 
         const origText = btn ? btn.textContent : '';
-        if (btn) { btn.disabled = true; btn.textContent = 'جارٍ الحفظ...'; }
+        if (btn) { btn.disabled = true; btn.textContent = window.t('travel_agency.roles.saving'); }
 
         try {
             const fd = new FormData(roleForm);
@@ -43,17 +43,17 @@ if (roleForm) {
             const data = await res.json().catch(() => ({}));
 
             if (res.ok && data.success) {
-                toast(isEdit ? 'تم حفظ الدور بنجاح' : 'تم إنشاء الدور بنجاح');
+                toast(isEdit ? window.t('travel_agency.roles.saved') : window.t('travel_agency.roles.created'));
                 if (!isEdit && data.redirect) {
                     window.location.href = data.redirect;
                 }
             } else {
-                const message = data.errors ? Object.values(data.errors).flat().join('\n') : (data.message || 'فشل الحفظ');
+                const message = data.errors ? Object.values(data.errors).flat().join('\n') : (data.message || window.t('travel_agency.roles.save_failed'));
                 if (errorBox) { errorBox.textContent = message; errorBox.classList.remove('hidden'); }
                 toast(message, false);
             }
         } catch (err) {
-            toast('حدث خطأ في الاتصال، حاول مرة أخرى', false);
+            toast(window.t('travel_agency.roles.connection_error'), false);
         } finally {
             if (btn) { btn.disabled = false; btn.textContent = origText; }
         }
@@ -66,7 +66,7 @@ document.querySelectorAll('.btn-delete-role').forEach((btn) => {
     btn.addEventListener('click', async function () {
         const id = btn.dataset.id;
         const name = btn.dataset.name;
-        if (!window.confirm(`هل أنت متأكد من حذف الدور "${name}"؟`)) return;
+        if (!window.confirm(window.t('travel_agency.roles.confirm_delete', { name }))) return;
 
         try {
             const res = await fetch(window.ROLES.destroyUrl.replace(':id', id), {
@@ -79,13 +79,13 @@ document.querySelectorAll('.btn-delete-role').forEach((btn) => {
             const data = await res.json().catch(() => ({}));
 
             if (res.ok && data.success) {
-                toast('تم حذف الدور بنجاح');
+                toast(window.t('travel_agency.roles.deleted'));
                 document.getElementById(`role-row-${id}`)?.remove();
             } else {
-                toast(data.message || 'فشل الحذف', false);
+                toast(data.message || window.t('travel_agency.roles.delete_failed'), false);
             }
         } catch (err) {
-            toast('حدث خطأ في الاتصال، حاول مرة أخرى', false);
+            toast(window.t('travel_agency.roles.connection_error'), false);
         }
     });
 });

@@ -69,7 +69,7 @@ class ReturnRequestController extends Controller
 
         return ApiResponse::success(
             new ReturnRequestResource($returnRequest->load(['order', 'items.orderItem'])),
-            'Return request submitted.',
+            __('customer_api.return_request.submitted'),
             201,
         );
     }
@@ -89,7 +89,7 @@ class ReturnRequestController extends Controller
             ->first();
 
         if (! $returnRequest) {
-            return ApiResponse::error('Return request not found.', [], 404);
+            return ApiResponse::error(__('customer_api.return_request.not_found'), [], 404);
         }
 
         return ApiResponse::success(new ReturnRequestResource($returnRequest));
@@ -105,7 +105,7 @@ class ReturnRequestController extends Controller
             ->first();
 
         if (! $returnRequest) {
-            return ApiResponse::error('Return request not found.', [], 404);
+            return ApiResponse::error(__('customer_api.return_request.not_found'), [], 404);
         }
 
         $message = $returnRequest->messages()->create([
@@ -117,6 +117,6 @@ class ReturnRequestController extends Controller
             'created_at' => now(),
         ]);
 
-        return ApiResponse::success(new ReturnRequestMessageResource($message), 'Message sent.', 201);
+        return ApiResponse::success(new ReturnRequestMessageResource($message), __('customer_api.return_request.message_sent'), 201);
     }
 }

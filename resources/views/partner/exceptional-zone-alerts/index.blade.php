@@ -1,20 +1,19 @@
 @extends('layouts.partner')
 
-@section('title', 'Exceptional Shipping Zones')
+@section('title', __('partner.exceptional_zone_alerts.page_title'))
 
 @section('content')
 
     <div class="mb-6 flex items-start justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Exceptional Shipping Zones</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('partner.exceptional_zone_alerts.title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">
-                Alert the admin when your carrier charges more than the standard customer rate for specific cities.
-                Admin will configure a cost-split subsidy if approved.
+                {{ __('partner.exceptional_zone_alerts.subtitle') }}
             </p>
         </div>
         <button type="button" onclick="openAlertModal()"
                 class="shrink-0 px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 font-medium">
-            Alert Admin
+            {{ __('partner.exceptional_zone_alerts.alert_admin') }}
         </button>
     </div>
 
@@ -32,18 +31,18 @@
 
     @if($myAlerts->isNotEmpty())
         <div class="mt-4">
-            <h2 class="text-base font-semibold text-gray-900 mb-4">Alert History</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-4">{{ __('partner.exceptional_zone_alerts.alert_history') }}</h2>
             <x-card padding="none">
                 <table class="table-base w-full">
                     <thead>
                         <tr>
-                            <th>Warehouse</th>
-                            <th>Cities</th>
-                            <th>Carrier</th>
-                            <th>Reported Fee</th>
-                            <th>Status</th>
-                            <th>Admin Note</th>
-                            <th>Date</th>
+                            <th>{{ __('partner.exceptional_zone_alerts.table_warehouse') }}</th>
+                            <th>{{ __('partner.exceptional_zone_alerts.table_cities') }}</th>
+                            <th>{{ __('partner.exceptional_zone_alerts.table_carrier') }}</th>
+                            <th>{{ __('partner.exceptional_zone_alerts.table_reported_fee') }}</th>
+                            <th>{{ __('partner.exceptional_zone_alerts.table_status') }}</th>
+                            <th>{{ __('partner.exceptional_zone_alerts.table_admin_note') }}</th>
+                            <th>{{ __('partner.exceptional_zone_alerts.table_date') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -51,7 +50,7 @@
                             <tr>
                                 <td>{{ $alert->warehouse->name ?? '—' }}</td>
                                 <td class="text-gray-500 text-xs">{{ count($alert->city_ids ?? []) }} {{ Str::plural('city', count($alert->city_ids ?? [])) }}</td>
-                                <td class="text-gray-500">{{ $alert->carrier->name ?? 'All carriers' }}</td>
+                                <td class="text-gray-500">{{ $alert->carrier->name ?? __('partner.exceptional_zone_alerts.all_carriers') }}</td>
                                 <td>{{ $alert->reported_carrier_fee }} {{ $alert->currency }}</td>
                                 <td>
                                     <span class="px-2 py-0.5 rounded-full text-xs font-medium
@@ -63,9 +62,9 @@
                                     @if($alert->isPending())
                                         <form method="POST" action="{{ route('partner.exceptional-zone-alerts.cancel', $alert) }}" class="inline">
                                             @csrf
-                                            <button type="submit" onclick="return confirm('Cancel this alert?')"
+                                            <button type="submit" onclick="return confirm(@js(__('partner.exceptional_zone_alerts.cancel_confirm')))"
                                                     class="ml-1 text-xs text-red-500 hover:underline">
-                                                Cancel
+                                                {{ __('partner.exceptional_zone_alerts.cancel') }}
                                             </button>
                                         </form>
                                     @endif
@@ -81,15 +80,15 @@
         </div>
     @else
         <div class="text-center py-12 text-gray-400">
-            <p class="text-lg mb-1">No alerts yet</p>
-            <p class="text-sm">Use "Alert Admin" above if a carrier is charging you more than the customer rate for some cities.</p>
+            <p class="text-lg mb-1">{{ __('partner.exceptional_zone_alerts.no_alerts_title') }}</p>
+            <p class="text-sm">{{ __('partner.exceptional_zone_alerts.no_alerts_hint') }}</p>
         </div>
     @endif
 
     <div id="alertModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-start justify-between mb-4">
-                <h3 class="font-bold text-lg">Alert Admin: Exceptional Zone</h3>
+                <h3 class="font-bold text-lg">{{ __('partner.exceptional_zone_alerts.modal_title') }}</h3>
                 <button type="button" onclick="closeAlertModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
             </div>
 
@@ -98,12 +97,12 @@
 
                 <div class="mb-4">
                     <label class="text-sm font-medium text-gray-700">
-                        Warehouse <span class="text-red-500">*</span>
+                        {{ __('partner.exceptional_zone_alerts.warehouse_label') }} <span class="text-red-500">*</span>
                     </label>
                     <select name="warehouse_id" id="alertWarehouseId" required
                             class="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                             onchange="loadCitiesForWarehouse(this.value)">
-                        <option value="">Select a warehouse&hellip;</option>
+                        <option value="">{{ __('partner.exceptional_zone_alerts.select_warehouse_placeholder') }}</option>
                         @foreach($warehouses as $wh)
                             <option value="{{ $wh->id }}">{{ $wh->name }} ({{ $wh->code }})</option>
                         @endforeach
@@ -112,19 +111,19 @@
 
                 <div class="mb-4">
                     <label class="text-sm font-medium text-gray-700">
-                        Cities <span class="text-red-500">*</span>
+                        {{ __('partner.exceptional_zone_alerts.cities_label') }} <span class="text-red-500">*</span>
                     </label>
                     <div id="alertCitiesList" class="mt-1 max-h-48 overflow-y-auto border rounded-lg p-2 text-sm text-gray-400">
-                        Select a warehouse first.
+                        {{ __('partner.exceptional_zone_alerts.select_warehouse_first') }}
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label class="text-sm font-medium text-gray-700">
-                        Carrier <span class="text-gray-400 font-normal">(leave empty = applies to all carriers)</span>
+                        {{ __('partner.exceptional_zone_alerts.carrier_label') }} <span class="text-gray-400 font-normal">{{ __('partner.exceptional_zone_alerts.carrier_optional_hint') }}</span>
                     </label>
                     <select name="carrier_id" id="alertCarrierId" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
-                        <option value="">All carriers</option>
+                        <option value="">{{ __('partner.exceptional_zone_alerts.all_carriers') }}</option>
                         @foreach($carriers as $carrier)
                             <option value="{{ $carrier->id }}">{{ $carrier->name }}</option>
                         @endforeach
@@ -133,11 +132,11 @@
 
                 <div class="mb-4">
                     <label class="text-sm font-medium text-gray-700">
-                        Carrier Fee You Pay <span class="text-red-500">*</span>
+                        {{ __('partner.exceptional_zone_alerts.carrier_fee_label') }} <span class="text-red-500">*</span>
                     </label>
                     <div class="flex gap-2 mt-1">
                         <input type="number" name="reported_carrier_fee" required min="1"
-                               class="flex-1 border rounded-lg px-3 py-2 text-sm" placeholder="e.g. 3000 for 3 OMR">
+                               class="flex-1 border rounded-lg px-3 py-2 text-sm" placeholder="{{ __('partner.exceptional_zone_alerts.carrier_fee_placeholder') }}">
                         <select name="currency" required class="w-28 border rounded-lg px-3 py-2 text-sm">
                             @foreach(['SAR','AED','OMR','KWD','QAR','BHD','EGP','JOD'] as $c)
                                 <option value="{{ $c }}">{{ $c }}</option>
@@ -145,27 +144,27 @@
                         </select>
                     </div>
                     <p class="text-xs text-gray-400 mt-1">
-                        Enter the BIGINT value — base currency units, no decimals (e.g. 3000 = 3 OMR if currency is OMR).
+                        {{ __('partner.exceptional_zone_alerts.carrier_fee_hint') }}
                     </p>
                 </div>
 
                 <div class="mb-5">
                     <label class="text-sm font-medium text-gray-700">
-                        Note to Admin <span class="text-gray-400 font-normal">(optional)</span>
+                        {{ __('partner.exceptional_zone_alerts.note_to_admin_label') }} <span class="text-gray-400 font-normal">{{ __('partner.exceptional_zone_alerts.optional') }}</span>
                     </label>
                     <textarea name="vendor_note" rows="3" maxlength="1000"
                               class="mt-1 w-full border rounded-lg px-3 py-2 text-sm resize-none"
-                              placeholder="Expected monthly orders to these cities, why it matters to you, etc."></textarea>
+                              placeholder="{{ __('partner.exceptional_zone_alerts.note_placeholder') }}"></textarea>
                 </div>
 
                 <div class="flex gap-3">
                     <button type="button" onclick="closeAlertModal()"
                             class="flex-1 border rounded-lg py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        Cancel
+                        {{ __('partner.exceptional_zone_alerts.cancel') }}
                     </button>
                     <button type="submit"
                             class="flex-1 bg-orange-500 text-white rounded-lg py-2 text-sm font-medium hover:bg-orange-600">
-                        Submit Alert
+                        {{ __('partner.exceptional_zone_alerts.submit_alert') }}
                     </button>
                 </div>
             </form>
@@ -177,6 +176,12 @@
 @push('scripts')
     <script type="module">
         const citiesUrl = @json(route('partner.exceptional-zone-alerts.cities-for-warehouse'));
+        const i18n = {
+            selectWarehouseFirst: @json(__('partner.exceptional_zone_alerts.select_warehouse_first')),
+            loadingCities: @json(__('partner.exceptional_zone_alerts.loading_cities')),
+            noActiveCities: @json(__('partner.exceptional_zone_alerts.no_active_cities')),
+            noZoneAssigned: @json(__('partner.exceptional_zone_alerts.no_zone_assigned')),
+        };
 
         window.openAlertModal = function () {
             const modal = document.getElementById('alertModal');
@@ -193,11 +198,11 @@
         window.loadCitiesForWarehouse = async function (warehouseId) {
             const list = document.getElementById('alertCitiesList');
             if (!warehouseId) {
-                list.innerHTML = 'Select a warehouse first.';
+                list.innerHTML = i18n.selectWarehouseFirst;
                 return;
             }
 
-            list.textContent = 'Loading cities…';
+            list.textContent = i18n.loadingCities;
 
             const res = await fetch(citiesUrl + '?warehouse_id=' + encodeURIComponent(warehouseId), {
                 headers: { 'Accept': 'application/json' },
@@ -205,12 +210,12 @@
             const data = await res.json();
 
             if (!data.cities || data.cities.length === 0) {
-                list.innerHTML = '<p class="text-gray-400">No active cities found for this warehouse\'s country.</p>';
+                list.innerHTML = '<p class="text-gray-400">' + i18n.noActiveCities + '</p>';
                 return;
             }
 
             list.innerHTML = data.cities.map(function (city) {
-                const label = city.name_en + (city.has_zone ? '' : ' (no zone assigned)');
+                const label = city.name_en + (city.has_zone ? '' : ' ' + i18n.noZoneAssigned);
                 return '<label class="flex items-center gap-2 py-1 text-sm">'
                     + '<input type="checkbox" name="city_ids[]" value="' + city.id + '">'
                     + '<span>' + label + '</span>'

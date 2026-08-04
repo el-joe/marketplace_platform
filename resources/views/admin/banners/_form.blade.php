@@ -148,7 +148,7 @@
                             <img
                                 id="desktop-preview-img"
                                 src="{{ $desktopImage->full_path }}"
-                                alt="Desktop"
+                                alt="{{ __('admin.banners.desktop_alt') }}"
                                 class="max-w-full max-h-full object-contain" />
                             <button
                                 type="button"
@@ -186,7 +186,7 @@
                             <img
                                 id="mobile-preview-img"
                                 src="{{ $mobileImage->full_path }}"
-                                alt="Mobile"
+                                alt="{{ __('admin.banners.mobile_alt') }}"
                                 class="max-w-full max-h-full object-contain" />
                             <button
                                 type="button"

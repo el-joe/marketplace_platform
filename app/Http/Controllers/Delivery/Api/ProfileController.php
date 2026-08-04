@@ -35,7 +35,7 @@ class ProfileController extends Controller
 
         $agent->update($request->only(['vehicle_type', 'vehicle_plate']));
 
-        return ApiResponse::success(new DeliveryAgentProfileResource($agent), 'Profile updated.');
+        return ApiResponse::success(new DeliveryAgentProfileResource($agent), __('delivery.messages.profile.updated'));
     }
 
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
@@ -45,7 +45,7 @@ class ProfileController extends Controller
 
         $agent->update(['password' => Hash::make($request->password)]);
 
-        return ApiResponse::success(null, 'Password updated successfully.');
+        return ApiResponse::success(null, __('delivery.messages.profile.password_updated'));
     }
 
     public function documents(): JsonResponse
@@ -61,7 +61,7 @@ class ProfileController extends Controller
     public function reuploadDocument(ReuploadDocumentRequest $request, string $type): JsonResponse
     {
         if (!in_array($type, array_column(DeliveryAgentDocumentType::cases(), 'value'), true)) {
-            return ApiResponse::error('Invalid document type.', [], 422);
+            return ApiResponse::error(__('delivery.messages.profile.invalid_document_type'), [], 422);
         }
 
         /** @var DeliveryAgent $agent */
@@ -80,6 +80,6 @@ class ProfileController extends Controller
             ]
         );
 
-        return ApiResponse::success(null, 'Document submitted for review.');
+        return ApiResponse::success(null, __('delivery.messages.profile.document_submitted'));
     }
 }

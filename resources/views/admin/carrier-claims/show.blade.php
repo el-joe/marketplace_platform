@@ -80,7 +80,7 @@
                             <a href="{{ Storage::url($file) }}" target="_blank"
                                class="block rounded-lg overflow-hidden border border-gray-200 hover:border-primary-400 transition">
                                 @if(Str::endsWith($file, ['.jpg','.jpeg','.png','.webp']))
-                                    <img src="{{ Storage::url($file) }}" class="w-full h-28 object-cover" alt="Evidence">
+                                    <img src="{{ Storage::url($file) }}" class="w-full h-28 object-cover" alt="{{ __('admin.carriers_section.evidence_alt') }}">
                                 @else
                                     <div class="h-28 flex items-center justify-center bg-gray-50 text-gray-400 text-xs">
                                         {{ basename($file) }}

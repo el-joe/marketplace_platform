@@ -414,7 +414,7 @@ class AdminGiftCardController extends Controller
             'balance_after' => $card->remaining_balance,
             'type' => 'admin_adjustment',
             'performed_by_admin_id' => Auth::guard('admin')->id(),
-            'notes' => 'Admin blocked card',
+            'notes' => __('admin.gift_cards_section.admin_blocked_card_note'),
         ]);
 
         return back()->with('success', __('admin.gift_cards_section.card_blocked'));
