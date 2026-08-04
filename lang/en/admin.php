@@ -9423,6 +9423,8 @@ return [
         'payment_electronic_only' => 'Electronic only',
         'payment_both'       => 'COD + Electronic',
         'inherits_category_default' => 'Inherits category default:',
+        'customer_url'        => 'Customer URL',
+        'copy_url'            => 'Copy URL',
         'available_shipping_methods_dt' => 'Available Shipping Methods',
         'no_shipping_methods_available' => "No methods available for this listing's category/country.",
         'default_tag'        => '(default)',

@@ -459,6 +459,23 @@
     </div>
 @endsection
 
+@php
+    $shippingFormData = optional($listing->marketplaceShippingRule)->only([
+        'requires_special_vehicle', 'requires_refrigeration', 'max_weight_kg',
+        'max_dimensions_cm', 'special_handling_notes', 'commission_type',
+        'commission_value', 'extra_delivery_fee',
+    ]) ?? [
+        'requires_special_vehicle' => false,
+        'requires_refrigeration' => false,
+        'max_weight_kg' => null,
+        'max_dimensions_cm' => null,
+        'special_handling_notes' => null,
+        'commission_type' => 'fixed',
+        'commission_value' => 0,
+        'extra_delivery_fee' => 0,
+    ];
+@endphp
+
 @push('scripts')
     <script>
         function adminListingShow(config) {
@@ -470,20 +487,7 @@
                 savingStock: false,
                 savingShippingRule: false,
                 adjustForm: { warehouse_id: '', adjustment: null, reason: '' },
-                shippingForm: @json(optional($listing->marketplaceShippingRule)->only([
-                    'requires_special_vehicle', 'requires_refrigeration', 'max_weight_kg',
-                    'max_dimensions_cm', 'special_handling_notes', 'commission_type',
-                    'commission_value', 'extra_delivery_fee',
-                ]) ?? [
-                    'requires_special_vehicle' => false,
-                    'requires_refrigeration' => false,
-                    'max_weight_kg' => null,
-                    'max_dimensions_cm' => null,
-                    'special_handling_notes' => null,
-                    'commission_type' => 'fixed',
-                    'commission_value' => 0,
-                    'extra_delivery_fee' => 0,
-                ]),
+                shippingForm: @json($shippingFormData),
 
                 openAdjustStock() {
                     this.adjustForm = { warehouse_id: '', adjustment: null, reason: '' };

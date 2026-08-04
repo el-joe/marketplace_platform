@@ -9382,6 +9382,8 @@ return [
         'payment_electronic_only' => 'إلكتروني فقط',
         'payment_both'       => 'الدفع عند الاستلام + إلكتروني',
         'inherits_category_default' => 'يرث الإعداد الافتراضي للفئة:',
+        'customer_url'        => 'رابط العميل',
+        'copy_url'            => 'نسخ الرابط',
         'available_shipping_methods_dt' => 'طرق الشحن المتاحة',
         'no_shipping_methods_available' => 'لا توجد طرق متاحة لفئة/بلد هذه القائمة.',
         'default_tag'        => '(افتراضي)',
