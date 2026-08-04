@@ -549,6 +549,31 @@
         </div>
     </div>
 
+    {{-- ─── Inventory Movements Modal ────────────────────────────────────────── --}}
+    <div id="movements-modal" class="fixed inset-0 z-50 hidden bg-black/40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900">{{ __('admin.warehouses_section.recent_movements_title') }}</h3>
+                <button type="button" id="close-movements-modal" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            </div>
+            <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
+                            <th class="pb-3 pr-4">{{ __('admin.warehouses_section.time_column') }}</th>
+                            <th class="pb-3 pr-4">{{ __('admin.warehouses_section.type_column') }}</th>
+                            <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.delta_column') }}</th>
+                            <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.after_column') }}</th>
+                            <th class="pb-3 pr-4">{{ __('admin.warehouses_section.reason_column') }}</th>
+                            <th class="pb-3">{{ __('admin.warehouses_section.by_column') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movements-modal-body" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     {{-- ─── Add Vendor Limit Modal ──────────────────────────────────────────── --}}
     @if($warehouse->owner_vendor_id === null)
         <div id="vendor-limit-modal" class="fixed inset-0 z-50 hidden bg-black/40 flex items-center justify-center p-4">

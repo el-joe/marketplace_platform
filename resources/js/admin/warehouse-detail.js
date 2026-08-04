@@ -172,6 +172,56 @@ function initAdjustModal() {
     });
 }
 
+// ─── Inventory Movements Modal ─────────────────────────────────────────────────
+
+function initMovementsModal() {
+    const modal = document.getElementById('movements-modal');
+    const body = document.getElementById('movements-modal-body');
+
+    if (!modal) return;
+
+    const closeModal = () => modal.classList.add('hidden');
+    document.getElementById('close-movements-modal')?.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+    document.addEventListener('click', async e => {
+        const btn = e.target.closest('.js-view-movements');
+        if (!btn) return;
+
+        body.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-sm text-gray-400">${t('shared.loading')}</td></tr>`;
+        modal.classList.remove('hidden');
+
+        try {
+            const res = await fetch(btn.dataset.url, {
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            });
+            const json = await res.json();
+            if (!res.ok) throw json;
+
+            const movements = json.data ?? [];
+            if (!movements.length) {
+                body.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-sm text-gray-400">${window.TRANSLATIONS?.noMovements ?? ''}</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = movements.map(mv => {
+                const deltaClass = mv.quantity_delta > 0 ? 'text-green-600' : 'text-red-600';
+                const deltaSign = mv.quantity_delta > 0 ? '+' : '';
+                return `<tr>
+                    <td class="py-2.5 pr-4 text-xs text-gray-400 whitespace-nowrap">${new Date(mv.created_at).toLocaleString()}</td>
+                    <td class="py-2.5 pr-4 text-xs font-mono">${mv.movement_type ?? ''}</td>
+                    <td class="py-2.5 pr-4 text-end tabular-nums font-medium ${deltaClass}">${deltaSign}${mv.quantity_delta}</td>
+                    <td class="py-2.5 pr-4 text-end tabular-nums text-gray-600">${mv.quantity_after}</td>
+                    <td class="py-2.5 pr-4 text-xs text-gray-500 max-w-xs truncate">${mv.reason ?? '—'}</td>
+                    <td class="py-2.5 text-xs text-gray-400">${mv.created_by?.name ?? '—'}</td>
+                </tr>`;
+            }).join('');
+        } catch (err) {
+            body.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-sm text-red-500">${window.TRANSLATIONS?.requestFailed ?? ''}</td></tr>`;
+        }
+    });
+}
+
 // ─── Vendor Limits Modal ──────────────────────────────────────────────────────
 
 function initVendorLimitModal() {
@@ -288,5 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initOverageFeesTable();
     initToggleActive();
     initAdjustModal();
+    initMovementsModal();
     initVendorLimitModal();
 });

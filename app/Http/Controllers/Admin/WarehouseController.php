@@ -502,7 +502,7 @@ class WarehouseController extends Controller
                     : '<span class="text-gray-300">—</span>',
                 'actions' => '<div class="flex items-center gap-1">'
                     . '<button class="btn btn-xs btn-secondary js-adjust-inventory" data-url="' . $adjustUrl . '" data-id="' . $inv->id . '">Adjust</button>'
-                    . '<a href="' . $movementsUrl . '" class="btn btn-xs btn-ghost">Movements</a>'
+                    . '<button class="btn btn-xs btn-ghost js-view-movements" data-url="' . $movementsUrl . '">Movements</button>'
                     . '</div>',
             ];
         });
