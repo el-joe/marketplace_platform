@@ -108,6 +108,8 @@ class PermissionSeeder extends Seeder
             'ad_campaigns.manage',
             'vendor_change_requests.view',
             'vendor_change_requests.approve',
+            'vendor_product_certifications.view',
+            'vendor_product_certifications.approve',
             'travel_agency_change_requests.view',
             'travel_agency_change_requests.approve',
             'pages.view',

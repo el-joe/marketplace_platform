@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\VendorSectionLockController;
 use App\Http\Controllers\Admin\VendorChangeRequestController;
+use App\Http\Controllers\Admin\VendorProductCertificationController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
@@ -534,6 +535,22 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     Route::post('vendor-change-requests/{changeRequest}/reject', [VendorChangeRequestController::class, 'reject'])
         ->name('vendor-change-requests.reject')
         ->middleware('admin.permission:vendor_change_requests.approve');
+
+    // ─── Vendor Product Certifications ──────────────────────────────────────────
+    Route::prefix('vendor-product-certifications')->name('vendor-product-certifications.')->middleware('admin.permission:vendor_product_certifications.view')->group(function () {
+        Route::get('/', [VendorProductCertificationController::class, 'index'])->name('index');
+        Route::get('/{id}', [VendorProductCertificationController::class, 'show'])->name('show');
+        Route::get('/{id}/download', [VendorProductCertificationController::class, 'download'])->name('download')->middleware('signed');
+        Route::post('/bulk-approve', [VendorProductCertificationController::class, 'bulkApprove'])
+            ->name('bulk-approve')
+            ->middleware('admin.permission:vendor_product_certifications.approve');
+        Route::post('/{id}/approve', [VendorProductCertificationController::class, 'approve'])
+            ->name('approve')
+            ->middleware('admin.permission:vendor_product_certifications.approve');
+        Route::post('/{id}/reject', [VendorProductCertificationController::class, 'reject'])
+            ->name('reject')
+            ->middleware('admin.permission:vendor_product_certifications.approve');
+    });
 
     // ─── Geography ───────────────────────────────────────────────────────────────
 

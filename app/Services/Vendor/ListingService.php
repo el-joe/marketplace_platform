@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\SubOrder;
 use App\Models\VendorListing;
 use App\Models\Vendor;
+use App\Services\ListingCertificationGate;
 use App\Services\ListingShippingResolver;
 use Illuminate\Validation\ValidationException;
 
@@ -91,6 +92,10 @@ class ListingService
 
     public function updateStatus(VendorListing $listing, string $status): VendorListing
     {
+        if ($status === 'active') {
+            ListingCertificationGate::assertCanGoLive($listing);
+        }
+
         $listing->update(['status' => $status]);
 
         return $listing->fresh();

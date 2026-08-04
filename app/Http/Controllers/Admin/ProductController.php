@@ -18,6 +18,7 @@ use App\Models\ProductSpecification;
 use App\Models\ProductVariant;
 use App\Models\ProductVariantAttribute;
 use App\Models\VendorListing;
+use App\Models\VendorProductCertification;
 use App\Services\ProductService;
 use App\Services\VariantSlugService;
 use App\Traits\HasDataTable;
@@ -337,6 +338,12 @@ class ProductController extends Controller
             ->values()
             ->toArray();
 
+        $vendorCertCounts = VendorProductCertification::where('product_id', $product)
+            ->selectRaw('country_id, status, count(*) as total')
+            ->groupBy('country_id', 'status')
+            ->get()
+            ->groupBy('country_id');
+
         $highlights = ProductHighlight::query()
             ->where('product_id', $product)
             ->orderBy('position')
@@ -357,6 +364,7 @@ class ProductController extends Controller
             'variants' => $variants,
             'images' => $images,
             'countrySettings' => $countrySettings,
+            'vendorCertCounts' => $vendorCertCounts,
             'categoryAttributes' => $categoryAttributes,
             'existingAttrValues' => $existingAttrValueIds,
             'highlights' => $highlights,

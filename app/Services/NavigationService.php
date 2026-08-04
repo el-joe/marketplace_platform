@@ -287,6 +287,13 @@ class NavigationService
                         'badge' => $this->cachedBadge('pending_vendor_change_requests', fn() => $this->countPendingVendorChangeRequests()),
                     ],
                     [
+                        'label' => __('admin.nav.product_certifications'),
+                        'route' => 'admin.vendor-product-certifications.index',
+                        'icon' => 'document-check',
+                        'permission' => 'vendor_product_certifications.view',
+                        'badge' => $this->cachedBadge('pending_product_certifications', fn() => $this->countPendingProductCertifications()),
+                    ],
+                    [
                         'label' => __('admin.nav.acquisition_commissions'),
                         'route' => 'admin.acquisition-commissions.index',
                         'icon' => 'user-plus',
@@ -1024,6 +1031,18 @@ class NavigationService
         }
         try {
             return (int) \App\Models\Vendor::query()->where('global_status', VendorGlobalStatus::Pending->value)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingProductCertifications(): int
+    {
+        if (!class_exists(\App\Models\VendorProductCertification::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\VendorProductCertification::query()->where('status', 'pending')->count();
         } catch (\Throwable) {
             return 0;
         }

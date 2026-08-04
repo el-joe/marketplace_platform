@@ -10,6 +10,7 @@ use App\Http\Controllers\Partner\OrderController;
 use App\Http\Controllers\Partner\FlashSaleController;
 use App\Http\Controllers\Partner\PayoutController;
 use App\Http\Controllers\Partner\PerformanceController;
+use App\Http\Controllers\Partner\ProductCertificationController;
 use App\Http\Controllers\Partner\ProfileController;
 use App\Http\Controllers\Partner\DisputeController;
 use App\Http\Controllers\Partner\SupportController;
@@ -159,6 +160,13 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::put('/{id}',                'update')->name('update');
         Route::post('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
         Route::delete('/{id}',             'destroy')->name('destroy');
+    });
+
+    // ── Product Certifications ───────────────────────────────────────────────
+    Route::prefix('product-certifications')->name('product-certifications.')->controller(ProductCertificationController::class)->group(function () {
+        Route::get('/',                'index')->name('index');
+        Route::post('/',               'store')->name('store');
+        Route::post('/{id}/replace',   'replace')->name('replace');
     });
 
     // ── Bank Accounts module ─────────────────────────────────────────────────

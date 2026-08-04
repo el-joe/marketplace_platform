@@ -21,6 +21,7 @@ use App\Models\PlatformShippingSubsidy;
 use App\Models\ShippingZone;
 use App\Notifications\Admin\ListingResubmittedNotification;
 use App\Models\Vendor;
+use App\Services\ListingCertificationGate;
 use App\Services\ListingShippingResolver;
 use App\Services\MarketerCampaignService;
 use App\Services\ShippingWeightService;
@@ -717,6 +718,16 @@ class ListingController extends Controller
         // Established vendor (> 10 orders) gets active status directly
         $status = ($vendor->total_orders >= 10) ? VendorListingStatus::Active->value : VendorListingStatus::PendingReview->value;
 
+        if ($status === VendorListingStatus::Active->value) {
+            $productIdForCertCheck = ProductVariant::find($resolvedVariantId)?->product_id;
+
+            try {
+                ListingCertificationGate::assertCanGoLiveFor($vendorId, $productIdForCertCheck, $request->country_id);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $status = VendorListingStatus::PendingReview->value;
+            }
+        }
+
         $currency = Country::find($request->country_id)?->currency_code ?? '';
 
         // Pre-fill dimensions from the product variant when the vendor left them blank
@@ -862,7 +873,24 @@ class ListingController extends Controller
             ->orderBy('business_name')
             ->get(['id', 'business_name', 'marketer_type']);
 
-        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions', 'availableShippingMethods', 'marketerVendors'));
+        $productId = $listing->productVariant->product_id;
+        $requiresLocalCert = \App\Models\ProductCountry::where('product_id', $productId)
+            ->where('country_id', $listing->country_id)
+            ->where('requires_local_cert', 1)
+            ->exists();
+
+        $hasApprovedCert = $requiresLocalCert && \App\Models\VendorProductCertification::where('vendor_id', $vendor->id)
+            ->where('product_id', $productId)
+            ->where('country_id', $listing->country_id)
+            ->where('status', 'approved')
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->exists();
+
+        $missingCertification = $requiresLocalCert && ! $hasApprovedCert;
+
+        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions', 'availableShippingMethods', 'marketerVendors', 'missingCertification'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1074,6 +1102,15 @@ class ListingController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'لا يمكن تفعيل القائمة لأن المخزون المتاح صفر.',
+                ], 422);
+            }
+
+            try {
+                ListingCertificationGate::assertCanGoLive($listing);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'هذا المنتج يتطلب شهادة اعتماد محلية معتمدة في هذا البلد قبل تفعيل القائمة. يرجى رفع الشهادة من قسم شهادات المنتجات.',
                 ], 422);
             }
         }

@@ -2373,4 +2373,33 @@ return [
             'cancelled' => 'Alert cancelled.',
         ],
     ],
+
+    'product_certifications' => [
+        'index' => [
+            'title' => 'Product Certifications',
+            'subtitle' => 'Upload local certifications required for your listings to go live.',
+            'banner' => 'Some of your listings require product certifications. Listings cannot go live until certifications are approved.',
+            'table_product' => 'Product',
+            'table_country' => 'Country',
+            'table_status' => 'Status',
+            'table_cert_name' => 'Cert Name',
+            'table_uploaded_at' => 'Uploaded At',
+            'table_actions' => 'Actions',
+            'status_pending' => 'Under Review',
+            'status_approved' => 'Approved',
+            'status_rejected' => 'Rejected',
+            'status_missing' => 'Required — Not Uploaded',
+            'upload' => 'Upload Certificate',
+            'replace' => 'Replace',
+            'pending_review' => 'Pending Review',
+            'modal_title' => 'Upload Certificate',
+            'cert_name_label' => 'Certificate Name',
+            'file_label' => 'Certificate File',
+            'submit' => 'Submit',
+            'cancel' => 'Cancel',
+        ],
+        'messages' => [
+            'uploaded' => 'Certificate uploaded and is now pending review.',
+        ],
+    ],
 ];

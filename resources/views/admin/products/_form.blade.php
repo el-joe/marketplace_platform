@@ -677,6 +677,19 @@
                                         class="rounded text-primary-600 border-gray-300 w-4 h-4"
                                         {{ $cCert ? 'checked' : '' }}
                                     />
+                                    @if($cCert)
+                                        @php
+                                            $counts = ($vendorCertCounts ?? collect())[$country->id] ?? collect();
+                                            $approved = $counts->where('status', 'approved')->sum('total');
+                                            $pending  = $counts->where('status', 'pending')->sum('total');
+                                            $rejected = $counts->where('status', 'rejected')->sum('total');
+                                        @endphp
+                                        <div class="text-xs mt-1 space-x-2">
+                                            @if($approved) <span class="text-green-600">✓ {{ $approved }} approved</span> @endif
+                                            @if($pending)  <span class="text-yellow-600">⏳ {{ $pending }} pending</span>  @endif
+                                            @if($rejected) <span class="text-red-600">✗ {{ $rejected }} rejected</span>   @endif
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                             @empty

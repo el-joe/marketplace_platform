@@ -2373,4 +2373,33 @@ return [
             'cancelled' => 'تم إلغاء التنبيه.',
         ],
     ],
+
+    'product_certifications' => [
+        'index' => [
+            'title' => 'شهادات المنتجات',
+            'subtitle' => 'قم برفع الشهادات المحلية المطلوبة حتى تظهر منتجاتك للبيع.',
+            'banner' => 'بعض منتجاتك تتطلب شهادات محلية. لن تظهر المنتجات للبيع حتى تتم الموافقة على الشهادات.',
+            'table_product' => 'المنتج',
+            'table_country' => 'الدولة',
+            'table_status' => 'الحالة',
+            'table_cert_name' => 'اسم الشهادة',
+            'table_uploaded_at' => 'تاريخ الرفع',
+            'table_actions' => 'إجراءات',
+            'status_pending' => 'قيد المراجعة',
+            'status_approved' => 'معتمدة',
+            'status_rejected' => 'مرفوضة',
+            'status_missing' => 'مطلوبة — لم يتم الرفع',
+            'upload' => 'رفع شهادة',
+            'replace' => 'استبدال',
+            'pending_review' => 'قيد المراجعة',
+            'modal_title' => 'رفع شهادة',
+            'cert_name_label' => 'اسم الشهادة',
+            'file_label' => 'ملف الشهادة',
+            'submit' => 'إرسال',
+            'cancel' => 'إلغاء',
+        ],
+        'messages' => [
+            'uploaded' => 'تم رفع الشهادة وهي الآن قيد المراجعة.',
+        ],
+    ],
 ];

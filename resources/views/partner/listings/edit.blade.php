@@ -34,6 +34,14 @@
         </div>
     @endif
 
+    @if($missingCertification)
+        <div class="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded mb-4">
+            ⚠ هذا المنتج يتطلب شهادة اعتماد محلية في {{ $listing->country->name_ar ?? $listing->country->name_en }}.
+            لا يمكن تفعيل هذه القائمة حتى تتم الموافقة على شهادتك.
+            <a href="{{ route('partner.product-certifications.index') }}" class="underline font-semibold">رفع الشهادة &rarr;</a>
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {{-- LEFT: Product info (read-only) --}}

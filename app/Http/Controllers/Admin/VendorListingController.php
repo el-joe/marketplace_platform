@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\ShippingMethod;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
+use App\Services\ListingCertificationGate;
 use App\Services\ShippingMethodResolverService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
@@ -166,6 +167,10 @@ class VendorListingController extends Controller
             'warehouse_id' => ['nullable', 'exists:warehouses,id'],
             'primary_shipping_method_id' => ['nullable', 'exists:shipping_methods,id'],
         ]);
+
+        if ($data['status'] === VendorListingStatus::Active->value) {
+            ListingCertificationGate::assertCanGoLive($vendorListing);
+        }
 
         $vendorListing->update($data);
 
