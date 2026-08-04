@@ -274,7 +274,7 @@ class AgentController extends Controller
             'assignment_id'   => $updated->id,
             'new_agent_id'    => $updated->agent_id,
             'status'          => $updated->status->value,
-        ], 'Assignment reassigned successfully.');
+        ], __('carrier.api.assignment_reassigned'));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

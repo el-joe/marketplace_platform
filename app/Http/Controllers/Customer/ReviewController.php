@@ -23,12 +23,12 @@ class ReviewController extends Controller
         $order = $customer->orders()->where('order_number', $orderNumber)->first();
 
         if (!$order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.order.not_found'), [], 404);
         }
 
         $review = $this->reviewService->store($customer, $order, $request->validated());
 
-        return ApiResponse::success(new ReviewResource($review), 'Review submitted.', 201);
+        return ApiResponse::success(new ReviewResource($review), __('common.exceptions.review.submitted'), 201);
     }
 
     public function indexByProduct(string $country, string $slug): JsonResponse
@@ -36,7 +36,7 @@ class ReviewController extends Controller
         $product = Product::where('slug', $slug)->first();
 
         if (!$product) {
-            return ApiResponse::error('Product not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.review.product_not_found'), [], 404);
         }
 
         $countryModel = request()->attributes->get('country');
@@ -55,12 +55,12 @@ class ReviewController extends Controller
         $review = Review::find($reviewId);
 
         if (!$review || $review->customer_id !== $customer->id) {
-            return ApiResponse::error('Review not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.review.not_found'), [], 404);
         }
 
         $review = $this->reviewService->update($customer, $review, $request->validated());
 
-        return ApiResponse::success(new ReviewResource($review), 'Review updated.');
+        return ApiResponse::success(new ReviewResource($review), __('common.exceptions.review.updated'));
     }
 
     public function helpful(string $country, string $reviewId): JsonResponse
@@ -70,11 +70,11 @@ class ReviewController extends Controller
         $review = Review::find($reviewId);
 
         if (!$review) {
-            return ApiResponse::error('Review not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.review.not_found'), [], 404);
         }
 
         $this->reviewService->markHelpful($customer, $review);
 
-        return ApiResponse::success(null, 'Marked as helpful.');
+        return ApiResponse::success(null, __('common.exceptions.review.marked_helpful'));
     }
 }

@@ -75,7 +75,7 @@ class ClaimController extends Controller
 
         return redirect()
             ->route('partner.claims.show', $claim)
-            ->with('success', "Claim #{$claim->claim_number} submitted successfully.");
+            ->with('success', __('partner.claims.messages.submitted', ['number' => $claim->claim_number]));
     }
 
     public function show(CarrierClaim $claim): View

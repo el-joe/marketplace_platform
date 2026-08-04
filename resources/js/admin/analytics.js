@@ -199,8 +199,8 @@ function loadRevenueChart(rangePeriod) {
             // Single currency (country filter applied).
             const currency = d.currency ?? '';
             const gmvLabel = window.TRANSLATIONS?.gmvLabel || 'GMV';
-            const platformRevenueLabel = window.TRANSLATIONS?.platformRevenue || 'Platform Revenue';
-            const vendorPayoutsLabel = window.TRANSLATIONS?.vendorPayouts || 'Vendor Payouts';
+            const platformRevenueLabel = t('admin.analytics.platform_revenue');
+            const vendorPayoutsLabel = t('admin.analytics.vendor_payouts');
             const refundsLabel = window.TRANSLATIONS?.refunds || 'Refunds';
             revenueChart = new Chart(ctx, {
                 type: 'line',
@@ -323,7 +323,7 @@ function loadTopCategories() {
         if (!ctx) return;
 
         // revenues are now USD-equivalent for cross-currency comparability.
-        const revenueUsdEquivLabel = `${window.TRANSLATIONS?.revenueLabel || 'Revenue'} (${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'})`;
+        const revenueUsdEquivLabel = `${window.TRANSLATIONS?.revenueLabel || 'Revenue'} (${t('admin.analytics.usd_equiv')})`;
         categoryChart = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -358,7 +358,7 @@ function loadTopProducts() {
         if (!tbody) return;
 
         if (!res.data || !res.data.length) {
-            tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">${window.TRANSLATIONS?.noData || 'No data'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">${t('admin.analytics.no_data')}</td></tr>`;
             return;
         }
 
@@ -389,7 +389,7 @@ function loadTopVendors() {
         if (!tbody) return;
 
         if (!res.data || !res.data.length) {
-            tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">${window.TRANSLATIONS?.noData || 'No data'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">${t('admin.analytics.no_data')}</td></tr>`;
             return;
         }
 
@@ -435,7 +435,7 @@ function loadCustomerStats() {
                 labels: d.acquisition_chart.labels,
                 datasets: [
                     {
-                        label: window.TRANSLATIONS?.newCustomersLabel || 'New Customers',
+                        label: t('admin.analytics.new_customers'),
                         data: d.acquisition_chart.counts,
                         backgroundColor: '#6366f1',
                         borderRadius: 3,
@@ -466,7 +466,7 @@ function loadSearchAnalytics() {
         if (!tbody) return;
 
         if (!d.top_queries || !d.top_queries.length) {
-            tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-400 text-xs">${window.TRANSLATIONS?.noData || 'No data'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-400 text-xs">${t('admin.analytics.no_data')}</td></tr>`;
             return;
         }
 
@@ -546,10 +546,10 @@ function loadAdPerformance() {
         // Show per-country spend breakdown if multiple countries, otherwise native amount.
         const spendLabel = d.spend_by_country.length === 1
             ? `${formatMoney(d.total_spend)} ${d.spend_by_country[0].currency}`
-            : `${formatMoney(d.total_spend)} ${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'}`;
+            : `${formatMoney(d.total_spend)} ${t('admin.analytics.usd_equiv')}`;
         const revenueLabel = d.spend_by_country.length === 1
             ? `${formatMoney(d.total_revenue)} ${d.spend_by_country[0].currency}`
-            : `${formatMoney(d.total_revenue)} ${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'}`;
+            : `${formatMoney(d.total_revenue)} ${t('admin.analytics.usd_equiv')}`;
         setText('ads-spend', spendLabel);
         setText('ads-revenue', revenueLabel);
 
@@ -640,10 +640,10 @@ function loadFlashSales() {
         // Revenue and discount: show per-currency if multiple, otherwise native + currency.
         const revStr = (d.total_revenue_by_currency || []).length === 1
             ? `${formatMoney(d.total_revenue_by_currency[0].revenue)} ${d.total_revenue_by_currency[0].currency}`
-            : `${formatMoney(d.total_revenue)} ${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'}`;
+            : `${formatMoney(d.total_revenue)} ${t('admin.analytics.usd_equiv')}`;
         const discStr = (d.total_discount_by_currency || []).length === 1
             ? `${formatMoney(d.total_discount_by_currency[0].discount)} ${d.total_discount_by_currency[0].currency}`
-            : `${formatMoney(d.total_discount)} ${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'}`;
+            : `${formatMoney(d.total_discount)} ${t('admin.analytics.usd_equiv')}`;
         setText('flash-revenue', revStr);
         setText('flash-discount', discStr);
 

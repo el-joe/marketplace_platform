@@ -15,6 +15,7 @@ return [
     'password_confirmation' => 'Password Confirmation',
     'profile_image'   => 'Profile Image',
     'saved_successfully' => 'Saved Successfully',
+    'invalid_export_format' => 'Invalid export format.',
     'edit'            => 'Edit',
     'toggle'          => 'Toggle',
     'view'            => 'View',
@@ -101,7 +102,6 @@ return [
     'tomorrow'        => 'Tomorrow',
     'this_week'       => 'This week',
     'this_month'      => 'This month',
-    'last_30_days'    => 'Last 30 days',
     'price'           => 'Price',
     'quantity'        => 'Quantity',
     'image'           => 'Image',
@@ -134,17 +134,56 @@ return [
     'order_status' => [
         'placed'             => 'Placed',
         'confirmed'          => 'Confirmed',
+        'processing'         => 'Processing',
+        'ready_to_ship'      => 'Ready to Ship',
         'partially_shipped'  => 'Partially Shipped',
         'shipped'            => 'Shipped',
+        'out_for_delivery'   => 'Out for Delivery',
         'partially_delivered'=> 'Partially Delivered',
         'delivered'          => 'Delivered',
         'completed'          => 'Completed',
         'cancelled'          => 'Cancelled',
+        'return_requested'   => 'Return Requested',
+        'returned'           => 'Returned',
         'refunded'           => 'Refunded',
         'disputed'           => 'Disputed',
     ],
     'all_rights_reserved' => 'All rights reserved.',
     'remove' => 'Remove',
+    'default' => 'Default',
+    'nothing_here_yet' => 'Nothing here yet',
+    'are_you_sure' => 'Are you sure?',
+    'action_cannot_be_undone' => 'This action cannot be undone.',
+    'vs_last_period' => 'vs last period',
+    'apply_filters' => 'Apply Filters',
+    'clear_all' => 'Clear All',
+    'click_to_edit_slug' => 'Click to edit slug',
+    'lock_slug' => 'Lock slug',
+    'adsupport_tagline' => 'Advertise smarter, grow faster',
+    'adsupport_home_title' => 'Home | Advertise smarter, grow faster',
+    'delivery_title' => 'Delivery',
+    'helpcenter_title' => 'noon Seller Help Center',
+    'advertise_title' => 'Ad Solutions for Sellers | noon',
+    'advertise_description' => 'Welcome to the noon ads',
+    'partner_dashboard_title' => 'Dashboard',
+    'partner_brand_title' => 'noon for Sellers',
+    'partner_payout_hold_banner' => 'Your payouts are on hold — please contact support to find out why and resolve the issue.',
+    'sell_on_noon_title' => 'Sell on noon',
+    'travel_agency_portal_title' => 'Travel Agency Portal',
+
+    'storefront_nav' => [
+        'home'       => 'Home',
+        'categories' => 'Categories',
+        'cart'       => 'Cart',
+        'account'    => 'My Account',
+        'live'       => 'Live',
+        'playing'    => 'Playing',
+    ],
+
+    'storefront' => [
+        'classifieds_title' => 'Classifieds',
+        'qr_code_alt'        => 'QR Code',
+    ],
     'portal_content' => 'Portal Content',
     'no_notifications_yet' => 'No notifications yet.',
     'view_all_notifications' => 'View all notifications',
@@ -220,14 +259,34 @@ return [
             'coupon_customer_limit_reached' => 'You have already used this coupon the maximum number of times.',
             'coupon_min_order_required'   => 'A minimum order of :amount :currency is required for this coupon.',
             'invalid_shipping_method'    => 'This shipping method is not available for this item.',
+            'wallet_login_required'      => 'You must be logged in to use your wallet.',
+            'item_not_found'             => 'Cart item not found.',
+            'item_removed'               => 'Item removed from cart',
+            'cleared'                    => 'Cart cleared',
+            'coupon_not_found'           => 'Coupon not found or is invalid.',
+            'coupon_removed'             => 'Coupon removed',
+            'coupon_applied'             => 'Coupon ":code" applied',
+            'promo_applied'              => 'Promo code ":code" applied',
+            'promo_removed'              => 'Promo code removed',
+            'guest_token_required'       => 'guest_cart_token is required.',
+            'merged'                     => 'Cart merged successfully',
+            'wallet_usage_updated'       => 'Wallet usage updated',
+            'item_added'                 => 'Item added to cart',
+            'items_added'                => 'Items added to cart',
+            'item_updated'               => 'Cart item updated',
         ],
 
         'browse' => [
-            'unknown_type' => 'Unknown browse type: :type.',
+            'unknown_type'   => 'Unknown browse type: :type.',
+            'invalid_type'   => 'Invalid browse type.',
+            'category_not_found' => 'Category not found.',
         ],
 
         'wallet' => [
-            'frozen' => 'Wallet is frozen: :reason',
+            'frozen'                  => 'Wallet is frozen: :reason',
+            'frozen_withdrawal'       => 'Your wallet is frozen and cannot request withdrawals.',
+            'insufficient_balance'    => 'Insufficient wallet balance.',
+            'withdrawal_submitted'    => 'Withdrawal request submitted successfully.',
         ],
 
         'payment' => [
@@ -246,6 +305,170 @@ return [
             'booking_submitted'          => 'Booking submitted.',
             'booking_pending_review'     => 'Your booking is pending document review by the agency before confirmation.',
             'contract_signed'            => 'Contract signed successfully.',
+        ],
+
+        'wishlist' => [
+            'already_in_wishlist' => 'Listing already in wishlist',
+            'not_found'           => 'Item not found in wishlist',
+            'removed'             => 'Removed from wishlist',
+            'added'               => 'Added to wishlist',
+        ],
+
+        'address' => [
+            'created'         => 'Address created.',
+            'updated'         => 'Address updated.',
+            'deleted'         => 'Address deleted.',
+            'default_updated' => 'Default address updated.',
+            'in_use_cannot_delete' => 'This address is in use and cannot be deleted.',
+            'retrieved'       => 'Addresses retrieved.',
+        ],
+
+        'account_listing' => [
+            'created'            => 'Listing created.',
+            'edit_not_allowed'   => 'Only draft or rejected listings can be edited.',
+            'updated'            => 'Listing updated.',
+            'delete_not_allowed' => 'Only draft, rejected, or expired listings can be deleted.',
+            'deleted'            => 'Listing deleted.',
+        ],
+
+        'auth' => [
+            'invalid_credentials'        => 'Invalid credentials.',
+            'logged_out'                 => 'Logged out successfully.',
+            'invalid_refresh_token'      => 'Invalid or expired refresh token.',
+            'invalid_token_type'         => 'Invalid token type.',
+            'invalid_token_guard'        => 'Invalid token guard.',
+            'account_not_found'          => 'Account not found or inactive.',
+            'token_refreshed'            => 'Token refreshed.',
+            'invalid_verification_token' => 'Invalid or expired verification token.',
+            'email_verified'             => 'Email verified successfully.',
+            'email_already_verified'     => 'Email is already verified.',
+            'verification_email_sent'    => 'Verification email sent.',
+            'reset_link_sent'            => 'If an account with those credentials exists, a reset link has been sent.',
+            'invalid_reset_token'        => 'Invalid or expired reset token.',
+            'password_reset'             => 'Password reset successfully.',
+            'account_suspended'          => 'Your account has been suspended.',
+            'account_banned'             => 'Your account has been banned.',
+            'account_no_longer_exists'   => 'This account no longer exists.',
+            'registration_successful'    => 'Registration successful. Please verify your email.',
+            'login_successful'           => 'Login successful.',
+            'profile_retrieved'          => 'Profile retrieved.',
+        ],
+
+        'payment_method' => [
+            'gateway_unavailable' => 'This payment gateway is not available in your country.',
+            'added'               => 'Payment method added.',
+            'default_updated'     => 'Default payment method updated.',
+            'deleted'             => 'Payment method deleted.',
+            'retrieved'           => 'Payment methods retrieved.',
+        ],
+
+        'review' => [
+            'product_not_found' => 'Product not found.',
+            'not_found'         => 'Review not found.',
+            'submitted'         => 'Review submitted.',
+            'updated'           => 'Review updated.',
+            'marked_helpful'    => 'Marked as helpful.',
+        ],
+
+        'support_ticket' => [
+            'created'        => 'Ticket created.',
+            'not_found'      => 'Ticket not found.',
+            'message_sent'   => 'Message sent.',
+            'feedback_thanks' => 'Thank you for your feedback.',
+        ],
+
+        'refund' => [
+            'not_found' => 'Refund not found.',
+        ],
+
+        'order' => [
+            'not_found'          => 'Order not found.',
+            'cannot_cancel'      => 'This order cannot be cancelled in its current status.',
+            'cancelled'          => 'Order cancelled successfully.',
+            'suborder_not_found' => 'Sub-order not found.',
+        ],
+
+        'page' => [
+            'not_found'       => 'Page not found.',
+            'block_not_found' => 'Block not found.',
+        ],
+
+        'nawy' => [
+            'context_required'  => 'This endpoint requires the nawy_now app context.',
+            'country_unresolved' => 'Unable to resolve country.',
+            'listing_not_found' => 'Listing not found or not available.',
+        ],
+
+        'listing_detail' => [
+            'not_found' => 'Listing not found or not available in this country.',
+        ],
+
+        'return' => [
+            'submitted' => 'Return request submitted.',
+            'not_found' => 'Return request not found.',
+        ],
+
+        'warranty_claim' => [
+            'not_found'    => 'Warranty claim not found.',
+            'closed'       => 'This warranty claim is closed and no longer accepts messages.',
+            'message_sent' => 'Message sent.',
+            'submitted'    => 'Warranty claim submitted.',
+        ],
+
+        'profile' => [
+            'updated'          => 'Profile updated.',
+            'password_updated' => 'Password updated. Please log in again.',
+            'account_deleted'  => 'Account deleted.',
+            'retrieved'        => 'Profile retrieved.',
+        ],
+
+        'dispute' => [
+            'no_suborders' => 'No sub-orders found for this order.',
+            'opened'       => 'Dispute opened.',
+            'not_found'    => 'Dispute not found.',
+            'message_sent' => 'Message sent.',
+        ],
+
+        'warranty_purchase' => [
+            'not_found' => 'Warranty purchase not found.',
+        ],
+
+        'checkout' => [
+            'cart_empty'                 => 'Cart is empty.',
+            'address_not_found'          => 'Address not found.',
+            'cod_unavailable'            => 'Cash on delivery is not available for your location.',
+            'invalid_coupon'             => 'Invalid coupon code.',
+            'order_already_placed'       => 'Order already placed.',
+            'order_placed'               => 'Order placed successfully',
+            'wallet_currency_mismatch'   => 'Your wallet currency does not match this order.',
+            'wallet_exceeds_total'       => 'Wallet amount cannot exceed order total.',
+            'insufficient_stock'         => 'Insufficient stock for one or more items. Please update your cart.',
+            'cod_wallet_rule'            => 'COD orders must be paid fully by wallet or not use wallet at all.',
+            'coupon_no_longer_valid'     => 'Your coupon is no longer valid: :reason',
+            'delivery_platform_covered'  => 'Platform covered: :amount',
+            'delivery_free_by_seller'    => 'Free delivery offered by seller',
+            'delivery_free_by_platform'  => 'Delivered free by noon',
+            'delivery_free'              => 'Free Delivery',
+            'shipping_methods_retrieved' => 'Shipping methods retrieved',
+            'preview_ready'              => 'Checkout preview ready',
+            'listing_not_available'      => 'Listing :id is no longer available.',
+            'insufficient_stock_available' => 'Insufficient stock for one or more items. Only :available unit(s) available.',
+        ],
+
+        'app_config' => [
+            'home_page_not_found' => 'Home page not found.',
+        ],
+
+        'delivery_rating' => [
+            'already_rated'   => 'Already rated.',
+            'feedback_thanks' => 'Thank you for your feedback!',
+            'rating_submitted' => 'Rating submitted.',
+        ],
+
+        'travel' => [
+            'sold_out'          => 'This package is sold out.',
+            'booking_confirmed' => 'Booking confirmed! Reference: :reference',
+            'booking_cancelled' => 'Booking cancelled. Refund eligibility is subject to agency review.',
         ],
     ],
 ];

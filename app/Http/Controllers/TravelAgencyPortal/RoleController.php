@@ -23,16 +23,19 @@ class RoleController extends Controller
 
     private const SYSTEM_ROLES = ['travel_agency_owner', 'travel_agency_manager', 'travel_agency_staff'];
 
-    private const GROUP_LABELS = [
-        'packages' => 'Packages',
-        'bookings' => 'Bookings',
-        'inquiries' => 'Inquiries',
-        'campaigns' => 'Campaigns',
-        'profile' => 'Settings',
-        'team' => 'Team',
-        'roles' => 'Roles',
-        'bank_accounts' => 'Bank Accounts',
-    ];
+    private function groupLabels(): array
+    {
+        return [
+            'packages' => __('travel.roles.groups.packages'),
+            'bookings' => __('travel.roles.groups.bookings'),
+            'inquiries' => __('travel.roles.groups.inquiries'),
+            'campaigns' => __('travel.roles.groups.campaigns'),
+            'profile' => __('travel.roles.groups.profile'),
+            'team' => __('travel.roles.groups.team'),
+            'roles' => __('travel.roles.groups.roles'),
+            'bank_accounts' => __('travel.roles.groups.bank_accounts'),
+        ];
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers
@@ -108,7 +111,7 @@ class RoleController extends Controller
                         ->where('name', $this->buildRoleName($value))
                         ->exists();
                     if ($exists) {
-                        $fail('A role with this name already exists.');
+                        $fail(__('travel.roles.name_exists'));
                     }
                 },
             ],
@@ -135,9 +138,9 @@ class RoleController extends Controller
             DB::rollBack();
             Log::error('TravelAgencyPortal\\RoleController@store failed', ['error' => $e->getMessage()]);
             if ($request->wantsJson()) {
-                return response()->json(['message' => 'Failed to create role.'], 500);
+                return response()->json(['message' => __('travel.roles.create_failed')], 500);
             }
-            return back()->withInput()->withErrors(['error' => 'Failed to create role.']);
+            return back()->withInput()->withErrors(['error' => __('travel.roles.create_failed')]);
         }
 
         if ($request->wantsJson()) {
@@ -145,7 +148,7 @@ class RoleController extends Controller
         }
 
         return redirect()->route('travel-agency.roles.edit', $role->id)
-            ->with('success', 'Role created successfully.');
+            ->with('success', __('travel.roles.created'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -175,7 +178,7 @@ class RoleController extends Controller
                         ->where('id', '!=', $role->id)
                         ->exists();
                     if ($exists) {
-                        $fail('A role with this name already exists.');
+                        $fail(__('travel.roles.name_exists'));
                     }
                 },
             ],
@@ -196,7 +199,7 @@ class RoleController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('TravelAgencyPortal\\RoleController@update failed', ['role' => $role->id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update role.'], 500);
+            return response()->json(['message' => __('travel.roles.update_failed')], 500);
         }
 
         return response()->json(['success' => true]);
@@ -217,7 +220,10 @@ class RoleController extends Controller
 
         if ($memberCount > 0) {
             return response()->json([
-                'message' => "Cannot delete role \"{$role->label}\": {$memberCount} team member(s) are assigned to it.",
+                'message' => __('travel.roles.delete_forbidden_members', [
+                    'role'  => $role->label,
+                    'count' => $memberCount,
+                ]),
             ], 422);
         }
 
@@ -249,7 +255,7 @@ class RoleController extends Controller
         $grouped = [];
         foreach ($permissions as $perm) {
             $prefix = explode('.', $perm->name)[0];
-            $label = self::GROUP_LABELS[$prefix] ?? ucfirst($prefix);
+            $label = $this->groupLabels()[$prefix] ?? ucfirst($prefix);
             $grouped[$prefix] ??= ['label' => $label, 'key' => $prefix, 'permissions' => []];
             $grouped[$prefix]['permissions'][] = [
                 'name' => $perm->name,

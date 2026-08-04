@@ -53,7 +53,7 @@ class AnalyticsController extends Controller
             'excel' => $this->exportExcel('analytics-overview', $headers, $rows),
             'csv' => $this->exportCsv('analytics-overview', $headers, $rows),
             'word' => $this->exportWord('analytics-overview', 'Analytics Overview', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('admin.invalid_export_format')),
         };
     }
 

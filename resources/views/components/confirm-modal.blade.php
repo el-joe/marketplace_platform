@@ -1,14 +1,17 @@
 @props([
     'id'            => 'confirm-modal',
-    'title'         => 'Are you sure?',
-    'message'       => 'This action cannot be undone.',
-    'confirmLabel'  => 'Confirm',
+    'title'         => null,
+    'message'       => null,
+    'confirmLabel'  => null,
     'confirmClass' => 'btn-danger',
     'actionUrl'     => '#',
     'actionMethod' => 'DELETE', // DELETE | POST | PATCH | PUT
 ])
 
 @php
+    $title = $title ?? __('common.are_you_sure');
+    $message = $message ?? __('common.action_cannot_be_undone');
+    $confirmLabel = $confirmLabel ?? __('common.confirm');
     $methodUpper = strtoupper($actionMethod);
     $formMethod  = in_array($methodUpper, ['GET', 'POST']) ? $methodUpper : 'POST';
     $spoof = in_array($methodUpper, ['DELETE', 'PATCH', 'PUT']) ? $methodUpper : null;
@@ -18,7 +21,7 @@
     <p class="text-sm text-gray-600">{{ $message }}</p>
 
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn-secondary">Cancel</button>
+        <button type="button" data-modal-close class="btn-secondary">{{ __('common.cancel') }}</button>
         <form method="{{ $formMethod }}" action="{{ $actionUrl }}" class="inline">
             @csrf
             @if($spoof)

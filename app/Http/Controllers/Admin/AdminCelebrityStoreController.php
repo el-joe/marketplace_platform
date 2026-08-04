@@ -24,8 +24,8 @@ class AdminCelebrityStoreController extends Controller
     {
         return view('admin.celebrity-store.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Celebrity Open Market'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.celebrity_store.title')],
             ],
         ]);
     }
@@ -95,7 +95,7 @@ class AdminCelebrityStoreController extends Controller
             $exists = AdminProductListing::whereKey($data['listing_id'])->exists();
         }
 
-        abort_unless($exists, 404, 'Listing not found.');
+        abort_unless($exists, 404, __('admin.celebrity_store.listing_not_found'));
 
         $admin = Auth::guard('admin')->user();
 
@@ -127,7 +127,7 @@ class AdminCelebrityStoreController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Product approved for the celebrity open market.',
+            'message' => __('admin.celebrity_store.product_approved'),
             'id' => $record->id,
         ]);
     }
@@ -157,7 +157,7 @@ class AdminCelebrityStoreController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Commission updated.',
+            'message' => __('admin.celebrity_store.commission_updated'),
         ]);
     }
 
@@ -183,7 +183,7 @@ class AdminCelebrityStoreController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Removed from the celebrity open market.',
+            'message' => __('admin.celebrity_store.removed_from_market'),
         ]);
     }
 

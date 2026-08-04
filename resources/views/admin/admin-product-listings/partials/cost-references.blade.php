@@ -8,29 +8,29 @@
     <div class="flex items-start gap-3 bg-red-50 border-b border-red-200 px-5 py-3 rounded-t-xl">
         <x-heroicon name="lock-closed" class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
         <div>
-            <p class="text-sm font-semibold text-red-800">Confidential Cost References</p>
-            <p class="text-xs text-red-600 mt-0.5">Manufacturer, shipping and margin data — restricted to authorized admins. Never shown to vendors or customers.</p>
+            <p class="text-sm font-semibold text-red-800">{{ __('admin.admin_product_listings.confidential_cost_references') }}</p>
+            <p class="text-xs text-red-600 mt-0.5">{{ __('admin.admin_product_listings.cost_references_confidential_desc') }}</p>
         </div>
     </div>
 
     <div class="p-5 space-y-4">
         <div class="flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-gray-700">Cost References</h3>
-            <button type="button" id="btn-add-cost-reference" class="btn btn-primary btn-sm">Add Cost Reference</button>
+            <h3 class="text-sm font-semibold text-gray-700">{{ __('admin.admin_product_listings.cost_references_title') }}</h3>
+            <button type="button" id="btn-add-cost-reference" class="btn btn-primary btn-sm">{{ __('admin.admin_product_listings.add_cost_reference') }}</button>
         </div>
 
         <div class="overflow-x-auto border border-gray-200 rounded-xl">
             <table id="cost-references-table" class="table-base w-full text-sm">
                 <thead>
                     <tr>
-                        <th>Manufacturer</th>
-                        <th class="text-end">Manufacturer Cost</th>
-                        <th class="text-end">Shipping Cost</th>
-                        <th class="text-end">Landed Cost</th>
-                        <th class="text-end">Margin %</th>
-                        <th class="text-center">Competitors</th>
-                        <th>Last Checked</th>
-                        <th class="text-center w-24">Actions</th>
+                        <th>{{ __('admin.admin_product_listings.manufacturer_col') }}</th>
+                        <th class="text-end">{{ __('admin.admin_product_listings.manufacturer_cost_col') }}</th>
+                        <th class="text-end">{{ __('admin.admin_product_listings.shipping_cost') }}</th>
+                        <th class="text-end">{{ __('admin.admin_product_listings.landed_cost_label') }}</th>
+                        <th class="text-end">{{ __('admin.admin_product_listings.margin_pct_col') }}</th>
+                        <th class="text-center">{{ __('admin.admin_product_listings.competitors_col') }}</th>
+                        <th>{{ __('admin.admin_product_listings.competitor_last_checked') }}</th>
+                        <th class="text-center w-24">{{ __('admin.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -38,48 +38,48 @@
         </div>
     </div>
 
-    <x-modal id="cost-reference-modal" title="Cost Reference" size="lg">
+    <x-modal id="cost-reference-modal" title="{{ __('admin.admin_product_listings.cost_reference_modal_title') }}" size="lg">
         <form id="cost-reference-form" novalidate>
             <input type="hidden" id="cost-reference-id">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Manufacturer Name</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.manufacturer_name') }}</label>
                     <input type="text" name="manufacturer_name" class="form-input w-full text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Manufacturer SKU</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.manufacturer_sku') }}</label>
                     <input type="text" name="manufacturer_sku" class="form-input w-full text-sm">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Manufacturer URL</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.manufacturer_url') }}</label>
                     <input type="url" name="manufacturer_url" class="form-input w-full text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Manufacturer Cost (cents)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.manufacturer_cost_cents') }}</label>
                     <input type="number" name="manufacturer_cost" min="0" step="1" class="form-input w-full text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Shipping Cost (cents)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.shipping_cost_cents') }}</label>
                     <input type="number" name="shipping_cost" min="0" step="1" class="form-input w-full text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Landed Cost (cents)</label>
-                    <input type="number" name="landed_cost" min="0" step="1" class="form-input w-full text-sm" placeholder="Auto = manufacturer + shipping">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.landed_cost_cents') }}</label>
+                    <input type="number" name="landed_cost" min="0" step="1" class="form-input w-full text-sm" placeholder="{{ __('admin.admin_product_listings.landed_cost_auto_placeholder') }}">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Platform Margin %</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.platform_margin_pct') }}</label>
                     <input type="number" name="platform_margin_pct" step="0.01" class="form-input w-full text-sm">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.notes') }}</label>
                     <textarea name="notes" rows="2" class="form-input w-full text-sm"></textarea>
                 </div>
 
                 <div class="sm:col-span-2 border border-gray-200 rounded-lg p-3 space-y-2">
                     <div class="flex items-center justify-between">
-                        <label class="text-sm font-medium text-gray-700">Competitor Links</label>
-                        <button type="button" id="btn-add-competitor-link" class="text-xs text-primary-600 hover:underline">+ Add link</button>
+                        <label class="text-sm font-medium text-gray-700">{{ __('admin.admin_product_listings.competitor_links') }}</label>
+                        <button type="button" id="btn-add-competitor-link" class="text-xs text-primary-600 hover:underline">{{ __('admin.admin_product_listings.add_link') }}</button>
                     </div>
                     <div id="competitor-links-rows" class="space-y-2"></div>
                 </div>

@@ -38,8 +38,8 @@
                     <option value="database">{{ __('admin.notifications_section.channel_database') }}</option>
                     <option value="push">{{ __('admin.notifications_section.channel_push') }}</option>
                     <option value="email">{{ __('admin.notifications_section.channel_email') }}</option>
-                    <option value="sms">SMS</option>
-                    <option value="whatsapp">WhatsApp</option>
+                    <option value="sms">{{ __('admin.notifications_section.channel_sms') }}</option>
+                    <option value="whatsapp">{{ __('admin.notifications_section.channel_whatsapp') }}</option>
                 </select>
             </div>
             <div class="flex-1 min-w-[180px]">

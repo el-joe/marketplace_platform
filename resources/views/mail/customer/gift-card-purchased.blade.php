@@ -1,19 +1,17 @@
 <x-mail::message>
-# You've received a gift card!
+# {{ __('mail.gift_card_purchased.heading') }}
 
-{{ $giftCard->recipient_name }}, someone sent you a noon gift card worth
-{{ number_format($giftCard->denomination / 100, 2) }} {{ $giftCard->currency }}.
+{{ __('mail.gift_card_purchased.intro', ['name' => $giftCard->recipient_name, 'amount' => number_format($giftCard->denomination / 100, 2), 'currency' => $giftCard->currency]) }}
 
 @if($giftCard->personal_message)
 > {{ $giftCard->personal_message }}
 @endif
 
-Your gift card code:
+{{ __('mail.gift_card_purchased.code_intro') }}
 
 **{{ $giftCard->code }}**
 
-Use it at checkout to redeem your balance.
+{{ __('mail.gift_card_purchased.redeem') }}
 
-Thanks,<br>
-{{ config('app.name') }}
+{!! __('mail.gift_card_purchased.thanks', ['app_name' => config('app.name')]) !!}
 </x-mail::message>

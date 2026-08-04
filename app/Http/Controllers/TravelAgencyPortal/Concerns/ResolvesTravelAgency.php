@@ -54,7 +54,7 @@ trait ResolvesTravelAgency
     protected function requireOwner(): void
     {
         if (!$this->isOwner()) {
-            abort(403, 'Only the agency owner can perform this action.');
+            abort(403, __('travel.roles.owner_only_action'));
         }
     }
 

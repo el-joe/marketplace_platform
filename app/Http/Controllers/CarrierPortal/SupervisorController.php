@@ -52,7 +52,7 @@ class SupervisorController extends Controller
         ]);
 
         return redirect()->route('carrier.supervisors.index')
-            ->with('success', 'تم إضافة المشرف بنجاح.');
+            ->with('success', __('carrier.supervisors.added_success'));
     }
 
     public function edit(ShippingCompanySupervisor $supervisor): View
@@ -82,7 +82,7 @@ class SupervisorController extends Controller
         $supervisor->update($data);
 
         return redirect()->route('carrier.supervisors.index')
-            ->with('success', 'تم تحديث بيانات المشرف.');
+            ->with('success', __('carrier.supervisors.updated_success'));
     }
 
     public function destroy(ShippingCompanySupervisor $supervisor): RedirectResponse
@@ -93,13 +93,13 @@ class SupervisorController extends Controller
         abort_if(
             $supervisor->id === auth('shipping_supervisor')->id(),
             403,
-            'لا يمكنك حذف حسابك الخاص.'
+            __('carrier.errors.cannot_delete_own_account')
         );
 
         $supervisor->delete();
 
         return redirect()->route('carrier.supervisors.index')
-            ->with('success', 'تم حذف المشرف.');
+            ->with('success', __('carrier.supervisors.deleted_success'));
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -108,7 +108,7 @@ class SupervisorController extends Controller
     private function requireOwner(): void
     {
         $supervisor = auth('shipping_supervisor')->user();
-        abort_unless($supervisor->hasPermission('manage_agents'), 403, 'هذه الصفحة للمالك فقط.');
+        abort_unless($supervisor->hasPermission('manage_agents'), 403, __('carrier.errors.owner_only'));
     }
 
     private function ensureSameCompany(ShippingCompanySupervisor $target): void

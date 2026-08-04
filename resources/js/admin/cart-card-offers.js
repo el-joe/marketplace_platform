@@ -37,17 +37,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data.success) {
-                    const savedMessage = isEdit ? window.TRANSLATIONS?.offerSaved : window.TRANSLATIONS?.offerCreated;
-                    window.Toast?.success(savedMessage || (isEdit ? 'Offer saved.' : 'Offer created.'));
+                    window.Toast?.success(isEdit ? t('admin.cart_card_offers.offer_saved') : t('admin.cart_card_offers.offer_created'));
                     if (!isEdit && data.redirect) {
                         window.location.href = data.redirect;
                     }
                 } else {
                     const errors = data.errors ? Object.values(data.errors).flat().join('\n') : null;
-                    window.Toast?.error(errors || data.message || window.TRANSLATIONS?.saveFailed || 'Save failed.');
+                    window.Toast?.error(errors || data.message || t('admin.cart_card_offers.save_failed'));
                 }
             } catch (err) {
-                window.Toast?.error(window.TRANSLATIONS?.networkErrorRetry || 'Network error. Please try again.');
+                window.Toast?.error(t('admin.cart_card_offers.network_error'));
             } finally {
                 if (btn) { btn.disabled = false; btn.textContent = originalText; }
             }

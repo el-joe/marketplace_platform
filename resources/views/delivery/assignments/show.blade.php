@@ -1,6 +1,6 @@
 @extends('layouts.delivery')
 
-@section('title', 'Order #' . ($assignment->subOrder?->sub_order_number ?? substr($assignment->id, 0, 8)))
+@section('title', __('delivery.assignments.order_number_prefix') . ($assignment->subOrder?->sub_order_number ?? substr($assignment->id, 0, 8)))
 
 @section('header-left')
     <a href="{{ route('delivery.assignments.index') }}" class="flex items-center gap-1 text-slate-300 text-sm -ml-1 p-1">

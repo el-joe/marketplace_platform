@@ -87,7 +87,12 @@ class PackageInquiryController extends Controller
             ->with('package')
             ->get();
 
-        $headers = ['Inquirer', 'Package', 'Status', 'Date'];
+        $headers = [
+            __('travel.inquiries.export.inquirer'),
+            __('travel.inquiries.export.package'),
+            __('travel.inquiries.export.status'),
+            __('travel.inquiries.export.date'),
+        ];
 
         $rows = $inquiries->map(fn (TravelPackageInquiry $inquiry) => [
             $inquiry->name,
@@ -101,9 +106,9 @@ class PackageInquiryController extends Controller
 
         return match ($format) {
             'excel' => $this->exportExcel($filename, $headers, $rows),
-            'word'  => $this->exportWord($filename, 'Inquiries', $rows),
+            'word'  => $this->exportWord($filename, __('travel.inquiries.export.sheet_title'), $rows),
             'csv'   => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('travel.export.invalid_format')),
         };
     }
 
@@ -114,7 +119,7 @@ class PackageInquiryController extends Controller
         $this->authorise($inquiry);
 
         if (!in_array($inquiry->status, [TravelPackageInquiryStatus::New])) {
-            return back()->withErrors(['status' => 'لا يمكن تغيير حالة هذا الطلب.']);
+            return back()->withErrors(['status' => __('travel.inquiries.status_change_forbidden')]);
         }
 
         $inquiry->update([
@@ -122,7 +127,7 @@ class PackageInquiryController extends Controller
             'contacted_at' => now(),
         ]);
 
-        return back()->with('success', 'تم تحديث الحالة: تم التواصل.');
+        return back()->with('success', __('travel.inquiries.marked_contacted'));
     }
 
     // ── Convert to Booking ───────────────────────────────────────────────────
@@ -132,7 +137,7 @@ class PackageInquiryController extends Controller
         $this->authorise($inquiry);
 
         if (!in_array($inquiry->status, [TravelPackageInquiryStatus::New, TravelPackageInquiryStatus::Contacted])) {
-            return back()->withErrors(['status' => 'هذا الطلب لا يمكن تحويله لحجز.']);
+            return back()->withErrors(['status' => __('travel.inquiries.convert_forbidden')]);
         }
 
         $customer = $inquiry->email ? Customer::where('email', $inquiry->email)->first() : null;
@@ -156,7 +161,7 @@ class PackageInquiryController extends Controller
             ];
         } else {
             return back()->withErrors([
-                'email' => 'لا يمكن تحويل هذا الطلب لحجز: لا يوجد بريد إلكتروني لإنشاء عميل جديد.',
+                'email' => __('travel.inquiries.convert_requires_email'),
             ]);
         }
 
@@ -169,7 +174,7 @@ class PackageInquiryController extends Controller
 
         return redirect()
             ->route('travel-agency.bookings.show', $booking)
-            ->with('success', 'تم تحويل الطلب إلى حجز بنجاح.');
+            ->with('success', __('travel.inquiries.converted_success'));
     }
 
     // ── Close ─────────────────────────────────────────────────────────────────
@@ -179,7 +184,7 @@ class PackageInquiryController extends Controller
         $this->authorise($inquiry);
 
         if (!in_array($inquiry->status, [TravelPackageInquiryStatus::New, TravelPackageInquiryStatus::Contacted])) {
-            return back()->withErrors(['status' => 'لا يمكن إغلاق هذا الطلب.']);
+            return back()->withErrors(['status' => __('travel.inquiries.close_forbidden')]);
         }
 
         $validated = $request->validate([
@@ -191,6 +196,6 @@ class PackageInquiryController extends Controller
             'close_reason' => $validated['reason'] ?? null,
         ]);
 
-        return back()->with('success', 'تم إغلاق الطلب.');
+        return back()->with('success', __('travel.inquiries.closed_success'));
     }
 }

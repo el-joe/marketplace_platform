@@ -110,7 +110,7 @@ class ExceptionalZoneAlertController extends Controller
             ->where('country_id', '!=', $warehouse->country_id)
             ->count();
         abort_if($invalidCities > 0, 422,
-            'All selected cities must be in the same country as the warehouse.');
+            __('partner.exceptional_zone_alerts.messages.cities_country_mismatch'));
 
         $existingPending = VendorExceptionalZoneAlert::where('vendor_id', $vendor->id)
             ->where('warehouse_id', $request->warehouse_id)
@@ -124,7 +124,7 @@ class ExceptionalZoneAlertController extends Controller
             );
             if (!empty($overlap)) {
                 return back()->withErrors([
-                    'city_ids' => 'You already have a pending alert for this warehouse that includes some of these cities.',
+                    'city_ids' => __('partner.exceptional_zone_alerts.messages.overlap_pending_alert'),
                 ]);
             }
         }
@@ -148,7 +148,7 @@ class ExceptionalZoneAlertController extends Controller
         });
 
         return redirect()->route('partner.exceptional-zone-alerts.index')
-            ->with('success', 'Your alert has been submitted. Admin will review it shortly.');
+            ->with('success', __('partner.exceptional_zone_alerts.messages.submitted'));
     }
 
     /**
@@ -158,10 +158,10 @@ class ExceptionalZoneAlertController extends Controller
     {
         $vendor = $this->vendor();
         abort_unless($alert->vendor_id === $vendor->id, 403);
-        abort_unless($alert->isPending(), 422, 'Only pending alerts can be cancelled.');
+        abort_unless($alert->isPending(), 422, __('partner.exceptional_zone_alerts.messages.only_pending_can_be_cancelled'));
 
         $alert->update(['status' => 'rejected', 'admin_note' => 'Cancelled by vendor.']);
 
-        return back()->with('success', 'Alert cancelled.');
+        return back()->with('success', __('partner.exceptional_zone_alerts.messages.cancelled'));
     }
 }

@@ -29,7 +29,7 @@ class SupportTicketController extends Controller
         $agent  = auth('delivery_api')->user();
         $ticket = $this->ticketService->store($agent, $request->validated());
 
-        return ApiResponse::success(new SupportTicketResource($ticket), 'Ticket created.', 201);
+        return ApiResponse::success(new SupportTicketResource($ticket), __('delivery.messages.support_tickets.created'), 201);
     }
 
     public function show(string $ticketNumber): JsonResponse
@@ -38,7 +38,7 @@ class SupportTicketController extends Controller
         $ticket = $this->ticketService->findForAgent($agent, $ticketNumber);
 
         if (!$ticket) {
-            return ApiResponse::error('Ticket not found.', [], 404);
+            return ApiResponse::error(__('delivery.messages.support_tickets.not_found'), [], 404);
         }
 
         return ApiResponse::success(new SupportTicketResource($ticket));
@@ -50,7 +50,7 @@ class SupportTicketController extends Controller
         $ticket = $this->resolveTicket($agent, $ticketNumber);
 
         if (!$ticket) {
-            return ApiResponse::error('Ticket not found.', [], 404);
+            return ApiResponse::error(__('delivery.messages.support_tickets.not_found'), [], 404);
         }
 
         $message = $this->ticketService->addMessage($agent, $ticket, $request->validated());
@@ -59,7 +59,7 @@ class SupportTicketController extends Controller
             'id'         => $message->id,
             'message'    => $message->message,
             'created_at' => $message->created_at?->toIso8601String(),
-        ], 'Message sent.', 201);
+        ], __('delivery.messages.support_tickets.message_sent'), 201);
     }
 
     public function rate(SupportTicketRateRequest $request, string $ticketNumber): JsonResponse
@@ -68,12 +68,12 @@ class SupportTicketController extends Controller
         $ticket = $this->resolveTicket($agent, $ticketNumber);
 
         if (!$ticket) {
-            return ApiResponse::error('Ticket not found.', [], 404);
+            return ApiResponse::error(__('delivery.messages.support_tickets.not_found'), [], 404);
         }
 
         $ticket = $this->ticketService->rate($agent, $ticket, $request->validated());
 
-        return ApiResponse::success(new SupportTicketResource($ticket), 'Thank you for your feedback.');
+        return ApiResponse::success(new SupportTicketResource($ticket), __('delivery.messages.support_tickets.thank_you_feedback'));
     }
 
     private function resolveTicket($agent, string $ticketNumber): ?SupportTicket

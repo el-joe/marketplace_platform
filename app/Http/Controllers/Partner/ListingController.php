@@ -11,7 +11,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Country;
 use App\Models\InventoryMovement;
-use App\Models\Marketer;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
@@ -21,8 +20,9 @@ use App\Models\WarehouseInventory;
 use App\Models\PlatformShippingSubsidy;
 use App\Models\ShippingZone;
 use App\Notifications\Admin\ListingResubmittedNotification;
-use App\Services\InfluencerPromotionRequestService;
+use App\Models\Vendor;
 use App\Services\ListingShippingResolver;
+use App\Services\MarketerCampaignService;
 use App\Services\ShippingWeightService;
 use App\Traits\HasDataTable;
 use App\Traits\HasExport;
@@ -46,7 +46,7 @@ class ListingController extends Controller
     public function __construct(
         private readonly ListingShippingResolver $shippingResolver,
         private readonly ShippingWeightService $weightService,
-        private readonly InfluencerPromotionRequestService $promotionRequestService,
+        private readonly MarketerCampaignService $marketerCampaignService,
     ) {
     }
 
@@ -190,7 +190,7 @@ class ListingController extends Controller
             'excel' => $this->exportExcel('listings', $headers, $rows),
             'csv' => $this->exportCsv('listings', $headers, $rows),
             'word' => $this->exportWord('listings', 'Listings', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 
@@ -322,6 +322,82 @@ class ListingController extends Controller
      * Read-only slug/URL preview for a product variant. Vendors cannot edit
      * slugs — they are product-level and managed by admins only.
      */
+    public function categorySamples(Request $request): JsonResponse
+    {
+        $productId = $request->input('product_id');
+        if (!$productId) {
+            return response()->json(['influencer' => 0, 'affiliate' => 0, 'platform' => 0]);
+        }
+
+        $category = Product::find($productId)?->category;
+
+        return response()->json([
+            'influencer' => $category?->influencer_sample_qty ?? 0,
+            'affiliate'  => $category?->affiliate_sample_qty ?? 0,
+            'platform'   => $category?->platform_sample_qty ?? 0,
+        ]);
+    }
+
+    /**
+     * Returns the influencer platform fee per slot and marketer commission
+     * per conversion for a product's category, for a given country.
+     */
+    public function campaignPricing(Request $request): JsonResponse
+    {
+        $productId = $request->input('product_id');
+        $countryId = $request->input('country_id');
+
+        if (!$productId || !$countryId) {
+            return response()->json([
+                'fee_per_influencer'           => 0,
+                'influencer_commission_amount' => 0,
+                'affiliate_commission_amount'  => 0,
+                'currency'                     => '',
+                'affiliate_fee_is_free'        => true,
+            ]);
+        }
+
+        $category = Product::find($productId)?->category;
+
+        $feeSetting = \App\Models\MarketerInfluencerFeeCountrySetting::where('country_id', $countryId)->first();
+
+        $commissionSetting = $category
+            ? \App\Models\MarketerCommissionCountrySetting::where('category_id', $category->id)
+                ->where('country_id', $countryId)
+                ->first()
+            : null;
+
+        $currency = Country::find($countryId)?->currency_code ?? '';
+
+        return response()->json([
+            'fee_per_influencer'           => $feeSetting?->fee_per_influencer ?? 0,
+            'influencer_commission_amount' => $commissionSetting?->influencer_commission_amount ?? 0,
+            'affiliate_commission_amount'  => $commissionSetting?->affiliate_commission_amount ?? 0,
+            'currency'                     => $currency,
+            'affiliate_fee_is_free'        => true,
+            'category_name'                => $category?->name_ar ?? $category?->name_en ?? '',
+        ]);
+    }
+
+    /**
+     * Influencer platform fee for the vendor's own country. Fee is
+     * country-based only (not category-based), so no product is needed.
+     */
+    public function getInfluencerFee(): JsonResponse
+    {
+        $vendor    = auth()->guard('vendor')->user()->vendor;
+        $countryId = $vendor->country_id;
+
+        $feeSetting = \App\Models\MarketerInfluencerFeeCountrySetting::where('country_id', $countryId)->first();
+
+        $currency = Country::find($countryId)?->currency_code ?? '';
+
+        return response()->json([
+            'fee_per_influencer' => $feeSetting?->fee_per_influencer ?? 0,
+            'currency'           => $currency,
+        ]);
+    }
+
     public function slugPreview(string $product, string $variant): JsonResponse
     {
         $productModel = Product::query()->whereNull('deleted_at')->findOrFail($product);
@@ -471,14 +547,16 @@ class ListingController extends Controller
             ? null
             : $this->shippingResolver->resolvePrimary($listing);
 
-        $influencerPromotionItems = \App\Models\VendorInfluencerPromotionRequestItem::query()
-            ->whereHas('promotionRequest', fn ($q) => $q->where('vendor_listing_id', $listing->id))
-            ->with('marketer:id,name,display_name')
-            ->orderByDesc('created_at')
-            ->limit(50)
-            ->get();
+        $marketerCampaign = \App\Models\MarketerCampaign::where('vendor_listing_id', $listing->id)
+            ->with([
+                'invitations.marketer',
+                'tieredRules',
+                'conversions',
+            ])
+            ->latest()
+            ->first();
 
-        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods', 'defaultShippingMethod', 'influencerPromotionItems'));
+        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods', 'defaultShippingMethod', 'marketerCampaign'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -518,12 +596,12 @@ class ListingController extends Controller
             'refurbished' => 'مُجدَّد',
         ];
 
-        $marketers = Marketer::query()
-            ->whereIn('type', ['celebrity', 'influencer'])
-            ->where('status', 'active')
-            ->where('accept_new_campaigns', true)
-            ->orderBy('followers_count', 'desc')
-            ->get(['id', 'name', 'display_name', 'profile_photo_path', 'followers_count', 'niche']);
+        $marketerVendors = Vendor::whereNotNull('marketer_type')
+            ->where('global_status', 'active')
+            ->where('country_id', $countryId)
+            ->where('id', '!=', $vendor->id)
+            ->orderBy('business_name')
+            ->get(['id', 'business_name','name', 'marketer_type']);
 
         return view('partner.listings.create', compact(
             'warehouses',
@@ -531,7 +609,7 @@ class ListingController extends Controller
             'fulfillmentModels',
             'conditions',
             'countryId',
-            'marketers'
+            'marketerVendors'
         ));
     }
 
@@ -567,9 +645,14 @@ class ListingController extends Controller
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
             'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
-            'promote_to_marketers' => ['nullable', 'boolean'],
-            'marketer_ids' => ['nullable', 'array', 'max:10', 'required_if:promote_to_marketers,1'],
-            'marketer_ids.*' => ['uuid', 'distinct', 'exists:marketers,id'],
+            'campaign_enabled' => ['nullable', 'boolean'],
+            'commission_type' => ['nullable', 'required_if:campaign_enabled,1', 'in:fixed,tiered,last_click'],
+            'max_commission_budget' => ['nullable', 'numeric', 'min:0'],
+            'marketer_vendor_ids' => ['nullable', 'array', 'required_if:campaign_enabled,1'],
+            'marketer_vendor_ids.*' => ['uuid', 'distinct', 'exists:vendors,id'],
+            'tiered_rules' => ['nullable', 'array'],
+            'tiered_rules.*.from_sale_number' => ['nullable', 'integer', 'min:1'],
+            'tiered_rules.*.commission_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $warehouse = Warehouse::findOrFail($request->warehouse_id);
@@ -680,7 +763,6 @@ class ListingController extends Controller
                 'handling_class' => $request->handling_class,
                 'weight_class' => $weightClass,
                 'primary_shipping_method_id' => $request->primary_shipping_method_id ?: null,
-                'available_for_marketers' => $request->boolean('promote_to_marketers'),
             ]);
 
             // Create warehouse inventory record
@@ -715,17 +797,22 @@ class ListingController extends Controller
 
         $message = $status === VendorListingStatus::Active->value ? 'تم إنشاء القائمة بنجاح وهي نشطة الآن.' : 'تم إنشاء القائمة وهي قيد المراجعة.';
 
-        if ($request->boolean('promote_to_marketers') && !empty($request->marketer_ids)) {
+        if ($request->boolean('campaign_enabled')) {
             try {
-                $this->promotionRequestService->createRequest([
-                    'vendor_listing_id' => $listing->id,
-                    'marketer_ids' => $request->marketer_ids,
-                ], $vendor);
+                $this->marketerCampaignService->createCampaign($vendor, array_merge($request->only([
+                    'commission_type', 'max_commission_budget',
+                ]), [
+                    'vendor_listing_id'   => $listing->id,
+                    'country_id'          => $listing->country_id,
+                    'currency'            => $listing->currency,
+                    'marketer_vendor_ids' => $request->input('marketer_vendor_ids', []),
+                    'tiered_rules'        => $request->input('tiered_rules', []),
+                ]));
 
-                $message .= ' تم إرسال طلب ترويج المؤثرين بنجاح.';
+                $message .= ' تم إنشاء حملة الماركتر بنجاح.';
             } catch (\Throwable $e) {
-                Log::warning('Listing created but promotion request failed', ['listing_id' => $listing->id, 'error' => $e->getMessage()]);
-                $message .= ' تعذر إرسال طلب ترويج المؤثرين: ' . $e->getMessage();
+                Log::warning('Listing created but marketer campaign failed', ['listing_id' => $listing->id, 'error' => $e->getMessage()]);
+                $message .= ' تعذر إنشاء حملة الماركتر: ' . $e->getMessage();
             }
         }
 
@@ -767,7 +854,15 @@ class ListingController extends Controller
 
         $availableShippingMethods = $this->shippingResolver->resolveForListing($listing);
 
-        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions', 'availableShippingMethods'));
+        $vendor = $this->vendor();
+        $marketerVendors = Vendor::whereNotNull('marketer_type')
+            ->where('global_status', 'active')
+            ->where('country_id', $listing->country_id)
+            ->where('id', '!=', $vendor->id)
+            ->orderBy('business_name')
+            ->get(['id', 'business_name', 'marketer_type']);
+
+        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions', 'availableShippingMethods', 'marketerVendors'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -801,6 +896,14 @@ class ListingController extends Controller
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
             'primary_shipping_method_id' => ['nullable', 'uuid', 'exists:shipping_methods,id'],
+            'campaign_enabled' => ['nullable', 'boolean'],
+            'commission_type' => ['nullable', 'required_if:campaign_enabled,1', 'in:fixed,tiered,last_click'],
+            'max_commission_budget' => ['nullable', 'numeric', 'min:0'],
+            'marketer_vendor_ids' => ['nullable', 'array', 'required_if:campaign_enabled,1'],
+            'marketer_vendor_ids.*' => ['uuid', 'distinct', 'exists:vendors,id'],
+            'tiered_rules' => ['nullable', 'array'],
+            'tiered_rules.*.from_sale_number' => ['nullable', 'integer', 'min:1'],
+            'tiered_rules.*.commission_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         if (!empty($validated['primary_shipping_method_id'])) {
@@ -842,7 +945,28 @@ class ListingController extends Controller
             ]);
         });
 
-        return redirect()->route('partner.listings.show', $listing)->with('success', 'تم تحديث القائمة بنجاح.');
+        $successMessage = 'تم تحديث القائمة بنجاح.';
+
+        if ($request->boolean('campaign_enabled')) {
+            try {
+                $this->marketerCampaignService->createCampaign($this->vendor(), array_merge($request->only([
+                    'commission_type', 'max_commission_budget',
+                ]), [
+                    'vendor_listing_id'   => $listing->id,
+                    'country_id'          => $listing->country_id,
+                    'currency'            => $listing->currency,
+                    'marketer_vendor_ids' => $request->input('marketer_vendor_ids', []),
+                    'tiered_rules'        => $request->input('tiered_rules', []),
+                ]));
+
+                $successMessage .= ' تم إنشاء حملة الماركتر بنجاح.';
+            } catch (\Throwable $e) {
+                Log::warning('Listing updated but marketer campaign failed', ['listing_id' => $listing->id, 'error' => $e->getMessage()]);
+                $successMessage .= ' تعذر إنشاء حملة الماركتر: ' . $e->getMessage();
+            }
+        }
+
+        return redirect()->route('partner.listings.show', $listing)->with('success', $successMessage);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1175,5 +1299,29 @@ class ListingController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Marketer Campaign
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function searchMarketers(Request $request): JsonResponse
+    {
+        $vendor = $this->vendor();
+        $q = $request->input('q', '');
+
+        $marketers = Vendor::whereNotNull('marketer_type')
+            ->where('global_status', 'active')
+            ->where('country_id', $vendor->country_id)
+            ->when($q, fn ($query, $q) => $query->where('business_name', 'like', "%{$q}%"))
+            ->limit(20)
+            ->get(['id', 'business_name', 'marketer_type']);
+
+        return response()->json(
+            $marketers->map(fn ($m) => [
+                'id'   => $m->id,
+                'text' => $m->business_name . ' — ' . ($m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت'),
+            ])
+        );
     }
 }

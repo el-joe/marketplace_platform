@@ -16,7 +16,7 @@ class ProfileController extends Controller
     {
         return ApiResponse::success(
             new CustomerResource(auth('customer')->user()),
-            'Profile retrieved.'
+            __('common.exceptions.profile.retrieved')
         );
     }
 
@@ -35,7 +35,7 @@ class ProfileController extends Controller
 
         $customer->update($data);
 
-        return ApiResponse::success(new CustomerResource($customer->fresh()), 'Profile updated.');
+        return ApiResponse::success(new CustomerResource($customer->fresh()), __('common.exceptions.profile.updated'));
     }
 
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
@@ -48,7 +48,7 @@ class ProfileController extends Controller
         // Invalidate all existing JWT tokens for this customer
         auth('customer')->logout(true);
 
-        return ApiResponse::success(null, 'Password updated. Please log in again.');
+        return ApiResponse::success(null, __('common.exceptions.profile.password_updated'));
     }
 
     public function destroy(): JsonResponse
@@ -61,6 +61,6 @@ class ProfileController extends Controller
 
         auth('customer')->logout(true);
 
-        return ApiResponse::success(null, 'Account deleted.');
+        return ApiResponse::success(null, __('common.exceptions.profile.account_deleted'));
     }
 }

@@ -81,6 +81,9 @@ class AiDashboardController extends Controller
             $credit->update(['reset_at' => $validated['reset_at']]);
         }
 
-        return back()->with('success', "Added {$validated['amount']} {$validated['feature']} credits.");
+        return back()->with('success', __('admin.ai_dashboard_section.credits_added', [
+            'amount' => $validated['amount'],
+            'feature' => $validated['feature'],
+        ]));
     }
 }

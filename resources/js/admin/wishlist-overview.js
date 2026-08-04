@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             order: [[5, 'desc']],
             dom: 'rt<"flex items-center justify-between mt-3"ip>',
             pageLength: 25,
-            language: { search: '', searchPlaceholder: window.TRANSLATIONS?.searchPlaceholder || 'Search…' },
+            language: { search: '', searchPlaceholder: t('shared.table_search_placeholder') },
         });
 
         const searchInput = document.getElementById('search-input');

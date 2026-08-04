@@ -33,17 +33,17 @@ class WarrantyController extends Controller
             ->find($orderItemId);
 
         if (! $orderItem || ! $orderItem->order || $orderItem->order->customer_id !== $customer->id) {
-            return ApiResponse::error('Order item not found.', [], 404);
+            return ApiResponse::error(__('customer_api.warranty.order_item_not_found'), [], 404);
         }
 
         if ($orderItem->warranty_purchase_id !== null) {
-            return ApiResponse::success([], 'This item already has a warranty.');
+            return ApiResponse::success([], __('customer_api.warranty.already_has_warranty'));
         }
 
         $categoryId = $orderItem->productVariant?->product?->category_id;
 
         if (! $categoryId) {
-            return ApiResponse::success([], 'No warranty plans available for this item.');
+            return ApiResponse::success([], __('customer_api.warranty.no_plans_available'));
         }
 
         $plans = WarrantyPlan::where('category_id', $categoryId)
@@ -54,7 +54,7 @@ class WarrantyController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return ApiResponse::success(WarrantyPlanResource::collection($plans), 'Warranty plans retrieved.');
+        return ApiResponse::success(WarrantyPlanResource::collection($plans), __('customer_api.warranty.plans_retrieved'));
     }
 
     public function purchases(): JsonResponse
@@ -136,7 +136,7 @@ class WarrantyController extends Controller
 
         return ApiResponse::success(
             new WarrantyClaimResource($claim->load(['product', 'vendor'])),
-            'Warranty claim submitted.',
+            __('customer_api.warranty.claim_submitted'),
             201,
         );
     }
@@ -156,7 +156,7 @@ class WarrantyController extends Controller
             ->first();
 
         if (! $claim) {
-            return ApiResponse::error('Warranty claim not found.', [], 404);
+            return ApiResponse::error(__('customer_api.warranty.claim_not_found'), [], 404);
         }
 
         return ApiResponse::success(new WarrantyClaimResource($claim));
@@ -172,11 +172,11 @@ class WarrantyController extends Controller
             ->first();
 
         if (! $claim) {
-            return ApiResponse::error('Warranty claim not found.', [], 404);
+            return ApiResponse::error(__('customer_api.warranty.claim_not_found'), [], 404);
         }
 
         if (in_array($claim->status, [WarrantyClaim::STATUS_RESOLVED, WarrantyClaim::STATUS_REJECTED], true)) {
-            return ApiResponse::error('This warranty claim is closed and no longer accepts messages.', [], 422);
+            return ApiResponse::error(__('customer_api.warranty.claim_closed'), [], 422);
         }
 
         $message = $claim->messages()->create([
@@ -186,6 +186,6 @@ class WarrantyController extends Controller
             'is_internal_note' => false,
         ]);
 
-        return ApiResponse::success(new WarrantyClaimMessageResource($message), 'Message sent.', 201);
+        return ApiResponse::success(new WarrantyClaimMessageResource($message), __('customer_api.warranty.message_sent'), 201);
     }
 }

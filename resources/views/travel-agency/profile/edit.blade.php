@@ -1,6 +1,6 @@
 @extends('layouts.travel-agency')
 
-@section('title', 'الملف الشخصي')
+@section('title', __('travel.profile.title'))
 
 @section('content')
 <div class="max-w-2xl space-y-6">
@@ -15,7 +15,7 @@
             <label class="block text-sm font-semibold text-gray-700 mb-2">{{ __('travel.profile.logo') }}</label>
             @if($agency->logo_path)
             <div class="mb-3">
-                <img src="{{ asset('storage/'.$agency->logo_path) }}" alt="logo"
+                <img src="{{ asset('storage/'.$agency->logo_path) }}" alt="{{ __('travel.profile.logo_alt') }}"
                      class="h-16 w-16 rounded-xl object-cover border border-gray-200">
             </div>
             @endif

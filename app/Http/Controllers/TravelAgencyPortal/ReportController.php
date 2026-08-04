@@ -132,7 +132,14 @@ class ReportController extends Controller
             ->orderByDesc('month')
             ->get();
 
-        $headers = ['Month', 'Bookings Count', 'Revenue', 'Commission', 'Net', 'Currency'];
+        $headers = [
+            __('travel.reports.revenue_export.month'),
+            __('travel.reports.revenue_export.bookings_count'),
+            __('travel.reports.revenue_export.revenue'),
+            __('travel.reports.revenue_export.commission'),
+            __('travel.reports.revenue_export.net'),
+            __('travel.reports.revenue_export.currency'),
+        ];
 
         $rows = $monthlyBreakdown->map(function ($row) use ($rate) {
             $commission = (int) round($row->revenue * $rate);
@@ -151,9 +158,9 @@ class ReportController extends Controller
 
         return match ($format) {
             'excel' => $this->exportExcel($filename, $headers, $rows),
-            'word' => $this->exportWord($filename, 'Revenue Report', $rows),
+            'word' => $this->exportWord($filename, __('travel.reports.revenue_export.sheet_title'), $rows),
             'csv' => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('travel.export.invalid_format')),
         };
     }
 
@@ -256,7 +263,15 @@ class ReportController extends Controller
 
         $bookings = $query->with(['package', 'customer'])->latest()->get();
 
-        $headers = ['Booking Ref', 'Customer Name', 'Package', 'Travel Date', 'Price', 'Currency', 'Status'];
+        $headers = [
+            __('travel.reports.bookings_export.booking_ref'),
+            __('travel.reports.bookings_export.customer_name'),
+            __('travel.reports.bookings_export.package'),
+            __('travel.reports.bookings_export.travel_date'),
+            __('travel.reports.bookings_export.price'),
+            __('travel.reports.bookings_export.currency'),
+            __('travel.reports.bookings_export.status'),
+        ];
 
         $rows = $bookings->map(fn($bk) => [
             $bk->booking_number,
@@ -273,9 +288,9 @@ class ReportController extends Controller
 
         return match ($format) {
             'excel' => $this->exportExcel($filename, $headers, $rows),
-            'word' => $this->exportWord($filename, 'Bookings Report', $rows),
+            'word' => $this->exportWord($filename, __('travel.reports.bookings_export.sheet_title'), $rows),
             'csv' => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('travel.export.invalid_format')),
         };
     }
 

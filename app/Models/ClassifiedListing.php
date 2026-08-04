@@ -23,7 +23,7 @@ class ClassifiedListing extends Model
         'latitude', 'longitude', 'sketch_file_path', 'status',
         'contract_template_id', 'contract_accepted_at', 'contract_signature_data',
         'rejection_reason', 'approved_by_admin_id', 'approved_at',
-        'views_count', 'expires_at', 'barcode_path', 'marketer_promotion_enabled',
+        'views_count', 'expires_at', 'barcode_path',
         'is_vendor_listing', 'vendor_listing_reference',
     ];
 
@@ -37,7 +37,6 @@ class ClassifiedListing extends Model
         'approved_at'          => 'datetime',
         'expires_at'           => 'date',
         'price_negotiable'     => 'boolean',
-        'marketer_promotion_enabled' => 'boolean',
         'is_vendor_listing'    => 'boolean',
         'status'               => \App\Enums\ClassifiedListingStatus::class,
     ];
@@ -100,11 +99,6 @@ class ClassifiedListing extends Model
     {
         return $this->hasMany(ClassifiedListingImage::class, 'classified_listing_id')
                     ->orderBy('position');
-    }
-
-    public function listingMarketers(): HasMany
-    {
-        return $this->hasMany(ClassifiedListingMarketer::class, 'classified_listing_id');
     }
 
     public function inquiries(): HasMany

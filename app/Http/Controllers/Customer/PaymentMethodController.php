@@ -29,7 +29,7 @@ class PaymentMethodController extends Controller
 
         return ApiResponse::success(
             PaymentMethodResource::collection($paymentMethods),
-            'Payment methods retrieved.'
+            __('common.exceptions.payment_method.retrieved')
         );
     }
 
@@ -50,7 +50,7 @@ class PaymentMethodController extends Controller
             ->first();
 
         if (!$methodConfig) {
-            return ApiResponse::error('This payment gateway is not available in your country.', [], 422);
+            return ApiResponse::error(__('common.exceptions.payment_method.gateway_unavailable'), [], 422);
         }
 
         $paymentMethod = DB::transaction(function () use ($customer, $data) {
@@ -61,7 +61,7 @@ class PaymentMethodController extends Controller
             return $customer->paymentMethods()->create($data);
         });
 
-        return ApiResponse::success(new PaymentMethodResource($paymentMethod), 'Payment method added.', 201);
+        return ApiResponse::success(new PaymentMethodResource($paymentMethod), __('common.exceptions.payment_method.added'), 201);
     }
 
     public function setDefault($country, PaymentMethod $paymentMethod): JsonResponse
@@ -77,7 +77,7 @@ class PaymentMethodController extends Controller
             $paymentMethod->update(['is_default' => true]);
         });
 
-        return ApiResponse::success(new PaymentMethodResource($paymentMethod->fresh()), 'Default payment method updated.');
+        return ApiResponse::success(new PaymentMethodResource($paymentMethod->fresh()), __('common.exceptions.payment_method.default_updated'));
     }
 
     public function destroy($country, PaymentMethod $paymentMethod): JsonResponse
@@ -86,6 +86,6 @@ class PaymentMethodController extends Controller
 
         $paymentMethod->delete();
 
-        return ApiResponse::success(null, 'Payment method deleted.');
+        return ApiResponse::success(null, __('common.exceptions.payment_method.deleted'));
     }
 }

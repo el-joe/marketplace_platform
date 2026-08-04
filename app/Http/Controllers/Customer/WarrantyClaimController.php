@@ -94,7 +94,7 @@ class WarrantyClaimController extends Controller
 
         return ApiResponse::success(
             new WarrantyClaimResource($claim->load(['product', 'vendor'])),
-            'Warranty claim submitted.',
+            __('common.exceptions.warranty_claim.submitted'),
             201,
         );
     }
@@ -114,7 +114,7 @@ class WarrantyClaimController extends Controller
             ->first();
 
         if (!$claim) {
-            return ApiResponse::error('Warranty claim not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.warranty_claim.not_found'), [], 404);
         }
 
         return ApiResponse::success(new WarrantyClaimResource($claim));
@@ -130,11 +130,11 @@ class WarrantyClaimController extends Controller
             ->first();
 
         if (!$claim) {
-            return ApiResponse::error('Warranty claim not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.warranty_claim.not_found'), [], 404);
         }
 
         if (in_array($claim->status, [WarrantyClaim::STATUS_RESOLVED, WarrantyClaim::STATUS_REJECTED], true)) {
-            return ApiResponse::error('This warranty claim is closed and no longer accepts messages.', [], 422);
+            return ApiResponse::error(__('common.exceptions.warranty_claim.closed'), [], 422);
         }
 
         $message = $claim->messages()->create([
@@ -144,6 +144,6 @@ class WarrantyClaimController extends Controller
             'is_internal_note' => false,
         ]);
 
-        return ApiResponse::success(new WarrantyClaimMessageResource($message), 'Message sent.', 201);
+        return ApiResponse::success(new WarrantyClaimMessageResource($message), __('common.exceptions.warranty_claim.message_sent'), 201);
     }
 }

@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'noon Seller Help Center')</title>
-    <meta name="description" content="@yield('description', 'noon Seller Help Center')">
+    <title>@yield('title', __('common.helpcenter_title'))</title>
+    <meta name="description" content="@yield('description', __('common.helpcenter_title'))">
     <meta name="robots" content="index,follow">
 
     <link rel="icon" href="{{ asset('images/helpcenter/favicon.svg') }}">

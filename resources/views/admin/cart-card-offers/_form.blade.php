@@ -224,13 +224,13 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="apply_label_en" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.cart_card_offers_section.apply_label_en') }}</label>
-                            <input type="text" id="apply_label_en" name="apply_label_en" value="{{ $val('apply_label_en', 'Apply') }}"
+                            <input type="text" id="apply_label_en" name="apply_label_en" value="{{ $val('apply_label_en', __('admin.cart_card_offers_section.apply_label_en_default')) }}"
                                 class="input w-full @error('apply_label_en') border-red-400 @enderror" maxlength="100" />
                             @error('apply_label_en') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label for="apply_label_ar" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.cart_card_offers_section.apply_label_ar') }}</label>
-                            <input type="text" id="apply_label_ar" name="apply_label_ar" dir="rtl" value="{{ $val('apply_label_ar', 'قدم الآن') }}"
+                            <input type="text" id="apply_label_ar" name="apply_label_ar" dir="rtl" value="{{ $val('apply_label_ar', __('admin.cart_card_offers_section.apply_label_ar_default')) }}"
                                 class="input w-full @error('apply_label_ar') border-red-400 @enderror" maxlength="100" />
                             @error('apply_label_ar') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>

@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             order: [[9, 'desc']],
             pageLength: 25,
-            language: { search: '', searchPlaceholder: window.TRANSLATIONS?.searchPlaceholder || 'Search…' },
+            language: { search: '', searchPlaceholder: t('shared.table_search_placeholder') },
         });
 
         // Global search input
@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ],
                     order: [[4, 'desc']],
                     pageLength: 25,
-                    language: { search: '', searchPlaceholder: window.TRANSLATIONS?.searchPlaceholder || 'Search…' },
+                    language: { search: '', searchPlaceholder: t('shared.table_search_placeholder') },
                 });
             }
         });
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ],
                 order: [[0, 'desc']],
                 pageLength: 25,
-                language: { search: '', searchPlaceholder: window.TRANSLATIONS?.searchPlaceholder || 'Search…' },
+                language: { search: '', searchPlaceholder: t('shared.table_search_placeholder') },
             });
         }
 

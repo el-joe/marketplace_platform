@@ -124,7 +124,7 @@ function initInlineFeeEdit() {
             const newCents = toCents($input.val());
             try {
                 await sendJson(updateUrl(window.SHIPPING_WEIGHT_SLABS_ROUTES.update, id), 'PUT', { extra_fee: newCents });
-                toast('Extra fee updated.');
+                toast(t('admin.shipping_weight_slabs.extra_fee_updated'));
             } catch (err) {
                 toast(err.message ?? err.errors?.extra_fee?.[0] ?? 'Failed to update fee.', 'error');
             } finally {
@@ -332,12 +332,12 @@ function initDeleteSlab() {
 
         try {
             await sendJson(updateUrl(window.SHIPPING_WEIGHT_SLABS_ROUTES.destroy, id), 'DELETE');
-            toast('Weight slab deleted.');
+            toast(t('admin.shipping_weight_slabs.weight_slab_deleted'));
             $deleteModal.modal('close');
             window.reloadDataTable('weight-slabs-table');
             loadReferenceTable();
         } catch {
-            toast('Delete failed.', 'error');
+            toast(t('admin.shipping_weight_slabs.delete_failed'), 'error');
         }
     });
 }

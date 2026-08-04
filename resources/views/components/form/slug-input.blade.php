@@ -57,7 +57,7 @@
         <button
             type="button"
             @click="locked = !locked; !locked && $nextTick(() => $el.previousElementSibling.focus())"
-            :title="locked ? 'Click to edit slug' : 'Lock slug'"
+            :title="locked ? @js(__('common.click_to_edit_slug')) : @js(__('common.lock_slug'))"
             class="inline-flex items-center px-3 rounded-r-lg border border-l-0
                    border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100
                    hover:text-gray-700 transition-colors">

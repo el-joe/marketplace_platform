@@ -131,7 +131,7 @@
         @if($listing->barcode_path)
         <div class="flex justify-center">
             <img src="{{ \Illuminate\Support\Facades\Storage::url($listing->barcode_path) }}"
-                 alt="QR Code" class="w-32 h-32">
+                 alt="{{ __('common.storefront.qr_code_alt') }}" class="w-32 h-32">
         </div>
         @endif
 

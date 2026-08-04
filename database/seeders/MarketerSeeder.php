@@ -3,16 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\Country;
-use App\Models\Marketer;
+use App\Models\Vendor;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * Seeds marketer accounts on the 'marketer' guard (marketers table).
- * Covers all four marketer types (influencer/celebrity/affiliate/brand_ambassador)
- * and all four status states (active/pending/rejected/suspended) so every admin
- * panel filter and queue has realistic demo data.
+ * Seeds marketer accounts under the new system: marketers are vendors with
+ * marketer_type set ('influencer' or 'affiliate'), plus a linked MarketerProfile.
+ * Covers both marketer types and a spread of global_status values (active/pending/
+ * rejected/suspended) so every admin panel filter and queue has realistic demo data.
  *
  * All accounts use password: password123
  * Fully idempotent — keyed on email with firstOrCreate().
@@ -47,7 +47,7 @@ class MarketerSeeder extends Seeder
             [
                 'name'            => 'Celebrity Chef Hana',
                 'email'           => 'hana@marketer.com',
-                'type'            => 'celebrity',
+                'type'            => 'influencer',
                 'country_iso'     => 'EG',
                 'niche'           => 'food_lifestyle',
                 'followers_count' => 1200000,
@@ -91,7 +91,7 @@ class MarketerSeeder extends Seeder
             [
                 'name'            => 'Suspended Influencer',
                 'email'           => 'suspended-marketer@marketer.com',
-                'type'            => 'brand_ambassador',
+                'type'            => 'influencer',
                 'country_iso'     => 'SA',
                 'niche'           => 'fitness',
                 'followers_count' => 90000,
@@ -103,32 +103,48 @@ class MarketerSeeder extends Seeder
 
         foreach ($marketersData as $data) {
             $country = Country::where('iso_code_2', $data['country_iso'])->first();
+            $slug    = Str::slug($data['name']);
 
-            $marketer = Marketer::firstOrCreate(
+            $vendor = Vendor::firstOrCreate(
                 ['email' => $data['email']],
                 [
-                    'name'                  => $data['name'],
-                    'password'              => Hash::make('password123'),
-                    'type'                  => $data['type'],
-                    'country_id'            => $country?->id,
-                    'niche'                 => $data['niche'],
-                    'followers_count'       => $data['followers_count'],
-                    'engagement_rate'       => $data['engagement_rate'],
-                    'commission_rate'       => $data['commission_rate'],
-                    'status'                => $data['status'],
-                    'referral_code'         => 'MKT-' . Str::upper(Str::random(6)),
-                    'boutiqaat_style_slug'  => Str::slug($data['name']),
-                    'bio'                   => fake()->paragraph(),
-                    'total_clicks'          => fake()->numberBetween(0, 10000),
-                    'total_conversions'     => fake()->numberBetween(0, 300),
-                    'total_earnings'  => fake()->numberBetween(0, 500000),
-                    'approved_at'           => $data['status'] === 'active' ? now() : null,
+                    'name'                      => $data['name'],
+                    'password'                  => Hash::make('password123'),
+                    'store_name'                => $data['name'] . ' Store',
+                    'store_slug'                => $slug . '-' . Str::lower(Str::random(4)),
+                    'contact_email'             => $data['email'],
+                    'whatsapp_for_campaigns'    => '+9665' . random_int(10000000, 99999999),
+                    'country_id'                => $country?->id,
+                    'commission_rate'           => $data['commission_rate'],
+                    'marketer_type'             => $data['type'],
+                    'global_status'             => $data['status'],
+                    'approved_at'               => $data['status'] === 'active' ? now() : null,
+                ]
+            );
+
+            $vendor->marketerProfile()->firstOrCreate(
+                ['vendor_id' => $vendor->id],
+                [
+                    'bio_en'            => "{$data['niche']} marketer with {$data['followers_count']} followers, ~{$data['engagement_rate']}% engagement.",
+                    'bio_ar'            => 'مسوق في مجال ' . $data['niche'],
+                    'profile_slug'      => $slug . '-profile',
+                    'social_links'      => [
+                        'instagram' => 'https://instagram.com/' . $slug,
+                    ],
+                    'contact_details'   => [
+                        'niche'           => $data['niche'],
+                        'followers_count' => $data['followers_count'],
+                        'engagement_rate' => $data['engagement_rate'],
+                    ],
+                    'total_campaigns'   => 0,
+                    'total_conversions' => fake()->numberBetween(0, 300),
+                    'total_earnings'    => fake()->numberBetween(0, 500000),
                 ]
             );
 
             $this->command->line("  ✓ Marketer: {$data['name']} ({$data['type']}, {$data['status']})");
         }
 
-        $this->command->info('✅ Marketers seeded (' . count($marketersData) . ' accounts — all 4 types, all 4 statuses).');
+        $this->command->info('✅ Marketers seeded (' . count($marketersData) . ' accounts).');
     }
 }

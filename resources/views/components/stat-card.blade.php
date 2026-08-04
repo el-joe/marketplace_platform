@@ -2,7 +2,7 @@
     'title'         => '',
     'value'         => '',
     'change'        => null,        // numeric %, null = no change shown
-    'changeLabel'   => 'vs last period',
+    'changeLabel'   => null,
     'icon'          => null,
     'iconBg'        => 'bg-primary-100 text-primary-600',
     'loading'       => false,
@@ -12,6 +12,7 @@
 @php
     $isUp   = is_numeric($change) && $change >= 0;
     $changeClass = $isUp ? 'text-success-600' : 'text-danger-600';
+    $changeLabel = $changeLabel ?? __('common.vs_last_period');
     $tag = $href ? 'a' : 'div';
 @endphp
 

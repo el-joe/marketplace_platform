@@ -213,7 +213,7 @@
             <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
                 <h3 class="font-semibold text-gray-900 mb-2 text-sm">{{ __('admin.classifieds.qr_code') }}</h3>
                 <img src="{{ \Illuminate\Support\Facades\Storage::url($listing->barcode_path) }}"
-                     alt="QR" class="w-24 h-24 mx-auto">
+                     alt="{{ __('admin.classifieds.qr_code') }}" class="w-24 h-24 mx-auto">
             </div>
             @endif
 

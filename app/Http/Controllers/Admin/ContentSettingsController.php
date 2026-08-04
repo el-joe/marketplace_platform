@@ -28,8 +28,8 @@ class ContentSettingsController extends Controller
         return view('admin.content-settings.index', [
             'groups' => $groups,
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Content Settings'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.content_settings')],
             ],
         ]);
     }
@@ -52,8 +52,8 @@ class ContentSettingsController extends Controller
             'group' => $group,
             'sections' => $settings,
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Content Settings', 'url' => route('admin.content-settings.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.content_settings'), 'url' => route('admin.content-settings.index')],
                 ['label' => ucfirst(str_replace('_', ' ', $group))],
             ],
         ]);
@@ -114,7 +114,7 @@ class ContentSettingsController extends Controller
         ContentSetting::flush();
         Cache::forget('content_settings');
 
-        return redirect()->back()->with('success', 'Content settings saved successfully.');
+        return redirect()->back()->with('success', __('admin.content_settings.saved_success'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────

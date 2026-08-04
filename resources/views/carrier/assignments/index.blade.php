@@ -6,7 +6,7 @@
 
 <div class="mb-6">
     <h1 class="text-2xl font-black text-gray-900">{{ __('carrier.assignments.title') }}</h1>
-    <p class="text-sm text-gray-500 mt-0.5">{{ __('carrier.assignments.all_assignments') }} — بما فيها غير المقبولة.</p>
+    <p class="text-sm text-gray-500 mt-0.5">{{ __('carrier.assignments.all_assignments') }} — {{ __('carrier.assignments.including_unaccepted') }}</p>
 </div>
 
 {{-- Filters --}}

@@ -104,6 +104,22 @@ return [
         'footer_copyright' => '&copy; :year — All rights reserved',
     ],
 
+    'gift_card_delivery' => [
+        'image_alt'          => 'Noon Gift Card',
+        'heading_gift'       => "You've received a gift card from :buyer_name!",
+        'heading_self'       => 'Your gift card is ready!',
+        'greeting'           => 'Hi :name,',
+        'intro_gift'         => ':buyer_name sent you a Noon gift card. Here are your redemption details:',
+        'intro_self'         => 'Here are your redemption details:',
+        'code_label'         => 'Code',
+        'pin_label'          => 'PIN:',
+        'amount_label'       => 'Amount:',
+        'expiry_label'       => 'Expiry:',
+        'how_to_use_title'   => 'How to use',
+        'how_to_use_body'    => 'Go to profile → Wallet → Redeem → Gift Card tab → enter your code and PIN.',
+        'thanks'             => 'Thanks,<br>:app_name',
+    ],
+
     'marketer_welcome' => [
         'subject'          => 'Your account has been approved',
         'title'            => 'Your account has been approved',

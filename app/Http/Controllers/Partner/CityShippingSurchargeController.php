@@ -84,7 +84,7 @@ class CityShippingSurchargeController extends Controller
             ['extra_amount_cents' => $validated['extra_amount_cents'], 'is_active' => true],
         );
 
-        return response()->json(['message' => 'Warehouse surcharge saved.', 'data' => ['id' => $surcharge->id]]);
+        return response()->json(['message' => __('partner.city_surcharges.messages.saved'), 'data' => ['id' => $surcharge->id]]);
     }
 
     public function update(Request $request, VendorCityShippingSurcharge $surcharge): JsonResponse
@@ -99,7 +99,7 @@ class CityShippingSurchargeController extends Controller
 
         $surcharge->update($validated);
 
-        return response()->json(['message' => 'Warehouse surcharge updated.']);
+        return response()->json(['message' => __('partner.city_surcharges.messages.updated')]);
     }
 
     public function toggleActive(VendorCityShippingSurcharge $surcharge): JsonResponse

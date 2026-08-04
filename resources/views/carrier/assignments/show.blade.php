@@ -278,7 +278,7 @@
             @if($shipment->weight_grams)
             <div class="flex justify-between">
                 <span class="text-gray-500">{{ __('carrier.assignment_detail.weight') }}</span>
-                <span class="text-gray-700">{{ number_format($shipment->weight_grams / 1000, 2) }} كغ</span>
+                <span class="text-gray-700">{{ number_format($shipment->weight_grams / 1000, 2) }} {{ __('carrier.assignment_detail.weight_unit_kg') }}</span>
             </div>
             @endif
         </div>

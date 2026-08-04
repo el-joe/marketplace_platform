@@ -29,7 +29,6 @@ $adminDomain = env('APP_ADMIN_SUBDOMAIN', 'admin') . '.' . $appDomain;
 $portalDomain = env('APP_PORTAL_SUBDOMAIN', 'portal') . '.' . $appDomain;
 $partnerDomain = env('APP_PARTNER_SUBDOMAIN', 'partner') . '.' . $appDomain;
 $deliveryDomain = env('APP_DELIVERY_SUBDOMAIN', 'delivery') . '.' . $appDomain;
-$marketerDomain = env('APP_MARKETER_SUBDOMAIN', 'marketer') . '.' . $appDomain;
 $travelDomain = env('APP_TRAVEL_SUBDOMAIN', 'travel-agency') . '.' . $appDomain;
 $carrierDomain = env('APP_CARRIER_SUBDOMAIN', 'carrier') . '.' . $appDomain;
 
@@ -70,16 +69,6 @@ Route::domain($deliveryDomain)->group(
 
 /*
 |--------------------------------------------------------------------------
-| Marketer Portal
-| marketer.noon.loc
-|--------------------------------------------------------------------------
-*/
-Route::domain($marketerDomain)->group(
-    base_path('routes/marketer.php')
-);
-
-/*
-|--------------------------------------------------------------------------
 | Travel Agency Portal
 | travel-agency.noon.loc
 |--------------------------------------------------------------------------
@@ -97,19 +86,6 @@ Route::domain($travelDomain)->group(
 Route::domain($carrierDomain)->group(
     base_path('routes/carrier.php')
 );
-
-/*
-|--------------------------------------------------------------------------
-| Storefront Tracking Redirects
-| {country}.noon.loc/r/{slug}
-|--------------------------------------------------------------------------
-*/
-Route::prefix('{country}/r')
-    ->middleware(['web', 'track.marketer.click'])
-    ->group(function () {
-        Route::get('/{slug}', [\App\Http\Controllers\MarketerPortal\TrackingController::class, 'redirect'])
-            ->name('marketer.tracking.redirect');
-    });
 
 /*
 |--------------------------------------------------------------------------

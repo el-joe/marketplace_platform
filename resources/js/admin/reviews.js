@@ -189,21 +189,20 @@ function initIndexPage() {
         if (!ids.length) return;
 
         const labels = {
-            approve: window.TRANSLATIONS?.actionApprove || 'Approve',
-            reject: window.TRANSLATIONS?.actionReject || 'Reject',
-            delete: window.TRANSLATIONS?.actionDelete || 'Delete',
+            approve: t('admin.reviews.action_approve_label'),
+            reject: t('admin.reviews.action_reject_label'),
+            delete: t('admin.reviews.action_delete_label'),
         };
         const label = labels[action] || (action.charAt(0).toUpperCase() + action.slice(1));
-        const confirmMsg = (window.TRANSLATIONS?.bulkActionConfirm || '{label} {count} review(s)?')
-            .replace('{label}', label).replace('{count}', ids.length);
+        const confirmMsg = t('admin.reviews.bulk_action_confirm', { label, count: ids.length });
         if (!confirm(confirmMsg)) return;
 
         try {
             const res = await postJson('/admin/reviews/bulk-action', { action, ids });
-            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.bulkActionDone || `Bulk ${action} done.`).replace('{action}', label));
+            window.Toast?.success(res.message ?? t('admin.reviews.bulk_action_done', { action: label }));
             dt.ajax.reload();
         } catch (e) {
-            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.bulkActionFailed || `Bulk ${action} failed.`).replace('{action}', label));
+            window.Toast?.error(e.message ?? t('admin.reviews.bulk_action_failed', { action: label }));
         }
     }
 
@@ -220,13 +219,13 @@ function initIndexPage() {
 
         if (btn.classList.contains('js-approve-btn')) {
             const url = btn.dataset.url;
-            if (!confirm(window.TRANSLATIONS?.confirmApprovePublish || 'Approve and publish this review?')) return;
+            if (!confirm(t('admin.reviews.approve_publish_confirm'))) return;
             try {
                 const res = await postJson(url, {});
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewApproved || 'Review approved.'));
+                window.Toast?.success(res.message ?? (t('admin.reviews.review_approved')));
                 dt.ajax.reload();
             } catch (er) {
-                window.Toast?.error(er.message ?? (window.TRANSLATIONS?.approvalFailed || 'Approval failed.'));
+                window.Toast?.error(er.message ?? (t('admin.reviews.approval_failed')));
             }
         }
 
@@ -238,13 +237,13 @@ function initIndexPage() {
 
         if (btn.classList.contains('js-delete-btn')) {
             const url = btn.dataset.url;
-            if (!confirm(window.TRANSLATIONS?.confirmDeleteReview || 'Permanently delete this review? This cannot be undone.')) return;
+            if (!confirm(t('admin.reviews.delete_permanently_confirm'))) return;
             try {
                 const res = await deleteJson(url);
-                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewDeleted || 'Review deleted.'));
+                window.Toast?.success(res.message ?? (t('admin.reviews.review_deleted')));
                 dt.ajax.reload();
             } catch (er) {
-                window.Toast?.error(er.message ?? (window.TRANSLATIONS?.deleteFailed || 'Delete failed.'));
+                window.Toast?.error(er.message ?? (t('admin.reviews.delete_failed')));
             }
         }
     });
@@ -257,18 +256,18 @@ function initIndexPage() {
         const reason = document.getElementById('reject-reason-input')?.value.trim() ?? '';
         const btn = document.getElementById('confirm-reject-btn');
         btn.disabled = true;
-        btn.textContent = window.TRANSLATIONS?.rejecting || 'Rejecting…';
+        btn.textContent = t('admin.reviews.rejecting_label');
 
         try {
             const res = await postJson(url, { reason: reason || null });
-            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewRejected || 'Review rejected.'));
+            window.Toast?.success(res.message ?? (t('admin.reviews.review_rejected')));
             $('#reject-modal').modal('close');
             dt.ajax.reload();
         } catch (e) {
-            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.rejectionFailed || 'Rejection failed.'));
+            window.Toast?.error(e.message ?? (t('admin.reviews.rejection_failed')));
         } finally {
             btn.disabled = false;
-            btn.textContent = window.TRANSLATIONS?.confirmRejectBtnLabel || 'Reject Review';
+            btn.textContent = t('admin.reviews.reject_review_label');
         }
     });
 }
@@ -284,17 +283,17 @@ function initShowPage() {
 
     // Approve button
     document.getElementById('approve-btn')?.addEventListener('click', async function () {
-        if (!confirm(window.TRANSLATIONS?.confirmApprovePublish || 'Approve and publish this review?')) return;
+        if (!confirm(t('admin.reviews.approve_publish_confirm'))) return;
         this.disabled = true;
-        this.textContent = window.TRANSLATIONS?.approving || 'Approving…';
+        this.textContent = t('admin.reviews.approving_label');
         try {
             const res = await postJson(window.reviewShow.approveUrl, {});
-            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewApproved || 'Review approved.'));
+            window.Toast?.success(res.message ?? (t('admin.reviews.review_approved')));
             setTimeout(() => window.location.reload(), 1000);
         } catch (e) {
-            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.approvalFailed || 'Approval failed.'));
+            window.Toast?.error(e.message ?? (t('admin.reviews.approval_failed')));
             this.disabled = false;
-            this.textContent = window.TRANSLATIONS?.approveAndPublishShort || 'Approve & Publish';
+            this.textContent = t('admin.reviews.approve_and_publish_short');
         }
     });
 
@@ -308,32 +307,32 @@ function initShowPage() {
     document.getElementById('confirm-reject-btn')?.addEventListener('click', async function () {
         const reason = document.getElementById('reject-reason-input')?.value.trim() ?? '';
         this.disabled = true;
-        this.textContent = window.TRANSLATIONS?.rejecting || 'Rejecting…';
+        this.textContent = t('admin.reviews.rejecting_label');
         try {
             const res = await postJson(window.reviewShow.rejectUrl, { reason: reason || null });
-            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewRejected || 'Review rejected.'));
+            window.Toast?.success(res.message ?? (t('admin.reviews.review_rejected')));
             $('#reject-modal').modal('close');
             setTimeout(() => window.location.href = window.reviewShow.indexUrl, 800);
         } catch (e) {
-            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.rejectionFailed || 'Rejection failed.'));
+            window.Toast?.error(e.message ?? (t('admin.reviews.rejection_failed')));
             this.disabled = false;
-            this.textContent = window.TRANSLATIONS?.confirmRejectShort || 'Confirm Reject';
+            this.textContent = t('admin.reviews.confirm_reject_label');
         }
     });
 
     // Delete button
     document.getElementById('delete-btn')?.addEventListener('click', async function () {
-        if (!confirm(window.TRANSLATIONS?.confirmDeleteReview || 'Permanently delete this review? This cannot be undone.')) return;
+        if (!confirm(t('admin.reviews.delete_permanently_confirm'))) return;
         this.disabled = true;
-        this.textContent = window.TRANSLATIONS?.deleting || 'Deleting…';
+        this.textContent = t('admin.reviews.deleting_label');
         try {
             const res = await deleteJson(window.reviewShow.deleteUrl);
-            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewDeleted || 'Review deleted.'));
+            window.Toast?.success(res.message ?? (t('admin.reviews.review_deleted')));
             setTimeout(() => window.location.href = window.reviewShow.indexUrl, 800);
         } catch (e) {
-            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.deleteFailed || 'Delete failed.'));
+            window.Toast?.error(e.message ?? (t('admin.reviews.delete_failed')));
             this.disabled = false;
-            this.textContent = window.TRANSLATIONS?.deletePermanentlyShort || 'Delete permanently';
+            this.textContent = t('admin.reviews.delete_permanently_label');
         }
     });
 
@@ -344,11 +343,10 @@ function initShowPage() {
             const action = this.dataset.action;
             try {
                 const res = await postJson(url, {});
-                const fallback = action === 'hide' ? 'Reply hidden.' : 'Reply shown.';
-                window.Toast?.success(res.message ?? (action === 'hide' ? (window.TRANSLATIONS?.replyHidden || fallback) : (window.TRANSLATIONS?.replyShown || fallback)));
+                window.Toast?.success(res.message ?? (action === 'hide' ? t('admin.reviews.reply_hidden') : t('admin.reviews.reply_shown')));
                 setTimeout(() => window.location.reload(), 800);
             } catch (e) {
-                window.Toast?.error(e.message ?? (window.TRANSLATIONS?.actionFailed || 'Action failed.'));
+                window.Toast?.error(e.message ?? (t('admin.reviews.action_failed')));
             }
         });
     });

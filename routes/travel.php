@@ -95,7 +95,6 @@ Route::name('travel-agency.')
                 Route::get('/export',                              [CampaignController::class, 'export'])->name('export')->middleware('travel_agency.can:campaigns.view');
                 Route::get('/create',                              [CampaignController::class, 'create'])->name('create')->middleware('travel_agency.can:campaigns.create');
                 Route::post('/',                                   [CampaignController::class, 'store'])->name('store')->middleware('travel_agency.can:campaigns.create');
-                Route::get('/marketers/search',                    [CampaignController::class, 'searchMarketers'])->name('marketers.search')->middleware('travel_agency.can:campaigns.create');
                 Route::get('/packages/search',                     [CampaignController::class, 'searchPackages'])->name('packages.search')->middleware('travel_agency.can:campaigns.create');
                 Route::get('/{offer}',                             [CampaignController::class, 'show'])->name('show')->middleware('travel_agency.can:campaigns.view');
                 Route::post('/{offer}/submit',                     [CampaignController::class, 'submitForReview'])->name('submit')->middleware('travel_agency.can:campaigns.edit');

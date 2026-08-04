@@ -25,7 +25,7 @@ class DashboardController extends Controller
 
         return ApiResponse::success(
             new CarrierDashboardResource($snapshot),
-            'Dashboard snapshot retrieved.',
+            __('carrier.api.dashboard_retrieved'),
         );
     }
 }

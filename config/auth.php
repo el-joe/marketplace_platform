@@ -64,16 +64,6 @@ return [
             'driver' => 'jwt',
             'provider' => 'delivery_agents',
         ],
-        // Marketer portal (web/blade — session-based)
-        'marketer' => [
-            'driver' => 'session',
-            'provider' => 'marketers',
-        ],
-        // Marketer API (mobile/JWT)
-        'marketer_api' => [
-            'driver' => 'jwt',
-            'provider' => 'marketers',
-        ],
         // Travel agency portal (session-based login for the agency owner + team members)
         'travel_agency' => [
             'driver' => 'session',
@@ -129,10 +119,6 @@ return [
         'delivery_agents' => [
             'driver' => 'eloquent',
             'model' => \App\Models\DeliveryAgent::class,
-        ],
-        'marketers' => [
-            'driver' => 'eloquent',
-            'model' => \App\Models\Marketer::class,
         ],
         'travel_agencies' => [
             'driver' => 'eloquent',
@@ -207,12 +193,6 @@ return [
         'travel_agency_members' => [
             'provider' => 'travel_agency_members',
             'table' => 'travel_agency_member_password_resets',
-            'expire' => 60,
-            'throttle' => 60,
-        ],
-        'marketers' => [
-            'provider' => 'marketers',
-            'table' => 'marketer_password_resets',
             'expire' => 60,
             'throttle' => 60,
         ],

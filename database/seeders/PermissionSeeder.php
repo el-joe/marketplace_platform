@@ -31,12 +31,6 @@ class PermissionSeeder extends Seeder
             'admin_listings.edit',
             'admin_listings.delete',
             'admin_listings.toggle_status',
-            // Influencer Open Market
-            'open_market.view',
-            'open_market.manage',
-            // Celebrity Open Market (Tier 2 Celebrity Store)
-            'celebrity_store.view',
-            'celebrity_store.manage',
             // Catalog – Categories
             'categories.view',
             'categories.create',
@@ -112,7 +106,6 @@ class PermissionSeeder extends Seeder
             'ad_campaigns.edit',
             'ad_campaigns.delete',
             'ad_campaigns.manage',
-            'campaign_offers.view',
             'vendor_change_requests.view',
             'vendor_change_requests.approve',
             'travel_agency_change_requests.view',
@@ -178,33 +171,6 @@ class PermissionSeeder extends Seeder
             'roles.edit',
             'roles.delete',
             'activity-log.view',
-            // Marketers
-            'marketers.view',
-            'marketers.approve',
-            'marketers.reject',
-            'marketers.suspend',
-            'marketers.campaigns.view',
-            'marketers.campaigns.approve',
-            'marketers.campaigns.reject',
-            'marketers.conversions.view',
-            'marketers.conversions.approve',
-            'marketers.payouts.view',
-            'marketers.payouts.generate',
-            'marketers.payouts.approve',
-            'marketers.payouts.process',
-            'marketers.tiers.view',
-            'marketers.tiers.edit',
-            'marketers.secret_promotions.view',
-            'marketers.secret_promotions.create',
-            'marketers.secret_promotions.edit',
-            'marketers.samples.view',
-            'marketers.samples.approve',
-            'marketers.samples.dispatch',
-            'marketers.products.view',
-            'marketers.products.approve',
-            'marketers.products.reject',
-            'admin_can_manage_influencer_promotions',
-            'admin_can_manage_marketer_quotas',
             // Travel
             'travel.view',
             'travel.approve',
@@ -213,12 +179,15 @@ class PermissionSeeder extends Seeder
             'travel.geography.manage',
             // Classifieds
             'classifieds.view',
-            // Promotions (Prompts 12, 13, 15, 16)
-            'promotion_requests.view',
-            'promotion_requests.edit',
-            'celebrity_store.edit',
-            'promotion_settings.view',
-            'promotion_settings.edit',
+            // Marketer campaigns (admin)
+            'marketer_campaigns.view',
+            'marketer_campaigns.approve',
+            'marketer_campaigns.reject',
+            'marketer_commission_settings.view',
+            'marketer_commission_settings.edit',
+            'marketer_fee_settings.view',
+            'marketer_fee_settings.edit',
+            'vendor_marketer_type.edit',
         ];
 
         foreach ($permissions as $name) {
@@ -229,5 +198,30 @@ class PermissionSeeder extends Seeder
         $this->command->info('Permissions seeded: ' . $countPermissions . ' permissions (guard: ' . $guard . ').');
 
         $this->command->info('Permissions seeded: ' . count($permissions) . ' permissions (guard: ' . $guard . ').');
+
+        $vendorGuard = 'vendor';
+
+        $vendorPermissions = [
+            // Vendor panel — campaign management (available to vendor+marketer only)
+            'marketer_campaigns.view',
+            'marketer_campaigns.create',
+            'marketer_campaigns.edit',
+            'marketer_campaigns.cancel',
+            // Vendor panel — marketer profile management
+            'marketer_profile.view',
+            'marketer_profile.edit',
+            // Vendor panel — marketer campaign requests (invitations received as marketer)
+            'marketer_invitations.view',
+            'marketer_invitations.respond',
+            // Vendor panel — marketer reports
+            'marketer_reports.view',
+        ];
+
+        foreach ($vendorPermissions as $name) {
+            Permission::firstOrCreate(['name' => $name, 'guard_name' => $vendorGuard]);
+        }
+
+        $countVendorPermissions = Permission::where('guard_name', $vendorGuard)->count();
+        $this->command->info('Permissions seeded: ' . $countVendorPermissions . ' permissions (guard: ' . $vendorGuard . ').');
     }
 }

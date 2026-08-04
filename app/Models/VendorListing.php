@@ -24,15 +24,11 @@ class VendorListing extends Model
             'status' => VendorListingStatus::class,
             'global_system_type' => GlobalSystemType::class,
             'vendor_covers_delivery' => 'boolean',
-            'influencer_commission_percentage' => 'decimal:2',
-            'affiliate_commission_percentage' => 'decimal:2',
             'declared_weight_grams' => 'integer',
             'declared_length_cm' => 'decimal:2',
             'declared_width_cm' => 'decimal:2',
             'declared_height_cm' => 'decimal:2',
-            'available_for_marketers' => 'boolean',
-            'influencer_commission_pct' => 'decimal:2',
-            'affiliate_commission_pct' => 'decimal:2',
+            'campaign_enabled' => 'boolean',
         ];
     }
 
@@ -72,21 +68,13 @@ class VendorListing extends Model
         'calculated_at',
         'next_recalculate_at',
         'vendor_covers_delivery',
-        'influencer_commission_percentage',
-        'affiliate_commission_percentage',
-        'influencer_sample_quota',
-        'affiliate_sample_quota',
         'weight_class',
         'handling_class',
         'declared_weight_grams',
         'declared_length_cm',
         'declared_width_cm',
         'declared_height_cm',
-        'available_for_marketers',
-        'influencer_commission_pct',
-        'affiliate_commission_pct',
-        'promotion_fee_per_influencer_override',
-        'min_stock_for_promotion',
+        'campaign_enabled',
     ];
 
     public function vendor(): BelongsTo

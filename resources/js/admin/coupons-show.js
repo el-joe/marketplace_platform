@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
             labels: Object.keys(daily),
             datasets: [{
-                label: window.TRANSLATIONS?.dailyRedemptions || 'Daily Redemptions',
+                label: t('admin.coupons_show.daily_redemptions_label'),
                 data: Object.values(daily),
                 backgroundColor: '#3b82f6',
             }],

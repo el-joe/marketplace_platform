@@ -48,7 +48,7 @@ class WarrantyPurchaseController extends Controller
             ->first();
 
         if (!$purchase) {
-            return ApiResponse::error('Warranty purchase not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.warranty_purchase.not_found'), [], 404);
         }
 
         return ApiResponse::success(new WarrantyPurchaseResource($purchase));

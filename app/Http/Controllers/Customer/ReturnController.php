@@ -20,12 +20,12 @@ class ReturnController extends Controller
         $order = $customer->orders()->where('order_number', $orderNumber)->first();
 
         if (!$order) {
-            return ApiResponse::error('Order not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.order.not_found'), [], 404);
         }
 
         $returnRequest = $this->returnService->store($customer, $order, $request->validated());
 
-        return ApiResponse::success(new ReturnRequestResource($returnRequest), 'Return request submitted.', 201);
+        return ApiResponse::success(new ReturnRequestResource($returnRequest), __('common.exceptions.return.submitted'), 201);
     }
 
     public function index(string $country): JsonResponse
@@ -42,7 +42,7 @@ class ReturnController extends Controller
         $returnRequest = $this->returnService->findForCustomer($customer, $returnNumber);
 
         if (!$returnRequest) {
-            return ApiResponse::error('Return request not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.return.not_found'), [], 404);
         }
 
         return ApiResponse::success(new ReturnRequestResource($returnRequest));

@@ -14,32 +14,19 @@ class AdvertiseRequestController extends Controller
     {
         $country = Country::resolveSiteCode($country);
 
-        $isAr = session('locale', 'ar') === 'ar';
-
         $noSpecialChars = 'regex:/^[^+\-*\/]*$/';
 
-        $messages = $isAr ? [
-            'name.regex' => 'الأحرف الخاصة (+، -، *، /) غير مسموح بها. يرجى إزالتها.',
-            'company_name.regex' => 'الأحرف الخاصة (+، -، *، /) غير مسموح بها. يرجى إزالتها.',
-            'phone.regex' => 'يرجى إدخال رقم جوال صحيح!',
-            'description.min' => 'يرجى التأكد من أن الوصف يحتوي على 50 حرفاً على الأقل.',
-            'description.max' => 'يرجى التأكد من أن الوصف أقل من 1000 حرف.',
-            'name.required' => 'يرجى إدخال اسمك الكامل!',
-            'email.required' => 'يرجى إدخال عنوان بريد إلكتروني صالح!',
-            'email.email' => 'يرجى إدخال عنوان بريد إلكتروني صالح!',
-            'company_name.required' => 'يرجى إدخال اسم شركتك!',
-            'description.required' => 'يرجى إدخال تفاصيل الطلب في الوصف!',
-        ] : [
-            'name.regex' => 'Special characters (+, -, *, /) are not allowed. Please remove them.',
-            'company_name.regex' => 'Special characters (+, -, *, /) are not allowed. Please remove them.',
-            'phone.regex' => 'Please enter a valid phone number!',
-            'description.min' => 'Please ensure the description is at least 50 characters long.',
-            'description.max' => 'Please ensure the description is less than 1000 characters.',
-            'name.required' => 'Please enter your full name!',
-            'email.required' => 'Please enter a valid email address!',
-            'email.email' => 'Please enter a valid email address!',
-            'company_name.required' => 'Please enter your company name!',
-            'description.required' => 'Please enter your request details!',
+        $messages = [
+            'name.regex' => __('portal.advertise_request.special_chars_not_allowed'),
+            'company_name.regex' => __('portal.advertise_request.special_chars_not_allowed'),
+            'phone.regex' => __('portal.advertise_request.invalid_phone'),
+            'description.min' => __('portal.advertise_request.description_min'),
+            'description.max' => __('portal.advertise_request.description_max'),
+            'name.required' => __('portal.advertise_request.name_required'),
+            'email.required' => __('portal.advertise_request.email_required'),
+            'email.email' => __('portal.advertise_request.email_required'),
+            'company_name.required' => __('portal.advertise_request.company_name_required'),
+            'description.required' => __('portal.advertise_request.description_required'),
         ];
 
         $validated = $request->validate([

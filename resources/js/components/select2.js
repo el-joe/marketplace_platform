@@ -30,7 +30,7 @@ function initStandardSelect2($scope) {
         }
         $el.select2({
             width: '100%',
-            placeholder: $el.find('option[value=""]').text() || 'Select…',
+            placeholder: $el.find('option[value=""]').text() || t('shared.select.placeholder'),
             allowClear: true,
         });
     });
@@ -57,7 +57,7 @@ function initAsyncSelect2($scope) {
 
         $el.select2({
             width: '100%',
-            placeholder: $el.attr('placeholder') || config.placeholder || 'Type to search…',
+            placeholder: $el.attr('placeholder') || config.placeholder || t('shared.select.search_placeholder'),
             allowClear: !$el.prop('required'),
             minimumInputLength: config.minLength ?? 0,
             ajax: {

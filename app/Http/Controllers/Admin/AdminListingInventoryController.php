@@ -42,7 +42,7 @@ class AdminListingInventoryController extends Controller
         if ($exists) {
             return response()->json([
                 'success' => false,
-                'message' => 'An inventory record for this listing and warehouse already exists.',
+                'message' => __('admin.listing_inventory.already_exists'),
             ], 422);
         }
 
@@ -61,7 +61,7 @@ class AdminListingInventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Inventory record created.',
+            'message' => __('admin.listing_inventory.created'),
             'data' => $inventory->fresh('warehouse'),
         ]);
     }
@@ -101,7 +101,7 @@ class AdminListingInventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Inventory record updated.',
+            'message' => __('admin.listing_inventory.updated'),
             'data' => $inventory->fresh('warehouse'),
         ]);
     }

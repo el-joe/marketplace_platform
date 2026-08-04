@@ -45,8 +45,6 @@ class Order extends Model
         'wallet_amount_used',
         'coupon_id',
         'coupon_code_used',
-        'affiliate_promo_code_id',
-        'affiliate_commission_amount',
         'payment_method',
         'payment_status',
         'shipping_address_snapshot',
@@ -59,8 +57,6 @@ class Order extends Model
         'placed_at',
         'completed_at',
         'cancelled_at',
-        'marketer_id',
-        'marketer_campaign_id',
     ];
 
     public function customer(): BelongsTo
@@ -76,11 +72,6 @@ class Order extends Model
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
-    }
-
-    public function marketerCampaign(): BelongsTo
-    {
-        return $this->belongsTo(MarketerCampaign::class);
     }
 
     public function subOrders(): HasMany

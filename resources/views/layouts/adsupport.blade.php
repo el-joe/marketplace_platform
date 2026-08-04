@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Home | Advertise smarter, grow faster')</title>
-    <meta name="description" content="@yield('description', 'Advertise smarter, grow faster')">
+    <title>@yield('title', __('common.adsupport_home_title'))</title>
+    <meta name="description" content="@yield('description', __('common.adsupport_tagline'))">
     <meta name="robots" content="index,follow">
 
     <link rel="icon" href="https://intercom.help/noon-adsupport/assets/favicon">

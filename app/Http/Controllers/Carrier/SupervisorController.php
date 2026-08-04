@@ -44,7 +44,7 @@ class SupervisorController extends Controller
 
         $supervisor = $this->supervisorService->invite($company, $request->validated());
 
-        return ApiResponse::success(new SupervisorResource($supervisor), 'Supervisor invited successfully.', 201);
+        return ApiResponse::success(new SupervisorResource($supervisor), __('carrier.api.supervisor_invited'), 201);
     }
 
     // ── PUT /supervisors/{id} ─────────────────────────────────────────────────
@@ -64,7 +64,7 @@ class SupervisorController extends Controller
         if (isset($data['receives_all_notifications']) && $data['receives_all_notifications'] === true) {
             if (! $this->supervisorService->canReceiveAllNotifications($caller->company)) {
                 return ApiResponse::error(
-                    'The platform administrator has disabled the "receive all notifications" feature for your company.',
+                    __('carrier.api.notifications_feature_disabled'),
                     [],
                     403
                 );
@@ -73,7 +73,7 @@ class SupervisorController extends Controller
 
         $supervisor->update($data);
 
-        return ApiResponse::success(new SupervisorResource($supervisor->fresh()), 'Supervisor updated.');
+        return ApiResponse::success(new SupervisorResource($supervisor->fresh()), __('carrier.api.supervisor_updated'));
     }
 
     // ── DELETE /supervisors/{id} ──────────────────────────────────────────────
@@ -89,6 +89,6 @@ class SupervisorController extends Controller
 
         $supervisor->delete();
 
-        return ApiResponse::success(null, 'Supervisor removed.');
+        return ApiResponse::success(null, __('carrier.api.supervisor_removed'));
     }
 }

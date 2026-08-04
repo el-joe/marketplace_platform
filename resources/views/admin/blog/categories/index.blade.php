@@ -158,7 +158,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.name_ar') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name_ar" id="f-name-ar" required maxlength="150" dir="rtl"
-                       class="form-input w-full text-sm" placeholder="نصائح السفر">
+                       class="form-input w-full text-sm" placeholder="{{ __('admin.blog.modal.name_ar_placeholder') }}">
             </div>
         </div>
 
@@ -204,7 +204,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.description_ar') }}</label>
                 <textarea name="description_ar" id="f-desc-ar" rows="3" dir="rtl"
-                          class="form-input w-full text-sm" placeholder="وصف الفئة…"></textarea>
+                          class="form-input w-full text-sm" placeholder="{{ __('admin.blog.modal.description_ar_placeholder') }}"></textarea>
             </div>
         </div>
 

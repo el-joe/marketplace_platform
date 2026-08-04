@@ -28,7 +28,7 @@ class PageController extends Controller
         $result = $this->renderer->render($type, $slug ?: null, $country, $customer, (string) $sessionId);
 
         if (empty($result)) {
-            return ApiResponse::error('Page not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.page.not_found'), [], 404);
         }
 
         return ApiResponse::success(new PageResource($result));
@@ -45,7 +45,7 @@ class PageController extends Controller
 
         $block = PageBlock::find($id);
         if (!$block) {
-            return response()->json(['success' => false, 'message' => 'Block not found.'], 404);
+            return response()->json(['success' => false, 'message' => __('common.exceptions.page.block_not_found')], 404);
         }
 
         $validated = $request->validate([

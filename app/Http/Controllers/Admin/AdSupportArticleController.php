@@ -35,7 +35,7 @@ class AdSupportArticleController extends Controller
 
         return view('admin.adsupport.articles.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.adsupport.articles')],
             ],
             'stats' => $stats,
@@ -73,13 +73,13 @@ class AdSupportArticleController extends Controller
         }
 
         $statusColors = [
-            'draft' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'label' => 'Draft'],
-            'published' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'label' => 'Published'],
+            'draft' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'label' => __('admin.adsupport.status_draft')],
+            'published' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'label' => __('admin.adsupport.status_published')],
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function (AdSupportArticle $row) use ($statusColors) {
             $featuredStar = $row->is_featured
-                ? '<span class="inline-block text-amber-400" title="Featured on home page">★</span> '
+                ? '<span class="inline-block text-amber-400" title="' . __('admin.adsupport.featured_tooltip') . '">★</span> '
                 : '';
 
             $titleHtml = '<div class="min-w-0">'
@@ -102,14 +102,14 @@ class AdSupportArticleController extends Controller
             $featureUrl = route('admin.adsupport.articles.feature', $row->id);
             $deleteUrl = route('admin.adsupport.articles.destroy', $row->id);
 
-            $featureLabel = $row->is_featured ? 'Unfeature' : 'Feature on home page';
+            $featureLabel = $row->is_featured ? __('admin.adsupport.unfeature') : __('admin.adsupport.feature_on_home');
 
             $actionsHtml = '<div class="relative" x-data="{open:false}">'
                 . '<button @click="open=!open" class="btn btn-ghost btn-sm">⋮</button>'
                 . '<div x-show="open" @click.away="open=false" x-cloak class="absolute right-0 z-10 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-sm">'
-                . '<a href="' . $editUrl . '" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Edit</a>'
+                . '<a href="' . $editUrl . '" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">' . __('admin.edit') . '</a>'
                 . '<button type="button" class="btn-feature w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50" data-id="' . $row->id . '" data-url="' . $featureUrl . '">' . $featureLabel . '</button>'
-                . '<button type="button" class="btn-delete w-full text-left px-4 py-2 text-red-500 hover:bg-gray-50" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">Delete</button>'
+                . '<button type="button" class="btn-delete w-full text-left px-4 py-2 text-red-500 hover:bg-gray-50" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">' . __('admin.delete') . '</button>'
                 . '</div></div>';
 
             return [
@@ -150,7 +150,7 @@ class AdSupportArticleController extends Controller
         $this->syncFeatured($article);
 
         return redirect()->route('admin.adsupport.articles.edit', $article->id)
-            ->with('success', 'Article saved.');
+            ->with('success', __('admin.adsupport.article_saved'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -162,7 +162,7 @@ class AdSupportArticleController extends Controller
         return view('admin.adsupport.articles.edit', array_merge($this->formData(), [
             'article' => $article,
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.adsupport.articles'), 'url' => route('admin.adsupport.articles.index')],
                 ['label' => e($article->title)],
             ],
@@ -187,7 +187,7 @@ class AdSupportArticleController extends Controller
         $this->syncFeatured($article->fresh());
 
         return redirect()->route('admin.adsupport.articles.edit', $article->id)
-            ->with('success', 'Article updated.');
+            ->with('success', __('admin.adsupport.article_updated'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -198,7 +198,7 @@ class AdSupportArticleController extends Controller
     {
         $article->delete();
 
-        return response()->json(['success' => true, 'message' => 'Article deleted.']);
+        return response()->json(['success' => true, 'message' => __('admin.adsupport.article_deleted')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -229,7 +229,7 @@ class AdSupportArticleController extends Controller
 
         return [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.adsupport.articles'), 'url' => route('admin.adsupport.articles.index')],
                 ['label' => __('admin.adsupport.new_article')],
             ],

@@ -63,14 +63,14 @@ function initInfluencerPromotionsTable() {
     tableEl.addEventListener('click', (e) => {
         const cancelBtn = e.target.closest('.btn-cancel-promotion');
         if (cancelBtn) {
-            if (!confirm('Cancel this influencer promotion request?')) return;
+            if (!confirm(t('admin.influencer_promotions.cancel_promotion_confirm'))) return;
             postAction(`/influencer-promotions/${cancelBtn.dataset.id}/cancel`, () => dt.draw(false));
             return;
         }
 
         const confirmBtn = e.target.closest('.btn-confirm-warehouse');
         if (confirmBtn) {
-            if (!confirm('Confirm that the warehouse has received the stock for this promotion?')) return;
+            if (!confirm(t('admin.influencer_promotions.confirm_stock_received'))) return;
             postAction(`/influencer-promotions/${confirmBtn.dataset.id}/confirm-warehouse-receipt`, () => dt.draw(false));
         }
     });

@@ -35,14 +35,6 @@ class VendorPermissionSeeder extends Seeder
             'finance.payouts.view',
             'finance.invoices.view',
             'finance.invoices.export',
-            'campaigns.view',
-            'campaigns.create',
-            'campaigns.edit',
-            'campaigns.manage_marketers',
-            'promotions.view',
-            'promotions.create',
-            'influencer_promotions.view',
-            'influencer_promotions.request',
             'products.view',
             'products.create',
             'products.edit',
@@ -60,6 +52,15 @@ class VendorPermissionSeeder extends Seeder
             'roles.create',
             'roles.edit',
             'roles.delete',
+            'marketer_campaigns.view',
+            'marketer_campaigns.create',
+            'marketer_campaigns.edit',
+            'marketer_campaigns.cancel',
+            'marketer_profile.view',
+            'marketer_profile.edit',
+            'marketer_invitations.view',
+            'marketer_invitations.respond',
+            'marketer_reports.view',
         ];
 
         foreach ($permissions as $name) {
@@ -71,23 +72,26 @@ class VendorPermissionSeeder extends Seeder
             'orders.view', 'orders.process', 'orders.export',
             'returns.view', 'returns.process', 'disputes.view', 'disputes.respond',
             'finance.view', 'finance.invoices.view',
-            'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.manage_marketers',
-            'promotions.view', 'promotions.create',
-            'influencer_promotions.view', 'influencer_promotions.request',
             'products.view', 'products.create', 'products.edit',
             'reviews.view', 'reviews.respond',
             'customers.view', 'settings.view', 'documents.upload',
+            'marketer_campaigns.view', 'marketer_campaigns.create', 'marketer_campaigns.edit', 'marketer_campaigns.cancel',
+            'marketer_profile.view', 'marketer_profile.edit',
+            'marketer_invitations.view', 'marketer_invitations.respond',
+            'marketer_reports.view',
         ];
 
         $staffPermissions = [
             'listings.view', 'listings.create', 'listings.edit', 'listings.stock.edit',
             'orders.view', 'orders.process',
             'returns.view', 'disputes.view',
-            'campaigns.view', 'promotions.view',
-            'influencer_promotions.view',
             'products.view', 'products.create', 'products.edit',
             'reviews.view', 'reviews.respond',
             'customers.view',
+            'marketer_campaigns.view',
+            'marketer_profile.view',
+            'marketer_invitations.view', 'marketer_invitations.respond',
+            'marketer_reports.view',
         ];
 
         $vendorOwner = Role::where('name', 'vendor_owner')->where('guard_name', $guard)->first();

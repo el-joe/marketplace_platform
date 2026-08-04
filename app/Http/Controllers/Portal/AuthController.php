@@ -18,6 +18,6 @@ class AuthController extends Controller
     {
         // Full registration logic will be implemented in PORTAL-02.
         return redirect()->route('portal.home')
-            ->with('success', 'شكراً لتسجيلك! سنتواصل معك قريباً.');
+            ->with('success', __('portal.auth.registration_thank_you'));
     }
 }

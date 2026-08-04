@@ -27,6 +27,10 @@
             selectCommissionType: @json(__('travel.campaigns.select_commission_type')),
             confirmWithdrawInvitation: @json(__('travel.campaigns.confirm_withdraw_invitation')),
             confirmDeleteOffer: @json(__('travel.campaigns.confirm_delete_offer')),
+            confirmSubmitReview: @json(__('travel.campaigns.confirm_submit_review')),
+            confirmPauseOffer: @json(__('travel.campaigns.confirm_pause_offer')),
+            confirmResumeOffer: @json(__('travel.campaigns.confirm_resume_offer')),
+            packagesWord: @json(__('travel.campaigns.packages_word')),
         });
     </script>
 @endpush

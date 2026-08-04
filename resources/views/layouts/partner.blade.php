@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'لوحة التحكم') | نون للبائعين</title>
+    <title>@yield('title', __('common.partner_dashboard_title')) | {{ __('common.partner_brand_title') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -38,7 +38,7 @@
     {{-- Payout hold warning banner --}}
     @if(auth()->guard('vendor')->user()?->vendor?->payout_hold_active)
         <div class="w-full bg-red-600 text-white text-sm text-center py-2 px-4 font-semibold z-50">
-            ⚠ مدفوعاتك محتجزة — يرجى التواصل مع فريق الدعم لمعرفة السبب وحل المشكلة.
+            {{ __('common.partner_payout_hold_banner') }}
         </div>
     @endif
 

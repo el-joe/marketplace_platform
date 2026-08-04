@@ -1,10 +1,8 @@
 <?php
 
 use App\Jobs\AutoCompleteOrdersJob;
-use App\Jobs\ExpireVendorCampaignInvitationsJob;
 use App\Jobs\GenerateCodSettlementsJob;
 use App\Jobs\ReleaseExpiredLocksJob;
-use App\Jobs\ApproveMarketerCommissionsJob;
 use App\Jobs\CheckSlaBreachJob;
 use App\Jobs\CheckInfluencerPromotionTimeoutsJob;
 use App\Jobs\GenerateVendorPayoutsJob;
@@ -16,8 +14,7 @@ use App\Jobs\FbnInboundReminderJob;
 use App\Jobs\PublishScheduledBlogPostsJob;
 use App\Jobs\RecalculateBestSellerRankingsJob;
 use App\Jobs\ProcessAcquisitionCommissionsJob;
-use App\Jobs\MarketerMonthlyQuotaWarningJob;
-use App\Jobs\ApplyMarketerMonthEndPenaltiesJob;
+use App\Jobs\MonitorCampaignStockJob;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -36,9 +33,7 @@ Schedule::job(new FlashSaleSchedulerJob)->everyFiveMinutes()->withoutOverlapping
 Schedule::job(new BannerSchedulerJob)->everyFiveMinutes();
 Schedule::job(new \App\Jobs\PageSchedulerJob)->everyFiveMinutes()->name('page-scheduler');
 Schedule::job(new PublishScheduledBlogPostsJob)->everyFiveMinutes()->name('publish-scheduled-blog-posts');
-
-// Auto-approve marketer commissions after 14-day return window
-Schedule::job(new ApproveMarketerCommissionsJob)->dailyAt('03:00')->name('marketer-approve-commissions');
+Schedule::job(new MonitorCampaignStockJob)->hourly()->name('monitor-campaign-stock');
 
 // Process vendor acquisition agent commissions for the previous month
 Schedule::job(new ProcessAcquisitionCommissionsJob)->monthlyOn(1, '02:00')->name('process-acquisition-commissions');
@@ -66,9 +61,6 @@ Schedule::command('fbn:compute-daily-overage')->dailyAt('01:00')->name('fbn-comp
 // Generate COD settlements for delivery agents nightly at 23:30
 Schedule::job(new GenerateCodSettlementsJob)->dailyAt('23:30')->name('generate-cod-settlements');
 
-// Expire pending vendor campaign invitations past their deadline
-Schedule::job(new ExpireVendorCampaignInvitationsJob)->dailyAt('00:15')->name('expire-vendor-campaign-invitations');
-
 // Mark active gift cards past their expiry date as expired
 Schedule::command('gift-cards:expire')
     ->dailyAt('00:30')
@@ -82,17 +74,6 @@ Schedule::command('coupons:deactivate-expired')
     ->withoutOverlapping()
     ->runInBackground()
     ->name('deactivate-expired-coupons');
-
-// Warn marketers behind quota during the last 7 days of the month
-Schedule::job(new MarketerMonthlyQuotaWarningJob)
-    ->dailyAt('09:00')
-    ->when(fn () => Carbon::today()->day > Carbon::today()->daysInMonth - 7)
-    ->name('marketer-monthly-quota-warning');
-
-// Apply month-end penalties for unmet quotas and initialize next month's progress
-Schedule::job(new ApplyMarketerMonthEndPenaltiesJob)
-    ->monthlyOn(1, '02:00')
-    ->name('apply-marketer-month-end-penalties');
 
 // Recalculate best-seller rankings per category/country
 Schedule::job(new RecalculateBestSellerRankingsJob, 'rankings')

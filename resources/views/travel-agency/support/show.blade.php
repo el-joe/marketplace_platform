@@ -49,7 +49,7 @@ $isClosed = in_array($ticket->status->value, ['resolved', 'closed'], true);
         <div class="px-5 py-4">
             <div class="flex items-center justify-between mb-1.5">
                 <span class="text-sm font-semibold text-gray-800">
-                    {{ $message->sender_type === \App\Models\TravelAgencyMember::class ? __('travel.support.reply') : 'Support' }}
+                    {{ $message->sender_type === \App\Models\TravelAgencyMember::class ? __('travel.support.reply') : __('travel.support.staff_label') }}
                 </span>
                 <span class="text-xs text-gray-400">{{ $message->created_at->format('d M Y, H:i') }}</span>
             </div>

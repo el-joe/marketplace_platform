@@ -37,7 +37,7 @@ class WishlistController extends Controller
             ->first();
 
         if ($existing) {
-            return ApiResponse::error('Listing already in wishlist', [], 422);
+            return ApiResponse::error(__('common.exceptions.wishlist.already_in_wishlist'), [], 422);
         }
 
         $wishlist = Wishlist::create([
@@ -49,7 +49,7 @@ class WishlistController extends Controller
 
         return ApiResponse::success(
             (new WishlistResource($wishlist))->toArray($request),
-            'Added to wishlist',
+            __('common.exceptions.wishlist.added'),
             201,
         );
     }
@@ -61,9 +61,9 @@ class WishlistController extends Controller
             ->delete();
 
         if (!$deleted) {
-            return ApiResponse::error('Item not found in wishlist', [], 404);
+            return ApiResponse::error(__('common.exceptions.wishlist.not_found'), [], 404);
         }
 
-        return ApiResponse::success(null, 'Removed from wishlist');
+        return ApiResponse::success(null, __('common.exceptions.wishlist.removed'));
     }
 }

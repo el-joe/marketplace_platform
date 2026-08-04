@@ -4,7 +4,7 @@
 @section('page-title', __('partner.listings.add_product_listing_title'))
 
 @push('scripts')
-    @vite(['resources/js/components/select2.js', 'resources/js/partner/listings.js'])
+    @vite(['resources/js/components/select2.js', 'resources/js/partner/listings.js', 'resources/js/partner/listing-create-campaign.js'])
     <script>
         window.LISTINGS_CREATE = {
             productSearchUrl: '{{ route('partner.listings.product-search') }}',
@@ -12,6 +12,9 @@
             urlInfoUrlTemplate: '{{ route('partner.listings.variants.url-info', ['variant' => '__VARIANT__']) }}',
             warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
             availableShippingMethodsUrl: '{{ route('partner.listings.available-shipping-methods') }}',
+            categorySamplesUrl: '{{ route('partner.listings.category-samples') }}',
+            campaignPricingUrl: '{{ route('partner.listings.campaign-pricing') }}',
+            influencerFeeUrl: '{{ route('partner.listings.influencer-fee') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
         };
@@ -323,32 +326,127 @@
                         </div>
                     </div>
 
-                    {{-- Marketer Promotion --}}
-                    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4"
-                        x-data="{ promote: false }">
+                    {{-- Marketer Campaign --}}
+                    <div class="bg-white rounded-2xl border border-purple-200 p-6 space-y-4" id="campaign-section">
                         <label class="flex items-start gap-2 cursor-pointer">
-                            <input type="checkbox" name="promote_to_marketers" value="1" x-model="promote"
-                                class="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400/40">
+                            <input type="checkbox" name="campaign_enabled" value="1" id="campaign-enabled-checkbox"
+                                class="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                             <span class="text-sm text-gray-700">
-                                ترويج هذه القائمة عبر المسوّقين / Promote this listing to marketers
+                                <i class="fas fa-bullhorn text-purple-500 mr-1"></i>
+                                تفعيل حملة ماركتر لهذا المنتج
                                 <span class="block text-xs text-gray-400 mt-0.5">
-                                    فعّل هذا الخيار لاختيار المؤثرين وإرسال طلب ترويج لهم مباشرة بعد إنشاء القائمة.
+                                    متاح فقط لقوائم FBN — يتيح لك دعوة ماركترز للترويج مقابل عمولة.
                                 </span>
                             </span>
                         </label>
 
-                        <div x-show="promote" x-cloak class="space-y-2"
-                            x-effect="promote && $nextTick(() => window.initSelect2 && window.initSelect2())">
+                        <p class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3 hidden" id="campaign-not-fbn-warning">
+                            يجب اختيار نموذج التنفيذ FBN لتفعيل حملة الماركتر.
+                        </p>
+
+                        <div class="space-y-4 hidden" id="campaign-details">
+                            @if($marketerVendors->isEmpty())
+                                <p class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3">
+                                    لا يوجد ماركترز متاحين في بلدك حالياً. يمكن للأدمن تفعيل ماركترز من لوحة التحكم.
+                                </p>
+                            @else
                             <x-form.select
-                                name="marketer_ids"
-                                label="اختر المؤثرين / المشاهير (بحد أقصى 10)"
+                                name="marketer_vendor_ids"
+                                label="اختر الماركترز"
                                 :multiple="true"
                                 :select2="true"
-                                placeholder="ابحث واختر المؤثرين..."
-                                :options="$marketers->mapWithKeys(fn ($m) => [
-                                    $m->id => ($m->display_name ?? $m->name) . ' — ' . number_format($m->followers_count ?? 0) . ' متابع — ' . $m->niche,
-                                ])"
-                            />
+                                placeholder="ابحث واختر الماركترز..."
+                            >
+                                @foreach($marketerVendors as $m)
+                                    <option value="{{ $m->id }}" data-type="{{ $m->marketer_type }}"
+                                            data-name="{{ $m->name ?? $m->business_name }}">
+                                        {{ $m->name ?? $m->business_name }} — {{ $m->marketer_type === 'influencer' ? 'مؤثر' : 'أفلييت' }}
+                                    </option>
+                                @endforeach
+                            </x-form.select>
+                            @endif
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="campaign-pricing-cards">
+                                <div class="p-4 rounded-lg border bg-gray-50 border-gray-200" id="fee-card">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i class="fas fa-receipt text-orange-500 text-sm"></i>
+                                        <span class="text-xs font-semibold text-gray-700">رسوم المنصة (إنفلوينسر فقط)</span>
+                                    </div>
+                                    <div class="text-sm text-gray-800" id="fee-breakdown-text">اختر منتجاً وماركترز لرؤية الرسوم</div>
+                                    <div class="mt-2 text-base font-bold text-orange-700 hidden" id="fee-total-wrap">
+                                        الإجمالي: <span id="fee-total-value">0</span> <span id="fee-currency"></span>
+                                    </div>
+                                </div>
+                                <div class="p-4 rounded-lg border bg-green-50 border-green-200">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i class="fas fa-percentage text-green-500 text-sm"></i>
+                                        <span class="text-xs font-semibold text-gray-700">كوميشن الماركتر لكل بيعة</span>
+                                    </div>
+                                    <div class="text-sm text-gray-800" id="commission-breakdown-text">سيتم تحديده بعد اختيار المنتج</div>
+                                </div>
+                            </div>
+
+                            {{-- Per-marketer fee breakdown table --}}
+                            <div class="hidden" id="marketer-fee-table-wrap">
+                                <h5 class="text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-receipt text-orange-500 mr-1"></i>
+                                    تفاصيل الرسوم لكل ماركتر
+                                </h5>
+                                <div class="rounded-lg border border-gray-200 overflow-hidden">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="text-right px-4 py-2 text-gray-600 font-medium">الماركتر</th>
+                                                <th class="text-center px-4 py-2 text-gray-600 font-medium">النوع</th>
+                                                <th class="text-center px-4 py-2 text-gray-600 font-medium">الرسوم</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="marketer-fee-table-body"></tbody>
+                                        <tfoot class="bg-gray-50 border-t-2 border-gray-200">
+                                            <tr>
+                                                <td colspan="2" class="px-4 py-2 font-semibold text-gray-700 text-right">إجمالي رسوم المنصة</td>
+                                                <td class="px-4 py-2 text-center font-bold" id="marketer-fee-table-total"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">نوع الكوميشن</label>
+                                <select name="commission_type" id="commission-type-select"
+                                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/40">
+                                    <option value="fixed">{{ __('partner.listings.commission_type_fixed') }}</option>
+                                    <option value="tiered">{{ __('partner.listings.commission_type_tiered') }}</option>
+                                    <option value="last_click">{{ __('partner.listings.commission_type_last_click') }}</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    أقصى ميزانية كوميشن
+                                    <span class="text-xs text-gray-400">({{ auth()->guard('vendor')->user()->vendor->country->currency_code ?? '' }})</span>
+                                </label>
+                                <input type="number" name="max_commission_budget" min="0"
+                                       class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/40"
+                                       placeholder="0">
+                            </div>
+
+                            <div class="hidden" id="tiered-rules-section">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">قواعد الكوميشن المتدرج</label>
+                                <div class="space-y-2" id="tiered-rules-list"></div>
+                                <button type="button" id="add-tier-btn"
+                                        class="mt-2 text-sm text-purple-600 hover:underline">
+                                    + إضافة مستوى
+                                </button>
+                            </div>
+
+                            <div class="p-3 bg-purple-50 rounded-lg text-sm text-purple-800">
+                                <i class="fas fa-box-open mr-1"></i>
+                                <span class="font-semibold">إجمالي العينات المتوقع:</span>
+                                <strong id="total-samples-value">0</strong>
+                                <span class="block text-xs text-gray-500 mt-1" id="sample-breakdown-text"></span>
+                            </div>
                         </div>
                     </div>
 
@@ -364,5 +462,6 @@
         </div>
 
     </div>
+
 
 @endsection

@@ -55,7 +55,7 @@
     <x-card class="col-span-1">
         <h3 class="font-semibold text-gray-900 mb-4">{{ __('admin.influencer_deal_show_section.deal_details') }}</h3>
         <dl class="space-y-3 text-sm">
-            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.marketer_label') }}</dt><dd class="font-medium">{{ $deal->marketer->name }} <span class="badge badge-primary">{{ ucfirst(str_replace('_',' ', $deal->marketer->type?->value ?? $deal->marketer->type)) }}</span></dd></div>
+            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.marketer_label') }}</dt><dd class="font-medium">{{ $deal->marketer->name }} <span class="badge badge-primary">{{ __('admin.marketer_types.' . ($deal->marketer->type?->value ?? $deal->marketer->type)) }}</span></dd></div>
             <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.vendor_label') }}</dt><dd class="font-medium">{{ $deal->vendor->store_name ?? '—' }}</dd></div>
             <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.deal_type_label') }}</dt><dd class="font-medium">{{ ucfirst(str_replace('_',' ', $deal->deal_type?->value ?? $deal->deal_type)) }}</dd></div>
             <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.flat_fee_label') }}</dt><dd class="font-medium">{{ number_format($deal->flat_fee_amount) }} {{ $deal->currency }}</dd></div>

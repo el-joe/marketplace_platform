@@ -1,6 +1,6 @@
 @extends('layouts.storefront-mobile')
 
-@section('title', __('Classifieds'))
+@section('title', __('common.storefront.classifieds_title'))
 
 @push('head')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />

@@ -26,7 +26,7 @@
         </a>
         <span class="font-bold text-gray-900 text-sm truncate">{{ $channel->name_ar }}</span>
         @if($channel->is_live)
-        <span class="px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full uppercase animate-pulse ml-auto">LIVE</span>
+        <span class="px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full uppercase animate-pulse ml-auto">{{ __('common.storefront_nav.live') }}</span>
         @endif
     </div>
 

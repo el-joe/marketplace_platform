@@ -131,7 +131,7 @@
                             </div>
                             @if($account->swift_code)
                                 <div class="flex justify-between">
-                                    <span class="text-gray-500">SWIFT</span>
+                                    <span class="text-gray-500">{{ __('partner.bank_accounts.swift_label') }}</span>
                                     <span class="font-mono text-xs text-gray-700">{{ $account->swift_code }}</span>
                                 </div>
                             @endif

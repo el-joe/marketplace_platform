@@ -40,7 +40,6 @@ class AdminProductListing extends Model
         'is_exclusive',
         'status',
         'available_for_vendors',
-        'available_for_marketers',
         'created_by_admin_id',
         'max_order_quantity',
         'low_stock_threshold',
@@ -79,7 +78,6 @@ class AdminProductListing extends Model
         'is_global_shipping' => 'boolean',
         'featured_in_nawy'   => 'boolean',
         'available_for_vendors'   => 'boolean',
-        'available_for_marketers' => 'boolean',
         'rating_avg'          => 'decimal:2',
         'rating_count'        => 'integer',
         'status'              => AdminProductListingStatus::class,
@@ -153,16 +151,6 @@ class AdminProductListing extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
-    }
-
-    public function marketerCampaignProducts(): HasMany
-    {
-        return $this->hasMany(MarketerCampaignProduct::class);
-    }
-
-    public function marketerSecretPromotions(): HasMany
-    {
-        return $this->hasMany(MarketerSecretPromotion::class);
     }
 
     public function productCostReferences(): HasMany

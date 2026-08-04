@@ -32,11 +32,11 @@
             <div class="absolute top-2 start-2">
                 @if($listing->fulfillment_type === 'express')
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                        🚀 إكسبريس
+                        🚀 {{ __('admin.admin_product_listings.express_badge') }}
                     </span>
                 @elseif($listing->fulfillment_type === 'global')
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                        🌍 عالمي
+                        🌍 {{ __('admin.admin_product_listings.global_badge') }}
                     </span>
                 @endif
             </div>
@@ -44,7 +44,7 @@
             @if($listing->payment_options === 'cod_only')
                 <div class="absolute bottom-2 end-2">
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                        دفع عند الاستلام
+                        {{ __('admin.admin_product_listings.cod_badge') }}
                     </span>
                 </div>
             @endif

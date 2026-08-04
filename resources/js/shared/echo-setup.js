@@ -64,13 +64,13 @@ window.notificationBell = function (echoChannel) {
                     this.unreadCount++;
                     this.items.unshift({
                         id:         e.id ?? null,
-                        title:      e.title ?? 'New notification',
+                        title:      e.title ?? t('shared.notifications.new_notification'),
                         message:    e.message ?? '',
                         url:        e.url ?? '#',
                         read:       false,
                         created_at: new Date().toLocaleString(),
                     });
-                    this.toast(e.title ?? 'New notification');
+                    this.toast(e.title ?? t('shared.notifications.new_notification'));
                 });
         },
 

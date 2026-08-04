@@ -180,7 +180,7 @@ class CouponController extends Controller
         abort_unless($this->policy->update($actor, $coupon), 403);
 
         if ($coupon->times_used > 0) {
-            return response()->json(['message' => 'This coupon has already been used and cannot be deleted.'], 422);
+            return response()->json(['message' => __('partner.coupons.messages.coupon_used_cannot_delete')], 422);
         }
 
         $this->coupons->delete($coupon);

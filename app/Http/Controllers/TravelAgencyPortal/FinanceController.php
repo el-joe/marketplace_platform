@@ -234,7 +234,18 @@ class FinanceController extends Controller
 
         $bookings = $query->latest()->get();
 
-        $headers = ['Booking Ref', 'Package', 'Customer', 'Travelers', 'Price', 'Commission', 'Net Revenue', 'Currency', 'Date', 'Status'];
+        $headers = [
+            __('travel.finance.export.booking_ref'),
+            __('travel.finance.export.package'),
+            __('travel.finance.export.customer'),
+            __('travel.finance.export.travelers'),
+            __('travel.finance.export.price'),
+            __('travel.finance.export.commission'),
+            __('travel.finance.export.net_revenue'),
+            __('travel.finance.export.currency'),
+            __('travel.finance.export.date'),
+            __('travel.finance.export.status'),
+        ];
 
         $rows = $bookings->map(function (TravelBooking $booking) use ($rate) {
             $commission = (int) round($booking->total_price * $rate);
@@ -258,9 +269,9 @@ class FinanceController extends Controller
 
         return match ($format) {
             'excel' => $this->exportExcel($filename, $headers, $rows),
-            'word' => $this->exportWord($filename, 'Sales Report', $rows),
+            'word' => $this->exportWord($filename, __('travel.finance.export.sheet_title'), $rows),
             'csv' => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('travel.export.invalid_format')),
         };
     }
 }

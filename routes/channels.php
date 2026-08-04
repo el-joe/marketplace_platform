@@ -21,10 +21,6 @@ Broadcast::channel('vendor.{vendorAdminId}', function ($user, $vendorAdminId) {
     return (int) $user->id === (int) $vendorAdminId;
 });
 
-Broadcast::channel('marketer.{marketerId}', function ($user, $marketerId) {
-    return (int) $user->id === (int) $marketerId;
-});
-
 Broadcast::channel('delivery-agent.{agentId}', function ($user, $agentId) {
     return (int) $user->id === (int) $agentId;
 });

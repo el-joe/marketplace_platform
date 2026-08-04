@@ -81,7 +81,7 @@ class AppContextController extends Controller
 
         $context->update($data);
 
-        return response()->json(['success' => true, 'message' => 'Context updated.']);
+        return response()->json(['success' => true, 'message' => __('admin.app_contexts.context_updated')]);
     }
 
     public function saveCountryAssignment(Request $request, AppContext $context): JsonResponse
@@ -103,7 +103,7 @@ class AppContextController extends Controller
             ]
         );
 
-        return response()->json(['success' => true, 'data' => $assignment, 'message' => 'Country assignment saved.']);
+        return response()->json(['success' => true, 'data' => $assignment, 'message' => __('admin.app_contexts.assignment_saved')]);
     }
 
     public function saveNavItem(Request $request, AppContext $context): JsonResponse
@@ -136,7 +136,7 @@ class AppContextController extends Controller
             collect($data)->except(['country_id', 'position'])->toArray() + ['is_active' => true]
         );
 
-        return response()->json(['success' => true, 'data' => $item, 'message' => 'Navigation item saved.']);
+        return response()->json(['success' => true, 'data' => $item, 'message' => __('admin.app_contexts.nav_item_saved')]);
     }
 
     public function updateNavItem(Request $request, AppContext $context, AppBottomNavItem $item): JsonResponse
@@ -166,7 +166,7 @@ class AppContextController extends Controller
 
         $item->update($data);
 
-        return response()->json(['success' => true, 'data' => $item, 'message' => 'Navigation item updated.']);
+        return response()->json(['success' => true, 'data' => $item, 'message' => __('admin.app_contexts.nav_item_updated')]);
     }
 
     private function admin()

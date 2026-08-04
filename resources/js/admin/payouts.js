@@ -38,12 +38,12 @@ $(function () {
 
         submitPayoutAction(URLS.approve(), $(this).serialize())
             .done(function (res) {
-                Toast.success(res.message ?? T.payoutsApproved ?? 'Payout approved.');
+                Toast.success(res.message ?? t('admin.payouts.payout_approved'));
                 closeModal('approve-modal');
                 setTimeout(() => location.reload(), 600);
             })
             .fail(function (xhr) {
-                const msg = xhr.responseJSON?.message ?? T.payoutsFailedApprove ?? 'Failed to approve payout.';
+                const msg = xhr.responseJSON?.message ?? t('admin.payouts.failed_approve_payout');
                 Toast.error(msg);
             })
             .always(function () {
@@ -58,16 +58,16 @@ $(function () {
 
         submitPayoutAction(URLS.process(), $(this).serialize())
             .done(function (res) {
-                Toast.success(res.message ?? T.payoutsCompleted ?? 'Payout marked as completed.');
+                Toast.success(res.message ?? t('admin.payouts.payout_completed'));
                 closeModal('process-modal');
                 setTimeout(() => location.reload(), 600);
             })
             .fail(function (xhr) {
-                const msg = xhr.responseJSON?.message ?? T.payoutsFailedProcess ?? 'Failed to process payout.';
+                const msg = xhr.responseJSON?.message ?? t('admin.payouts.failed_process_payout');
                 Toast.error(msg);
             })
             .always(function () {
-                $btn.prop('disabled', false).text(T.payoutsMarkCompleted ?? 'Mark Completed');
+                $btn.prop('disabled', false).text(t('admin.payouts.mark_completed_label'));
             });
     });
 
@@ -76,23 +76,23 @@ $(function () {
         e.preventDefault();
         const reason = $(this).find('[name=reason]').val().trim();
         if (!reason) {
-            Toast.warning(T.payoutsPleaseProvideHoldReason ?? 'Please provide a reason for holding this payout.');
+            Toast.warning(t('admin.payouts.hold_reason_required'));
             return;
         }
         const $btn = $(this).find('[type=submit]').prop('disabled', true).text(T.payoutsSaving ?? 'Saving…');
 
         submitPayoutAction(URLS.hold(), $(this).serialize())
             .done(function (res) {
-                Toast.success(res.message ?? T.payoutsOnHold ?? 'Payout placed on hold.');
+                Toast.success(res.message ?? t('admin.payouts.payout_on_hold'));
                 closeModal('hold-modal');
                 setTimeout(() => location.reload(), 600);
             })
             .fail(function (xhr) {
-                const msg = xhr.responseJSON?.message ?? T.payoutsFailedHold ?? 'Failed to hold payout.';
+                const msg = xhr.responseJSON?.message ?? t('admin.payouts.failed_hold_payout');
                 Toast.error(msg);
             })
             .always(function () {
-                $btn.prop('disabled', false).text(T.payoutsPutOnHold ?? 'Put on Hold');
+                $btn.prop('disabled', false).text(t('admin.payouts.put_on_hold_label'));
             });
     });
 
@@ -103,12 +103,12 @@ $(function () {
 
         submitPayoutAction(URLS.recalculate(), $(this).serialize())
             .done(function (res) {
-                Toast.success(res.message ?? T.payoutsRecalculated ?? 'Payout recalculated.');
+                Toast.success(res.message ?? t('admin.payouts.payout_recalculated'));
                 closeModal('recalculate-modal');
                 setTimeout(() => location.reload(), 600);
             })
             .fail(function (xhr) {
-                const msg = xhr.responseJSON?.message ?? T.payoutsRecalculationFailed ?? 'Recalculation failed.';
+                const msg = xhr.responseJSON?.message ?? t('admin.payouts.recalculation_failed');
                 Toast.error(msg);
             })
             .always(function () {

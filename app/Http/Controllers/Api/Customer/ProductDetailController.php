@@ -38,19 +38,19 @@ class ProductDetailController extends Controller
             ->first();
 
         if (!$variant) {
-            return ApiResponse::error('Product not found.', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.not_found'), [], 404);
         }
 
         $product = $variant->product;
 
         if (!$product || $product->status !== ProductStatus::Active) {
-            return ApiResponse::error('Product not found.', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.not_found'), [], 404);
         }
 
         $countryId = $this->resolveCountryId($request);
 
         if (!$countryId) {
-            return ApiResponse::error('Country not found or not active.', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.country_not_found'), [], 404);
         }
 
         $isNawyNow = $this->appContext->isNawyNow();
@@ -58,7 +58,7 @@ class ProductDetailController extends Controller
         [$listing, $listingType] = $this->resolveListing($variantId, $listingId, $countryId, $isNawyNow);
 
         if (!$listing) {
-            return ApiResponse::error('Listing not found', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.listing_not_found'), [], 404);
         }
 
         $url = route('customer.listing.show', [$request->attributes->get('country')->site_code, $variant->id .'--' . $listing->id]);
@@ -110,13 +110,13 @@ class ProductDetailController extends Controller
             ->first();
 
         if (!$product) {
-            return ApiResponse::error('Product not found.', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.not_found'), [], 404);
         }
 
         $variant = $this->resolveDefaultVariant($product->id);
 
         if (!$variant) {
-            return ApiResponse::error('Product not found.', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.not_found'), [], 404);
         }
 
         return $this->redirectToVariantListing($variant, $request);
@@ -132,7 +132,7 @@ class ProductDetailController extends Controller
             ->first();
 
         if (!$product) {
-            return ApiResponse::error('Product not found.', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.not_found'), [], 404);
         }
 
         $variant = ProductVariant::where('product_id', $product->id)
@@ -146,7 +146,7 @@ class ProductDetailController extends Controller
         }
 
         if (!$variant) {
-            return ApiResponse::error('Product not found.', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.not_found'), [], 404);
         }
 
         return $this->redirectToVariantListing($variant, $request);
@@ -176,7 +176,7 @@ class ProductDetailController extends Controller
         $countryId = $this->resolveCountryId($request);
 
         if (!$countryId) {
-            return ApiResponse::error('Country not found or not active.', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.country_not_found'), [], 404);
         }
 
         $isNawyNow = $this->appContext->isNawyNow();
@@ -186,7 +186,7 @@ class ProductDetailController extends Controller
             : $this->variantResolutionService->bestVendorListing($variant->id, $countryId);
 
         if (!$listing) {
-            return ApiResponse::error('Listing not found', [], 404);
+            return ApiResponse::error(__('customer_api.product_detail.listing_not_found'), [], 404);
         }
 
         $url = route('customer.listing.show', [$request->attributes->get('country')->site_code, $variant->id .'--' . $listing->id]);

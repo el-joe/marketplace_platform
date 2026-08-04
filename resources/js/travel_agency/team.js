@@ -72,7 +72,7 @@ async function postJson(url, method = 'POST') {
         },
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.message ?? 'Request failed');
+    if (!res.ok) throw new Error(data.message ?? (window.t ? window.t('shared.something_went_wrong') : 'Something went wrong. Please try again.'));
     return data;
 }
 

@@ -10,7 +10,7 @@
         <div class="flex items-center gap-2">
             <a href="{{ route('travel-agency.finance.sales-report.export', request()->query()) }}"
                class="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700">
-                {{ __('travel.finance.export') }}
+                {{ __('travel.finance.export_button') }}
             </a>
             <a href="{{ route('travel-agency.finance.sales-report.export', array_merge(request()->query(), ['format' => 'excel'])) }}"
                class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200">

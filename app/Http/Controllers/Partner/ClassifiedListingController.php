@@ -103,7 +103,7 @@ class ClassifiedListingController extends Controller
             'excel' => $this->exportExcel('classifieds', $headers, $rows),
             'csv' => $this->exportCsv('classifieds', $headers, $rows),
             'word' => $this->exportWord('classifieds', 'Classified Listings', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 

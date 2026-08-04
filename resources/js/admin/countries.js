@@ -10,10 +10,6 @@
  *  - Category override modal
  */
 
-function T() {
-    return window.TRANSLATIONS || {};
-}
-
 $(function () {
     // ─────────────────────────────────────────────────────────────────────────
     // Launch / Deactivate / Reactivate
@@ -22,10 +18,10 @@ $(function () {
     $(document).on('click', '#btn-launch', function () {
         const name = $(this).data('country-name');
         const url = $(this).data('url');
-        const message = (T().launchCountryConfirm || 'Launch :name? This will make all active products available in this country. This action runs in the background.').replace(':name', name);
+        const message = t('admin.countries.launch_country_confirm', { name });
         if (!confirm(message)) return;
 
-        $(this).prop('disabled', true).text(T().launchingEllipsis || 'Launching…');
+        $(this).prop('disabled', true).text(t('admin.countries.launching_label'));
 
         $.ajax({ url, method: 'POST', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
             .done(function (res) {
@@ -33,14 +29,14 @@ $(function () {
                 setTimeout(() => location.reload(), 1000);
             })
             .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || T().launchFailed || 'Launch failed.');
-                $('#btn-launch').prop('disabled', false).html('<svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' + (T().launch || 'Launch'));
+                window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.launch_failed'));
+                $('#btn-launch').prop('disabled', false).html('<svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' + (t('admin.countries.launch_label')));
             });
     });
 
     $(document).on('click', '#btn-deactivate', function () {
         const url = $(this).data('url');
-        if (!confirm(T().deactivateCountryConfirm || 'Deactivate this country? Customers will no longer be able to place orders.')) return;
+        if (!confirm(t('admin.countries.deactivate_country_confirm'))) return;
 
         $.ajax({ url, method: 'POST', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
             .done(function (res) {
@@ -48,7 +44,7 @@ $(function () {
                 setTimeout(() => location.reload(), 800);
             })
             .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || T().deactivateFailed || 'Deactivate failed.');
+                window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.deactivate_failed'));
             });
     });
 
@@ -60,7 +56,7 @@ $(function () {
                 setTimeout(() => location.reload(), 800);
             })
             .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || T().reactivateFailed || 'Reactivate failed.');
+                window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.reactivate_failed'));
             });
     });
 
@@ -71,9 +67,9 @@ $(function () {
     $(document).on('click', '#btn-delete-country', async function () {
         const name = $(this).data('country-name');
         const url = $(this).data('url');
-        const message = (T().deleteCountryConfirm || 'Permanently delete ":name"? This cannot be undone.').replace(':name', name);
+        const message = t('admin.countries.delete_country_confirm', { name });
         const confirmed = window.confirmDelete
-            ? await window.confirmDelete(message, { title: T().deleteCountryTitle || 'Delete country?' })
+            ? await window.confirmDelete(message, { title: t('admin.countries.delete_country_title') })
             : confirm(message);
         if (!confirmed) return;
 
@@ -83,7 +79,7 @@ $(function () {
                 setTimeout(() => window.location.href = '/countries/', 900);
             })
             .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || T().countryDeleteFailed || 'Delete failed.');
+                window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.delete_failed'));
             });
     });
 
@@ -139,7 +135,7 @@ $(function () {
         const url = pmId ? `${baseUrl}/${pmId}` : baseUrl;
         const method = pmId ? 'PUT' : 'POST';
 
-        $('#pm-submit-btn').prop('disabled', true).text(T().savingEllipsis || 'Saving…');
+        $('#pm-submit-btn').prop('disabled', true).text(t('shared.saving'));
 
         $.ajax({
             url,
@@ -156,11 +152,11 @@ $(function () {
             .fail(function (xhr) {
                 const msg = xhr.responseJSON?.message || xhr.responseJSON?.errors
                     ? Object.values(xhr.responseJSON.errors || {}).flat().join(' | ')
-                    : (T().saveFailed || 'Save failed.');
+                    : (t('admin.countries.save_failed'));
                 window.Toast && window.Toast.error(msg);
             })
             .always(function () {
-                $('#pm-submit-btn').prop('disabled', false).text(T().saveBtn || 'Save');
+                $('#pm-submit-btn').prop('disabled', false).text(t('admin.countries.save_btn_label'));
             });
     });
 
@@ -168,8 +164,8 @@ $(function () {
         const pmId = $(this).data('pm-id');
         const url = $(this).data('url');
         const confirmed = window.confirmDelete
-            ? await window.confirmDelete(T().deletePaymentMethodConfirm || 'Remove this payment method?', { title: T().deletePaymentMethodTitle || 'Delete payment method?' })
-            : confirm(T().deletePaymentMethodConfirm || 'Remove this payment method?');
+            ? await window.confirmDelete(t('admin.countries.remove_payment_method_confirm'), { title: t('admin.countries.delete_payment_method_title') })
+            : confirm(t('admin.countries.remove_payment_method_confirm'));
         if (!confirmed) return;
 
         $.ajax({ url, method: 'DELETE', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
@@ -178,7 +174,7 @@ $(function () {
                 $(`[data-pm-id="${pmId}"]`).remove();
             })
             .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || T().paymentMethodDeleteFailed || 'Delete failed.');
+                window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.delete_failed'));
             });
     });
 
@@ -204,7 +200,7 @@ $(function () {
             }
         });
 
-        $btn.prop('disabled', true).text(T().savingEllipsis || 'Saving…');
+        $btn.prop('disabled', true).text(t('shared.saving'));
 
         $.ajax({
             url,
@@ -217,10 +213,10 @@ $(function () {
                 window.Toast && window.Toast.success(res.message);
             })
             .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || T().saveFailed || 'Save failed.');
+                window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.save_failed'));
             })
             .always(function () {
-                $btn.prop('disabled', false).html('<svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' + (T().saveShippingSettingsBtn || 'Save Shipping Settings'));
+                $btn.prop('disabled', false).html('<svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' + (t('admin.countries.save_shipping_settings_label')));
             });
     });
 
@@ -255,7 +251,7 @@ $(function () {
             }],
         };
 
-        $('#cat-override-submit').prop('disabled', true).text(T().savingEllipsis || 'Saving…');
+        $('#cat-override-submit').prop('disabled', true).text(t('shared.saving'));
 
         $.ajax({
             url,
@@ -270,10 +266,10 @@ $(function () {
                 window.reloadDataTable && window.reloadDataTable('categories-override-table');
             })
             .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || T().saveFailed || 'Save failed.');
+                window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.save_failed'));
             })
             .always(function () {
-                $('#cat-override-submit').prop('disabled', false).text(T().saveBtn || 'Save');
+                $('#cat-override-submit').prop('disabled', false).text(t('admin.countries.save_btn_label'));
             });
     });
 

@@ -196,14 +196,14 @@ function initRateModal() {
 
         try {
             await sendJson(url, method, payload);
-            toast(id ? (window.TRANSLATIONS?.shippingRateUpdated || 'Shipping rate updated.') : (window.TRANSLATIONS?.shippingRateCreated || 'Shipping rate created.'));
+            toast(id ? (t('admin.shipping_settings.shipping_rate_updated')) : (t('admin.shipping_settings.shipping_rate_created')));
             $modal.modal('close');
             ratesTable?.draw();
         } catch (err) {
             if (err.errors) {
                 window.injectValidationErrors?.($form, err.errors);
             } else {
-                toast(err.message ?? (window.TRANSLATIONS?.saveFailed || 'Save failed.'), 'error');
+                toast(err.message ?? (t('admin.shipping_settings.save_failed')), 'error');
             }
         }
     });
@@ -224,11 +224,11 @@ function initDeleteRate() {
 
         try {
             await sendJson(`/shipping-settings/rates/${id}`, 'DELETE');
-            toast(window.TRANSLATIONS?.shippingRateDeleted || 'Shipping rate deleted.');
+            toast(t('admin.shipping_settings.shipping_rate_deleted'));
             $deleteModal.modal('close');
             ratesTable?.draw();
         } catch {
-            toast(window.TRANSLATIONS?.deleteFailed || 'Delete failed.', 'error');
+            toast(t('admin.shipping_settings.delete_failed'), 'error');
         }
     });
 }
@@ -243,7 +243,7 @@ function initToggleRate() {
             await sendJson(`/shipping-settings/rates/${id}/toggle`, 'POST');
             ratesTable?.draw();
         } catch {
-            toast(window.TRANSLATIONS?.failedToUpdateRateStatus || 'Failed to update rate status.', 'error');
+            toast(t('admin.shipping_settings.failed_update_rate_status'), 'error');
         }
     });
 }
@@ -312,14 +312,14 @@ function initCarrierModal() {
 
         try {
             await sendJson(url, method, payload);
-            toast(id ? (window.TRANSLATIONS?.carrierUpdated || 'Carrier updated.') : (window.TRANSLATIONS?.carrierCreated || 'Carrier created.'));
+            toast(id ? (t('admin.shipping_settings.carrier_updated')) : (t('admin.shipping_settings.carrier_created')));
             $modal.modal('close');
             setTimeout(() => window.location.reload(), 500);
         } catch (err) {
             if (err.errors) {
                 window.injectValidationErrors?.($form, err.errors);
             } else {
-                toast(err.message ?? (window.TRANSLATIONS?.saveFailed || 'Save failed.'), 'error');
+                toast(err.message ?? (t('admin.shipping_settings.save_failed')), 'error');
             }
         }
     });
@@ -338,11 +338,11 @@ function initToggleCarrier() {
 
             $btn
                 .data('active', active ? '1' : '0')
-                .text(active ? (window.TRANSLATIONS?.active || 'Active') : (window.TRANSLATIONS?.inactive || 'Inactive'))
+                .text(active ? (t('admin.shipping_settings.active_label')) : (t('admin.shipping_settings.inactive_label')))
                 .toggleClass('bg-success-50 text-success-700 hover:bg-success-100', active)
                 .toggleClass('bg-gray-100 text-gray-500 hover:bg-gray-200', !active);
         } catch {
-            toast(window.TRANSLATIONS?.failedToUpdateCarrierStatus || 'Failed to update carrier status.', 'error');
+            toast(t('admin.shipping_settings.failed_update_carrier_status'), 'error');
         }
     });
 }
@@ -356,7 +356,7 @@ function initTestCarrier() {
         const id = $btn.data('id');
         const $status = $(`#carrier-status-${id}`);
 
-        $btn.prop('disabled', true).text(window.TRANSLATIONS?.testingEllipsis || 'Testing…');
+        $btn.prop('disabled', true).text(t('admin.shipping_settings.testing_label'));
 
         try {
             const res = await sendJson('/shipping-settings/carriers/test', 'POST', { code });
@@ -364,12 +364,12 @@ function initTestCarrier() {
 
             $status.text(data.success
                 ? `✓ ${data.latency_ms ?? 0}ms`
-                : `✗ ${data.message ?? (window.TRANSLATIONS?.testFailedLabel || 'Failed')}`
+                : `✗ ${data.message ?? (t('admin.shipping_settings.test_failed_label'))}`
             ).addClass(data.success ? 'text-success-600' : 'text-danger-600');
         } catch {
-            $status.text('✗ ' + (window.TRANSLATIONS?.errorLabel || 'Error')).addClass('text-danger-600');
+            $status.text('✗ ' + (t('admin.shipping_settings.error_label'))).addClass('text-danger-600');
         } finally {
-            $btn.prop('disabled', false).text(window.TRANSLATIONS?.test || 'Test');
+            $btn.prop('disabled', false).text(t('admin.shipping_settings.test_label'));
         }
     });
 }
@@ -398,7 +398,7 @@ function initCountrySettings() {
                 .toggleClass('bg-success-50 text-success-700 hover:bg-success-100', newActive)
                 .toggleClass('bg-gray-100 text-gray-500 hover:bg-gray-200', !newActive);
         } catch {
-            toast(window.TRANSLATIONS?.failedToUpdateShippingSetting || 'Failed to update shipping setting.', 'error');
+            toast(t('admin.shipping_settings.failed_update_shipping_setting'), 'error');
         }
     });
 
@@ -421,7 +421,7 @@ function initCountrySettings() {
                 $input.addClass('border-success-400');
                 setTimeout(() => $input.removeClass('border-success-400'), 1500);
             } catch {
-                toast(window.TRANSLATIONS?.failedToSaveThreshold || 'Failed to save threshold.', 'error');
+                toast(t('admin.shipping_settings.failed_save_threshold'), 'error');
             }
         }, 600);
     });

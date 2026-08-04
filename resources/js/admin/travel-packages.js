@@ -100,10 +100,10 @@ function initApproveModal() {
             .done(res => {
                 $('#approve-modal').modal('close');
                 packagesTable?.ajax.reload(null, false);
-                showToast(res.message ?? (window.TRANSLATIONS?.approved || 'Approved.'), 'success');
+                showToast(res.message ?? (t('admin.travel_packages.approved_label')), 'success');
             })
             .fail(xhr => {
-                showToast(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToApprove || 'Failed to approve.'), 'error');
+                showToast(xhr.responseJSON?.message ?? (t('admin.travel_packages.failed_approve')), 'error');
             });
     });
 }
@@ -133,10 +133,10 @@ function initRejectModal() {
             .done(res => {
                 $('#reject-modal').modal('close');
                 packagesTable?.ajax.reload(null, false);
-                showToast(res.message ?? (window.TRANSLATIONS?.rejected || 'Rejected.'), 'success');
+                showToast(res.message ?? (t('admin.travel_packages.rejected_label')), 'success');
             })
             .fail(xhr => {
-                showToast(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToReject || 'Failed to reject.'), 'error');
+                showToast(xhr.responseJSON?.message ?? (t('admin.travel_packages.failed_reject')), 'error');
             });
     });
 }
@@ -148,14 +148,14 @@ function initExpireModal() {
         const btn = e.target.closest('.js-expire-btn');
         if (!btn) return;
         const url = btn.dataset.url;
-        if (!confirm(window.TRANSLATIONS?.markExpiredConfirm || 'Mark this package as expired?')) return;
+        if (!confirm(t('admin.travel_packages.mark_package_expired_confirm'))) return;
         postJson(url)
             .done(res => {
                 packagesTable?.ajax.reload(null, false);
-                showToast(res.message ?? (window.TRANSLATIONS?.expired || 'Expired.'), 'success');
+                showToast(res.message ?? (t('admin.travel_packages.expired_label')), 'success');
             })
             .fail(xhr => {
-                showToast(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedGeneric || 'Failed.'), 'error');
+                showToast(xhr.responseJSON?.message ?? (t('shared.failed_generic')), 'error');
             });
     });
 }

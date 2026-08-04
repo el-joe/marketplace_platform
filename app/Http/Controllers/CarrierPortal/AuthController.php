@@ -50,7 +50,7 @@ class AuthController extends Controller
         RateLimiter::hit($throttleKey, self::DECAY_SECONDS);
 
         throw ValidationException::withMessages([
-            'email' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+            'email' => __('carrier.errors.invalid_credentials'),
         ]);
     }
 

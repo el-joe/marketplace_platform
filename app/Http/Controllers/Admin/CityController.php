@@ -27,8 +27,8 @@ class CityController extends Controller
         return view('admin.cities.index', [
             'countries' => Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id'),
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Cities'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.cities')],
             ],
         ]);
     }
@@ -139,9 +139,9 @@ class CityController extends Controller
             'countries' => Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id'),
             'shippingZones' => ShippingZone::query()->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id'),
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Cities', 'url' => route('admin.cities.index')],
-                ['label' => 'Add City'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.cities'), 'url' => route('admin.cities.index')],
+                ['label' => __('admin.cities_section.add_city')],
             ],
         ]);
     }
@@ -153,7 +153,7 @@ class CityController extends Controller
         $city = City::create(array_merge(['id' => (string) Str::uuid()], $data));
 
         return redirect()->route('admin.cities.edit', $city->id)
-            ->with('success', 'City created successfully.');
+            ->with('success', __('admin.cities_section.created_success'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -169,8 +169,8 @@ class CityController extends Controller
             'countries' => Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id'),
             'shippingZones' => ShippingZone::query()->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id'),
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Cities', 'url' => route('admin.cities.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.cities'), 'url' => route('admin.cities.index')],
                 ['label' => $city->name_en],
             ],
         ]);
@@ -183,7 +183,7 @@ class CityController extends Controller
         $data = $this->validateCity($request, $id);
         $city->update($data);
 
-        return back()->with('success', 'City updated successfully.');
+        return back()->with('success', __('admin.cities_section.updated_success'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -195,7 +195,7 @@ class CityController extends Controller
         $city = City::findOrFail($id);
         $city->delete();
 
-        return response()->json(['success' => true, 'message' => "{$city->name_en} deleted."]);
+        return response()->json(['success' => true, 'message' => __('admin.cities_section.deleted_msg', ['name' => $city->name_en])]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ class CityController extends Controller
         $handle = fopen($path, 'r');
 
         if ($handle === false) {
-            return response()->json(['message' => 'Could not open file.'], 422);
+            return response()->json(['message' => __('admin.cities_section.could_not_open_file')], 422);
         }
 
         // Read and discard header row
@@ -237,7 +237,7 @@ class CityController extends Controller
                 $row++;
 
                 if (count($line) < 4) {
-                    $errors[] = "Row {$row}: too few columns.";
+                    $errors[] = __('admin.cities_section.row_too_few_columns', ['row' => $row]);
                     continue;
                 }
 
@@ -254,12 +254,12 @@ class CityController extends Controller
                 }
 
                 if (!$countryId) {
-                    $errors[] = "Row {$row}: Unknown country '{$countryRef}'.";
+                    $errors[] = __('admin.cities_section.row_unknown_country', ['row' => $row, 'country' => $countryRef]);
                     continue;
                 }
 
                 if (empty($nameEn)) {
-                    $errors[] = "Row {$row}: name_en is required.";
+                    $errors[] = __('admin.cities_section.row_name_required', ['row' => $row]);
                     continue;
                 }
 
@@ -283,16 +283,20 @@ class CityController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             fclose($handle);
-            return response()->json(['message' => 'Import failed: ' . $e->getMessage()], 500);
+            return response()->json(['message' => __('admin.cities_section.import_failed', ['error' => $e->getMessage()])], 500);
         }
 
         fclose($handle);
+
+        $message = count($errors)
+            ? __('admin.cities_section.import_result_with_errors', ['count' => $inserted, 'errors' => count($errors)])
+            : __('admin.cities_section.import_result', ['count' => $inserted]);
 
         return response()->json([
             'success' => true,
             'inserted' => $inserted,
             'errors' => $errors,
-            'message' => "{$inserted} cities imported." . (count($errors) ? ' ' . count($errors) . ' rows had errors.' : ''),
+            'message' => $message,
         ]);
     }
 

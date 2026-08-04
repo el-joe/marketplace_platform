@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', session('locale', 'ar') === 'ar' ? 'حلول الإعلانات للبائعين | نون' : 'Ad Solutions for Sellers | noon')</title>
-    <meta name="description" content="@yield('description', session('locale', 'ar') === 'ar' ? 'مرحبًا بكم في إعلانات نون' : 'Welcome to the noon ads')">
+    <title>@yield('title', __('common.advertise_title'))</title>
+    <meta name="description" content="@yield('description', __('common.advertise_description'))">
     <meta name="robots" content="index,follow">
 
     <link rel="preconnect" href="https://fonts.bunny.net">

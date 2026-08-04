@@ -121,7 +121,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.price') }} *</label>
             <input type="number" name="price" value="{{ old('price', $pkg?->price) }}" min="1" required
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
-                   placeholder="e.g. 250000 = 2500.00">
+                   placeholder="{{ __('travel.packages.price_placeholder') }}">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.currency') }} *</label>
@@ -259,9 +259,11 @@
     const citySelect    = document.getElementById('travel-city-select');
     const citiesUrl     = '{{ rtrim(url('/packages/cities-for-country'), '/') }}/';
     const preselectedCity = '{{ old('destination_travel_city_id', $pkg?->destination_travel_city_id ?? '') }}';
+    const selectCityOptionalLabel = @json(__('travel.packages.select_city_optional'));
+    const selectCountryFirstLabel = @json(__('travel.packages.travel_city_placeholder'));
 
     function populateCities(cities, selectedId) {
-        citySelect.innerHTML = '<option value="">— اختر المدينة (اختياري) —</option>';
+        citySelect.innerHTML = `<option value="">${selectCityOptionalLabel}</option>`;
         cities.forEach(function (c) {
             const opt = document.createElement('option');
             opt.value = c.id;
@@ -274,7 +276,7 @@
 
     function loadCities(countryId, selectedId) {
         if (!countryId) {
-            citySelect.innerHTML = '<option value="">— اختر الدولة أولاً —</option>';
+            citySelect.innerHTML = `<option value="">${selectCountryFirstLabel}</option>`;
             citySelect.disabled = true;
             return;
         }

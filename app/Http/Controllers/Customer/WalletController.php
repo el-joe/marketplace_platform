@@ -68,11 +68,11 @@ class WalletController extends Controller
         );
 
         if ($wallet->is_frozen) {
-            return ApiResponse::error('Your wallet is frozen and cannot request withdrawals.', [], 422);
+            return ApiResponse::error(__('common.exceptions.wallet.frozen_withdrawal'), [], 422);
         }
 
         if ($wallet->balance < $data['amount']) {
-            return ApiResponse::error('Insufficient wallet balance.', [], 422);
+            return ApiResponse::error(__('common.exceptions.wallet.insufficient_balance'), [], 422);
         }
 
         try {
@@ -93,6 +93,6 @@ class WalletController extends Controller
             report($e);
         }
 
-        return ApiResponse::success(null, 'Withdrawal request submitted successfully.', 201);
+        return ApiResponse::success(null, __('common.exceptions.wallet.withdrawal_submitted'), 201);
     }
 }

@@ -107,7 +107,7 @@
                     <select name="marketer_id" class="form-input w-full" required>
                         <option value="">{{ __('admin.influencer_deals_section.select_marketer') }}</option>
                         @foreach($marketers as $marketer)
-                            <option value="{{ $marketer->id }}">{{ $marketer->name }} ({{ ucfirst(str_replace('_',' ', $marketer->type?->value ?? $marketer->type)) }})</option>
+                            <option value="{{ $marketer->id }}">{{ $marketer->name }} ({{ __('admin.marketer_types.' . ($marketer->type?->value ?? $marketer->type)) }})</option>
                         @endforeach
                     </select>
                 </div>

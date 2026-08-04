@@ -55,8 +55,8 @@ class BlogPostController extends Controller
 
         return view('admin.blog.posts.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Blog Posts'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.blog_posts')],
             ],
             'stats' => $stats,
             'categories' => $categories,
@@ -200,7 +200,7 @@ class BlogPostController extends Controller
         });
 
         return redirect()->route('admin.blog.posts.edit', $post->id)
-            ->with('success', 'Post saved.');
+            ->with('success', __('admin.blog_posts_section.saved'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -212,8 +212,8 @@ class BlogPostController extends Controller
         return view('admin.blog.posts.edit', array_merge($this->formData(), [
             'post' => $post,
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Blog Posts', 'url' => route('admin.blog.posts.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.blog_posts'), 'url' => route('admin.blog.posts.index')],
                 ['label' => e($post->title_en)],
             ],
         ]));
@@ -252,7 +252,7 @@ class BlogPostController extends Controller
         });
 
         return redirect()->route('admin.blog.posts.edit', $post->id)
-            ->with('success', 'Post updated.');
+            ->with('success', __('admin.blog_posts_section.updated'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -313,7 +313,7 @@ class BlogPostController extends Controller
     {
         $post->delete();
 
-        return response()->json(['success' => true, 'message' => 'Post deleted.']);
+        return response()->json(['success' => true, 'message' => __('admin.blog_posts_section.deleted')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -327,7 +327,7 @@ class BlogPostController extends Controller
             'archived_at' => now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Post archived.']);
+        return response()->json(['success' => true, 'message' => __('admin.blog_posts_section.archived')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -417,7 +417,7 @@ class BlogPostController extends Controller
             'excel' => $this->exportExcel('blog_posts', $headers, $rows),
             'csv' => $this->exportCsv('blog_posts', $headers, $rows),
             'word' => $this->exportWord('blog_posts', 'Blog Posts', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('admin.common.invalid_export_format')),
         };
     }
 
@@ -438,9 +438,9 @@ class BlogPostController extends Controller
 
         return [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Blog Posts', 'url' => route('admin.blog.posts.index')],
-                ['label' => 'New Post'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.blog_posts'), 'url' => route('admin.blog.posts.index')],
+                ['label' => __('admin.blog.new_post')],
             ],
             'categories' => $categories,
             'countries' => $countries,

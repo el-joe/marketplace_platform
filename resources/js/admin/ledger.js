@@ -102,7 +102,7 @@ function initLedgerIndex() {
             renderGroupModal(data, contentEl);
         } catch (err) {
             if (contentEl) {
-                contentEl.innerHTML = '<p class="text-sm text-red-600 text-center py-4">' + (err.message ?? (window.TRANSLATIONS?.failedToLoadGroup || 'Failed to load group.')) + '</p>';
+                contentEl.innerHTML = '<p class="text-sm text-red-600 text-center py-4">' + (err.message ?? t('admin.ledger.failed_load_group')) + '</p>';
             }
         }
     });

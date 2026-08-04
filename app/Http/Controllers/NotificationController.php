@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Marketer;
-use App\Models\Vendor;
-use App\Models\VendorAdmin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -43,10 +41,6 @@ class NotificationController extends Controller
     {
         foreach (array_keys(self::GUARDS) as $guard) {
             if ($user = auth($guard)->user()) {
-                if ($user instanceof VendorAdmin) {
-                    $user = $user->vendor;
-                }
-
                 return $user;
             }
         }

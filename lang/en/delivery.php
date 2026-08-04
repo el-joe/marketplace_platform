@@ -111,6 +111,7 @@ return [
         'status_picked_up' => 'Picked Up',
         'status_delivered' => 'Delivered',
         'status_failed' => 'Failed',
+        'order_number_prefix' => 'Order #',
     ],
 
     'cod' => [
@@ -202,5 +203,89 @@ return [
         'confirm_new_password' => 'Confirm New Password',
         'update_password' => 'Update Password',
         'sign_out' => 'Sign Out',
+    ],
+
+    // ─── Controller response messages (flash / JSON) ──────────────────────────
+    'messages' => [
+        'common' => [
+            'forbidden' => 'Forbidden.',
+            'invalid_export_format' => 'Invalid export format.',
+        ],
+
+        'assignments' => [
+            'cannot_accept_state' => 'Assignment cannot be accepted in its current state.',
+            'accepted' => 'Assignment accepted.',
+            'not_accepted_state' => 'Assignment is not in accepted state.',
+            'marked_picked_up' => 'Marked as picked up.',
+            'picked_up_label' => 'Package marked as picked up.',
+            'not_picked_up_state' => 'Assignment is not in picked-up state.',
+            'too_many_otp_attempts' => 'Too many OTP attempts. Contact support.',
+            'invalid_otp_remaining' => 'Invalid OTP. :remaining attempt(s) remaining.',
+            'cod_amount_mismatch' => 'The entered amount (:collected) does not match the expected amount (:expected). Please verify.',
+            'delivery_confirmed' => 'Delivery confirmed!',
+            'cannot_fail_state' => 'Cannot fail assignment in current state.',
+            'marked_failed' => 'Assignment marked as failed.',
+            'already_active_assignment' => 'You already have an active assignment. Complete or fail it before accepting another.',
+            'too_many_incorrect_otp_flagged' => 'Too many incorrect OTP attempts. This assignment has been flagged for support review.',
+            'incorrect_otp_remaining' => 'Incorrect OTP. :remaining attempt(s) remaining.',
+            'otp_verified' => 'OTP verified.',
+            'too_many_incorrect_otp_flagged_short' => 'Too many incorrect OTP attempts. Assignment flagged for support review.',
+            'incorrect_otp_cannot_confirm' => 'Incorrect OTP. Delivery cannot be confirmed.',
+            'cod_amount_required' => 'COD amount collected is required for cash-on-delivery orders.',
+            'delivery_confirmed_successfully' => 'Delivery confirmed successfully.',
+            'customer_rejection_reason_required' => 'A rejection reason is required when the customer refuses delivery on an electronically paid order.',
+            'delivery_marked_failed' => 'Delivery marked as failed.',
+        ],
+
+        'auth' => [
+            'invalid_credentials_web' => 'These credentials do not match our records.',
+            'invalid_credentials' => 'Invalid credentials.',
+            'account_suspended' => 'Your account has been suspended. Please contact support.',
+            'account_not_active' => 'Your account is not active.',
+            'device_registered' => 'Device registered for push notifications.',
+            'device_token_removed' => 'Device token removed.',
+            'logged_out' => 'Logged out successfully.',
+            'invalid_refresh_token' => 'Invalid or expired refresh token.',
+        ],
+
+        'location' => [
+            'please_wait_seconds' => 'Please wait :seconds seconds before updating location.',
+            'now_available' => 'You are now available.',
+            'now_offline' => 'You are now offline.',
+            'updated' => 'Location updated.',
+        ],
+
+        'profile' => [
+            'current_password_incorrect' => 'Current password is incorrect.',
+            'password_updated' => 'Password updated successfully.',
+            'updated' => 'Profile updated.',
+            'invalid_document_type' => 'Invalid document type.',
+            'document_submitted' => 'Document submitted for review.',
+        ],
+
+        'wallet' => [
+            'withdrawal_submitted' => 'Withdrawal request submitted successfully.',
+        ],
+
+        'shift' => [
+            'started' => 'Shift started.',
+            'ended' => 'Shift ended.',
+            'must_be_on_shift' => 'You must be on shift to toggle availability.',
+            'now_available' => 'You are now available for deliveries.',
+            'now_on_break' => 'You are now on a break.',
+        ],
+
+        'notifications' => [
+            'not_found' => 'Notification not found.',
+            'marked_read' => 'Marked as read.',
+            'all_marked_read' => 'All notifications marked as read.',
+        ],
+
+        'support_tickets' => [
+            'created' => 'Ticket created.',
+            'not_found' => 'Ticket not found.',
+            'message_sent' => 'Message sent.',
+            'thank_you_feedback' => 'Thank you for your feedback.',
+        ],
     ],
 ];

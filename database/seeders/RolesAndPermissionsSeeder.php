@@ -59,18 +59,18 @@ class RolesAndPermissionsSeeder extends Seeder
                 'guard' => 'admin',
                 'permissions' => [
                     'dashboard.view', 'orders.view', 'orders.refund',
-                    'settings.payment_gateways', 'marketers.view',
+                    'settings.payment_gateways',
                 ],
             ],
             [
                 'name'  => 'marketing_admin',
                 'guard' => 'admin',
                 'permissions' => [
-                    'dashboard.view', 'marketers.view', 'marketers.approve',
-                    'marketers.campaigns', 'marketers.secret_promotions',
+                    'dashboard.view',
                     'flash_sales.view', 'flash_sales.create', 'flash_sales.edit',
                     'flash_sales.review_submissions',
                     'vouchers.view', 'vouchers.create', 'vouchers.edit', 'vouchers.delete',
+                    'marketer_campaigns.view', 'marketer_campaigns.approve', 'marketer_campaigns.reject',
                 ],
             ],
             [

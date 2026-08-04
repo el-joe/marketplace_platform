@@ -260,7 +260,7 @@ class FinanceController extends Controller
             'excel' => $this->exportExcel($filename, $headers, $rows),
             'word' => $this->exportWord($filename, 'Sales Report', $rows),
             'csv' => $this->exportCsv($filename, $headers, $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('common.invalid_export_format')),
         };
     }
 }

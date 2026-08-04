@@ -134,4 +134,32 @@ return [
         'inclusion_insurance'    => 'تأمين سفر',
         'inclusion_transfers'    => 'مواصلات',
     ],
+
+    'auth' => [
+        'registration_thank_you' => 'شكراً لتسجيلك! سنتواصل معك قريباً.',
+    ],
+
+    'advertise_request' => [
+        'special_chars_not_allowed' => 'الأحرف الخاصة (+، -، *، /) غير مسموح بها. يرجى إزالتها.',
+        'invalid_phone'             => 'يرجى إدخال رقم جوال صحيح!',
+        'description_min'           => 'يرجى التأكد من أن الوصف يحتوي على 50 حرفاً على الأقل.',
+        'description_max'           => 'يرجى التأكد من أن الوصف أقل من 1000 حرف.',
+        'name_required'             => 'يرجى إدخال اسمك الكامل!',
+        'email_required'            => 'يرجى إدخال عنوان بريد إلكتروني صالح!',
+        'company_name_required'     => 'يرجى إدخال اسم شركتك!',
+        'description_required'      => 'يرجى إدخال تفاصيل الطلب في الوصف!',
+    ],
+
+    'registration' => [
+        'email_unique'            => 'هذا البريد الإلكتروني مسجل مسبقاً.',
+        'password_min'            => 'كلمة المرور يجب أن تكون ٨ أحرف على الأقل.',
+        'password_confirmed'      => 'كلمة المرور وتأكيدها غير متطابقتين.',
+        'store_slug_unique'       => 'اسم المتجر المختصر مستخدم مسبقاً، جرب آخر.',
+        'store_slug_alpha_dash'   => 'يجب أن يحتوي المختصر على أحرف وأرقام وشرطات فقط.',
+        'terms_agreed_accepted'   => 'يجب الموافقة على الشروط والأحكام.',
+        'privacy_agreed_accepted' => 'يجب الموافقة على سياسة الخصوصية.',
+        'incomplete_data'         => 'بيانات التسجيل غير مكتملة. ارجع وأعد إدخال البيانات.',
+        'invalid_country'         => 'الدولة المحددة غير صالحة.',
+        'documents_required'      => 'الوثائق التالية مطلوبة: :documents',
+    ],
 ];

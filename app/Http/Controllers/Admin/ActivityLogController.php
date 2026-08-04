@@ -196,7 +196,7 @@ class ActivityLogController extends Controller
             'excel' => $this->exportExcel('activity_log', $headers, $rows),
             'csv' => $this->exportCsv('activity_log', $headers, $rows),
             'word' => $this->exportWord('activity_log', 'Activity Log', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('admin.invalid_export_format')),
         };
     }
 

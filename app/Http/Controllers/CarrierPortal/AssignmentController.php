@@ -26,7 +26,7 @@ class AssignmentController extends Controller
     {
         $supervisor = auth('shipping_supervisor')->user();
 
-        abort_unless($supervisor->hasPermission('view_orders'), 403, 'ليس لديك صلاحية لعرض الطلبات.');
+        abort_unless($supervisor->hasPermission('view_orders'), 403, __('carrier.errors.no_permission_view_orders'));
 
         if ($request->filled('export')) {
             return $this->exportAssignments($request, $supervisor);
@@ -84,7 +84,7 @@ class AssignmentController extends Controller
             'excel' => $this->exportExcel('carrier-assignments', $headers, $rows),
             'csv' => $this->exportCsv('carrier-assignments', $headers, $rows),
             'word' => $this->exportWord('carrier-assignments', 'Carrier Assignments', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('carrier.errors.invalid_export_format')),
         };
     }
 
@@ -92,7 +92,7 @@ class AssignmentController extends Controller
     {
         $supervisor = auth('shipping_supervisor')->user();
 
-        abort_unless($supervisor->hasPermission('view_orders'), 403, 'ليس لديك صلاحية لعرض الطلبات.');
+        abort_unless($supervisor->hasPermission('view_orders'), 403, __('carrier.errors.no_permission_view_orders'));
 
         $assignment = DeliveryAssignment::query()
             ->whereHas('agent', fn ($q) => $q->where('shipping_company_id', $supervisor->shipping_company_id))
@@ -117,7 +117,7 @@ class AssignmentController extends Controller
     {
         $supervisor = auth('shipping_supervisor')->user();
 
-        abort_unless($supervisor->hasPermission('assign_orders'), 403, 'ليس لديك صلاحية لإعادة التعيين.');
+        abort_unless($supervisor->hasPermission('assign_orders'), 403, __('carrier.errors.no_permission_reassign'));
 
         $request->validate(['new_agent_id' => 'required|string|exists:delivery_agents,id']);
 
@@ -126,7 +126,7 @@ class AssignmentController extends Controller
             ->findOrFail($assignmentId);
 
         if (!in_array($assignment->status?->value, ['assigned', 'accepted'])) {
-            return response()->json(['success' => false, 'message' => 'لا يمكن إعادة تعيين هذا الطلب في حالته الحالية.'], 422);
+            return response()->json(['success' => false, 'message' => __('carrier.assignments.cannot_reassign_picked_up')], 422);
         }
 
         // Scope new agent to same company — prevents assigning to another company's agent.
@@ -155,14 +155,14 @@ class AssignmentController extends Controller
         }
         $newAgent->notify(new NewDeliveryAssigned($assignment));
 
-        return response()->json(['success' => true, 'message' => 'تم إعادة تعيين الطلب بنجاح.']);
+        return response()->json(['success' => true, 'message' => __('carrier.assignments.reassigned_success')]);
     }
 
     public function unassigned(Request $request): View
     {
         $supervisor = auth('shipping_supervisor')->user();
 
-        abort_unless($supervisor->hasPermission('view_orders'), 403, 'ليس لديك صلاحية لعرض الطلبات.');
+        abort_unless($supervisor->hasPermission('view_orders'), 403, __('carrier.errors.no_permission_view_orders'));
 
         // NOTE: shipments.carrier_id → shipping_carriers (DHL/FedEx integrations) is a DIFFERENT
         // concept from shipping_company_id (local delivery companies with supervisors/agents).
@@ -185,7 +185,7 @@ class AssignmentController extends Controller
     {
         $supervisor = auth('shipping_supervisor')->user();
 
-        abort_unless($supervisor->hasPermission('assign_orders'), 403, 'ليس لديك صلاحية لتعيين الطلبات.');
+        abort_unless($supervisor->hasPermission('assign_orders'), 403, __('carrier.errors.no_permission_assign'));
 
         $request->validate(['agent_id' => 'required|string|exists:delivery_agents,id']);
 
@@ -212,6 +212,6 @@ class AssignmentController extends Controller
 
         $agent->notify(new NewDeliveryAssigned($assignment));
 
-        return response()->json(['success' => true, 'message' => 'تم تعيين المندوب بنجاح.']);
+        return response()->json(['success' => true, 'message' => __('carrier.assignments.assign_success')]);
     }
 }

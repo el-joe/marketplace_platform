@@ -50,7 +50,7 @@ function initProgressTable() {
 
     document.getElementById('btn-send-warnings')?.addEventListener('click', async () => {
         const { year, month } = currentPeriod(tableEl);
-        if (!confirm('Send WhatsApp warnings to all in-progress marketers below 50% completion for this month?')) return;
+        if (!confirm(t('admin.marketer_quotas_progress.send_warnings_confirm'))) return;
 
         const res = await fetch(tableEl.dataset.warningsUrl, {
             method: 'POST',

@@ -64,9 +64,9 @@ class CodSettlementController extends Controller
 
         return view('admin.delivery.cod-settlements.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Delivery'],
-                ['label' => 'COD Settlements'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.delivery')],
+                ['label' => __('admin.nav.cod_settlements')],
             ],
             'pendingCashCents'        => $pendingCashCents,
             'settledThisMonthCents'   => $settledThisMonthCents,
@@ -110,10 +110,10 @@ class CodSettlementController extends Controller
 
         return view('admin.delivery.cod-settlements.show', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Delivery'],
-                ['label' => 'COD Settlements', 'url' => route('admin.delivery.cod-settlements.index')],
-                ['label' => $settlement->agent->name ?? 'Settlement'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.delivery')],
+                ['label' => __('admin.nav.cod_settlements'), 'url' => route('admin.delivery.cod-settlements.index')],
+                ['label' => $settlement->agent->name ?? __('admin.cod_settlements_section.settlement_label')],
             ],
             'settlement'       => $settlement,
             'assignments'      => $assignments,
@@ -146,7 +146,7 @@ class CodSettlementController extends Controller
         if ($overlap) {
             return response()->json([
                 'success' => false,
-                'message' => 'A settlement already exists for this agent covering part of this period.',
+                'message' => __('admin.cod_settlements_section.overlap_exists'),
             ], 422);
         }
 
@@ -163,7 +163,7 @@ class CodSettlementController extends Controller
         if ($collected === 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'No unsettled COD deliveries found for this agent in the selected period.',
+                'message' => __('admin.cod_settlements_section.no_unsettled_deliveries'),
             ], 422);
         }
 
@@ -178,7 +178,7 @@ class CodSettlementController extends Controller
         if ($netToRemit < 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Net amount to remit is negative (earnings exceed COD collected). Manual review required.',
+                'message' => __('admin.cod_settlements_section.negative_net_amount'),
             ], 422);
         }
 
@@ -218,10 +218,9 @@ class CodSettlementController extends Controller
             return $s;
         });
 
-        $message = "Settlement generated. Agent must remit " . number_format($netToRemit / 100, 2) . ".";
+        $message = __('admin.cod_settlements_section.generated_message', ['amount' => number_format($netToRemit / 100, 2)]);
         if ($hasDiscrepancy) {
-            $message .= " ⚠ Settlement flagged: collection discrepancy of "
-                . number_format($discrepancyAmountCents / 100, 2) . " requires admin review.";
+            $message .= __('admin.cod_settlements_section.discrepancy_flagged', ['amount' => number_format($discrepancyAmountCents / 100, 2)]);
         }
 
         return response()->json([
@@ -241,7 +240,7 @@ class CodSettlementController extends Controller
     public function markSettled(Request $request, DeliveryAgentCodSettlement $settlement): JsonResponse
     {
         if ($settlement->status !== DeliveryAgentCodSettlementStatus::Pending) {
-            return response()->json(['success' => false, 'message' => 'Only pending settlements can be marked settled.'], 422);
+            return response()->json(['success' => false, 'message' => __('admin.cod_settlements_section.only_pending_can_be_settled')], 422);
         }
 
         $toleranceCents = 100; // 1 unit tolerance
@@ -293,7 +292,7 @@ class CodSettlementController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Settlement marked as settled and agent earnings approved.',
+            'message' => __('admin.cod_settlements_section.settled_success'),
         ]);
     }
 
@@ -302,7 +301,7 @@ class CodSettlementController extends Controller
     public function dispute(Request $request, DeliveryAgentCodSettlement $settlement): JsonResponse
     {
         if ($settlement->status === DeliveryAgentCodSettlementStatus::Settled) {
-            return response()->json(['success' => false, 'message' => 'A settled record cannot be disputed.'], 422);
+            return response()->json(['success' => false, 'message' => __('admin.cod_settlements_section.already_settled_cannot_dispute')], 422);
         }
 
         $validated = $request->validate([
@@ -316,7 +315,7 @@ class CodSettlementController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Settlement marked as disputed.',
+            'message' => __('admin.cod_settlements_section.disputed_success'),
         ]);
     }
 }

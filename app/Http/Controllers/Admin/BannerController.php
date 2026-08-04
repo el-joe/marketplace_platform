@@ -105,7 +105,7 @@ class BannerController extends Controller
             'excel' => $this->exportExcel('banners', $headers, $rows),
             'csv' => $this->exportCsv('banners', $headers, $rows),
             'word' => $this->exportWord('banners', 'Banners', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('admin.common.invalid_export_format')),
         };
     }
 
@@ -270,7 +270,7 @@ class BannerController extends Controller
         }
 
         return response()->json([
-            'message' => 'Banner created.',
+            'message' => __('admin.banners.created_flash'),
             'redirect' => route('admin.banners.index'),
         ]);
     }
@@ -322,7 +322,7 @@ class BannerController extends Controller
         }
 
         return response()->json([
-            'message' => 'Banner updated.',
+            'message' => __('admin.banners.updated_flash'),
             'redirect' => route('admin.banners.index'),
         ]);
     }
@@ -339,7 +339,7 @@ class BannerController extends Controller
 
         $banner->delete();
 
-        return response()->json(['message' => 'Banner deleted.']);
+        return response()->json(['message' => __('admin.banners.deleted_flash')]);
     }
 
     // ─── Duplicate ────────────────────────────────────────────────────────────
@@ -352,7 +352,7 @@ class BannerController extends Controller
         $copy = $this->bannerService->duplicate($banner, $admin->id);
 
         return response()->json([
-            'message' => 'Banner duplicated.',
+            'message' => __('admin.banners.duplicated_flash'),
             'redirect' => route('admin.banners.edit', $copy->id),
         ]);
     }
@@ -376,7 +376,7 @@ class BannerController extends Controller
         );
 
         return response()->json([
-            'message' => 'Image uploaded.',
+            'message' => __('admin.banners.image_uploaded_flash'),
             'file_id' => $file->id,
             'url' => $file->full_path,
         ]);
@@ -394,10 +394,10 @@ class BannerController extends Controller
         $deleted = $this->bannerService->deleteFileRecord((int) $request->input('file_id'));
 
         if (!$deleted) {
-            return response()->json(['message' => 'File not found.'], 404);
+            return response()->json(['message' => __('admin.banners.file_not_found')], 404);
         }
 
-        return response()->json(['message' => 'Image deleted.']);
+        return response()->json(['message' => __('admin.banners.image_deleted_flash')]);
     }
 
     // ─── Bulk Actions ─────────────────────────────────────────────────────────
@@ -429,7 +429,7 @@ class BannerController extends Controller
             $count++;
         }
 
-        return response()->json(['message' => "{$count} banner(s) {$action}d."]);
+        return response()->json(['message' => __('admin.banners.bulk_result', ['count' => $count, 'actioned' => $action . 'd'])]);
     }
 
     private function doDelete(Banner $banner, $admin): void

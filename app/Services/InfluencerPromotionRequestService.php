@@ -16,7 +16,6 @@ use App\Models\InventoryMovement;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerMonthlyQuotaProgress;
-use App\Models\MarketerQrCode;
 use App\Models\MarketerSampleItem;
 use App\Models\MarketerSampleRequest;
 use App\Models\Setting;
@@ -38,7 +37,6 @@ class InfluencerPromotionRequestService
 {
     public function __construct(
         private readonly InfluencerPromotionFeeService $feeService,
-        private readonly MarketerQrCodeService $qrCodeService,
         private readonly LedgerService $ledgerService,
     ) {}
 
@@ -159,9 +157,6 @@ class InfluencerPromotionRequestService
                 ]);
 
                 $item->update(['resulting_campaign_id' => $campaign->id]);
-
-                $qrCode = $this->qrCodeService->generateForPromotionItem($item, $campaign->id);
-                $item->update(['qr_code_id' => $qrCode->id]);
 
                 $this->deductSamples($item);
                 $this->deductPromotionFees($item);
@@ -342,24 +337,6 @@ class InfluencerPromotionRequestService
             ]);
 
             $newItem->update(['expires_at' => now()->addHours($newItem->acceptance_window_hours)]);
-
-            if ($item->qr_code_id) {
-                $newItem->update(['qr_code_id' => $item->qr_code_id]);
-            }
-
-            $qrCode = MarketerQrCode::query()
-                ->where('promotion_request_item_id', $item->id)
-                ->where('is_active', true)
-                ->first();
-
-            if ($qrCode) {
-                $qrCode->previous_marketer_id = $item->marketer_id;
-                $qrCode->marketer_id = $candidate->id;
-                $qrCode->promotion_request_item_id = $newItem->id;
-                $qrCode->reassigned_at = now();
-                $this->qrCodeService->regenerateForReassignment($qrCode);
-                $qrCode->save();
-            }
 
             $log = VendorInfluencerReassignmentLog::query()->create([
                 'promotion_request_id' => $item->promotion_request_id,

@@ -96,7 +96,7 @@ class CheckoutController extends Controller
                 ]))->values(),
                 'destination_zone' => null,
                 'cod_available_for_address' => false,
-            ], 'Shipping methods retrieved');
+            ], __('common.exceptions.checkout.shipping_methods_retrieved'));
         }
 
         $address->load('city.shippingZone');
@@ -128,7 +128,7 @@ class CheckoutController extends Controller
             'shipping_methods' => $shippingMethods,
             'destination_zone' => $address->city?->shippingZone?->name,
             'cod_available_for_address' => $codAvailableForAddress,
-        ], 'Shipping methods retrieved');
+        ], __('common.exceptions.checkout.shipping_methods_retrieved'));
     }
 
     public function prepare(CheckoutPrepareRequest $request): JsonResponse
@@ -141,18 +141,18 @@ class CheckoutController extends Controller
         $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product']);
 
         if ($cart->items->isEmpty()) {
-            return ApiResponse::error('Cart is empty.', [], 422);
+            return ApiResponse::error(__('common.exceptions.checkout.cart_empty'), [], 422);
         }
 
         $address = $customer->addresses()->find($validated['address_id']);
         if (! $address) {
-            return ApiResponse::error('Address not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.checkout.address_not_found'), [], 404);
         }
         $address->load('city.shippingZone');
 
         $isCod = $validated['payment_method'] === 'cod';
         if ($isCod && ! $this->codAvailable($address, $country)) {
-            return ApiResponse::error('Cash on delivery is not available for your location.', [], 422);
+            return ApiResponse::error(__('common.exceptions.checkout.cod_unavailable'), [], 422);
         }
 
         $cartItems = $cart->items->all();
@@ -186,7 +186,7 @@ class CheckoutController extends Controller
         if (! empty($validated['coupon_code'])) {
             $coupon = Coupon::where('code', $validated['coupon_code'])->first();
             if (! $coupon) {
-                return ApiResponse::error('Invalid coupon code.', [], 422);
+                return ApiResponse::error(__('common.exceptions.checkout.invalid_coupon'), [], 422);
             }
 
             $subtotal = (int) collect($cartItems)->sum(fn ($i) => $i->unit_price * $i->quantity);
@@ -267,7 +267,7 @@ class CheckoutController extends Controller
             'wallet_applicable' => $walletApplicable,
             'wallet' => $walletInfo,
             'items' => $items,
-        ], 'Checkout preview ready');
+        ], __('common.exceptions.checkout.preview_ready'));
     }
 
     public function placeOrder(PlaceOrderRequest $request): JsonResponse
@@ -280,7 +280,7 @@ class CheckoutController extends Controller
         if ($existingTransaction && in_array($existingTransaction->status->value, ['pending', 'succeeded'], true)) {
             $order = Order::where('id', $existingTransaction->order_id)->first();
             if ($order) {
-                return ApiResponse::error('Order already placed.', ['order_number' => $order->order_number], 409);
+                return ApiResponse::error(__('common.exceptions.checkout.order_already_placed'), ['order_number' => $order->order_number], 409);
             }
         }
 
@@ -294,29 +294,29 @@ class CheckoutController extends Controller
         ]);
 
         if ($cart->items->isEmpty()) {
-            return ApiResponse::error('Cart is empty.', [], 422);
+            return ApiResponse::error(__('common.exceptions.checkout.cart_empty'), [], 422);
         }
 
         foreach ($cart->items as $item) {
             if ($item->vendorListing->status !== VendorListingStatus::Active) {
-                return ApiResponse::error("Listing {$item->vendorListing->id} is no longer available.", [], 422);
+                return ApiResponse::error(__('common.exceptions.checkout.listing_not_available', ['id' => $item->vendorListing->id]), [], 422);
             }
 
             $available = $item->vendorListing->warehouseInventories->sum('quantity_available');
             if ($available < $item->quantity) {
-                return ApiResponse::error("Insufficient stock for one or more items. Only {$available} unit(s) available.", [], 422);
+                return ApiResponse::error(__('common.exceptions.checkout.insufficient_stock_available', ['available' => $available]), [], 422);
             }
         }
 
         $address = $customer->addresses()->find($validated['address_id']);
         if (! $address) {
-            return ApiResponse::error('Address not found.', [], 404);
+            return ApiResponse::error(__('common.exceptions.checkout.address_not_found'), [], 404);
         }
         $address->load('city.shippingZone');
 
         $isCod = $validated['payment_method'] === 'cod';
         if ($isCod && ! $this->codAvailable($address, $country)) {
-            return ApiResponse::error('Cash on delivery is not available for your location.', [], 422);
+            return ApiResponse::error(__('common.exceptions.checkout.cod_unavailable'), [], 422);
         }
 
         $cartItems = $cart->items->all();
@@ -349,7 +349,7 @@ class CheckoutController extends Controller
         if (! empty($validated['coupon_code'])) {
             $coupon = Coupon::where('code', $validated['coupon_code'])->first();
             if (! $coupon) {
-                return ApiResponse::error('Invalid coupon code.', [], 422);
+                return ApiResponse::error(__('common.exceptions.checkout.invalid_coupon'), [], 422);
             }
 
             $subtotal = (int) collect($cartItems)->sum(fn ($i) => $i->unit_price * $i->quantity);
@@ -482,7 +482,7 @@ class CheckoutController extends Controller
 
                         if (! $inventory || $inventory->quantity_available < $cartItem->quantity) {
                             throw new \DomainException(
-                                'Insufficient stock for one or more items. Please update your cart.'
+                                __('common.exceptions.checkout.insufficient_stock')
                             );
                         }
 
@@ -604,17 +604,17 @@ class CheckoutController extends Controller
                     $wallet = CustomerWallet::where('customer_id', $customer->id)->first();
                     if (! $wallet || $wallet->currency_code !== $order->currency) {
                         throw new GiftCardCurrencyMismatchException(
-                            'Your wallet currency does not match this order.'
+                            __('common.exceptions.checkout.wallet_currency_mismatch')
                         );
                     }
 
                     if ($walletAmountToUse > $order->total) {
-                        throw new \InvalidArgumentException('Wallet amount cannot exceed order total.');
+                        throw new \InvalidArgumentException(__('common.exceptions.checkout.wallet_exceeds_total'));
                     }
 
                     if ($validated['payment_method'] === 'cod' && $walletAmountToUse < $order->total) {
                         throw new \InvalidArgumentException(
-                            'COD orders must be paid fully by wallet or not use wallet at all.'
+                            __('common.exceptions.checkout.cod_wallet_rule')
                         );
                     }
 
@@ -638,7 +638,7 @@ class CheckoutController extends Controller
                         $this->couponService->validate($coupon->code, $cart, $customer);
                     } catch (ValidationException $e) {
                         throw new \DomainException(
-                            'Your coupon is no longer valid: '.$e->validator->errors()->first()
+                            __('common.exceptions.checkout.coupon_no_longer_valid', ['reason' => $e->validator->errors()->first()])
                         );
                     }
 
@@ -719,7 +719,7 @@ class CheckoutController extends Controller
         $order = $order->fresh();
         $order->load('subOrders.items.vendorListing');
 
-        return ApiResponse::success(new PlaceOrderResultResource($order), 'Order placed successfully', 201);
+        return ApiResponse::success(new PlaceOrderResultResource($order), __('common.exceptions.checkout.order_placed'), 201);
     }
 
     public function confirmation(Request $request,$country, string $orderNumber): JsonResponse
@@ -818,21 +818,20 @@ class CheckoutController extends Controller
     private function deliveryMessage(array $vendorShipping): string
     {
         if ($vendorShipping['shipping'] > 0) {
-            return sprintf(
-                'Platform covered: %d',
-                $vendorShipping['platform_subsidy'],
-            );
+            return __('common.exceptions.checkout.delivery_platform_covered', [
+                'amount' => $vendorShipping['platform_subsidy'],
+            ]);
         }
 
         if ($vendorShipping['is_free_by_vendor']) {
-            return 'Free delivery offered by seller';
+            return __('common.exceptions.checkout.delivery_free_by_seller');
         }
 
         if ($vendorShipping['is_free_by_platform'] || $vendorShipping['platform_subsidy'] > 0) {
-            return 'Delivered free by noon';
+            return __('common.exceptions.checkout.delivery_free_by_platform');
         }
 
-        return 'Free Delivery';
+        return __('common.exceptions.checkout.delivery_free');
     }
 
     /**

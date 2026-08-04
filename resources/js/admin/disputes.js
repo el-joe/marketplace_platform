@@ -4,7 +4,6 @@ import { dtLanguage } from '../components/datatable.js';
 // ─── Locale helpers ────────────────────────────────────────────────────────────
 
 const isAr = document.documentElement.lang === 'ar';
-const t = (key, fallback) => window.TRANSLATIONS?.[key] ?? fallback;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -185,15 +184,15 @@ function initDisputeShowPage() {
                 is_internal_note: internal,
             });
 
-            window.Toast?.success(res.message ?? t('replySent', 'Reply sent.'));
-            appendMessage(message, internal, res.sender_name ?? t('supportAgent', 'Support Agent'));
+            window.Toast?.success(res.message ?? t('admin.disputes.reply_sent'));
+            appendMessage(message, internal, res.sender_name ?? t('admin.disputes.support_agent_label'));
             document.getElementById('reply-message').value = '';
             if (internalChk) internalChk.checked = false;
             if (replyBg) replyBg.classList.remove('border-yellow-300', 'bg-yellow-50');
 
             if (res.status) updateStatusBadge(res.status);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('replyFailed', 'Failed to send reply.'));
+            window.Toast?.error(err.message ?? t('admin.disputes.failed_send_reply'));
         } finally {
             if (btn) btn.disabled = false;
         }
@@ -203,10 +202,10 @@ function initDisputeShowPage() {
     document.getElementById('status-select')?.addEventListener('change', async function () {
         try {
             const res = await sendJson(this.dataset.url, 'POST', { status: this.value });
-            window.Toast?.success(res.message ?? t('statusUpdated', 'Status updated.'));
+            window.Toast?.success(res.message ?? t('admin.disputes.status_updated'));
             updateStatusBadge(this.value);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('statusUpdateFailed', 'Failed to update status.'));
+            window.Toast?.error(err.message ?? t('admin.disputes.failed_update_status'));
         }
     });
 
@@ -218,7 +217,7 @@ function initDisputeShowPage() {
             const nameEl = document.getElementById('assignee-name');
             if (nameEl) nameEl.textContent = res.assignee_name ?? this.dataset.myName;
         } catch (err) {
-            window.Toast?.error(err.message ?? t('assignFailed', 'Failed to assign.'));
+            window.Toast?.error(err.message ?? t('admin.disputes.failed_assign'));
         }
     });
 
@@ -229,9 +228,9 @@ function initDisputeShowPage() {
             const res = await sendJson(this.dataset.url, 'POST', { admin_id: adminId || null });
             window.Toast?.success(res.message);
             const nameEl = document.getElementById('assignee-name');
-            if (nameEl) nameEl.textContent = res.assignee_name ?? t('unassigned', 'Unassigned');
+            if (nameEl) nameEl.textContent = res.assignee_name ?? 'Unassigned';
         } catch (err) {
-            window.Toast?.error(err.message ?? t('reassignFailed', 'Failed to reassign.'));
+            window.Toast?.error(err.message ?? t('admin.disputes.failed_reassign'));
         }
     });
 
@@ -241,11 +240,11 @@ function initDisputeShowPage() {
         e.preventDefault();
         const confirmed = window.confirmDialog
             ? await window.confirmDialog({
-                title: t('resolveConfirmTitle', 'Resolve dispute?'),
-                text: t('resolveConfirmText', 'This will finalize the resolution and close the dispute thread if marked.'),
-                confirmButtonText: t('resolveConfirmButton', 'Resolve'),
+                title: t('admin.disputes.resolve_dispute_title'),
+                text: t('admin.disputes.resolve_dispute_text'),
+                confirmButtonText: t('admin.disputes.resolve_dispute_title'),
             })
-            : confirm(t('resolveConfirmTitle', 'Resolve dispute?'));
+            : confirm(t('admin.disputes.resolve_dispute_title'));
         if (!confirmed) return;
 
         const btn = document.getElementById('btn-resolve');
@@ -260,10 +259,10 @@ function initDisputeShowPage() {
                 close: fd.get('close') ? 1 : 0,
             };
             const res = await sendJson(resolveForm.dataset.url, 'POST', payload);
-            window.Toast?.success(res.message ?? t('resolvedMessage', 'Dispute resolved.'));
+            window.Toast?.success(res.message ?? t('admin.disputes.dispute_resolved'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? t('resolveFailed', 'Failed to resolve dispute.'));
+            window.Toast?.error(err.message ?? t('admin.disputes.failed_resolve_dispute'));
             if (btn) btn.disabled = false;
         }
     });
@@ -286,7 +285,7 @@ function appendMessage(text, isInternal, senderName) {
     el.innerHTML = `<div class="rounded-xl p-4 ${bgClass}">
         <div class="flex items-center gap-2 mb-2">
             <span class="text-xs font-semibold text-gray-700">${escapeHtml(senderName)}</span>
-            ${isInternal ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">${escapeHtml(t('internalNoteBadge', 'Internal note'))}</span>` : ''}
+            ${isInternal ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">${escapeHtml(t('admin.disputes.internal_note_label'))}</span>` : ''}
             <span class="text-xs text-gray-400 ml-auto">${now}</span>
         </div>
         <div class="text-sm text-gray-800 whitespace-pre-wrap">${escapeHtml(text)}</div>

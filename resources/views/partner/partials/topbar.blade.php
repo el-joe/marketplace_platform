@@ -1,6 +1,10 @@
 @php
     $isAr = session('locale', 'ar') === 'ar';
     $vendorAdmin = auth()->guard('vendor')->user();
+    $vendor = $vendorAdmin?->vendor;
+    $vendorTypeLabel = $vendor?->isMarketer()
+        ? __('partner.marketer_types.' . $vendor->marketer_type)
+        : ($vendor?->business_type ? __('partner.profile.business_type_' . $vendor->business_type->value) : null);
 @endphp
 
 <header class="h-16 bg-white border-b border-gray-200 flex items-center px-6 gap-4 shrink-0">
@@ -71,7 +75,7 @@
                 </div>
                 <div class="{{ $isAr ? 'text-right' : 'text-left' }} hidden sm:block">
                     <div class="text-xs font-bold text-gray-800">{{ $vendorAdmin?->name }}</div>
-                    <div class="text-xs text-gray-400 capitalize">{{ $vendorAdmin?->role }}</div>
+                    <div class="text-xs text-gray-400 capitalize">{{ $vendorTypeLabel }}</div>
                 </div>
                 <svg class="w-3.5 h-3.5 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

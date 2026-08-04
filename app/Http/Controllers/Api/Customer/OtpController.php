@@ -12,11 +12,11 @@ class OtpController extends Controller
 {
     public function send(Request $request): JsonResponse
     {
-        return ApiResponse::error('Not implemented.', [], 501);
+        return ApiResponse::error(__('customer_api.not_implemented'), [], 501);
     }
 
     public function verify(Request $request): JsonResponse
     {
-        return ApiResponse::error('Not implemented.', [], 501);
+        return ApiResponse::error(__('customer_api.not_implemented'), [], 501);
     }
 }

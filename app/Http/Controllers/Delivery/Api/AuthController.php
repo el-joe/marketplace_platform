@@ -31,13 +31,13 @@ class AuthController extends Controller
             ->first();
 
         if (!$agent || !Hash::check($request->password, $agent->password)) {
-            return ApiResponse::error('Invalid credentials.', [], 401);
+            return ApiResponse::error(__('delivery.messages.auth.invalid_credentials'), [], 401);
         }
 
         if (in_array($agent->status, [DeliveryAgentStatus::Suspended, DeliveryAgentStatus::Inactive], true)) {
             $message = $agent->status === DeliveryAgentStatus::Suspended
-                ? 'Your account has been suspended. Please contact support.'
-                : 'Your account is not active.';
+                ? __('delivery.messages.auth.account_suspended')
+                : __('delivery.messages.auth.account_not_active');
 
             return ApiResponse::error($message, ['status' => $agent->status?->value], 403);
         }
@@ -98,7 +98,7 @@ class AuthController extends Controller
             ]
         );
 
-        return ApiResponse::success(null, 'Device registered for push notifications.');
+        return ApiResponse::success(null, __('delivery.messages.auth.device_registered'));
     }
 
     public function removeDeviceToken(): JsonResponse
@@ -110,7 +110,7 @@ class AuthController extends Controller
             ->where('tokenable_id', $agent->id)
             ->update(['is_active' => 0]);
 
-        return ApiResponse::success(null, 'Device token removed.');
+        return ApiResponse::success(null, __('delivery.messages.auth.device_token_removed'));
     }
 
     public function logout(): JsonResponse
@@ -132,7 +132,7 @@ class AuthController extends Controller
 
         auth('delivery_api')->logout();
 
-        return ApiResponse::success(null, 'Logged out successfully.');
+        return ApiResponse::success(null, __('delivery.messages.auth.logged_out'));
     }
 
     public function refresh(): JsonResponse
@@ -140,7 +140,7 @@ class AuthController extends Controller
         try {
             $newToken = auth('delivery_api')->refresh();
         } catch (\Throwable) {
-            return ApiResponse::error('Invalid or expired refresh token.', [], 401);
+            return ApiResponse::error(__('delivery.messages.auth.invalid_refresh_token'), [], 401);
         }
 
         return ApiResponse::success([

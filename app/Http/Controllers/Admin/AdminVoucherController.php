@@ -137,7 +137,7 @@ class AdminVoucherController extends Controller
             'success' => true,
             'count' => $result['count'],
             'sample_codes' => $result['sample_codes'],
-            'message' => "{$result['count']} vouchers generated successfully.",
+            'message' => __('admin.vouchers_section.generated_success', ['count' => $result['count']]),
         ]);
     }
 
@@ -260,7 +260,7 @@ class AdminVoucherController extends Controller
         $voucher = Voucher::findOrFail($voucher);
 
         if (VoucherRedemption::where('voucher_id', $voucher->id)->exists()) {
-            return back()->with('error', 'Cannot delete a redeemed voucher. Deactivate it instead.');
+            return back()->with('error', __('admin.vouchers_section.cannot_delete_redeemed'));
         }
 
         $voucher->delete();

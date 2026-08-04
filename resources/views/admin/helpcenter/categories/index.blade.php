@@ -133,14 +133,14 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.name') }} (English) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.name') }} ({{ __('common.english') }}) <span class="text-red-500">*</span></label>
                 <input type="text" name="name_en" id="f-name-en" required maxlength="150"
-                       class="form-input w-full text-sm" placeholder="Getting Started">
+                       class="form-input w-full text-sm" placeholder="{{ __('admin.helpcenter.modal.name_en_placeholder') }}">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.name') }} (Arabic) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.name') }} ({{ __('common.arabic') }}) <span class="text-red-500">*</span></label>
                 <input type="text" name="name_ar" id="f-name-ar" required maxlength="150" dir="rtl"
-                       class="form-input w-full text-sm" placeholder="البدء">
+                       class="form-input w-full text-sm" placeholder="{{ __('admin.helpcenter.modal.name_ar_placeholder') }}">
             </div>
         </div>
 
@@ -179,14 +179,14 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.description') }} (English)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.description') }} ({{ __('common.english') }})</label>
                 <textarea name="description_en" id="f-description-en" rows="3"
                           class="form-input w-full text-sm" placeholder="{{ __('admin.helpcenter.modal.category_description_placeholder') }}"></textarea>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.description') }} (Arabic)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.description') }} ({{ __('common.arabic') }})</label>
                 <textarea name="description_ar" id="f-description-ar" rows="3" dir="rtl"
-                          class="form-input w-full text-sm" placeholder="وصف الفئة…"></textarea>
+                          class="form-input w-full text-sm" placeholder="{{ __('admin.helpcenter.modal.category_description_placeholder') }}"></textarea>
             </div>
         </div>
 

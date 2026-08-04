@@ -33,7 +33,7 @@
                     <div class="p-6 space-y-5">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="form-label">{{ __('admin.helpcenter.article_title') }} (English) <span class="text-red-500">*</span></label>
+                                <label class="form-label">{{ __('admin.helpcenter.article_title') }} ({{ __('common.english') }}) <span class="text-red-500">*</span></label>
                                 <input type="text" name="title_en" id="title-input" required maxlength="255"
                                        value="{{ old('title_en') }}"
                                        class="form-input w-full @error('title_en') is-invalid @enderror"
@@ -41,7 +41,7 @@
                                 @error('title_en') <p class="form-error">{{ $message }}</p> @enderror
                             </div>
                             <div>
-                                <label class="form-label">{{ __('admin.helpcenter.article_title') }} (Arabic) <span class="text-red-500">*</span></label>
+                                <label class="form-label">{{ __('admin.helpcenter.article_title') }} ({{ __('common.arabic') }}) <span class="text-red-500">*</span></label>
                                 <input type="text" name="title_ar" required maxlength="255" dir="rtl"
                                        value="{{ old('title_ar') }}"
                                        class="form-input w-full @error('title_ar') is-invalid @enderror">
@@ -61,7 +61,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <label class="form-label">{{ __('admin.helpcenter.excerpt') }} (English)</label>
+                                    <label class="form-label">{{ __('admin.helpcenter.excerpt') }} ({{ __('common.english') }})</label>
                                     <span class="text-xs text-gray-400" data-char-counter="excerpt_en" data-max="500">0 / 500</span>
                                 </div>
                                 <textarea name="excerpt_en" id="excerpt" rows="2" maxlength="500"
@@ -71,7 +71,7 @@
                             </div>
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <label class="form-label">{{ __('admin.helpcenter.excerpt') }} (Arabic)</label>
+                                    <label class="form-label">{{ __('admin.helpcenter.excerpt') }} ({{ __('common.arabic') }})</label>
                                     <span class="text-xs text-gray-400" data-char-counter="excerpt_ar" data-max="500">0 / 500</span>
                                 </div>
                                 <textarea name="excerpt_ar" rows="2" maxlength="500" dir="rtl"
@@ -83,7 +83,7 @@
                         <div>
                             <x-form.rich-editor
                                 name="body_en"
-                                label="{{ __('admin.helpcenter.body') }} (English)"
+                                label="{{ __('admin.helpcenter.body') }} ({{ __('common.english') }})"
                                 :required="true"
                                 profile="full"
                                 :minHeight="400"
@@ -95,7 +95,7 @@
                         <div>
                             <x-form.rich-editor
                                 name="body_ar"
-                                label="{{ __('admin.helpcenter.body') }} (Arabic)"
+                                label="{{ __('admin.helpcenter.body') }} ({{ __('common.arabic') }})"
                                 :required="true"
                                 profile="full"
                                 :minHeight="400"

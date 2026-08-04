@@ -33,8 +33,8 @@ class BlogCategoryController extends Controller
 
         return view('admin.blog.categories.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Blog Categories'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.blog_categories')],
             ],
             'roots' => $roots,
             'stats' => $stats,
@@ -67,7 +67,7 @@ class BlogCategoryController extends Controller
         if ($request->filled('parent_id')) {
             $parent = BlogCategory::findOrFail($request->parent_id);
             if ($parent->parent_id !== null) {
-                return response()->json(['message' => 'Parent category must be a top-level category (max one level of nesting).'], 422);
+                return response()->json(['message' => __('admin.blog_categories_section.parent_top_level_only')], 422);
             }
         }
 
@@ -92,7 +92,7 @@ class BlogCategoryController extends Controller
 
         return response()->json([
             'success'  => true,
-            'message'  => 'Category created.',
+            'message'  => __('admin.blog_categories_section.created'),
             'category' => $category,
         ]);
     }
@@ -122,11 +122,11 @@ class BlogCategoryController extends Controller
 
         if ($request->filled('parent_id')) {
             if ($request->parent_id === $category->id) {
-                return response()->json(['message' => 'A category cannot be its own parent.'], 422);
+                return response()->json(['message' => __('admin.blog_categories_section.cannot_be_own_parent')], 422);
             }
             $parent = BlogCategory::findOrFail($request->parent_id);
             if ($parent->parent_id !== null) {
-                return response()->json(['message' => 'Parent category must be a top-level category (max one level of nesting).'], 422);
+                return response()->json(['message' => __('admin.blog_categories_section.parent_top_level_only')], 422);
             }
         }
 
@@ -154,7 +154,7 @@ class BlogCategoryController extends Controller
             'is_active'      => $request->boolean('is_active'),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Category updated.', 'category' => $category->fresh()]);
+        return response()->json(['success' => true, 'message' => __('admin.blog_categories_section.updated'), 'category' => $category->fresh()]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -169,13 +169,13 @@ class BlogCategoryController extends Controller
 
         if ($postCount > 0) {
             return response()->json([
-                'message' => "Cannot delete this category — it has {$postCount} post(s) referencing it (including soft-deleted). Deactivate it instead.",
+                'message' => __('admin.blog_categories_section.cannot_delete_has_posts', ['count' => $postCount]),
             ], 422);
         }
 
         $category->delete();
 
-        return response()->json(['success' => true, 'message' => 'Category deleted.']);
+        return response()->json(['success' => true, 'message' => __('admin.blog_categories_section.deleted')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

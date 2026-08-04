@@ -31,7 +31,7 @@ $(function () {
             ? $(btnSelector)
             : $(btnSelector);
         const origText = $btn.text();
-        $btn.prop('disabled', true).text(window.TRANSLATIONS?.saving || 'Saving…');
+        $btn.prop('disabled', true).text(t('shared.saving'));
         return promise
             .always(() => {
                 $btn.prop('disabled', false).text(origText);
@@ -97,7 +97,7 @@ $(function () {
                 const rows = rates.map(function (r) {
                     const carrierHtml = r.carrier_name && r.carrier_name !== 'Any'
                         ? `<span class="text-sm text-gray-600">${r.carrier_name}</span>`
-                        : `<span class="text-gray-300">${window.TRANSLATIONS?.any || 'Any'}</span>`;
+                        : `<span class="text-gray-300">${t('admin.shipping_zones.any_label')}</span>`;
 
                     const perKgHtml = parseFloat(r.rate_per_kg) > 0
                         ? `<span class="text-gray-600">${r.rate_per_kg_formatted}/kg</span>`
@@ -112,7 +112,7 @@ $(function () {
                         : `<span class="text-gray-300">—</span>`;
 
                     const statusClass = r.is_active ? 'badge-success' : 'badge-gray';
-                    const statusText = r.is_active ? (window.TRANSLATIONS?.active || 'Active') : (window.TRANSLATIONS?.inactive || 'Inactive');
+                    const statusText = r.is_active ? (t('admin.shipping_zones.active_label')) : (t('admin.shipping_zones.inactive_label'));
 
                     return `<tr class="hover:bg-gray-50 rate-row" data-rate-id="${r.id}">
                         <td class="px-4 py-3 w-8">
@@ -132,7 +132,7 @@ $(function () {
                         <td class="px-4 py-3">
                             <div class="flex gap-1 justify-end">
                                 <button class="btn btn-xs btn-ghost edit-rate-btn"
-                                    data-rate='${JSON.stringify(r).replace(/'/g, "&#39;")}'>${window.TRANSLATIONS?.edit || 'Edit'}</button>
+                                    data-rate='${JSON.stringify(r).replace(/'/g, "&#39;")}'>${t('admin.shipping_zones.edit_label')}</button>
                                 <button class="btn btn-xs btn-ghost text-red-400 hover:text-red-600 delete-rate-btn"
                                     data-id="${r.id}">✕</button>
                             </div>
@@ -144,7 +144,7 @@ $(function () {
             })
             .fail(function () {
                 $('#rates-loading').addClass('hidden');
-                window.Toast.error(window.TRANSLATIONS?.failedToLoadRates || 'Failed to load rates.');
+                window.Toast.error(t('admin.shipping_zones.failed_load_rates'));
             });
     }
 
@@ -199,7 +199,7 @@ $(function () {
                 $('#select-all-rates').prop('checked', false);
                 loadZoneRates(SZ.currentZoneId);
             })
-            .fail(() => window.Toast.error(window.TRANSLATIONS?.bulkActionFailed || 'Bulk action failed.'));
+            .fail(() => window.Toast.error(t('admin.shipping_zones.bulk_action_failed')));
     }
 
     $('#bulk-activate').on('click', () => bulkAction('activate'));
@@ -207,9 +207,9 @@ $(function () {
     $('#bulk-delete').on('click', async function () {
         const n = SZ.selectedRateIds.size;
         const ok = await window.confirmDialog({
-            title: (window.TRANSLATIONS?.deleteRatesConfirmTitle || 'Delete {n} rates?').replace('{n}', n),
-            text: window.TRANSLATIONS?.actionCannotBeUndone || 'This action cannot be undone.',
-            confirmLabel: window.TRANSLATIONS?.deleteAll || 'Delete all',
+            title: t('admin.shipping_zones.delete_rates_confirm_title', { n }),
+            text: t('admin.shipping_zones.action_cannot_be_undone'),
+            confirmLabel: t('admin.shipping_zones.delete_all_label'),
             danger: true,
         });
         if (ok) bulkAction('delete');
@@ -221,7 +221,7 @@ $(function () {
 
     $('#add-rate-btn').on('click', function () {
         if (!SZ.currentZoneId) {
-            window.Toast.warning(window.TRANSLATIONS?.selectZoneFirst || 'Select a zone first.');
+            window.Toast.warning(t('admin.shipping_zones.select_zone_first'));
             return;
         }
         $('#rate-id').val('');
@@ -233,7 +233,7 @@ $(function () {
         $('[name="volumetric_divisor"]', '#rate-form').val('5000');
         $('[name="carrier_rate"]', '#rate-form').val('');
         $('[name="carrier_rate_per_kg"]', '#rate-form').val('');
-        $('#rate-modal-title').text(window.TRANSLATIONS?.addShippingRateTitle || 'Add shipping rate');
+        $('#rate-modal-title').text(t('admin.shipping_zones.add_shipping_rate_label'));
         updateRatePreview();
         openModal('rate-modal');
     });
@@ -254,7 +254,7 @@ $(function () {
         $('[name="min_weight_grams"]', '#rate-form').val(r.min_weight_grams);
         $('[name="volumetric_divisor"]', '#rate-form').val(r.volumetric_divisor);
         $('[name="is_active"]', '#rate-form').prop('checked', r.is_active);
-        $('#rate-modal-title').text(window.TRANSLATIONS?.editShippingRateTitle || 'Edit shipping rate');
+        $('#rate-modal-title').text(t('admin.shipping_zones.edit_shipping_rate_label'));
         updateRatePreview();
         openModal('rate-modal');
     });
@@ -286,27 +286,27 @@ $(function () {
             .done(function (res) {
                 const $badge = $('[data-id="' + id + '"] .badge');
                 if (res.data.is_active) {
-                    $badge.attr('class', 'badge badge-success text-xs cursor-pointer').text(window.TRANSLATIONS?.active || 'Active');
+                    $badge.attr('class', 'badge badge-success text-xs cursor-pointer').text(t('admin.shipping_zones.active_label'));
                 } else {
-                    $badge.attr('class', 'badge badge-gray text-xs cursor-pointer').text(window.TRANSLATIONS?.inactive || 'Inactive');
+                    $badge.attr('class', 'badge badge-gray text-xs cursor-pointer').text(t('admin.shipping_zones.inactive_label'));
                 }
             })
-            .fail(() => window.Toast.error(window.TRANSLATIONS?.toggleFailed || 'Toggle failed.'));
+            .fail(() => window.Toast.error(t('admin.shipping_zones.toggle_failed')));
     });
 
     $(document).on('click', '.delete-rate-btn', async function () {
         const id = $(this).data('id');
         const ok = await window.confirmDialog({
-            title: window.TRANSLATIONS?.deleteThisRateConfirm || 'Delete this rate?', danger: true, confirmLabel: window.TRANSLATIONS?.delete || 'Delete',
+            title: t('admin.shipping_zones.delete_rate_confirm'), danger: true, confirmLabel: t('admin.shipping_zones.delete_label'),
         });
         if (!ok) return;
         $.ajax({ url: '/shipping-zones/rates/' + id, method: 'DELETE', headers: ajaxHeaders() })
             .done(function () {
-                window.Toast.success(window.TRANSLATIONS?.rateDeleted || 'Rate deleted.');
+                window.Toast.success(t('admin.shipping_zones.rate_deleted'));
                 loadZoneRates(SZ.currentZoneId);
                 refreshZoneRateCount(SZ.currentZoneId);
             })
-            .fail(() => window.Toast.error(window.TRANSLATIONS?.deleteFailed || 'Delete failed.'));
+            .fail(() => window.Toast.error(t('admin.shipping_zones.delete_failed')));
     });
 
     // Live rate preview
@@ -331,7 +331,7 @@ $(function () {
         $('#zone-id').val('');
         $('#zone-form')[0].reset();
         $('[name="is_active"]', '#zone-form').prop('checked', true);
-        $('#zone-modal-title').text(window.TRANSLATIONS?.addShippingZoneTitle || 'Add shipping zone');
+        $('#zone-modal-title').text(t('admin.shipping_zones.add_shipping_zone_label'));
         openModal('zone-modal');
     });
 
@@ -342,7 +342,7 @@ $(function () {
         $('[name="country_id"]', '#zone-form').val(z.country_id);
         $('[name="description"]', '#zone-form').val(z.description || '');
         $('[name="is_active"]', '#zone-form').prop('checked', z.is_active == 1);
-        $('#zone-modal-title').text((window.TRANSLATIONS?.editZoneTitlePrefix || 'Edit zone: ') + z.name);
+        $('#zone-modal-title').text(t('admin.shipping_zones.edit_zone_title_prefix') + z.name);
         openModal('zone-modal');
     });
 
@@ -356,7 +356,7 @@ $(function () {
             $.ajax({ url, method, data: $(this).serialize(), headers: ajaxHeaders() })
                 .done(function () {
                     closeModal('zone-modal');
-                    window.Toast.success(window.TRANSLATIONS?.zoneSaved || 'Zone saved.');
+                    window.Toast.success(t('admin.shipping_zones.zone_saved'));
                     location.reload();
                 })
                 .fail(function (xhr) {
@@ -370,28 +370,28 @@ $(function () {
         const id = $(this).data('zone-id');
         $.post('/shipping-zones/' + id + '/toggle', { _token: csrf() })
             .done(() => location.reload())
-            .fail(() => window.Toast.error(window.TRANSLATIONS?.toggleFailed || 'Toggle failed.'));
+            .fail(() => window.Toast.error(t('admin.shipping_zones.toggle_failed')));
     });
 
     $(document).on('click', '.delete-zone-btn', async function () {
         const id = $(this).data('zone-id');
         const name = $(this).data('zone-name');
         const ok = await window.confirmDialog({
-            title: (window.TRANSLATIONS?.deleteZoneConfirmTitle || 'Delete zone "{name}"?').replace('{name}', name),
-            text: window.TRANSLATIONS?.deleteZoneConfirmText || 'Cities will become unassigned. Active rates must be deleted first.',
-            confirmLabel: window.TRANSLATIONS?.deleteZoneLabel || 'Delete zone',
+            title: t('admin.shipping_zones.delete_zone_confirm_title', { name }),
+            text: t('admin.shipping_zones.cities_unassigned_warning'),
+            confirmLabel: t('admin.shipping_zones.delete_zone_label'),
             danger: true,
         });
         if (!ok) return;
         $.ajax({ url: '/shipping-zones/' + id, method: 'DELETE', headers: ajaxHeaders() })
             .done(function () {
-                window.Toast.success(window.TRANSLATIONS?.zoneDeleted || 'Zone deleted.');
+                window.Toast.success(t('admin.shipping_zones.zone_deleted'));
                 location.reload();
             })
             .fail(function (xhr) {
                 const msg = xhr.responseJSON?.errors?.zone?.[0]
                     || xhr.responseJSON?.message
-                    || (window.TRANSLATIONS?.cannotDeleteZoneHasRates || 'Cannot delete — zone has active rates.');
+                    || (t('admin.shipping_zones.cannot_delete_zone_has_rates'));
                 window.Toast.error(msg);
             });
     });
@@ -425,7 +425,7 @@ $(function () {
             renderCityLists();
             openModal('assign-cities-modal');
         } catch (_) {
-            window.Toast.error(window.TRANSLATIONS?.failedToLoadCities || 'Failed to load cities.');
+            window.Toast.error(t('admin.shipping_zones.failed_load_cities'));
         }
     });
 
@@ -521,7 +521,7 @@ $(function () {
     $('#save-assign-btn').on('click', function () {
         const cityIds = SZ.pendingCity.assigned.map(c => c.id);
         const $btn = $(this);
-        $btn.prop('disabled', true).text(window.TRANSLATIONS?.saving || 'Saving…');
+        $btn.prop('disabled', true).text(t('shared.saving'));
 
         $.ajax({
             url: '/shipping-zones/' + SZ.currentZoneId + '/cities',
@@ -535,8 +535,8 @@ $(function () {
                 window.Toast.success(res.message);
                 location.reload();
             })
-            .fail(() => window.Toast.error(window.TRANSLATIONS?.failedToSaveAssignment || 'Failed to save assignment.'))
-            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.save || 'Save'));
+            .fail(() => window.Toast.error(t('admin.shipping_zones.failed_save_assignment')))
+            .always(() => $btn.prop('disabled', false).text(t('admin.shipping_zones.save_label')));
     });
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -548,13 +548,13 @@ $(function () {
     $(document).on('click', '.duplicate-zone-btn', function () {
         duplicatingZoneId = $(this).data('zone-id');
         const name = $(this).data('zone-name');
-        $('#new-zone-name').val((window.TRANSLATIONS?.copyOfPrefix || 'Copy of ') + name);
+        $('#new-zone-name').val(t('admin.shipping_zones.copy_of_prefix') + name);
         openModal('duplicate-zone-modal');
     });
 
     $('#confirm-duplicate-btn').on('click', function () {
         const newName = $('#new-zone-name').val().trim();
-        if (!newName) { window.Toast.warning(window.TRANSLATIONS?.enterAName || 'Enter a name.'); return; }
+        if (!newName) { window.Toast.warning(t('admin.shipping_zones.enter_a_name')); return; }
 
         withLoading('#confirm-duplicate-btn',
             $.post('/shipping-zones/' + duplicatingZoneId + '/duplicate', {
@@ -566,7 +566,7 @@ $(function () {
                     window.Toast.success(res.message);
                     location.reload();
                 })
-                .fail(() => window.Toast.error(window.TRANSLATIONS?.failedToDuplicate || 'Failed to duplicate.'))
+                .fail(() => window.Toast.error(t('admin.shipping_zones.failed_duplicate')))
         );
     });
 
@@ -575,15 +575,15 @@ $(function () {
     // ═══════════════════════════════════════════════════════════════════════
 
     $('#copy-rates-btn').on('click', function () {
-        if (!SZ.currentZoneId) { window.Toast.warning(window.TRANSLATIONS?.selectZoneFirst || 'Select a zone first.'); return; }
+        if (!SZ.currentZoneId) { window.Toast.warning(t('admin.shipping_zones.select_zone_first')); return; }
         openModal('copy-rates-modal');
     });
 
     $('#confirm-copy-rates-btn').on('click', function () {
         const sourceZoneId = $('#copy-source-zone').val();
-        if (!sourceZoneId) { window.Toast.warning(window.TRANSLATIONS?.selectSourceZone || 'Select source zone.'); return; }
+        if (!sourceZoneId) { window.Toast.warning(t('admin.shipping_zones.select_source_zone')); return; }
         if (sourceZoneId === SZ.currentZoneId) {
-            window.Toast.warning(window.TRANSLATIONS?.sourceTargetSameWarning || 'Source and target cannot be the same.');
+            window.Toast.warning(t('admin.shipping_zones.source_target_same'));
             return;
         }
 
@@ -601,7 +601,7 @@ $(function () {
                     loadZoneRates(SZ.currentZoneId);
                     refreshZoneRateCount(SZ.currentZoneId);
                 })
-                .fail(() => window.Toast.error(window.TRANSLATIONS?.failedToCopyRates || 'Failed to copy rates.'))
+                .fail(() => window.Toast.error(t('admin.shipping_zones.failed_copy_rates')))
         );
     });
 
@@ -622,12 +622,12 @@ $(function () {
         const isCod = $('#calc-is-cod').is(':checked');
 
         if (!zoneId || !methodId) {
-            window.Toast.warning(window.TRANSLATIONS?.selectZoneAndMethod || 'Select zone and method.');
+            window.Toast.warning(t('admin.shipping_zones.select_zone_and_method'));
             return;
         }
 
         const $btn = $(this);
-        $btn.prop('disabled', true).text(window.TRANSLATIONS?.calculating || 'Calculating…');
+        $btn.prop('disabled', true).text(t('admin.shipping_zones.calculating_label'));
 
         $.post('/shipping-zones/rates/estimate', {
             zone_id: zoneId,
@@ -644,13 +644,13 @@ $(function () {
                 $('#calc-breakdown').addClass('hidden').empty();
 
                 if (!d.available) {
-                    $('#calc-cost').text(window.TRANSLATIONS?.noRateFound || 'No rate found').removeClass('text-primary-700 text-green-600').addClass('text-red-600');
-                    $('#calc-meta').text(window.TRANSLATIONS?.noActiveRateConfigured || 'No active rate configured for this zone + method.');
+                    $('#calc-cost').text(t('admin.shipping_zones.no_rate_found')).removeClass('text-primary-700 text-green-600').addClass('text-red-600');
+                    $('#calc-meta').text(t('admin.shipping_zones.no_active_rate_configured'));
                     return;
                 }
 
                 if (d.is_free) {
-                    $('#calc-cost').text(window.TRANSLATIONS?.freeLabel || 'FREE').removeClass('text-primary-700 text-red-600').addClass('text-green-600');
+                    $('#calc-cost').text(t('admin.shipping_zones.free_label')).removeClass('text-primary-700 text-red-600').addClass('text-green-600');
                     $('#calc-free-hint').removeClass('hidden');
                 } else {
                     $('#calc-cost').text(d.cost_formatted).removeClass('text-green-600 text-red-600').addClass('text-primary-700');
@@ -658,18 +658,18 @@ $(function () {
 
                 $('#calc-meta').text(
                     d.method_name
-                    + (d.carrier_name !== 'Any' ? ' ' + (window.TRANSLATIONS?.viaLabel || 'via') + ' ' + d.carrier_name : '')
-                    + ' · ' + d.delivery_days + ' ' + (window.TRANSLATIONS?.dayLabel || 'day(s)')
+                    + (d.carrier_name !== 'Any' ? ' ' + (t('admin.shipping_zones.via_label')) + ' ' + d.carrier_name : '')
+                    + ' · ' + d.delivery_days + ' ' + (t('admin.shipping_zones.day_label'))
                 );
 
                 if (d.free_threshold_formatted && !d.is_free) {
                     $('#calc-breakdown').removeClass('hidden').html(
-                        '<p>🎁 ' + (window.TRANSLATIONS?.freeShippingAvailableFrom || 'Free shipping available from:') + ' <strong>' + d.free_threshold_formatted + '</strong></p>'
+                        '<p>🎁 ' + (t('admin.shipping_zones.free_shipping_from_label')) + ' <strong>' + d.free_threshold_formatted + '</strong></p>'
                     );
                 }
             })
-            .fail(() => window.Toast.error(window.TRANSLATIONS?.calculationFailed || 'Calculation failed.'))
-            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.calculate || 'Calculate'));
+            .fail(() => window.Toast.error(t('admin.shipping_zones.calculation_failed')))
+            .always(() => $btn.prop('disabled', false).text(t('admin.shipping_zones.calculate_label')));
     });
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -724,7 +724,7 @@ $(function () {
             SZ.pendingCity.assigned = assignedRes.data.cities || [];
             SZ.pendingCity.available = availableRes.data.cities || [];
             renderInlineCityLists();
-        }).catch(() => window.Toast.error(window.TRANSLATIONS?.failedToLoadCities || 'Failed to load cities.'));
+        }).catch(() => window.Toast.error(t('admin.shipping_zones.failed_load_cities')));
     }
 
     function renderInlineCityLists() {
@@ -736,7 +736,7 @@ $(function () {
 
         $assigned.html(
             SZ.pendingCity.assigned.map(c => cityChip(c, 'assigned')).join('') ||
-            `<p class="text-xs text-gray-400 p-2 text-center">${window.TRANSLATIONS?.noCitiesAssignedYet || 'No cities assigned yet.'}</p>`
+            `<p class="text-xs text-gray-400 p-2 text-center">${t('admin.shipping_zones.no_cities_assigned_yet')}</p>`
         );
 
         const filtered = SZ.pendingCity.available.filter(c =>
@@ -744,7 +744,7 @@ $(function () {
         );
         $available.html(
             filtered.map(c => cityChip(c, 'available')).join('') ||
-            `<p class="text-xs text-gray-400 p-2 text-center">${window.TRANSLATIONS?.noAvailableCities || 'No available cities.'}</p>`
+            `<p class="text-xs text-gray-400 p-2 text-center">${t('admin.shipping_zones.no_available_cities')}</p>`
         );
 
         // Init sortable on inline lists
@@ -776,10 +776,10 @@ $(function () {
     });
 
     $('#save-city-assignment-btn').on('click', function () {
-        if (!SZ.currentZoneId) { window.Toast.warning(window.TRANSLATIONS?.selectZoneFirst || 'Select a zone first.'); return; }
+        if (!SZ.currentZoneId) { window.Toast.warning(t('admin.shipping_zones.select_zone_first')); return; }
         const cityIds = SZ.pendingCity.assigned.map(c => c.id);
         const $btn = $(this);
-        $btn.prop('disabled', true).text(window.TRANSLATIONS?.saving || 'Saving…');
+        $btn.prop('disabled', true).text(t('shared.saving'));
 
         $.ajax({
             url: '/shipping-zones/' + SZ.currentZoneId + '/cities',
@@ -792,8 +792,8 @@ $(function () {
                 window.Toast.success(res.message);
                 lastZoneForCities = null;
             })
-            .fail(() => window.Toast.error(window.TRANSLATIONS?.failedToSave || 'Failed to save.'))
-            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.saveAssignment || 'Save assignment'));
+            .fail(() => window.Toast.error(t('admin.shipping_zones.failed_to_save')))
+            .always(() => $btn.prop('disabled', false).text(t('admin.shipping_zones.save_assignment_label')));
     });
 
 });

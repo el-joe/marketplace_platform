@@ -14,7 +14,6 @@
 import $ from 'jquery';
 
 const Toast = window.Toast || { success: console.log, error: console.warn, info: console.log };
-const T = () => window.TRANSLATIONS || {};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -75,11 +74,11 @@ function renderTimelineVisual() {
     if (!$el.length) return;
 
     const fields = [
-        { label: T().timelineSubOpens || 'Submissions Open', selector: '[name=submission_opens_at]' },
-        { label: T().timelineSubCloses || 'Submissions Close', selector: '[name=submission_closes_at]' },
-        { label: T().timelineReview || 'Review Deadline', selector: '[name=review_deadline_at]' },
-        { label: T().timelineSaleStart || 'Sale Starts', selector: '[name=sale_starts_at]' },
-        { label: T().timelineSaleEnd || 'Sale Ends', selector: '[name=sale_ends_at]' },
+        { label: t('admin.flash_sales.submissions_open_label'), selector: '[name=submission_opens_at]' },
+        { label: t('admin.flash_sales.submissions_close_label'), selector: '[name=submission_closes_at]' },
+        { label: t('admin.flash_sales.review_deadline_label'), selector: '[name=review_deadline_at]' },
+        { label: t('admin.flash_sales.sale_starts_label'), selector: '[name=sale_starts_at]' },
+        { label: t('admin.flash_sales.sale_ends_label'), selector: '[name=sale_ends_at]' },
     ];
 
     const values = fields.map(f => ({
@@ -118,19 +117,19 @@ $(function () {
 
     $form.on('submit', function (e) {
         e.preventDefault();
-        const $btn = $('#flash-sale-submit-btn').prop('disabled', true).text(T().creating || 'Creating…');
+        const $btn = $('#flash-sale-submit-btn').prop('disabled', true).text(t('admin.flash_sales.creating'));
 
         ajax('POST', window.FLASH_SALE_STORE_URL, $(this).serialize())
             .done(function (res) {
-                Toast.success(res.message ?? T().createdMessage ?? 'Flash sale created.');
+                Toast.success(res.message ?? t('admin.flash_sales.flash_sale_created'));
                 if (res.redirect) setTimeout(() => { window.location.href = res.redirect; }, 500);
             })
             .fail(function (xhr) {
                 const json = xhr.responseJSON ?? {};
                 if (json.errors) showErrors(json.errors);
-                else Toast.error(json.message ?? T().createFailed ?? 'Failed to create flash sale.');
+                else Toast.error(json.message ?? t('admin.flash_sales.failed_create_flash_sale'));
             })
-            .always(() => $btn.prop('disabled', false).text(T().createFlashSale || 'Create Flash Sale'));
+            .always(() => $btn.prop('disabled', false).text(t('admin.flash_sales.create_flash_sale_label')));
     });
 });
 
@@ -144,7 +143,7 @@ $(function () {
     // ── Save details / rules form ─────────────────────────────────────────────
     $(document).on('submit', '#flash-sale-form, #flash-sale-form-rules', function (e) {
         e.preventDefault();
-        const $btn = $(this).find('[type=submit]').prop('disabled', true).text(T().saving || 'Saving…');
+        const $btn = $(this).find('[type=submit]').prop('disabled', true).text(t('shared.saving'));
         const data = {};
         // Collect form values, aggregating checkbox[] groups into arrays
         $(this).serializeArray().forEach(p => {
@@ -164,13 +163,13 @@ $(function () {
         });
 
         ajax('PUT', window.FLASH_SALE_UPDATE_URL, data)
-            .done(function (res) { Toast.success(res.message ?? T().saved ?? 'Saved.'); })
+            .done(function (res) { Toast.success(res.message ?? t('shared.saved')); })
             .fail(function (xhr) {
                 const json = xhr.responseJSON ?? {};
                 if (json.errors) showErrors(json.errors);
-                else Toast.error(json.message ?? T().saveFailed ?? 'Failed to save.');
+                else Toast.error(json.message ?? t('admin.flash_sales.failed_to_save'));
             })
-            .always(function () { $btn.prop('disabled', false).text(T().saveChanges || 'Save Changes'); });
+            .always(function () { $btn.prop('disabled', false).text(t('admin.flash_sales.save_changes_label')); });
     });
 
     // timeline visual on date change
@@ -189,19 +188,19 @@ $(function () {
         }
 
         const messages = {
-            open_submissions: T().confirmOpenSubmissions || 'Open submissions for this flash sale?',
-            close_submissions: T().confirmCloseSubmissions || 'Close submissions early?',
-            mark_approved: T().confirmMarkApproved || 'Mark this flash sale as approved?',
-            start_sale: T().confirmStartSale || 'Start the sale now?',
-            end_sale: T().confirmEndSale || 'End the sale early?',
+            open_submissions: t('admin.flash_sales.open_submissions_confirm'),
+            close_submissions: t('admin.flash_sales.close_submissions_confirm'),
+            mark_approved: t('admin.flash_sales.approve_flash_sale_confirm'),
+            start_sale: t('admin.flash_sales.start_sale_confirm'),
+            end_sale: t('admin.flash_sales.end_sale_confirm'),
         };
-        const msg = messages[action] ?? T().confirmGenericAction ?? 'Confirm this action?';
+        const msg = messages[action] ?? t('admin.flash_sales.confirm_action');
 
         confirm2(msg).then(() => {
             $btn.prop('disabled', true);
             ajax('POST', window.TRANSITION_URL, { action })
-                .done(res => { Toast.success(res.message ?? T().statusUpdated ?? 'Status updated.'); setTimeout(() => location.reload(), 600); })
-                .fail(xhr => { Toast.error(xhr.responseJSON?.message ?? T().transitionFailed ?? 'Transition failed.'); $btn.prop('disabled', false); });
+                .done(res => { Toast.success(res.message ?? t('admin.flash_sales.status_updated')); setTimeout(() => location.reload(), 600); })
+                .fail(xhr => { Toast.error(xhr.responseJSON?.message ?? t('admin.flash_sales.transition_failed')); $btn.prop('disabled', false); });
         }).catch(() => { });
     });
 
@@ -209,33 +208,33 @@ $(function () {
     $('#cancel-form').on('submit', function (e) {
         e.preventDefault();
         const reason = $('[name=cancellation_reason]', this).val().trim();
-        if (!reason) { Toast.error(T().cancellationReasonRequired || 'Cancellation reason is required.'); return; }
+        if (!reason) { Toast.error(t('admin.flash_sales.cancellation_reason_required')); return; }
         const $btn = $('#cancel-submit-btn').prop('disabled', true);
         ajax('POST', window.TRANSITION_URL, { action: 'cancel', reason })
-            .done(res => { Toast.success(res.message ?? T().cancelledMessage ?? 'Cancelled.'); setTimeout(() => location.reload(), 600); })
-            .fail(xhr => { Toast.error(xhr.responseJSON?.message ?? T().cancelFailed ?? 'Cancel failed.'); $btn.prop('disabled', false); });
+            .done(res => { Toast.success(res.message ?? t('admin.flash_sales.cancelled_message')); setTimeout(() => location.reload(), 600); })
+            .fail(xhr => { Toast.error(xhr.responseJSON?.message ?? t('admin.flash_sales.cancel_failed')); $btn.prop('disabled', false); });
     });
 
     // ── Invite vendors ────────────────────────────────────────────────────────
     $('#invite-vendors-btn').on('click', function () {
-        const $btn = $(this).prop('disabled', true).text(T().loadingCount || 'Loading count…');
+        const $btn = $(this).prop('disabled', true).text(t('admin.flash_sales.loading_count'));
 
         ajax('GET', window.ELIGIBLE_COUNT_URL)
             .done(res => {
                 const count = res.count ?? 0;
-                const inviteBtnLabel = T().inviteEligibleVendorsBtn || 'Invite Eligible Vendors';
-                if (!count) { Toast.info(T().noEligibleVendorsFound || 'No eligible vendors found.'); $btn.prop('disabled', false).text(inviteBtnLabel); return; }
-                confirm2((T().confirmInviteEligible || 'Invite :count eligible vendor(s) to this flash sale?').replace(':count', count))
+                const inviteBtnLabel = t('admin.flash_sales.invite_eligible_vendors_label');
+                if (!count) { Toast.info(t('admin.flash_sales.no_eligible_vendors_found')); $btn.prop('disabled', false).text(inviteBtnLabel); return; }
+                confirm2(t('admin.flash_sales.invite_eligible_vendors_confirm', { count }))
                     .then(() => {
-                        $btn.text(T().sendingInvitations || 'Sending invitations…');
+                        $btn.text(t('admin.flash_sales.sending_invitations'));
                         ajax('POST', window.INVITE_URL)
-                            .done(r => { Toast.success(r.message ?? (T().vendorsInvitedResult || ':count vendor(s) invited.').replace(':count', r.count)); if (window._invitationsTable) window._invitationsTable.ajax.reload(); })
-                            .fail(xhr => Toast.error(xhr.responseJSON?.message ?? T().inviteFailed ?? 'Invite failed.'))
+                            .done(r => { Toast.success(r.message ?? t('admin.flash_sales.vendors_invited_result', { count: r.count })); if (window._invitationsTable) window._invitationsTable.ajax.reload(); })
+                            .fail(xhr => Toast.error(xhr.responseJSON?.message ?? t('admin.flash_sales.invite_failed')))
                             .always(() => $btn.prop('disabled', false).text(inviteBtnLabel));
                     })
                     .catch(() => $btn.prop('disabled', false).text(inviteBtnLabel));
             })
-            .fail(() => { Toast.error(T().failedLoadEligibleCount || 'Failed to fetch eligible vendor count.'); $btn.prop('disabled', false).text(T().inviteEligibleVendorsBtn || 'Invite Eligible Vendors'); });
+            .fail(() => { Toast.error(t('admin.flash_sales.failed_fetch_eligible_count')); $btn.prop('disabled', false).text(t('admin.flash_sales.invite_eligible_vendors_label')); });
     });
 
     // ── Invitations DataTable ─────────────────────────────────────────────────
@@ -243,13 +242,13 @@ $(function () {
         window._invitationsTable = initDataTable('invitations-table', {
             url: window.INVITATIONS_DATATABLE_URL,
             columns: [
-                { data: 'vendor_name', title: T().vendor || 'Vendor' },
+                { data: 'vendor_name', title: t('admin.flash_sales.vendor_label') },
                 {
-                    data: 'status', title: T().status || 'Status',
+                    data: 'status', title: t('admin.flash_sales.status_label'),
                     render: d => `<span class="badge badge-gray">${d}</span>`
                 },
-                { data: 'notified_at', title: T().notifiedLabel || 'Notified' },
-                { data: 'responded_at', title: T().respondedLabel || 'Responded' },
+                { data: 'notified_at', title: t('admin.flash_sales.notified_label') },
+                { data: 'responded_at', title: t('admin.flash_sales.responded_label') },
             ],
         });
     }
@@ -266,12 +265,12 @@ $(function () {
                     data: null, title: '<input type="checkbox" id="submissions-table-select-all">', orderable: false,
                     render: (d, t, r) => `<input type="checkbox" class="row-check" value="${r.id}">`
                 },
-                { data: 'product_name', title: T().product || 'Product' },
-                { data: 'vendor_name', title: T().vendor || 'Vendor' },
-                { data: 'flash_price_formatted', title: T().flashPrice || 'Flash Price' },
-                { data: 'original_price_formatted', title: T().originalShort || 'Original' },
+                { data: 'product_name', title: t('admin.flash_sales.product_label') },
+                { data: 'vendor_name', title: t('admin.flash_sales.vendor_label') },
+                { data: 'flash_price_formatted', title: t('admin.flash_sales.flash_price_label') },
+                { data: 'original_price_formatted', title: t('admin.flash_sales.original_short_label') },
                 {
-                    data: 'discount_pct', title: T().discount || 'Discount',
+                    data: 'discount_pct', title: t('admin.flash_sales.discount_label'),
                     render: (d, t, r) => {
                         const minDisc = window.FLASH_SALE_MIN_DISC ?? 0;
                         const ok = parseFloat(d) >= minDisc;
@@ -280,18 +279,18 @@ $(function () {
                 },
                 {
                     data: 'is_suspect', title: '⚠',
-                    render: (d) => d ? `<span title="${T().possibleFakeDiscount || 'Fake discount suspected'}" class="text-warning-500 font-bold">⚠</span>` : ''
+                    render: (d) => d ? `<span title="${t('admin.flash_sales.fake_discount_suspected')}" class="text-warning-500 font-bold">⚠</span>` : ''
                 },
                 {
-                    data: 'status', title: T().status || 'Status',
+                    data: 'status', title: t('admin.flash_sales.status_label'),
                     render: (d) => `<span class="badge badge-gray">${d}</span>`
                 },
-                { data: 'quantity_approved', title: T().qty || 'Qty' },
+                { data: 'quantity_approved', title: t('admin.flash_sales.qty_label') },
                 {
                     data: null, title: '', orderable: false,
                     render: (d, t, r) => {
                         if (!['submitted', 'under_review'].includes(r.status)) return '';
-                        return `<button class="btn btn-primary btn-xs review-btn" data-id="${r.id}">${T().reviewBtn || 'Review'}</button>`;
+                        return `<button class="btn btn-primary btn-xs review-btn" data-id="${r.id}">${t('admin.flash_sales.review_label')}</button>`;
                     }
                 },
             ],
@@ -319,9 +318,9 @@ $(function () {
         $('#review-form [name=rejection_reason]').val('');
         $('#review-form [name=admin_notes]').val('');
         $('#review-product-img').attr('src', '');
-        $('#review-product-name').text(T().loading || 'Loading…');
+        $('#review-product-name').text(t('shared.loading'));
         $('#review-variant-name, #review-vendor-name, #review-vendor-country, #review-vendor-rating').text('');
-        $('#review-stock-tbody').html(`<tr><td colspan="3" class="text-center py-2">${T().loading || 'Loading…'}</td></tr>`);
+        $('#review-stock-tbody').html(`<tr><td colspan="3" class="text-center py-2">${t('shared.loading')}</td></tr>`);
         $('#review-original-price, #review-flash-price, #review-discount-pct').text('');
         $('#review-discount-check').html('');
         $('#review-30d-row').addClass('hidden');
@@ -365,8 +364,8 @@ $(function () {
         $('#review-discount-pct').text(disc.toFixed(2) + '%')
             .removeClass('text-success-700 text-danger-700').addClass(ok ? 'text-success-700' : 'text-danger-700');
         $('#review-discount-check').html(
-            ok ? `<span class="badge badge-success">${T().meetsMinimum || '✓ Meets minimum'}</span>`
-                : `<span class="badge badge-danger">${(T().belowMinimum || '✗ Below :pct% minimum').replace(':pct', minDisc)}</span>`
+            ok ? `<span class="badge badge-success">${t('admin.flash_sales.meets_minimum')}</span>`
+                : `<span class="badge badge-danger">${t('admin.flash_sales.below_minimum', { pct: minDisc })}</span>`
         );
 
         // 30-day avg
@@ -375,7 +374,7 @@ $(function () {
             const diff = (((row.flash_price / avgPrice) - 1) * 100).toFixed(1);
             const sign = diff >= 0 ? '+' : '';
             $('#review-30d-price').text(fmtMoney(avgPrice));
-            $('#review-30d-diff').text((T().vsAvg || ':diff% vs avg').replace(':diff', `${sign}${diff}`));
+            $('#review-30d-diff').text(t('admin.flash_sales.vs_avg', { diff: `${sign}${diff}` }));
             $('#review-30d-row').removeClass('hidden');
         }
 
@@ -385,7 +384,7 @@ $(function () {
             $('#fake-discount-warnings')
                 .removeClass('hidden')
                 .html(`<div class="bg-warning-50 border border-warning-300 rounded-lg p-3">
-                    <p class="text-sm font-semibold text-warning-800 mb-1">${T().potentialFakeDiscountDetected || '⚠ Potential fake discount detected'}</p>
+                    <p class="text-sm font-semibold text-warning-800 mb-1">${t('admin.flash_sales.potential_fake_discount_detected')}</p>
                     <ul class="text-xs text-warning-700 list-disc list-inside space-y-0.5">
                         ${reasons.map(r => `<li>${r}</li>`).join('')}
                     </ul>
@@ -422,9 +421,9 @@ $(function () {
                         data: {
                             labels,
                             datasets: [
-                                { label: T().historicalPrice || 'Historical Price', data: prices, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3, pointRadius: 2 },
-                                { label: T().flashPrice || 'Flash Price', data: Array(labels.length).fill(flashPrice / 100), borderColor: '#f59e0b', borderDash: [4, 4], pointRadius: 0 },
-                                { label: T().originalPrice || 'Original Price', data: Array(labels.length).fill(originalPrice / 100), borderColor: '#6b7280', borderDash: [2, 4], pointRadius: 0 },
+                                { label: t('admin.flash_sales.historical_price_label'), data: prices, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3, pointRadius: 2 },
+                                { label: t('admin.flash_sales.flash_price_label'), data: Array(labels.length).fill(flashPrice / 100), borderColor: '#f59e0b', borderDash: [4, 4], pointRadius: 0 },
+                                { label: t('admin.flash_sales.original_price_label'), data: Array(labels.length).fill(originalPrice / 100), borderColor: '#6b7280', borderDash: [2, 4], pointRadius: 0 },
                             ],
                         },
                         options: {
@@ -442,18 +441,18 @@ $(function () {
         e.preventDefault();
         const submissionId = $('[name=submission_id]', this).val();
         const decision = $('[name=decision]:checked', this).val();
-        if (!decision) { Toast.error(T().selectDecision || 'Please select a decision.'); return; }
+        if (!decision) { Toast.error(t('admin.flash_sales.select_decision')); return; }
         if (decision === 'rejected' && !$('[name=rejection_code]', this).val()) {
-            Toast.error(T().selectRejectionReason || 'Please select a rejection reason.'); return;
+            Toast.error(t('admin.flash_sales.select_rejection_reason')); return;
         }
 
         const data = {};
         $(this).serializeArray().forEach(p => { data[p.name] = p.value; });
-        const $btn = $('#review-submit-btn').prop('disabled', true).text(T().saving || 'Saving…');
+        const $btn = $('#review-submit-btn').prop('disabled', true).text(t('shared.saving'));
 
         ajax('POST', `/flash-sales/submissions/${submissionId}/review`, data)
             .done(res => {
-                Toast.success(res.message ?? T().decisionSaved ?? 'Decision saved.');
+                Toast.success(res.message ?? t('admin.flash_sales.decision_saved'));
                 closeModal('review-modal');
                 if (window._submissionsTable) window._submissionsTable.ajax.reload();
                 loadSubmissionStats();
@@ -461,25 +460,24 @@ $(function () {
             .fail(xhr => {
                 const json = xhr.responseJSON ?? {};
                 if (json.errors) showErrors(json.errors);
-                else Toast.error(json.message ?? T().saveDecisionFailed ?? 'Failed to save decision.');
+                else Toast.error(json.message ?? t('admin.flash_sales.failed_save_decision'));
             })
-            .always(() => $btn.prop('disabled', false).text(T().saveDecision || 'Save Decision'));
+            .always(() => $btn.prop('disabled', false).text(t('admin.flash_sales.save_decision_label')));
     });
 
     // ── Bulk approve ──────────────────────────────────────────────────────────
     $('#bulk-approve-submissions').on('click', function () {
         const ids = getSelectedSubmissionIds();
-        if (!ids.length) { Toast.info(T().selectAtLeastOneSubmission || 'Select at least one submission.'); return; }
-        confirm2((T().confirmApproveSelected || 'Approve :count selected submission(s)?').replace(':count', ids.length)).then(() => {
+        if (!ids.length) { Toast.info(t('admin.flash_sales.select_one_submission')); return; }
+        confirm2(t('admin.flash_sales.approve_selected_confirm', { count: ids.length })).then(() => {
             const $btn = $(this).prop('disabled', true);
             ajax('POST', window.BULK_REVIEW_URL, { ids, decision: 'approved' })
                 .done(res => {
-                    Toast.success((T().bulkReviewResult || 'Approved: :approved, Rejected: :rejected, Failed: :failed')
-                        .replace(':approved', res.approved).replace(':rejected', res.rejected).replace(':failed', res.failed));
+                    Toast.success(t('admin.flash_sales.bulk_review_result', { approved: res.approved, rejected: res.rejected, failed: res.failed }));
                     window._submissionsTable?.ajax.reload();
                     loadSubmissionStats();
                 })
-                .fail(xhr => Toast.error(xhr.responseJSON?.message ?? T().bulkApproveFailed ?? 'Bulk approve failed.'))
+                .fail(xhr => Toast.error(xhr.responseJSON?.message ?? t('admin.flash_sales.bulk_approve_failed')))
                 .always(() => $btn.prop('disabled', false));
         }).catch(() => { });
     });
@@ -487,7 +485,7 @@ $(function () {
     // ── Bulk reject ───────────────────────────────────────────────────────────
     $('#bulk-reject-submissions').on('click', function () {
         const ids = getSelectedSubmissionIds();
-        if (!ids.length) { Toast.info(T().selectAtLeastOneSubmission || 'Select at least one submission.'); return; }
+        if (!ids.length) { Toast.info(t('admin.flash_sales.select_one_submission')); return; }
         $('[name=bulk_ids]', '#bulk-reject-form').val(ids.join(','));
         openModal('bulk-reject-modal');
     });
@@ -497,17 +495,16 @@ $(function () {
         const ids = $('[name=bulk_ids]', this).val().split(',').filter(Boolean);
         const code = $('[name=bulk_rejection_code]', this).val();
         const reason = $('[name=bulk_rejection_reason]', this).val();
-        if (!code) { Toast.error(T().selectRejectionReason || 'Select a rejection reason.'); return; }
+        if (!code) { Toast.error(t('admin.flash_sales.select_rejection_reason_bulk')); return; }
         const $btn = $('#bulk-reject-submit').prop('disabled', true);
         ajax('POST', window.BULK_REVIEW_URL, { ids, decision: 'rejected', rejection_code: code, rejection_reason: reason })
             .done(res => {
-                Toast.success((T().bulkReviewResult || 'Approved: :approved, Rejected: :rejected, Failed: :failed')
-                    .replace(':approved', res.approved).replace(':rejected', res.rejected).replace(':failed', res.failed));
+                Toast.success(t('admin.flash_sales.bulk_review_result', { approved: res.approved, rejected: res.rejected, failed: res.failed }));
                 closeModal('bulk-reject-modal');
                 window._submissionsTable?.ajax.reload();
                 loadSubmissionStats();
             })
-            .fail(xhr => Toast.error(xhr.responseJSON?.message ?? T().bulkRejectFailed ?? 'Bulk reject failed.'))
+            .fail(xhr => Toast.error(xhr.responseJSON?.message ?? t('admin.flash_sales.bulk_reject_failed')))
             .always(() => $btn.prop('disabled', false));
     });
 
@@ -583,9 +580,9 @@ $(function () {
                         data: {
                             labels: byDay.map(d => d.date),
                             datasets: [
-                                { label: T().grossRevenue || 'Gross Revenue', data: byDay.map(d => (d.gross_revenue ?? 0) / 100), backgroundColor: 'rgba(99,102,241,0.7)', yAxisID: 'y' },
-                                { label: T().discount || 'Discount', data: byDay.map(d => (d.discount_given ?? 0) / 100), backgroundColor: 'rgba(245,158,11,0.7)', yAxisID: 'y' },
-                                { label: T().unitsSoldChart || 'Units Sold', data: byDay.map(d => d.units_sold ?? 0), type: 'line', borderColor: '#10b981', backgroundColor: 'transparent', yAxisID: 'y2', tension: 0.3 },
+                                { label: t('admin.flash_sales.gross_revenue_label'), data: byDay.map(d => (d.gross_revenue ?? 0) / 100), backgroundColor: 'rgba(99,102,241,0.7)', yAxisID: 'y' },
+                                { label: t('admin.flash_sales.discount_label'), data: byDay.map(d => (d.discount_given ?? 0) / 100), backgroundColor: 'rgba(245,158,11,0.7)', yAxisID: 'y' },
+                                { label: t('admin.flash_sales.units_sold_label'), data: byDay.map(d => d.units_sold ?? 0), type: 'line', borderColor: '#10b981', backgroundColor: 'transparent', yAxisID: 'y2', tension: 0.3 },
                             ],
                         },
                         options: {

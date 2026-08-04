@@ -33,7 +33,7 @@ class LoginController extends Controller
             return back()
                 ->withInput($request->only('email'))
                 ->withErrors([
-                    'email' => "Too many login attempts. Please try again in {$seconds} seconds.",
+                    'email' => __('admin.auth.too_many_attempts', ['seconds' => $seconds]),
                 ]);
         }
 
@@ -43,7 +43,7 @@ class LoginController extends Controller
             RateLimiter::hit($key, 900); // 15 minutes
             return back()
                 ->withInput($request->only('email'))
-                ->withErrors(['email' => 'These credentials do not match our records.']);
+                ->withErrors(['email' => __('admin.auth.invalid_credentials')]);
         }
 
         RateLimiter::clear($key);

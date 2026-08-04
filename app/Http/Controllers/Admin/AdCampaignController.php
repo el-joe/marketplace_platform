@@ -103,7 +103,7 @@ class AdCampaignController extends Controller
             'excel' => $this->exportExcel('ad-campaigns', $headers, $rows),
             'csv' => $this->exportCsv('ad-campaigns', $headers, $rows),
             'word' => $this->exportWord('ad-campaigns', 'Ad Campaigns', $rows),
-            default => abort(400, 'Invalid export format.'),
+            default => abort(400, __('admin.invalid_export_format')),
         };
     }
 
@@ -198,16 +198,16 @@ class AdCampaignController extends Controller
         $resumeUrl = route('admin.ad-campaigns.resume', $campaign->id);
 
         $html = '<div class="flex items-center gap-1">';
-        $html .= "<a href=\"{$showUrl}\" class=\"btn btn-xs btn-secondary\">View</a>";
+        $html .= "<a href=\"{$showUrl}\" class=\"btn btn-xs btn-secondary\">" . __('admin.ad_campaigns.view_action') . "</a>";
 
         if ($canEdit) {
             if ($campaign->status?->value === AdCampaignStatus::PendingReview->value) {
-                $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-approve-btn\" data-url=\"{$approveUrl}\" data-name=\"" . e($campaign->name) . "\">Approve</button>";
-                $html .= "<button type=\"button\" class=\"btn btn-xs btn-danger js-reject-btn\" data-url=\"{$rejectUrl}\" data-name=\"" . e($campaign->name) . "\">Reject</button>";
+                $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-approve-btn\" data-url=\"{$approveUrl}\" data-name=\"" . e($campaign->name) . "\">" . __('admin.ad_campaigns.approve_action') . "</button>";
+                $html .= "<button type=\"button\" class=\"btn btn-xs btn-danger js-reject-btn\" data-url=\"{$rejectUrl}\" data-name=\"" . e($campaign->name) . "\">" . __('admin.ad_campaigns.reject_action') . "</button>";
             } elseif ($campaign->status?->value === AdCampaignStatus::Active->value) {
-                $html .= "<button type=\"button\" class=\"btn btn-xs btn-warning js-pause-btn\" data-url=\"{$pauseUrl}\" data-name=\"" . e($campaign->name) . "\">Pause</button>";
+                $html .= "<button type=\"button\" class=\"btn btn-xs btn-warning js-pause-btn\" data-url=\"{$pauseUrl}\" data-name=\"" . e($campaign->name) . "\">" . __('admin.ad_campaigns.pause') . "</button>";
             } elseif ($campaign->status?->value === AdCampaignStatus::Paused->value) {
-                $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-resume-btn\" data-url=\"{$resumeUrl}\" data-name=\"" . e($campaign->name) . "\">Resume</button>";
+                $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-resume-btn\" data-url=\"{$resumeUrl}\" data-name=\"" . e($campaign->name) . "\">" . __('admin.ad_campaigns.resume') . "</button>";
             }
         }
         $html .= '</div>';
@@ -420,7 +420,7 @@ class AdCampaignController extends Controller
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
         if (!in_array($campaign->status?->value, [AdCampaignStatus::PendingReview->value, AdCampaignStatus::Paused->value])) {
-            return response()->json(['message' => 'Campaign is not pending review.'], 422);
+            return response()->json(['message' => __('admin.ad_campaigns.not_pending_review')], 422);
         }
 
         $campaign->update([
@@ -432,7 +432,7 @@ class AdCampaignController extends Controller
 
         Notification::send($campaign->vendor->vendorAdmins, new AdCampaignApproved($campaign));
 
-        return response()->json(['message' => 'Campaign approved and set to active.']);
+        return response()->json(['message' => __('admin.ad_campaigns.approved_active')]);
     }
 
     // ─── Reject ───────────────────────────────────────────────────────────────
@@ -453,7 +453,7 @@ class AdCampaignController extends Controller
 
         Notification::send($campaign->vendor->vendorAdmins, new AdCampaignRejected($campaign, $request->input('rejection_reason')));
 
-        return response()->json(['message' => 'Campaign rejected.']);
+        return response()->json(['message' => __('admin.ad_campaigns.rejected_msg')]);
     }
 
     // ─── Pause ────────────────────────────────────────────────────────────────
@@ -464,12 +464,12 @@ class AdCampaignController extends Controller
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
         if ($campaign->status?->value !== AdCampaignStatus::Active->value) {
-            return response()->json(['message' => 'Campaign is not active.'], 422);
+            return response()->json(['message' => __('admin.ad_campaigns.not_active')], 422);
         }
 
         $campaign->update(['status' => AdCampaignStatus::Paused->value]);
 
-        return response()->json(['message' => 'Campaign paused.']);
+        return response()->json(['message' => __('admin.ad_campaigns.paused_msg')]);
     }
 
     // ─── Resume ───────────────────────────────────────────────────────────────
@@ -480,12 +480,12 @@ class AdCampaignController extends Controller
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
         if ($campaign->status?->value !== AdCampaignStatus::Paused->value) {
-            return response()->json(['message' => 'Campaign is not paused.'], 422);
+            return response()->json(['message' => __('admin.ad_campaigns.not_paused')], 422);
         }
 
         $campaign->update(['status' => AdCampaignStatus::Active->value]);
 
-        return response()->json(['message' => 'Campaign resumed.']);
+        return response()->json(['message' => __('admin.ad_campaigns.resumed_msg')]);
     }
 
     // ─── Fraud Alerts ─────────────────────────────────────────────────────────
@@ -535,13 +535,13 @@ class AdCampaignController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, function (AdFraudPattern $row) use ($canEdit) {
             $blockedBadge = $row->is_blocked
-                ? '<span class="badge badge-danger text-xs">Blocked</span>'
-                : '<span class="badge badge-warning text-xs">Suspicious</span>';
+                ? '<span class="badge badge-danger text-xs">' . __('admin.ad_campaigns.blocked') . '</span>'
+                : '<span class="badge badge-warning text-xs">' . __('admin.ad_campaigns.suspicious') . '</span>';
 
             $blockUrl = route('admin.ad-campaigns.fraud.block', $row->id);
             $actions = '';
             if ($canEdit && !$row->is_blocked) {
-                $actions = "<button type=\"button\" class=\"btn btn-xs btn-danger js-block-ip-btn\" data-url=\"{$blockUrl}\" data-ip=\"" . e($row->ip_address) . "\">Block IP</button>";
+                $actions = "<button type=\"button\" class=\"btn btn-xs btn-danger js-block-ip-btn\" data-url=\"{$blockUrl}\" data-ip=\"" . e($row->ip_address) . "\">" . __('admin.ad_campaigns.block_ip') . "</button>";
             }
 
             return [
@@ -570,9 +570,9 @@ class AdCampaignController extends Controller
         $pattern->update([
             'is_blocked' => true,
             'blocked_at' => now(),
-            'block_reason' => $request->input('block_reason', 'Blocked by admin'),
+            'block_reason' => $request->input('block_reason', __('admin.ad_campaigns.blocked_by_admin_default')),
         ]);
 
-        return response()->json(['message' => 'IP blocked.']);
+        return response()->json(['message' => __('admin.ad_campaigns.ip_blocked_msg')]);
     }
 }

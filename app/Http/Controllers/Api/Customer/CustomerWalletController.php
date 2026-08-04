@@ -100,11 +100,10 @@ class CustomerWalletController extends Controller
                 'new_balance' => $result['new_balance'],
                 'new_balance_display' => $result['currency_code'].' '.$result['new_balance'],
             ],
-        ], sprintf(
-            'Gift card redeemed. %s %d has been added to your wallet.',
-            $result['currency_code'],
-            $result['amount_credited'],
-        ));
+        ], __('customer_api.customer_wallet.gift_card_redeemed', [
+            'currency' => $result['currency_code'],
+            'amount' => $result['amount_credited'],
+        ]));
     }
 
     public function redeemVoucher(RedeemVoucherRequest $request): JsonResponse
@@ -130,11 +129,10 @@ class CustomerWalletController extends Controller
                 'new_balance' => $result['new_balance'],
                 'new_balance_display' => $result['currency_code'].' '.$result['new_balance'],
             ],
-        ], sprintf(
-            'Voucher redeemed. %s %d has been added to your wallet.',
-            $result['currency_code'],
-            $result['amount_credited'],
-        ));
+        ], __('customer_api.customer_wallet.voucher_redeemed', [
+            'currency' => $result['currency_code'],
+            'amount' => $result['amount_credited'],
+        ]));
     }
 
     public function giftCardBalance(GiftCardBalanceRequest $request): JsonResponse

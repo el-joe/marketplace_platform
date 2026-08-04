@@ -14,7 +14,7 @@ class PayoutItem extends Model
         'payout_id',
         'item_type',
         'sub_order_id',
-        'promotion_request_id',
+        'marketer_conversion_id',
         'sample_item_id',
         'gross',
         'commission',
@@ -32,9 +32,9 @@ class PayoutItem extends Model
         return $this->belongsTo(SubOrder::class);
     }
 
-    public function promotionRequest(): BelongsTo
+    public function marketerConversion(): BelongsTo
     {
-        return $this->belongsTo(VendorInfluencerPromotionRequest::class, 'promotion_request_id');
+        return $this->belongsTo(\App\Models\MarketerCampaignConversion::class);
     }
 
     public function sampleItem(): BelongsTo

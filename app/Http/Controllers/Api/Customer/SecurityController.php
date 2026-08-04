@@ -30,14 +30,14 @@ class SecurityController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray());
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray());
         }
 
         /** @var Customer $customer */
         $customer = auth('customer')->user();
 
         if (!Hash::check($request->input('current_password'), $customer->password)) {
-            return ApiResponse::error('Current password is incorrect.', [], 422);
+            return ApiResponse::error(__('customer_api.security.current_password_incorrect'), [], 422);
         }
 
         $customer->update(['password' => $request->input('new_password')]);
@@ -45,7 +45,7 @@ class SecurityController extends Controller
         // Invalidate every JWT issued to this customer, including the one used for this request.
         auth('customer')->logout(true);
 
-        return ApiResponse::success(null, 'Password changed successfully. Please log in again.');
+        return ApiResponse::success(null, __('customer_api.security.password_changed'));
     }
 
     // ── Email verification ───────────────────────────────────────────────────
@@ -56,7 +56,7 @@ class SecurityController extends Controller
         $customer = auth('customer')->user();
 
         if ($customer->email_verified_at !== null) {
-            return ApiResponse::error('Email is already verified.', [], 422);
+            return ApiResponse::error(__('customer_api.security.email_already_verified'), [], 422);
         }
 
         if ($error = $this->rateLimitOtp($customer, 'email_verification')) {
@@ -81,7 +81,7 @@ class SecurityController extends Controller
 
         return ApiResponse::success(
             null,
-            'OTP sent to ' . $this->maskEmail($customer->email)
+            __('customer_api.security.otp_sent_to', ['destination' => $this->maskEmail($customer->email)])
         );
     }
 
@@ -92,7 +92,7 @@ class SecurityController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray());
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray());
         }
 
         /** @var Customer $customer */
@@ -101,7 +101,7 @@ class SecurityController extends Controller
         $otp = $this->matchOtp($customer, 'email_verification', $request->input('otp'));
 
         if (!$otp) {
-            return ApiResponse::error('Invalid or expired OTP.', [], 422);
+            return ApiResponse::error(__('customer_api.security.invalid_or_expired_otp'), [], 422);
         }
 
         DB::transaction(function () use ($otp, $customer): void {
@@ -109,7 +109,7 @@ class SecurityController extends Controller
             $customer->update(['email_verified_at' => now()]);
         });
 
-        return ApiResponse::success(null, 'Email verified successfully.');
+        return ApiResponse::success(null, __('customer_api.security.email_verified'));
     }
 
     // ── Phone verification ───────────────────────────────────────────────────
@@ -120,7 +120,7 @@ class SecurityController extends Controller
         $customer = auth('customer')->user();
 
         if ($customer->phone_verified_at !== null) {
-            return ApiResponse::error('Phone is already verified.', [], 422);
+            return ApiResponse::error(__('customer_api.security.phone_already_verified'), [], 422);
         }
 
         if ($error = $this->rateLimitOtp($customer, 'phone_verification')) {
@@ -145,7 +145,7 @@ class SecurityController extends Controller
 
         return ApiResponse::success(
             null,
-            'OTP sent to ' . $this->maskPhone($customer->phone)
+            __('customer_api.security.otp_sent_to', ['destination' => $this->maskPhone($customer->phone)])
         );
     }
 
@@ -156,7 +156,7 @@ class SecurityController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray());
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray());
         }
 
         /** @var Customer $customer */
@@ -165,7 +165,7 @@ class SecurityController extends Controller
         $otp = $this->matchOtp($customer, 'phone_verification', $request->input('otp'));
 
         if (!$otp) {
-            return ApiResponse::error('Invalid or expired OTP.', [], 422);
+            return ApiResponse::error(__('customer_api.security.invalid_or_expired_otp'), [], 422);
         }
 
         DB::transaction(function () use ($otp, $customer): void {
@@ -173,7 +173,7 @@ class SecurityController extends Controller
             $customer->update(['phone_verified_at' => now()]);
         });
 
-        return ApiResponse::success(null, 'Phone verified successfully.');
+        return ApiResponse::success(null, __('customer_api.security.phone_verified'));
     }
 
     // ── Sessions / devices ───────────────────────────────────────────────────
@@ -199,7 +199,7 @@ class SecurityController extends Controller
         return ApiResponse::success([
             'devices' => $devices,
             'session_count' => $sessionCount,
-        ], 'Active sessions retrieved.');
+        ], __('customer_api.security.sessions_retrieved'));
     }
 
     public function revokeDevice(Request $request, string $device_token_id): JsonResponse
@@ -209,7 +209,7 @@ class SecurityController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validation failed.', $validator->errors()->toArray());
+            return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray());
         }
 
         /** @var Customer $customer */
@@ -222,12 +222,12 @@ class SecurityController extends Controller
             ->first();
 
         if (!$device) {
-            return ApiResponse::error('Device not found.', [], 404);
+            return ApiResponse::error(__('customer_api.security.device_not_found'), [], 404);
         }
 
         $device->update(['is_active' => false]);
 
-        return ApiResponse::success(null, 'Device revoked.');
+        return ApiResponse::success(null, __('customer_api.security.device_revoked'));
     }
 
     public function revokeAllDevices(Request $request): JsonResponse
@@ -246,7 +246,7 @@ class SecurityController extends Controller
 
         auth('customer')->logout(true);
 
-        return ApiResponse::success(null, 'All devices revoked. Please log in again.');
+        return ApiResponse::success(null, __('customer_api.security.all_devices_revoked'));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -262,7 +262,7 @@ class SecurityController extends Controller
             $retryAfter = self::OTP_RESEND_SECONDS - $lastToken->created_at->diffInSeconds(now());
 
             return ApiResponse::error(
-                "Please wait {$retryAfter} seconds before requesting another OTP.",
+                __('customer_api.security.otp_wait', ['seconds' => $retryAfter]),
                 [],
                 429
             );

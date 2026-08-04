@@ -73,15 +73,15 @@ class WalletController extends Controller
             ->first();
 
         if (! $wallet) {
-            return ApiResponse::error('Wallet not found for this currency.', [], 404);
+            return ApiResponse::error(__('customer_api.wallet.not_found_for_currency'), [], 404);
         }
 
         if ($wallet->is_frozen) {
-            return ApiResponse::error('Your wallet is frozen and cannot request withdrawals.', [], 422);
+            return ApiResponse::error(__('customer_api.wallet.frozen'), [], 422);
         }
 
         if ($wallet->getRawOriginal('balance') < $data['amount']) {
-            return ApiResponse::error('Insufficient wallet balance.', [], 422);
+            return ApiResponse::error(__('customer_api.wallet.insufficient_balance'), [], 422);
         }
 
         $hasPending = $wallet->withdrawalRequests()
@@ -89,7 +89,7 @@ class WalletController extends Controller
             ->exists();
 
         if ($hasPending) {
-            return ApiResponse::error('You already have a pending withdrawal request.', [], 422);
+            return ApiResponse::error(__('customer_api.wallet.pending_withdrawal_exists'), [], 422);
         }
 
         $withdrawalRequest = \App\Models\WalletWithdrawalRequest::create([
@@ -103,7 +103,7 @@ class WalletController extends Controller
 
         return ApiResponse::success(
             new WalletWithdrawalRequestResource($withdrawalRequest),
-            'Withdrawal request submitted successfully.',
+            __('customer_api.wallet.withdrawal_submitted'),
             201,
         );
     }

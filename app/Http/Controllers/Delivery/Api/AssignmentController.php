@@ -86,7 +86,7 @@ class AssignmentController extends Controller
         } catch (\RuntimeException $e) {
             if ($e->getMessage() === 'concurrent_assignment') {
                 return ApiResponse::error(
-                    'You already have an active assignment. Complete or fail it before accepting another.',
+                    __('delivery.messages.assignments.already_active_assignment'),
                     [],
                     422
                 );
@@ -96,7 +96,7 @@ class AssignmentController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return $this->respondWithAssignment($assignment, 'Assignment accepted.');
+        return $this->respondWithAssignment($assignment, __('delivery.messages.assignments.accepted'));
     }
 
     // ── POST /assignments/{id}/picked-up ──────────────────────────────────────
@@ -115,7 +115,7 @@ class AssignmentController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return $this->respondWithAssignment($assignment, 'Package marked as picked up.');
+        return $this->respondWithAssignment($assignment, __('delivery.messages.assignments.picked_up_label'));
     }
 
     // ── POST /assignments/{id}/verify-otp ─────────────────────────────────────
@@ -129,7 +129,7 @@ class AssignmentController extends Controller
         } catch (\RuntimeException $e) {
             if ($e->getMessage() === 'otp_locked') {
                 return ApiResponse::error(
-                    'Too many incorrect OTP attempts. This assignment has been flagged for support review.',
+                    __('delivery.messages.assignments.too_many_incorrect_otp_flagged'),
                     [],
                     423
                 );
@@ -143,7 +143,7 @@ class AssignmentController extends Controller
             $assignment->refresh();
             $remaining = $this->otpService->remainingAttempts($assignment);
             return ApiResponse::error(
-                "Incorrect OTP. {$remaining} attempt(s) remaining.",
+                __('delivery.messages.assignments.incorrect_otp_remaining', ['remaining' => $remaining]),
                 ['remaining_attempts' => $remaining],
                 422
             );
@@ -154,7 +154,7 @@ class AssignmentController extends Controller
         return ApiResponse::success([
             'verified'   => true,
             'assignment' => new AssignmentDetailResource($assignment),
-        ], 'OTP verified.');
+        ], __('delivery.messages.assignments.otp_verified'));
     }
 
     // ── POST /assignments/{id}/deliver ────────────────────────────────────────
@@ -180,12 +180,12 @@ class AssignmentController extends Controller
         } catch (\RuntimeException $e) {
             return match ($e->getMessage()) {
                 'otp_locked'  => ApiResponse::error(
-                    'Too many incorrect OTP attempts. Assignment flagged for support review.',
+                    __('delivery.messages.assignments.too_many_incorrect_otp_flagged_short'),
                     [],
                     423
                 ),
                 'otp_invalid' => ApiResponse::error(
-                    'Incorrect OTP. Delivery cannot be confirmed.',
+                    __('delivery.messages.assignments.incorrect_otp_cannot_confirm'),
                     [],
                     422
                 ),
@@ -193,13 +193,13 @@ class AssignmentController extends Controller
             };
         } catch (\DomainException $e) {
             $message = match ($e->getMessage()) {
-                'cod_amount_required' => 'COD amount collected is required for cash-on-delivery orders.',
+                'cod_amount_required' => __('delivery.messages.assignments.cod_amount_required'),
                 default               => $e->getMessage(),
             };
             return ApiResponse::error($message, [], 422);
         }
 
-        return $this->respondWithAssignment($assignment, 'Delivery confirmed successfully.');
+        return $this->respondWithAssignment($assignment, __('delivery.messages.assignments.delivery_confirmed_successfully'));
     }
 
     // ── POST /assignments/{id}/fail ───────────────────────────────────────────
@@ -219,14 +219,14 @@ class AssignmentController extends Controller
             );
         } catch (\DomainException $e) {
             $message = match ($e->getMessage()) {
-                'customer_rejection_reason_required' => 'A rejection reason is required when the customer refuses delivery on an electronically paid order.',
+                'customer_rejection_reason_required' => __('delivery.messages.assignments.customer_rejection_reason_required'),
                 default => $e->getMessage(),
             };
 
             return ApiResponse::error($message, [], 422);
         }
 
-        return $this->respondWithAssignment($assignment, 'Delivery marked as failed.');
+        return $this->respondWithAssignment($assignment, __('delivery.messages.assignments.delivery_marked_failed'));
     }
 
     // ── Private ───────────────────────────────────────────────────────────────
@@ -236,7 +236,7 @@ class AssignmentController extends Controller
         /** @var DeliveryAgent $agent */
         $agent = auth('delivery_api')->user();
 
-        abort_if($assignment->agent_id !== $agent->id, 403, 'Forbidden.');
+        abort_if($assignment->agent_id !== $agent->id, 403, __('delivery.messages.common.forbidden'));
     }
 
     private function respondWithAssignment(DeliveryAssignment $assignment, string $message): JsonResponse

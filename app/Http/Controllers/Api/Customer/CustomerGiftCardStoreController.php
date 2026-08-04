@@ -49,7 +49,7 @@ class CustomerGiftCardStoreController extends Controller
         return ApiResponse::success([
             'order_id' => $result['order']->id,
             'purchases' => GiftCardPurchaseResource::collection(collect($result['purchases'])),
-        ], 'Gift card purchased successfully.', 201);
+        ], __('customer_api.gift_card_store.purchased'), 201);
     }
 
     public function myPurchases(Request $request): JsonResponse
@@ -66,19 +66,19 @@ class CustomerGiftCardStoreController extends Controller
         $customer = auth('customer')->user();
 
         if ($purchase->buyer_customer_id !== $customer->id) {
-            return ApiResponse::error('Gift card purchase not found.', [], 404);
+            return ApiResponse::error(__('customer_api.gift_card_store.purchase_not_found'), [], 404);
         }
 
         if (! $purchase->gift_card_id) {
-            return ApiResponse::error('Gift card is not yet available for delivery.', [], 422);
+            return ApiResponse::error(__('customer_api.gift_card_store.not_yet_available'), [], 422);
         }
 
         if ($purchase->delivery_attempts >= 3) {
-            return ApiResponse::error('Maximum resend attempts reached. Please contact support.', [], 422);
+            return ApiResponse::error(__('customer_api.gift_card_store.max_resend_reached'), [], 422);
         }
 
         SendGiftCardNotificationJob::dispatch($purchase->gift_card_id);
 
-        return ApiResponse::success(null, 'Delivery email has been resent.');
+        return ApiResponse::success(null, __('customer_api.gift_card_store.delivery_email_resent'));
     }
 }

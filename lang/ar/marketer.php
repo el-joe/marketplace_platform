@@ -194,7 +194,6 @@ return [
         'products_optional'        => 'المنتجات (اختياري)',
         'search_products'          => 'ابحث عن منتجات من المتجر المحدد…',
         'add'                      => '+ إضافة',
-        'cancel'                   => 'إلغاء',
         'submit_for_review'        => 'إرسال للمراجعة',
         'no_products_found'       => 'لم يتم العثور على منتجات.',
         'no_results_found'        => 'لم يتم العثور على نتائج.',

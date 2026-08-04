@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setLoading(btn, loading, label = null) {
         if (!btn) return;
         btn.disabled = loading;
-        if (label) btn.textContent = loading ? (window.TRANSLATIONS?.pleaseWait || 'Please wait…') : label;
+        if (label) btn.textContent = loading ? (t('admin.notifications.please_wait')) : label;
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             order: [[5, 'desc']],
             pageLength: 25,
-            language: { search: '', searchPlaceholder: window.TRANSLATIONS?.searchPlaceholder || 'Search…' },
+            language: { search: '', searchPlaceholder: t('shared.table_search_placeholder') },
         });
 
         ['filter-channel', 'filter-type', 'filter-date-from', 'filter-date-to'].forEach(id => {
@@ -127,15 +127,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const channels = [...document.querySelectorAll('.channel-checkbox:checked')].map(cb => cb.value);
 
             if (!titleEn || !titleAr || !bodyEn || !bodyAr) {
-                window.Toast?.error(window.TRANSLATIONS?.fillAllFields || 'Please fill in all required fields.');
+                window.Toast?.error(t('admin.notifications.fill_required_fields'));
                 return;
             }
             if (!channels.length) {
-                window.Toast?.error(window.TRANSLATIONS?.selectAtLeastOneChannel || 'Please select at least one channel.');
+                window.Toast?.error(t('admin.notifications.select_one_channel'));
                 return;
             }
 
-            setLoading(btn, true, window.TRANSLATIONS?.send || 'Send Broadcast');
+            setLoading(btn, true, t('admin.notifications.send_broadcast_label'));
 
             try {
                 await postJson(url, {
@@ -148,14 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     body_ar: bodyAr,
                     channels,
                 });
-                window.Toast?.success(window.TRANSLATIONS?.broadcastQueued || 'Broadcast queued for delivery.');
+                window.Toast?.success(t('admin.notifications.broadcast_queued'));
                 sendForm.reset();
                 updateTargetFields();
             } catch (err) {
-                const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || window.TRANSLATIONS?.failedToSend || 'Failed to send broadcast.';
+                const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || t('admin.notifications.failed_send_broadcast');
                 window.Toast?.error(msg);
             } finally {
-                setLoading(btn, false, window.TRANSLATIONS?.send || 'Send Broadcast');
+                setLoading(btn, false, t('admin.notifications.send_broadcast_label'));
             }
         });
     }
