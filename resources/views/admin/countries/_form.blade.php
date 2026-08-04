@@ -425,7 +425,10 @@
             $catColumns = [
                 ['title' => __('admin.geography.category_col'),          'data' => 'name_en',         'name' => 'name_en'],
                 ['title' => __('admin.geography.available_col'),          'data' => 'is_available',    'name' => 'is_available',   'searchable' => false, 'render' => 'Renderers.badge({true:{label:"' . __('common.yes') . '",color:"success"},false:{label:"' . __('common.no') . '",color:"danger"}})'],
-                ['title' => __('admin.geography.commission_col'),         'data' => 'commission_rate', 'name' => 'commission_rate','searchable' => false],
+                ['title' => __('admin.geography.commission_fbp_pct_col'), 'data' => 'commission_fbp_pct', 'name' => 'commission_fbp_pct','searchable' => false],
+                ['title' => __('admin.geography.commission_fbp_fixed_col'), 'data' => 'commission_fbp_fixed', 'name' => 'commission_fbp_fixed','searchable' => false],
+                ['title' => __('admin.geography.commission_fbn_pct_col'), 'data' => 'commission_fbn_pct', 'name' => 'commission_fbn_pct','searchable' => false],
+                ['title' => __('admin.geography.commission_fbn_fixed_col'), 'data' => 'commission_fbn_fixed', 'name' => 'commission_fbn_fixed','searchable' => false],
                 ['title' => __('admin.geography.override_reason_col'),    'data' => 'unavailable_reason', 'name' => 'unavailable_reason', 'orderable' => false, 'searchable' => false],
                 ['title' => '',                   'data' => 'actions',         'name' => 'actions',         'orderable' => false, 'searchable' => false,
                  'render' => 'Renderers.actions([{type:"button",label:"' . __('admin.geography.edit_override') . '",id:"editCatOverride",class:"btn-ghost btn-sm"}])'],
@@ -491,20 +494,74 @@
     </x-modal>
 
     {{-- Edit Category Override Modal --}}
-    <x-modal id="cat-override-modal" title="{{ __('admin.geography.edit_category_override_title') }}">
+    <x-modal id="cat-override-modal" title="{{ __('admin.geography.edit_category_override_title') }}" size="lg">
         <form id="cat-override-form" novalidate>
             @csrf
             <input type="hidden" id="cat-category-id" name="overrides[0][category_id]">
-            <div class="space-y-4 p-4">
-                <p class="font-medium text-gray-800" id="cat-name-display"></p>
-                <x-form.toggle name="overrides[0][is_available]" label="{{ __('admin.geography.available_in_country') }}" id="cat-is-available" :checked="true" />
-                <x-form.input
-                    name="overrides[0][commission_rate]"
-                    label="{{ __('admin.geography.commission_rate_override') }}"
-                    id="cat-commission-rate"
-                    type="number" step="0.01" min="0" max="100"
-                    placeholder="{{ __('admin.geography.commission_rate_placeholder') }}"
-                />
+            <div class="space-y-5 p-1 sm:p-4">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <p class="font-semibold text-gray-900 text-sm sm:text-base" id="cat-name-display"></p>
+                    <x-form.toggle name="overrides[0][is_available]" label="{{ __('admin.geography.available_in_country') }}" id="cat-is-available" :checked="true" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    {{-- FBP panel --}}
+                    <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-4">
+                        <h4 class="flex items-center gap-1.5 text-xs font-bold text-blue-700 uppercase tracking-wide mb-3">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            {{ __('admin.geography.fbp_panel_title') }}
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.geography.percentage_rate_label') }}</label>
+                                <input type="number" name="overrides[0][commission_fbp_pct]" id="cat-commission-fbp-pct"
+                                    step="0.01" min="0" max="100"
+                                    placeholder="{{ __('admin.geography.commission_override_placeholder') }}"
+                                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition focus:outline-none focus:ring-2 focus:ring-offset-0 focus:border-primary-500 focus:ring-primary-200">
+                                <p class="text-xs text-gray-400 mt-1">{{ __('admin.geography.fbp_pct_inherit_hint') }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.geography.fixed_fee_label') }}</label>
+                                <input type="number" name="overrides[0][commission_fbp_fixed]" id="cat-commission-fbp-fixed"
+                                    step="1" min="0"
+                                    placeholder="{{ __('admin.geography.commission_override_placeholder') }}"
+                                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition focus:outline-none focus:ring-2 focus:ring-offset-0 focus:border-primary-500 focus:ring-primary-200">
+                                <p class="text-xs text-gray-400 mt-1">{{ __('admin.geography.fbp_fixed_inherit_hint') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- FBN panel --}}
+                    <div class="bg-green-50/60 border border-green-200 rounded-xl p-4">
+                        <h4 class="flex items-center gap-1.5 text-xs font-bold text-green-700 uppercase tracking-wide mb-3">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            {{ __('admin.geography.fbn_panel_title') }}
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.geography.percentage_rate_label') }}</label>
+                                <input type="number" name="overrides[0][commission_fbn_pct]" id="cat-commission-fbn-pct"
+                                    step="0.01" min="0" max="100"
+                                    placeholder="{{ __('admin.geography.commission_override_placeholder') }}"
+                                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition focus:outline-none focus:ring-2 focus:ring-offset-0 focus:border-primary-500 focus:ring-primary-200">
+                                <p class="text-xs text-gray-400 mt-1">{{ __('admin.geography.fbn_pct_inherit_hint') }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.geography.fixed_fee_label') }}</label>
+                                <input type="number" name="overrides[0][commission_fbn_fixed]" id="cat-commission-fbn-fixed"
+                                    step="1" min="0"
+                                    placeholder="{{ __('admin.geography.commission_override_placeholder') }}"
+                                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition focus:outline-none focus:ring-2 focus:ring-offset-0 focus:border-primary-500 focus:ring-primary-200">
+                                <p class="text-xs text-gray-400 mt-1">{{ __('admin.geography.fbn_fixed_inherit_hint') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-500 leading-relaxed border-t border-gray-100 pt-3">
+                    {{ __('admin.geography.commission_formula_note') }}
+                </p>
+
                 <x-form.input
                     name="overrides[0][unavailable_reason]"
                     label="{{ __('admin.geography.reason_if_unavailable') }}"

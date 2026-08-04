@@ -15,19 +15,24 @@ class CountryCategory extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'id',
         'country_id',
         'category_id',
         'is_available',
-        'commission_rate',
+        'commission_fbp_pct',
+        'commission_fbp_fixed',
+        'commission_fbn_pct',
+        'commission_fbn_fixed',
         'unavailable_reason',
         'notes',
         'updated_by_admin_id',
     ];
 
     protected $casts = [
-        'is_available' => 'boolean',
-        'commission_rate' => 'decimal:2',
+        'is_available'        => 'boolean',
+        'commission_fbp_pct'  => 'decimal:2',
+        'commission_fbp_fixed'=> 'integer',
+        'commission_fbn_pct'  => 'decimal:2',
+        'commission_fbn_fixed'=> 'integer',
     ];
 
     public function country(): BelongsTo

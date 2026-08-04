@@ -231,7 +231,10 @@ $(function () {
         $('#cat-category-id').val(row.id);
         $('#cat-name-display').text(row.name_en + ' / ' + row.name_ar);
         $form.find('[name="overrides[0][is_available]"][type="checkbox"]').prop('checked', !!row.is_available).trigger('change');
-        $form.find('[name="overrides[0][commission_rate]"]').val(row.override_commission_rate ?? '');
+        $form.find('[name="overrides[0][commission_fbp_pct]"]').val(row.override_commission_fbp_pct ?? '');
+        $form.find('[name="overrides[0][commission_fbp_fixed]"]').val(row.override_commission_fbp_fixed ?? '');
+        $form.find('[name="overrides[0][commission_fbn_pct]"]').val(row.override_commission_fbn_pct ?? '');
+        $form.find('[name="overrides[0][commission_fbn_fixed]"]').val(row.override_commission_fbn_fixed ?? '');
         $form.find('[name="overrides[0][unavailable_reason]"]').val(row.unavailable_reason ?? '');
         $form.find('[name="overrides[0][notes]"]').val(row.notes ?? '');
         openModal('cat-override-modal');
@@ -245,7 +248,10 @@ $(function () {
             overrides: [{
                 category_id: $('#cat-category-id').val(),
                 is_available: $form.find('[name="overrides[0][is_available]"][type="checkbox"]').is(':checked') ? 1 : 0,
-                commission_rate: $form.find('[name="overrides[0][commission_rate]"]').val() || null,
+                commission_fbp_pct: $form.find('[name="overrides[0][commission_fbp_pct]"]').val() || null,
+                commission_fbp_fixed: $form.find('[name="overrides[0][commission_fbp_fixed]"]').val() || null,
+                commission_fbn_pct: $form.find('[name="overrides[0][commission_fbn_pct]"]').val() || null,
+                commission_fbn_fixed: $form.find('[name="overrides[0][commission_fbn_fixed]"]').val() || null,
                 unavailable_reason: $form.find('[name="overrides[0][unavailable_reason]"]').val() || null,
                 notes: $form.find('[name="overrides[0][notes]"]').val() || null,
             }],

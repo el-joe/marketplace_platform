@@ -154,17 +154,28 @@ class CheckoutCalculationService
         VendorListing $listing,
         int $quantity,
         int $unitPriceCents,
+        ?Country $country = null,
     ): array {
         $isFBN = $listing->global_system_type === GlobalSystemType::ExpressFbn;
         $category = $listing->productVariant?->product?->category;
 
         $resolvedCategory = $this->resolveCommissionCategory($category, $isFBN);
 
-        $pct = (float) ($isFBN ? $resolvedCategory?->commission_fbn_pct : $resolvedCategory?->commission_fbp_pct) ?: 0.0;
-        $fixed = (int) ($isFBN ? $resolvedCategory?->commission_fbn_fixed : $resolvedCategory?->commission_fbp_fixed) ?: 0;
+        $countryCategory = ($country !== null && $resolvedCategory !== null)
+            ? \App\Models\CountryCategory::where('country_id', $country->id)
+                ->where('category_id', $resolvedCategory->id)
+                ->first()
+            : null;
+
+        $pct = (float) ($isFBN
+            ? ($countryCategory?->commission_fbn_pct ?? $resolvedCategory?->commission_fbn_pct)
+            : ($countryCategory?->commission_fbp_pct ?? $resolvedCategory?->commission_fbp_pct)) ?: 0.0;
+        $fixed = (int) ($isFBN
+            ? ($countryCategory?->commission_fbn_fixed ?? $resolvedCategory?->commission_fbn_fixed)
+            : ($countryCategory?->commission_fbp_fixed ?? $resolvedCategory?->commission_fbp_fixed)) ?: 0;
 
         $lineSubtotal = $unitPriceCents * $quantity;
-        $pctComponent = (int) round($lineSubtotal * ($pct / 100));
+        $pctComponent = (int) floor($lineSubtotal * $pct / 100);
         $fixedComponent = $fixed * $quantity;
         $commissionAmount = $pctComponent + $fixedComponent;
 

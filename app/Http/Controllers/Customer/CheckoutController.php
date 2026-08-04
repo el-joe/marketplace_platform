@@ -470,7 +470,8 @@ class CheckoutController extends Controller
                         $commission = $this->calculationService->calculateCommission(
                             $cartItem->vendorListing,
                             $cartItem->quantity,
-                            $cartItem->unit_price
+                            $cartItem->unit_price,
+                            $country
                         );
                         $itemCommissions[$cartItem->id] = $commission;
                         $totalCommission += $commission['commission_amount'];
