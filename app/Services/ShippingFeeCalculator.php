@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\CountryShippingSetting;
 use App\Models\MarketplaceShippingRule;
 use App\Models\PlatformShippingSubsidy;
@@ -47,7 +47,7 @@ class ShippingFeeCalculator
 {
     /**
      * @param  array{
-     *     listing: VendorListing|AdminProductListing,
+     *     listing: VendorListing|AdminListing,
      *     destination_zone_id: string,
      *     shipping_method_id: string,
      *     payment_method: string,
@@ -74,7 +74,7 @@ class ShippingFeeCalculator
 
         // ── STEP 1: admin-owned inventory has a flat, pre-set shipping cost
         //            and never goes through rate/subsidy resolution. ─────────
-        if ($listing instanceof AdminProductListing) {
+        if ($listing instanceof AdminListing) {
             return [
                 'fee' => $listing->shipping_cost,
                 'cod_fee' => 0,

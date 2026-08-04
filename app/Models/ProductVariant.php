@@ -126,9 +126,9 @@ class ProductVariant extends Model
         return $this->hasMany(VendorListing::class);
     }
 
-    public function adminProductListings(): HasMany
+    public function adminListings(): HasMany
     {
-        return $this->hasMany(AdminProductListing::class);
+        return $this->hasMany(AdminListing::class);
     }
 
     /**

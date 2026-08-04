@@ -19,7 +19,7 @@ class StoreFlashSaleSubmissionRequest extends FormRequest
             'submission_type' => ['required', Rule::in(['vendor', 'admin'])],
             'vendor_id' => ['required_if:submission_type,vendor', 'nullable', 'exists:vendors,id'],
             'vendor_listing_id' => ['required_if:submission_type,vendor', 'nullable', 'exists:vendor_listings,id'],
-            'admin_product_listing_id' => ['required_if:submission_type,admin', 'nullable', 'exists:admin_product_listings,id'],
+            'admin_listing_id' => ['required_if:submission_type,admin', 'nullable', 'exists:admin_listings,id'],
             'flash_price' => ['required', 'integer', 'min:1'],
             'original_price' => ['required', 'integer', 'min:1'],
             'max_quantity_total' => ['required', 'integer', 'min:1'],
@@ -32,7 +32,7 @@ class StoreFlashSaleSubmissionRequest extends FormRequest
     {
         $validator->after(function (Validator $validator) {
             $hasVendorListing = $this->filled('vendor_listing_id');
-            $hasAdminListing = $this->filled('admin_product_listing_id');
+            $hasAdminListing = $this->filled('admin_listing_id');
 
             if ($hasVendorListing === $hasAdminListing) {
                 $validator->errors()->add(

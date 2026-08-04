@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\InsufficientStockForPromotionException;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\VendorListing;
 
 class InfluencerPromotionFeeService
@@ -11,7 +11,7 @@ class InfluencerPromotionFeeService
     /**
      * BIGINT base-currency units. Never divide or multiply by 100.
      */
-    public function getPromotionFeePerSlot(VendorListing|AdminProductListing $listing): int
+    public function getPromotionFeePerSlot(VendorListing|AdminListing $listing): int
     {
         if ($listing->promotion_fee_per_influencer_override !== null) {
             return (int) $listing->promotion_fee_per_influencer_override;
@@ -22,7 +22,7 @@ class InfluencerPromotionFeeService
         return $category !== null ? (int) $category->promotion_fee_per_influencer : 0;
     }
 
-    public function getInfluencerCommissionPct(VendorListing|AdminProductListing $listing): float
+    public function getInfluencerCommissionPct(VendorListing|AdminListing $listing): float
     {
         if ($listing->influencer_commission_pct !== null) {
             return (float) $listing->influencer_commission_pct;
@@ -33,7 +33,7 @@ class InfluencerPromotionFeeService
         return $category !== null ? (float) $category->influencer_commission_pct : 0.00;
     }
 
-    public function getAffiliateCommissionPct(VendorListing|AdminProductListing $listing): float
+    public function getAffiliateCommissionPct(VendorListing|AdminListing $listing): float
     {
         if ($listing->affiliate_commission_pct !== null) {
             return (float) $listing->affiliate_commission_pct;
@@ -55,7 +55,7 @@ class InfluencerPromotionFeeService
     /**
      * @throws InsufficientStockForPromotionException
      */
-    public function validateStockRequirement(VendorListing|AdminProductListing $listing): bool
+    public function validateStockRequirement(VendorListing|AdminListing $listing): bool
     {
         $available = (int) $listing->warehouseInventories->sum('quantity_available');
 

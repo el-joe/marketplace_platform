@@ -88,7 +88,7 @@ class WishlistOverviewController extends Controller
         $items = $group->items()
             ->with([
                 'vendorListing.productVariant.product',
-                'adminProductListing.productVariant.product',
+                'adminListing.productVariant.product',
                 'productVariant.product',
                 'productVariant.images',
             ])

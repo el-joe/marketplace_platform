@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Enums\MarketerType;
 use App\Exceptions\CurrencyMismatchException;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\MarketerConversion;
 use App\Models\OrderItem;
 use App\Models\VendorListing;
@@ -62,13 +62,13 @@ class InfluencerCommissionCalculationService
         ];
     }
 
-    private function resolveListing(MarketerConversion $conversion): VendorListing|AdminProductListing
+    private function resolveListing(MarketerConversion $conversion): VendorListing|AdminListing
     {
-        if ($conversion->admin_product_listing_id !== null) {
-            $listing = $conversion->adminProductListing;
+        if ($conversion->admin_listing_id !== null) {
+            $listing = $conversion->adminListing;
 
             if ($listing === null) {
-                throw new RuntimeException("AdminProductListing not found for conversion {$conversion->id}.");
+                throw new RuntimeException("AdminListing not found for conversion {$conversion->id}.");
             }
 
             return $listing;

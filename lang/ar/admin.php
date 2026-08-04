@@ -281,7 +281,7 @@ return [
         'dashboard'             => 'لوحة التحكم',
         'catalog'               => 'الكتالوج',
         'products'              => 'المنتجات',
-        'nawy_listings'         => 'قوائم Nawy Now',
+        'nawy_listings'         => 'قوائم المنصة',
         'categories'            => 'الفئات',
         'brands'                => 'العلامات التجارية',
         'warranty_plans'        => 'خطط الضمان',
@@ -9096,7 +9096,7 @@ return [
     ],
 
     // ─── Admin Product Listings (Now Nawy) ────────────────────────────────────
-    'admin_product_listings' => [
+    'admin_listings' => [
         'title'             => 'قوائم منتجات الإدارة',
         'page_subtitle'     => 'إدارة المنتجات المباعة مباشرة من قبل الإدارة — تغذي خلاصة Now Nawy.',
         'search_placeholder' => 'البحث باسم المنتج أو رقم الموديل…',
@@ -9104,6 +9104,15 @@ return [
         'product_col'       => 'المنتج',
         'country_col'       => 'الدولة',
         'price_col'         => 'السعر',
+        'stock_col'         => 'المخزون',
+        'daily_deal_col'    => 'عرض اليوم',
+        'aplus_col'         => 'محتوى A+',
+        'actions_col'       => 'إجراءات',
+        'all_countries'     => 'كل الدول',
+        'all_statuses'      => 'كل الحالات',
+        'daily_deal_only'   => 'عرض اليوم فقط',
+        'filter'            => 'تصفية',
+        'no_listings_found' => 'لا توجد قوائم.',
         'fulfillment_col'   => 'التنفيذ',
         'payment_col'       => 'الدفع',
         'now_nawy_col'      => 'Now Nawy',
@@ -9279,6 +9288,44 @@ return [
         'max_order_quantity' => 'الحد الأقصى لكمية الطلب',
         'low_stock_threshold' => 'حد المخزون المنخفض',
         'toggle_physical_section' => 'التفاصيل الفيزيائية (التغليف والأبعاد)',
+
+        // Platform (FBN) listing form banner
+        'platform_banner_title' => 'قائمة منصة — يتم التنفيذ دائماً بواسطة نوي (FBN إكسبرس)',
+        'platform_banner_body' => 'يتم شحن هذه القائمة من مستودع FBN تابع للمنصة وتظهر للعملاء بشارة إكسبرس وهوية "يُباع بواسطة نوي".',
+
+        // Form tabs
+        'tab_basic_info'        => 'معلومات أساسية',
+        'tab_fulfillment'       => 'التنفيذ والشحن',
+        'tab_dimensions'        => 'الأبعاد والمناولة',
+        'tab_platform_identity' => 'هوية المنصة',
+        'tab_aplus_content'     => 'محتوى A+',
+        'tab_settings'          => 'الإعدادات',
+
+        'price_base_units_label' => 'السعر (وحدات العملة الأساسية)',
+        'internal_cost_price_label' => 'سعر التكلفة الداخلي — لا يظهر للعملاء',
+        'variant_locked_hint' => 'لا يمكن التغيير بعد الإنشاء.',
+        'country_locked_hint' => 'لا يمكن التغيير بعد الإنشاء.',
+        'platform_fbn_warehouses_only' => 'تظهر فقط مستودعات FBN التابعة للمنصة.',
+        'no_platform_fbn_warehouses' => 'لا توجد مستودعات FBN تابعة للمنصة لهذه الدولة.',
+        'platform_covers_delivery' => 'المنصة تتحمل تكلفة التوصيل — يرى العميل توصيل مجاني',
+        'sold_by_en' => 'يُباع بواسطة (إنجليزي)',
+        'sold_by_ar' => 'يُباع بواسطة (عربي)',
+        'express_badge_label_en' => 'نص شارة إكسبرس (إنجليزي)',
+        'express_badge_label_ar' => 'نص شارة إكسبرس (عربي)',
+        'search_boost' => 'تعزيز البحث',
+        'search_boost_hint' => '10 = الميزة الافتراضية مقارنة بقوائم البائعين في البحث. 0 = بدون تعزيز. 20 = الحد الأقصى.',
+        'is_daily_deal' => 'عرض اليوم',
+        'daily_deal_ends_at' => 'موعد انتهاء عرض اليوم',
+        'aplus_headline_en' => 'عنوان A+ (إنجليزي)',
+        'aplus_headline_ar' => 'عنوان A+ (عربي)',
+        'aplus_video_url' => 'رابط فيديو عرض المنتج',
+        'aplus_video_url_hint' => 'رابط CDN بصيغة MP4/WebM.',
+        'aplus_images_label' => 'صور A+ الإضافية',
+        'aplus_images_hint' => 'روابط صور CDN، رابط واحد في كل سطر. تظهر كشريط صور إضافي في صفحة المنتج.',
+        'aplus_infographic_urls_label' => 'صور إنفوجرافيك',
+        'aplus_infographic_urls_hint' => 'لافتات الميزات. رابط واحد في كل سطر.',
+        'buy_box_eligible' => 'مؤهل لصندوق الشراء',
+        'campaign_enabled' => 'الحملة مفعّلة',
 
         // Influencer promotion tiers
         'influencer_promotion_tiers' => 'مستويات ترويج المؤثرين',

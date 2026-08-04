@@ -220,7 +220,7 @@ class CheckoutController extends Controller
                             'sub_order_id' => $subOrder->id,
                             'product_variant_id' => $item['product_variant_id'],
                             'vendor_listing_id' => $item['vendor_listing_id'],
-                            'admin_product_listing_id' => $item['admin_product_listing_id'],
+                            'admin_listing_id' => $item['admin_listing_id'],
                             'product_snapshot' => $this->buildProductSnapshot($item),
                             'vendor_id' => $item['vendor_id'],
                             'sku' => $listing->productVariant?->sku,

@@ -11,7 +11,7 @@ use App\Jobs\AutoReassignInfluencerJob;
 use App\Jobs\SendInfluencerPromotionWhatsAppNotificationJob;
 use App\Jobs\SendVendorFulfillmentAlertJob;
 use App\Models\Admin as AdminModel;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\InventoryMovement;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
@@ -71,15 +71,15 @@ class InfluencerPromotionRequestService
     {
         return DB::transaction(function () use ($data, $vendor) {
             $hasVendorListing = ! empty($data['vendor_listing_id']);
-            $hasAdminListing = ! empty($data['admin_product_listing_id']);
+            $hasAdminListing = ! empty($data['admin_listing_id']);
 
             if ($hasVendorListing === $hasAdminListing) {
-                throw new \InvalidArgumentException('Exactly one of vendor_listing_id or admin_product_listing_id must be provided.');
+                throw new \InvalidArgumentException('Exactly one of vendor_listing_id or admin_listing_id must be provided.');
             }
 
             $listing = $hasVendorListing
                 ? VendorListing::query()->findOrFail($data['vendor_listing_id'])
-                : AdminProductListing::query()->findOrFail($data['admin_product_listing_id']);
+                : AdminListing::query()->findOrFail($data['admin_listing_id']);
 
             $this->feeService->validateStockRequirement($listing);
 
@@ -89,7 +89,7 @@ class InfluencerPromotionRequestService
                     || $listing->fulfillment_model === 'cross_dock'
                     || $listing->global_system_type === 'merchant_fbp';
             } else {
-                $listingFulfillmentModel = $listing->fulfillment_type === 'global' ? 'admin_global' : 'admin_express';
+                $listingFulfillmentModel = $listing->global_system_type === 'express_fbn' ? 'admin_express' : 'admin_global';
                 $requiresWarehouseReceipt = false;
             }
 
@@ -101,7 +101,7 @@ class InfluencerPromotionRequestService
             $request = VendorInfluencerPromotionRequest::query()->create([
                 'vendor_id' => $vendor->id,
                 'vendor_listing_id' => $hasVendorListing ? $listing->id : null,
-                'admin_product_listing_id' => $hasAdminListing ? $listing->id : null,
+                'admin_listing_id' => $hasAdminListing ? $listing->id : null,
                 'status' => 'pending',
                 'listing_fulfillment_model' => $listingFulfillmentModel,
                 'requires_warehouse_receipt' => $requiresWarehouseReceipt,

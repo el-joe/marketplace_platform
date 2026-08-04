@@ -117,7 +117,7 @@ class PayoutController extends Controller
             ->with([
                 'items.subOrder',
                 'items.promotionRequest.vendorListing.productVariant.product',
-                'items.promotionRequest.adminProductListing.productVariant.product',
+                'items.promotionRequest.adminListing.productVariant.product',
                 'bankAccount',
             ])
             ->firstOrFail();

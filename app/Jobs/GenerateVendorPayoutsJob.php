@@ -108,7 +108,7 @@ class GenerateVendorPayoutsJob implements ShouldQueue
                             ]);
 
                             foreach ($calc['promotion_fee_requests'] ?? [] as $request) {
-                                $listing = $request->vendorListing ?? $request->adminProductListing;
+                                $listing = $request->vendorListing ?? $request->adminListing;
                                 $product = $listing?->productVariant?->product;
                                 $productName = $product?->name_en ?? $product?->name_ar ?? '—';
                                 $slots = $request->items->count();

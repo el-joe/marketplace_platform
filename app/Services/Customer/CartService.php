@@ -2,9 +2,9 @@
 
 namespace App\Services\Customer;
 
-use App\Enums\AdminProductListingStatus;
+use App\Enums\AdminListingStatus;
 use App\Enums\VendorListingStatus;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\AffiliatePromoCode;
 use App\Models\Cart;
 use App\Models\CartInventoryLock;
@@ -26,7 +26,7 @@ class CartService
         'items.vendorListing.productVariant.product.images',
         'items.vendorListing.primaryShippingMethod',
         'items.vendorListing.warehouseInventories',
-        'items.adminProductListing.productVariant.product.images',
+        'items.adminListing.productVariant.product.images',
         'items.selectedShippingMethod',
     ];
 
@@ -185,7 +185,7 @@ class CartService
     }
 
     /**
-     * @param array<int, array{vendor_listing_id?: string, admin_product_listing_id?: string, listing_type?: string, quantity: int, shipping_method_id?: ?string}> $items
+     * @param array<int, array{vendor_listing_id?: string, admin_listing_id?: string, listing_type?: string, quantity: int, shipping_method_id?: ?string}> $items
      * @return array<int, CartItem>
      */
     public function addItems(Cart $cart, array $items, string $countryId): array
@@ -194,7 +194,7 @@ class CartService
 
         foreach ($items as $item) {
             if (($item['listing_type'] ?? null) === 'admin') {
-                $added[] = $this->addAdminItem($cart, $item['admin_product_listing_id'], $item['quantity'], $item['shipping_method_id'] ?? null, $countryId);
+                $added[] = $this->addAdminItem($cart, $item['admin_listing_id'], $item['quantity'], $item['shipping_method_id'] ?? null, $countryId);
             } else {
                 $added[] = $this->addItem($cart, $item['vendor_listing_id'], $item['quantity'], $item['shipping_method_id'] ?? null, $countryId);
             }
@@ -207,19 +207,19 @@ class CartService
      * Adds a platform-owned admin listing to the cart. Only valid in the
      * nawy_now app context, and only for listings explicitly featured there.
      */
-    public function addAdminItem(Cart $cart, string $adminProductListingId, int $quantity, ?string $shippingMethodId, string $countryId): CartItem
+    public function addAdminItem(Cart $cart, string $adminListingId, int $quantity, ?string $shippingMethodId, string $countryId): CartItem
     {
         if (!$this->appContextService->isNawyNow()) {
             throw new \DomainException(__('common.exceptions.cart.admin_listing_not_allowed'));
         }
 
-        $listing = AdminProductListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($adminProductListingId);
+        $listing = AdminListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($adminListingId);
 
-        if ($listing->status !== AdminProductListingStatus::Active || !$listing->featured_in_nawy) {
+        if ($listing->status !== AdminListingStatus::Active) {
             throw new \DomainException(__('common.exceptions.cart.admin_listing_not_allowed'));
         }
 
-        $shippingMethodId = $this->resolveShippingMethodId($adminProductListingId, 'admin_product_listing', $countryId, $shippingMethodId);
+        $shippingMethodId = $this->resolveShippingMethodId($adminListingId, 'admin_listing', $countryId, $shippingMethodId);
 
         $available = $listing->warehouseInventories->sum('quantity_available');
         if ($available < $quantity) {
@@ -228,7 +228,7 @@ class CartService
 
         $currentCount = $cart->items()->count();
 
-        $existingItem = $cart->items()->where('admin_product_listing_id', $adminProductListingId)->first();
+        $existingItem = $cart->items()->where('admin_listing_id', $adminListingId)->first();
 
         if ($existingItem) {
             $newQty = $existingItem->quantity + $quantity;
@@ -250,7 +250,7 @@ class CartService
             }
             $item = $cart->items()->create([
                 'vendor_listing_id' => null,
-                'admin_product_listing_id' => $adminProductListingId,
+                'admin_listing_id' => $adminListingId,
                 'quantity' => $quantity,
                 'unit_price' => $listing->getRawOriginal('price'),
                 'added_at' => now(),
@@ -271,11 +271,11 @@ class CartService
     public function updateItem(Cart $cart, string $itemId, int $quantity, ?string $shippingMethodId, bool $shippingMethodProvided, string $countryId): CartItem
     {
         $item = $cart->items()->findOrFail($itemId);
-        $listingId = $item->vendor_listing_id ?? $item->admin_product_listing_id;
-        $listingType = $item->vendor_listing_id ? 'vendor_listing' : 'admin_product_listing';
+        $listingId = $item->vendor_listing_id ?? $item->admin_listing_id;
+        $listingType = $item->vendor_listing_id ? 'vendor_listing' : 'admin_listing';
         $listing = $item->vendor_listing_id
             ? VendorListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($listingId)
-            : AdminProductListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($listingId);
+            : AdminListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($listingId);
 
         $updates = ['quantity' => $quantity];
         if ($shippingMethodProvided) {
@@ -393,10 +393,10 @@ class CartService
         $priceChanges = [];
 
         foreach ($cart->items as $item) {
-            if ($item->admin_product_listing_id !== null) {
-                $listing = $item->adminProductListing;
+            if ($item->admin_listing_id !== null) {
+                $listing = $item->adminListing;
 
-                if (!$listing || $listing->status !== AdminProductListingStatus::Active || !$listing->featured_in_nawy) {
+                if (!$listing || $listing->status !== AdminListingStatus::Active) {
                     $item->delete();
                     continue;
                 }

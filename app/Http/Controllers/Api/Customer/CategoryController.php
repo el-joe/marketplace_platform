@@ -18,11 +18,9 @@ class CategoryController extends Controller
 
         $categories = $this->baseQuery($isNawyNow)->get();
 
-        if ($isNawyNow) {
-            $data = $categories->map(fn (Category $category) => $this->formatNawy($category))->values();
-        } else {
-            $data = $this->buildTree($categories);
-        }
+        $data = $isNawyNow
+            ? $categories->map(fn (Category $category) => $this->formatMarketplace($category))->values()
+            : $this->buildTree($categories);
 
         return ApiResponse::success($data);
     }
@@ -41,13 +39,8 @@ class CategoryController extends Controller
             ->where('parent_id', $category->id)
             ->get();
 
-        if ($isNawyNow) {
-            $data = $this->formatNawy($category);
-            $data['children'] = $children->map(fn (Category $child) => $this->formatNawy($child))->values();
-        } else {
-            $data = $this->formatMarketplace($category);
-            $data['children'] = $children->map(fn (Category $child) => $this->formatMarketplace($child))->values();
-        }
+        $data = $this->formatMarketplace($category);
+        $data['children'] = $children->map(fn (Category $child) => $this->formatMarketplace($child))->values();
 
         return ApiResponse::success($data);
     }
@@ -58,11 +51,7 @@ class CategoryController extends Controller
             ->where('is_active', 1)
             ->where('is_visible', 1);
 
-        if ($isNawyNow) {
-            $query->orderByDesc('nawy_is_featured')->orderBy('nawy_sort_order');
-        } else {
-            $query->orderBy('sort_order');
-        }
+        $query->orderBy('sort_order');
 
         return $query;
     }
@@ -102,15 +91,4 @@ class CategoryController extends Controller
         ];
     }
 
-    private function formatNawy(Category $category): array
-    {
-        return [
-            'id' => $category->id,
-            'name_ar' => $category->name_ar,
-            'name_en' => $category->name_en,
-            'slug' => $category->slug,
-            'nawy_icon_path' => $category->nawy_icon_path,
-            'nawy_is_featured' => (bool) $category->nawy_is_featured,
-        ];
-    }
 }

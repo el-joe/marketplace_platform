@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\CelebrityStoreProduct;
 use App\Models\Marketer;
 use App\Models\VendorListing;
@@ -80,7 +80,7 @@ class AdminCelebrityStoreController extends Controller
     {
         $data = $request->validate([
             'celebrity_marketer_id' => ['required', 'string', 'exists:marketers,id'],
-            'listing_type' => ['required', Rule::in(['vendor_listing', 'admin_product_listing'])],
+            'listing_type' => ['required', Rule::in(['vendor_listing', 'admin_listing'])],
             'listing_id' => ['required', 'string'],
             'promoter_commission_amount' => ['nullable', 'integer', 'min:0'],
             'admin_commission_pct_bps' => ['nullable', 'integer', 'min:0', 'max:10000'],
@@ -92,7 +92,7 @@ class AdminCelebrityStoreController extends Controller
         if ($isVendorListing) {
             $exists = VendorListing::whereKey($data['listing_id'])->exists();
         } else {
-            $exists = AdminProductListing::whereKey($data['listing_id'])->exists();
+            $exists = AdminListing::whereKey($data['listing_id'])->exists();
         }
 
         abort_unless($exists, 404, __('admin.celebrity_store.listing_not_found'));
@@ -102,7 +102,7 @@ class AdminCelebrityStoreController extends Controller
         $record = CelebrityStoreProduct::create([
             'celebrity_marketer_id' => $data['celebrity_marketer_id'],
             'vendor_listing_id' => $isVendorListing ? $data['listing_id'] : null,
-            'admin_product_listing_id' => $isVendorListing ? null : $data['listing_id'],
+            'admin_listing_id' => $isVendorListing ? null : $data['listing_id'],
             'promoter_commission_amount' => $data['promoter_commission_amount'] ?? 0,
             'admin_commission_pct_bps' => $data['admin_commission_pct_bps'] ?? 0,
             'currency_code' => $data['currency_code'] ?? 'SAR',
@@ -119,7 +119,7 @@ class AdminCelebrityStoreController extends Controller
             'causer_id' => $admin?->id,
             'event' => 'approved',
             'properties' => json_encode($record->only([
-                'celebrity_marketer_id', 'vendor_listing_id', 'admin_product_listing_id',
+                'celebrity_marketer_id', 'vendor_listing_id', 'admin_listing_id',
                 'promoter_commission_amount', 'currency_code', 'admin_commission_pct_bps',
             ])),
             'ip_address' => $request->ip(),
@@ -174,7 +174,7 @@ class AdminCelebrityStoreController extends Controller
             'causer_id' => $admin?->id,
             'event' => 'removed',
             'properties' => json_encode($product->only([
-                'celebrity_marketer_id', 'vendor_listing_id', 'admin_product_listing_id',
+                'celebrity_marketer_id', 'vendor_listing_id', 'admin_listing_id',
             ])),
             'ip_address' => $request->ip(),
         ]);
@@ -210,7 +210,7 @@ class AdminCelebrityStoreController extends Controller
         ]);
     }
 
-    /** Select2 AJAX search across vendor_listings + admin_product_listings. */
+    /** Select2 AJAX search across vendor_listings + admin_listings. */
     public function searchListings(Request $request): JsonResponse
     {
         $term = $request->input('q', '');
@@ -238,23 +238,22 @@ class AdminCelebrityStoreController extends Controller
             ];
         }
 
-        $adminListings = AdminProductListing::query()
-            ->join('product_variants as pv', 'pv.id', '=', 'admin_product_listings.product_variant_id')
+        $adminListings = AdminListing::query()
+            ->join('product_variants as pv', 'pv.id', '=', 'admin_listings.product_variant_id')
             ->join('products as p', 'p.id', '=', 'pv.product_id')
             ->whereNull('p.deleted_at')
             ->where(function ($q) use ($term) {
                 $q->where('p.name_en', 'like', "%{$term}%")
-                    ->orWhere('pv.sku', 'like', "%{$term}%")
-                    ->orWhere('admin_product_listings.platform_sku', 'like', "%{$term}%");
+                    ->orWhere('pv.sku', 'like', "%{$term}%");
             })
             ->orderBy('p.name_en')
             ->limit(20)
-            ->get(['admin_product_listings.id', 'p.name_en', 'pv.sku', 'admin_product_listings.platform_sku']);
+            ->get(['admin_listings.id', 'p.name_en', 'pv.sku']);
 
         foreach ($adminListings as $al) {
             $results[] = [
-                'id' => 'admin_product_listing:' . $al->id,
-                'text' => "{$al->name_en} [{$al->sku}] — Admin Listing ({$al->platform_sku})",
+                'id' => 'admin_listing:' . $al->id,
+                'text' => "{$al->name_en} [{$al->sku}] — Admin Listing",
             ];
         }
 

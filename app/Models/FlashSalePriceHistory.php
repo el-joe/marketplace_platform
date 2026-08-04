@@ -13,7 +13,7 @@ class FlashSalePriceHistory extends Model
 
     protected $fillable = [
         'vendor_listing_id',
-        'admin_product_listing_id',
+        'admin_listing_id',
         'price',
         'currency',
         'recorded_at',
@@ -34,8 +34,8 @@ class FlashSalePriceHistory extends Model
         return $this->belongsTo(VendorListing::class, 'vendor_listing_id');
     }
 
-    public function adminProductListing(): BelongsTo
+    public function adminListing(): BelongsTo
     {
-        return $this->belongsTo(AdminProductListing::class, 'admin_product_listing_id');
+        return $this->belongsTo(AdminListing::class, 'admin_listing_id');
     }
 }

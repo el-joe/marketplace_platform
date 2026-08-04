@@ -28,7 +28,7 @@ class MarketerCampaignService
 {
     /**
      * Create a new campaign from vendor panel.
-     * $data keys: vendor_listing_id|admin_product_listing_id, country_id, currency,
+     * $data keys: vendor_listing_id|admin_listing_id, country_id, currency,
      *             commission_type, max_commission_budget, title, notes,
      *             marketer_vendor_ids (array of UUIDs),
      *             tiered_rules (array of {from_sale_number, commission_amount} — only for tiered type)
@@ -112,7 +112,7 @@ class MarketerCampaignService
             $campaign = MarketerCampaign::create([
                 'vendor_id'                        => $vendor->id,
                 'vendor_listing_id'                => $data['vendor_listing_id'] ?? null,
-                'admin_product_listing_id'         => $data['admin_product_listing_id'] ?? null,
+                'admin_listing_id'         => $data['admin_listing_id'] ?? null,
                 'country_id'                       => $data['country_id'],
                 'currency'                         => $data['currency'],
                 'commission_type'                  => $data['commission_type'],

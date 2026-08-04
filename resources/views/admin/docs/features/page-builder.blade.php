@@ -44,7 +44,6 @@
                         <tr><td class="px-4 py-2"><code>featured_vendor</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.featured_vendor_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.featured_vendor_sources') }}</td></tr>
                         <tr><td class="px-4 py-2"><code>custom_html</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.custom_html_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.custom_html_sources') }}</td></tr>
                         <tr><td class="px-4 py-2"><code>banner_single</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.banner_single_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.banner_single_sources') }}</td></tr>
-                        <tr><td class="px-4 py-2"><code>now_nawy_feed</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.now_nawy_feed_purpose') }}</td><td class="px-4 py-2">admin_product_listings</td></tr>
                     </tbody>
                 </table>
             </div>

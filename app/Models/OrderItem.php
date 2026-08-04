@@ -28,7 +28,7 @@ class OrderItem extends Model
         'sub_order_id',
         'product_variant_id',
         'vendor_listing_id',
-        'admin_product_listing_id',
+        'admin_listing_id',
         'product_snapshot',
         'vendor_id',
         'sku',
@@ -75,9 +75,9 @@ class OrderItem extends Model
         return $this->belongsTo(VendorListing::class);
     }
 
-    public function adminProductListing(): BelongsTo
+    public function adminListing(): BelongsTo
     {
-        return $this->belongsTo(AdminProductListing::class);
+        return $this->belongsTo(AdminListing::class, 'admin_listing_id');
     }
 
     public function vendor(): BelongsTo

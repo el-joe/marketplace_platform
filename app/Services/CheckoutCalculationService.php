@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Enums\GlobalSystemType;
 use App\Models\Address;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\City;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
@@ -172,7 +172,7 @@ class CheckoutCalculationService
     }
 
     /**
-     * @return array<int, array{vendor_listing_id: ?string, admin_product_listing_id: ?string, vendor_id: ?string, product_variant_id: string, quantity: int, unit_price: int, weight_grams: int, listing: mixed, is_admin: bool}>
+     * @return array<int, array{vendor_listing_id: ?string, admin_listing_id: ?string, vendor_id: ?string, product_variant_id: string, quantity: int, unit_price: int, weight_grams: int, listing: mixed, is_admin: bool}>
      */
     public function resolveCartItems(array $cartItems): array
     {
@@ -187,14 +187,14 @@ class CheckoutCalculationService
             $isAdmin = ($cartItem['listing_type'] ?? null) === 'admin';
 
             if ($isAdmin) {
-                $listing = AdminProductListing::with('productVariant')->find($cartItem['listing_id']);
+                $listing = AdminListing::with('productVariant')->find($cartItem['listing_id']);
                 if (! $listing) {
                     throw ValidationException::withMessages(["cart_items.$index.listing_id" => 'Listing not found.']);
                 }
 
                 $resolved[] = [
                     'vendor_listing_id' => null,
-                    'admin_product_listing_id' => $listing->id,
+                    'admin_listing_id' => $listing->id,
                     'vendor_id' => null,
                     'product_variant_id' => $listing->product_variant_id,
                     'quantity' => $quantity,
@@ -214,7 +214,7 @@ class CheckoutCalculationService
 
             $resolved[] = [
                 'vendor_listing_id' => $listing->id,
-                'admin_product_listing_id' => null,
+                'admin_listing_id' => null,
                 'vendor_id' => $listing->vendor_id,
                 'product_variant_id' => $listing->product_variant_id,
                 'quantity' => $quantity,

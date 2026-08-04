@@ -16,8 +16,8 @@ class WishlistItemResource extends JsonResource
     public function toArray(Request $request): array
     {
         $item = $this->resource;
-        $isAdmin = !is_null($item->admin_product_listing_id);
-        $listing = $isAdmin ? $item->adminProductListing : $item->vendorListing;
+        $isAdmin = !is_null($item->admin_listing_id);
+        $listing = $isAdmin ? $item->adminListing : $item->vendorListing;
 
         return [
             'id' => $item->id,

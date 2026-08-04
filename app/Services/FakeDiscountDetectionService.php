@@ -27,8 +27,8 @@ class FakeDiscountDetectionService
 
         $history = FlashSalePriceHistory::query()
             ->when(
-                $submission->admin_product_listing_id !== null,
-                fn($q) => $q->where('admin_product_listing_id', $submission->admin_product_listing_id),
+                $submission->admin_listing_id !== null,
+                fn($q) => $q->where('admin_listing_id', $submission->admin_listing_id),
                 fn($q) => $q->where('vendor_listing_id', $submission->vendor_listing_id)
             )
             ->where('recorded_at', '>=', now()->subDays(30))

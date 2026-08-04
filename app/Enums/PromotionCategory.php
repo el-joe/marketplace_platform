@@ -7,7 +7,6 @@ enum PromotionCategory: int
     case VendorRequests = 1;
     case PeerInfluencerProducts = 2;
     case AdminIntermediary = 3;
-    case NawyNow = 4;
 
     public function label(): string
     {

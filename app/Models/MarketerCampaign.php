@@ -13,7 +13,7 @@ class MarketerCampaign extends Model
     use HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'vendor_id', 'vendor_listing_id', 'admin_product_listing_id',
+        'vendor_id', 'vendor_listing_id', 'admin_listing_id',
         'country_id', 'currency', 'commission_type',
         'max_commission_budget', 'platform_commission_amount', 'marketer_commission_amount',
         'requested_marketer_vendor_ids',
@@ -42,7 +42,7 @@ class MarketerCampaign extends Model
 
     public function adminListing(): BelongsTo
     {
-        return $this->belongsTo(AdminProductListing::class, 'admin_product_listing_id');
+        return $this->belongsTo(AdminListing::class, 'admin_listing_id');
     }
 
     public function country(): BelongsTo
@@ -94,7 +94,7 @@ class MarketerCampaign extends Model
 
     public function isOwnedByAdmin(): bool
     {
-        return $this->admin_product_listing_id !== null;
+        return $this->admin_listing_id !== null;
     }
 
     public function totalSamplesFor(int $marketerCount): int

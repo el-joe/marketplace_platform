@@ -15,7 +15,7 @@ class ProductCostReference extends Model
     protected $fillable = [
         'product_id',
         'vendor_listing_id',
-        'admin_product_listing_id',
+        'admin_listing_id',
         'manufacturer_name',
         'manufacturer_url',
         'manufacturer_sku',
@@ -56,9 +56,9 @@ class ProductCostReference extends Model
         return $this->belongsTo(VendorListing::class);
     }
 
-    public function adminProductListing(): BelongsTo
+    public function adminListing(): BelongsTo
     {
-        return $this->belongsTo(AdminProductListing::class);
+        return $this->belongsTo(AdminListing::class);
     }
 
     public function createdByAdmin(): BelongsTo

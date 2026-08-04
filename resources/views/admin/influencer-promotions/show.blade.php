@@ -24,7 +24,7 @@
         'reassigned' => 'primary',
         'cancelled' => 'gray',
     ];
-    $listing = $promotionRequest->vendorListing ?? $promotionRequest->adminProductListing;
+    $listing = $promotionRequest->vendorListing ?? $promotionRequest->adminListing;
     $productName = $listing?->productVariant?->product?->name_en ?? '—';
 @endphp
 

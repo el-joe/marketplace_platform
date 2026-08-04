@@ -71,10 +71,10 @@ use App\Observers\SubOrderObserver;
 use App\Observers\VendorListingObserver;
 use App\Observers\WarrantyPurchaseObserver;
 use App\Models\WarrantyPurchase;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Observers\AdminProductListingObserver;
+use App\Observers\AdminListingObserver;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -151,7 +151,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(PaidAdSlot::class, AdSlotPolicy::class);
 
         VendorListing::observe(VendorListingObserver::class);
-        AdminProductListing::observe(AdminProductListingObserver::class);
+        AdminListing::observe(AdminListingObserver::class);
         WarrantyPurchase::observe(WarrantyPurchaseObserver::class);
         SubOrder::observe(SubOrderObserver::class);
 

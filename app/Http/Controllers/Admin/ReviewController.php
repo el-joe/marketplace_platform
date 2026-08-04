@@ -63,7 +63,7 @@ class ReviewController extends Controller
     private function buildReviewsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $query = Review::query()
-            ->with(['product.primaryImage', 'customer', 'country', 'vendorListing', 'adminProductListing'])
+            ->with(['product.primaryImage', 'customer', 'country', 'vendorListing', 'adminListing'])
             ->join('products', 'products.id', '=', 'reviews.product_id')
             ->leftJoin('customers', 'customers.id', '=', 'reviews.customer_id')
             ->select('reviews.*');
@@ -74,7 +74,7 @@ class ReviewController extends Controller
             'verified_only' => fn($q, $v) => $v ? $q->where('reviews.is_verified_purchase', 1) : $q,
             'ai_flagged' => fn($q, $v) => $v ? $q->whereIn('reviews.status', [ReviewStatus::Flagged, ReviewStatus::AutoFlagged])->orWhereNotNull('reviews.ai_flag_reason') : $q,
             'listing_type' => fn($q, $v) => match ($v) {
-                'admin' => $q->whereNotNull('reviews.admin_product_listing_id'),
+                'admin' => $q->whereNotNull('reviews.admin_listing_id'),
                 'vendor' => $q->whereNotNull('reviews.vendor_listing_id'),
                 default => $q,
             },
@@ -240,7 +240,7 @@ class ReviewController extends Controller
             'country',
             'orderItem',
             'vendorListing',
-            'adminProductListing',
+            'adminListing',
             'vendorReply.vendor',
             'moderatedByAdmin',
             'files',

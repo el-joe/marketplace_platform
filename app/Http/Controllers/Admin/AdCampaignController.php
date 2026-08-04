@@ -6,7 +6,7 @@ use App\Enums\AdCampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdCampaign;
 use App\Models\AdCampaignProduct;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\VendorListing;
 use App\Notifications\Vendor\AdCampaignApproved;
 use App\Notifications\Vendor\AdCampaignRejected;
@@ -221,7 +221,7 @@ class AdCampaignController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.view'), 403);
 
-        $campaign->load(['vendor', 'country', 'approvedByAdmin', 'products.vendorListing', 'products.adminProductListing', 'keywords', 'categoryTargets.category', 'fraudPatterns']);
+        $campaign->load(['vendor', 'country', 'approvedByAdmin', 'products.vendorListing', 'products.adminListing', 'keywords', 'categoryTargets.category', 'fraudPatterns']);
 
         // Last 7-day performance
         $perf7 = $campaign->dailyStats()
@@ -276,7 +276,7 @@ class AdCampaignController extends Controller
         $query = AdCampaignProduct::query()
             ->with([
                 'vendorListing.productVariant.product',
-                'adminProductListing.productVariant.product',
+                'adminListing.productVariant.product',
             ])
             ->where('ad_campaign_id', $campaign->id);
 
@@ -290,7 +290,7 @@ class AdCampaignController extends Controller
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function (AdCampaignProduct $p) {
-            $isAdmin = (bool) $p->admin_product_listing_id;
+            $isAdmin = (bool) $p->admin_listing_id;
             $listing = $p->listing;
 
             $typeBadge = $isAdmin
@@ -319,7 +319,7 @@ class AdCampaignController extends Controller
         $validated = $request->validate([
             'listing_type' => ['required', 'in:vendor,admin'],
             'vendor_listing_id' => ['required_if:listing_type,vendor', 'nullable', 'exists:vendor_listings,id'],
-            'admin_product_listing_id' => ['required_if:listing_type,admin', 'nullable', 'exists:admin_product_listings,id'],
+            'admin_listing_id' => ['required_if:listing_type,admin', 'nullable', 'exists:admin_listings,id'],
         ]);
 
         $isAdmin = $validated['listing_type'] === 'admin';
@@ -327,7 +327,7 @@ class AdCampaignController extends Controller
         $exists = AdCampaignProduct::where('ad_campaign_id', $campaign->id)
             ->when(
                 $isAdmin,
-                fn($q) => $q->where('admin_product_listing_id', $validated['admin_product_listing_id']),
+                fn($q) => $q->where('admin_listing_id', $validated['admin_listing_id']),
                 fn($q) => $q->where('vendor_listing_id', $validated['vendor_listing_id'])
             )
             ->exists();
@@ -342,7 +342,7 @@ class AdCampaignController extends Controller
             'ad_campaign_id' => $campaign->id,
             'vendor_id' => $isAdmin ? null : $vendorListing?->vendor_id,
             'vendor_listing_id' => $isAdmin ? null : $validated['vendor_listing_id'],
-            'admin_product_listing_id' => $isAdmin ? $validated['admin_product_listing_id'] : null,
+            'admin_listing_id' => $isAdmin ? $validated['admin_listing_id'] : null,
             'is_active' => true,
         ]);
 
@@ -394,7 +394,7 @@ class AdCampaignController extends Controller
 
         $q = $request->input('q', '');
 
-        $listings = AdminProductListing::active()
+        $listings = AdminListing::active()
             ->when($q !== '', fn($query) => $query->where(
                 fn($w) => $w->where('platform_sku', 'like', "%{$q}%")
                     ->orWhereHas('productVariant.product', fn($p) => $p->where('name_en', 'like', "%{$q}%"))
@@ -402,7 +402,7 @@ class AdCampaignController extends Controller
             ->with('productVariant.product')
             ->limit(20)
             ->get()
-            ->map(fn(AdminProductListing $l) => [
+            ->map(fn(AdminListing $l) => [
                 'id' => $l->id,
                 'text' => ($l->productVariant?->product?->name_en ?? 'Unknown') . ' (' . $l->platform_sku . ')',
                 'price' => $l->price,

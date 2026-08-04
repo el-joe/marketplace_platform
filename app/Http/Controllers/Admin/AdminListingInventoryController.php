@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\WarehouseInventory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ class AdminListingInventoryController extends Controller
 {
     public function index(string $listingId): JsonResponse
     {
-        $listing = AdminProductListing::with('warehouseInventories.warehouse')->findOrFail($listingId);
+        $listing = AdminListing::with('warehouseInventories.warehouse')->findOrFail($listingId);
 
         return response()->json([
             'success' => true,
@@ -24,7 +24,7 @@ class AdminListingInventoryController extends Controller
 
     public function store(Request $request, string $listingId): JsonResponse
     {
-        $listing = AdminProductListing::findOrFail($listingId);
+        $listing = AdminListing::findOrFail($listingId);
 
         $data = $request->validate([
             'warehouse_id' => ['required', 'exists:warehouses,id'],
@@ -35,7 +35,7 @@ class AdminListingInventoryController extends Controller
             'reorder_point' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $exists = WarehouseInventory::where('admin_product_listing_id', $listing->id)
+        $exists = WarehouseInventory::where('admin_listing_id', $listing->id)
             ->where('warehouse_id', $data['warehouse_id'])
             ->exists();
 
@@ -48,7 +48,7 @@ class AdminListingInventoryController extends Controller
 
         $inventory = DB::transaction(function () use ($listing, $data) {
             return WarehouseInventory::create([
-                'admin_product_listing_id' => $listing->id,
+                'admin_listing_id' => $listing->id,
                 'vendor_listing_id' => null,
                 'warehouse_id' => $data['warehouse_id'],
                 'quantity_on_hand' => $data['qty_on_hand'],
@@ -68,7 +68,7 @@ class AdminListingInventoryController extends Controller
 
     public function update(Request $request, string $listingId, string $inventoryId): JsonResponse
     {
-        $inventory = WarehouseInventory::where('admin_product_listing_id', $listingId)
+        $inventory = WarehouseInventory::where('admin_listing_id', $listingId)
             ->where('id', $inventoryId)
             ->firstOrFail();
 

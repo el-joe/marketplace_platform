@@ -165,12 +165,6 @@ class PageBlock extends Model
             case 'divider':
                 return 'Divider';
 
-            case 'nawy_carousel':
-                $filter = $cfg['fulfillment_filter'] ?? 'all';
-                $limit  = $cfg['limit'] ?? 10;
-                $title  = $cfg['title_en'] ?? 'Now Nawy';
-                return sprintf('%s — %s, up to %d items', $title, $filter === 'all' ? 'all types' : $filter, $limit);
-
             default:
                 return optional($this->blockType)->label_en ?? $this->block_type;
         }

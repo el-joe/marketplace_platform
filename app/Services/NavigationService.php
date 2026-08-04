@@ -67,7 +67,7 @@ class NavigationService
                     ],
                     [
                         'label' => __('admin.nav.nawy_listings'),
-                        'route' => 'admin.admin-product-listings.index',
+                        'route' => 'admin.admin-listings.index',
                         'icon' => 'sparkles',
                         'permission' => 'admin_listings.view',
                         'badge' => $this->cachedBadge('out_of_stock_admin_listings', fn() => $this->countOutOfStockAdminListings(), 60),
@@ -903,8 +903,8 @@ class NavigationService
     protected function countOutOfStockAdminListings(): int
     {
         try {
-            return (int) \App\Models\AdminProductListing::query()
-                ->where('status', \App\Enums\AdminProductListingStatus::OutOfStock)
+            return (int) \App\Models\AdminListing::query()
+                ->where('status', \App\Enums\AdminListingStatus::OutOfStock)
                 ->count();
         } catch (\Throwable) {
             return 0;

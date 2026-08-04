@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreFlashSaleRequest;
 use App\Http\Requests\Admin\StoreFlashSaleSubmissionRequest;
 use App\Http\Requests\Admin\UpdateFlashSaleRequest;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\FlashSale;
@@ -443,7 +443,7 @@ class FlashSaleController extends Controller
         $query = FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
             ->with([
                 'vendorListing.productVariant.product.images',
-                'adminProductListing.productVariant.product.images',
+                'adminListing.productVariant.product.images',
             ])
             ->leftJoin('vendors', 'vendors.id', '=', 'flash_sale_submissions.vendor_id')
             ->select('flash_sale_submissions.*', 'vendors.store_name as vendor_store_name');
@@ -457,8 +457,8 @@ class FlashSaleController extends Controller
 
         return $this->dataTableResponse($request, $query, [], function ($row) use ($flashSale) {
             $analysis = $this->fakeDiscountService->analyze($row);
-            $isAdminListing = $row->admin_product_listing_id !== null;
-            $listing = $isAdminListing ? $row->adminProductListing : $row->vendorListing;
+            $isAdminListing = $row->admin_listing_id !== null;
+            $listing = $isAdminListing ? $row->adminListing : $row->vendorListing;
             $variant = $listing?->productVariant;
             $product = $variant?->product;
             $productImage = $product?->images?->where('is_primary', true)->first();
@@ -469,7 +469,7 @@ class FlashSaleController extends Controller
             return [
                 'id' => $row->id,
                 'vendor_listing_id' => $row->vendor_listing_id,
-                'admin_product_listing_id' => $row->admin_product_listing_id,
+                'admin_listing_id' => $row->admin_listing_id,
                 'type' => $isAdminListing ? 'admin' : 'vendor',
                 'product_name' => e($product?->name_en ?? 'Unknown'),
                 'variant_name' => e($variant?->name_en ?? ''),
@@ -527,14 +527,14 @@ class FlashSaleController extends Controller
         ];
 
         if ($data['submission_type'] === 'admin') {
-            $listing = AdminProductListing::findOrFail($data['admin_product_listing_id']);
+            $listing = AdminListing::findOrFail($data['admin_listing_id']);
 
-            $payload['admin_product_listing_id'] = $listing->id;
+            $payload['admin_listing_id'] = $listing->id;
             $payload['vendor_listing_id'] = null;
             $payload['vendor_id'] = null;
             $payload['flash_price_currency'] = $listing->currency;
 
-            $avg30d = FlashSalePriceHistory::where('admin_product_listing_id', $listing->id)
+            $avg30d = FlashSalePriceHistory::where('admin_listing_id', $listing->id)
                 ->where('recorded_at', '>=', now()->subDays(30))
                 ->avg('price');
             $payload['reference_price_30d'] = $avg30d ? (int) round($avg30d) : $originalPrice;
@@ -544,7 +544,7 @@ class FlashSaleController extends Controller
                 ->firstOrFail();
 
             $payload['vendor_listing_id'] = $listing->id;
-            $payload['admin_product_listing_id'] = null;
+            $payload['admin_listing_id'] = null;
             $payload['vendor_id'] = $data['vendor_id'];
             $payload['flash_price_currency'] = $listing->currency;
 
@@ -619,28 +619,24 @@ class FlashSaleController extends Controller
     {
         $term = $request->input('q', '');
 
-        $listings = AdminProductListing::query()
-            ->join('product_variants as pv', 'pv.id', '=', 'admin_product_listings.product_variant_id')
+        $listings = AdminListing::query()
+            ->join('product_variants as pv', 'pv.id', '=', 'admin_listings.product_variant_id')
             ->join('products as p', 'p.id', '=', 'pv.product_id')
-            ->whereNull('admin_product_listings.deleted_at')
-            ->where(function ($q) use ($term) {
-                $q->where('p.name_en', 'like', "%{$term}%")
-                    ->orWhere('admin_product_listings.platform_sku', 'like', "%{$term}%");
-            })
+            ->whereNull('admin_listings.deleted_at')
+            ->where('p.name_en', 'like', "%{$term}%")
             ->orderBy('p.name_en')
             ->limit(30)
             ->get([
-                'admin_product_listings.id',
-                'admin_product_listings.platform_sku',
-                'admin_product_listings.price',
-                'admin_product_listings.currency',
+                'admin_listings.id',
+                'admin_listings.price',
+                'admin_listings.currency',
                 'p.name_en',
             ]);
 
         return response()->json([
             'results' => $listings->map(fn($l) => [
                 'id' => $l->id,
-                'text' => "{$l->name_en} — {$l->platform_sku}",
+                'text' => $l->name_en,
                 'price' => $l->price,
                 'currency' => $l->currency,
             ]),
@@ -720,18 +716,18 @@ class FlashSaleController extends Controller
     {
         $submission->load([
             'vendorListing.productVariant.product.images',
-            'adminProductListing.productVariant.product.images',
+            'adminListing.productVariant.product.images',
             'histories',
             'reviewedByAdmin',
         ]);
 
         $analysis = $this->fakeDiscountService->analyze($submission);
-        $isAdminListing = $submission->admin_product_listing_id !== null;
+        $isAdminListing = $submission->admin_listing_id !== null;
 
         $priceHistory = FlashSalePriceHistory::query()
             ->when(
                 $isAdminListing,
-                fn($q) => $q->where('admin_product_listing_id', $submission->admin_product_listing_id),
+                fn($q) => $q->where('admin_listing_id', $submission->admin_listing_id),
                 fn($q) => $q->where('vendor_listing_id', $submission->vendor_listing_id)
             )
             ->where('recorded_at', '>=', now()->subDays(30))
@@ -743,7 +739,7 @@ class FlashSaleController extends Controller
                 'price_formatted' => number_format($r->price / 100, 2),
             ]);
 
-        $listing = $isAdminListing ? $submission->adminProductListing : $submission->vendorListing;
+        $listing = $isAdminListing ? $submission->adminListing : $submission->vendorListing;
         $variant = $listing?->productVariant;
         $product = $variant?->product;
         $image = $product?->images?->where('is_primary', true)->first();
@@ -763,7 +759,7 @@ class FlashSaleController extends Controller
                 'product_name' => e($product?->name_en ?? 'Unknown'),
                 'product_image_url' => $image?->url ?? null,
                 'vendor_listing_id' => $submission->vendor_listing_id,
-                'admin_product_listing_id' => $submission->admin_product_listing_id,
+                'admin_listing_id' => $submission->admin_listing_id,
                 'flash_price_raw' => $submission->flash_price,
                 'original_price_raw' => $submission->original_price,
                 'flash_price_formatted' => number_format($submission->flash_price / 100, 2) . ' ' . $submission->flash_price_currency,
@@ -787,14 +783,14 @@ class FlashSaleController extends Controller
     public function priceHistory(Request $request): JsonResponse
     {
         $request->validate([
-            'vendor_listing_id' => 'required_without:admin_product_listing_id|nullable|exists:vendor_listings,id',
-            'admin_product_listing_id' => 'required_without:vendor_listing_id|nullable|exists:admin_product_listings,id',
+            'vendor_listing_id' => 'required_without:admin_listing_id|nullable|exists:vendor_listings,id',
+            'admin_listing_id' => 'required_without:vendor_listing_id|nullable|exists:admin_listings,id',
         ]);
 
         $rows = FlashSalePriceHistory::query()
             ->when(
-                $request->filled('admin_product_listing_id'),
-                fn($q) => $q->where('admin_product_listing_id', $request->admin_product_listing_id),
+                $request->filled('admin_listing_id'),
+                fn($q) => $q->where('admin_listing_id', $request->admin_listing_id),
                 fn($q) => $q->where('vendor_listing_id', $request->vendor_listing_id)
             )
             ->where('recorded_at', '>=', now()->subDays(30))
@@ -837,7 +833,7 @@ class FlashSaleController extends Controller
         ];
 
         $top = FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
-            ->with(['vendorListing.productVariant.product', 'adminProductListing.productVariant.product'])
+            ->with(['vendorListing.productVariant.product', 'adminListing.productVariant.product'])
             ->orderByDesc('quantity_sold')
             ->limit(5)
             ->get()

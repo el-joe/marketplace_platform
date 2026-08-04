@@ -2,11 +2,11 @@
 
 namespace App\Services\Customer;
 
-use App\Enums\AdminProductListingStatus;
+use App\Enums\AdminListingStatus;
 use App\Enums\ProductStatus;
 use App\Enums\VendorGlobalStatus;
 use App\Enums\VendorListingStatus;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Country;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -107,21 +107,16 @@ class ListingIdentifierService
     }
 
     /**
-     * Resolve an AdminProductListing (nawy_now context) from any identifier type:
-     * admin listing UUID, platform_sku, or product_slug (via product_variant -> product).
-     * Only active listings that are featured_in_nawy are returned.
+     * Resolve an AdminListing (admin listing mode) from any identifier type:
+     * admin listing UUID, or product_slug (via product_variant -> product).
+     * Only active listings are returned.
      */
-    public function resolveAdminListing(string $identifier, string $countryId): ?AdminProductListing
+    public function resolveAdminListing(string $identifier, string $countryId): ?AdminListing
     {
-        $base = fn () => AdminProductListing::where('country_id', $countryId)
-            ->where('status', AdminProductListingStatus::Active->value)
-            ->where('featured_in_nawy', true);
+        $base = fn () => AdminListing::where('country_id', $countryId)
+            ->where('status', AdminListingStatus::Active->value);
 
         $listing = $base()->where('id', $identifier)->with(self::ADMIN_EAGER_LOADS)->first();
-
-        if (!$listing) {
-            $listing = $base()->where('platform_sku', $identifier)->with(self::ADMIN_EAGER_LOADS)->first();
-        }
 
         if ($listing) {
             return $listing;
@@ -219,7 +214,7 @@ class ListingIdentifierService
      * Build the canonical listing URL identifier string.
      * Format: "{product_variant_sku}--{listing_id_short}"
      */
-    public function buildListingRef(VendorListing|AdminProductListing $listing): string
+    public function buildListingRef(VendorListing|AdminListing $listing): string
     {
         $sku = $listing->productVariant->sku;
         $shortId = substr(str_replace('-', '', $listing->id), 0, 8);

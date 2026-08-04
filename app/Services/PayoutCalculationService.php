@@ -195,7 +195,7 @@ class PayoutCalculationService
             ->where('fee_deducted', false)
             ->where('fee_deduction_timing', 'weekly_settlement')
             ->whereIn('status', ['partially_accepted', 'fully_accepted', 'completed'])
-            ->with(['vendorListing.productVariant.product', 'adminProductListing.productVariant.product', 'items'])
+            ->with(['vendorListing.productVariant.product', 'adminListing.productVariant.product', 'items'])
             ->get();
     }
 

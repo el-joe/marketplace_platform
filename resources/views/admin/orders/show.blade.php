@@ -270,8 +270,8 @@
                                                                     <p class="font-medium text-gray-900 text-sm">
                                                                         {{ $snap['name_en'] ?? $snap['name'] ?? __('admin.orders.product') . ' #' . $item->sku }}
                                                                     </p>
-                                                                    @if($item->admin_product_listing_id)
-                                                                        <a href="{{ route('admin.admin-product-listings.show', $item->admin_product_listing_id) }}">
+                                                                    @if($item->admin_listing_id)
+                                                                        <a href="{{ route('admin.admin-listings.show', $item->admin_listing_id) }}">
                                                                             <x-badge color="primary" class="text-xs">{{ __('admin.orders.platform_listing') }}</x-badge>
                                                                         </a>
                                                                     @elseif($item->vendor_listing_id)

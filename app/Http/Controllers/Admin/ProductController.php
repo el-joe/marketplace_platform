@@ -651,7 +651,7 @@ class ProductController extends Controller
 
         $imagesCount = $variantModel->images()->count();
         $vendorListingCount = $variantModel->vendorListings()->whereNull('deleted_at')->count();
-        $adminListingCount = $variantModel->adminProductListings()->whereNull('deleted_at')->count();
+        $adminListingCount = $variantModel->adminListings()->whereNull('deleted_at')->count();
 
         $bestListingId = $this->cheapestActiveVendorListingId($variantModel->id);
 

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\VendorListing;
 use Illuminate\Support\Facades\Cache;
 
@@ -44,7 +44,7 @@ class CachedListingResolver
         Cache::forget($this->vendorCacheKey($listing->product_variant_id, $listing->country_id));
     }
 
-    public function bustAdminListing(AdminProductListing $listing): void
+    public function bustAdminListing(AdminListing $listing): void
     {
         Cache::forget($this->adminCacheKey($listing->product_variant_id, $listing->country_id));
     }

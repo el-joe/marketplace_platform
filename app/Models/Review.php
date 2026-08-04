@@ -25,7 +25,7 @@ class Review extends Model
     protected $fillable = [
         'product_id',
         'vendor_listing_id',
-        'admin_product_listing_id',
+        'admin_listing_id',
         'customer_id',
         'order_item_id',
         'country_id',
@@ -50,9 +50,9 @@ class Review extends Model
         return $this->belongsTo(VendorListing::class);
     }
 
-    public function adminProductListing(): BelongsTo
+    public function adminListing(): BelongsTo
     {
-        return $this->belongsTo(AdminProductListing::class);
+        return $this->belongsTo(AdminListing::class, 'admin_listing_id');
     }
 
     public function customer(): BelongsTo
@@ -90,15 +90,15 @@ class Review extends Model
         return $this->morphMany(File::class, 'model');
     }
 
-    public function listing(): VendorListing|AdminProductListing|null
+    public function listing(): VendorListing|AdminListing|null
     {
-        return $this->admin_product_listing_id
-            ? $this->adminProductListing
+        return $this->admin_listing_id
+            ? $this->adminListing
             : $this->vendorListing;
     }
 
     public function listingType(): string
     {
-        return $this->admin_product_listing_id ? 'admin' : 'vendor';
+        return $this->admin_listing_id ? 'admin' : 'vendor';
     }
 }

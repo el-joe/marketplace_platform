@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\CountryShippingSetting;
 use App\Models\ShippingMethod;
 use App\Models\VendorListing;
@@ -128,7 +128,7 @@ class ShippingMethodResolverService
         ];
     }
 
-    private function loadListing(string $listingId, string $listingType): VendorListing|AdminProductListing|null
+    private function loadListing(string $listingId, string $listingType): VendorListing|AdminListing|null
     {
         $with = ['productVariant.product.category', 'country', 'marketplaceShippingRule'];
 
@@ -136,14 +136,12 @@ class ShippingMethodResolverService
             return VendorListing::query()->with($with)->find($listingId);
         }
 
-        return AdminProductListing::query()->with($with)->find($listingId);
+        return AdminListing::query()->with($with)->find($listingId);
     }
 
-    private function resolveFbpField(VendorListing|AdminProductListing $listing, string $listingType): string
+    private function resolveFbpField(VendorListing|AdminListing $listing, string $listingType): string
     {
-        $fulfillment = $listingType === 'vendor_listing'
-            ? $listing->fulfillment_model
-            : $listing->fulfillment_type;
+        $fulfillment = $listing->fulfillment_model;
 
         $fulfillment = $fulfillment instanceof \BackedEnum ? $fulfillment->value : $fulfillment;
 
