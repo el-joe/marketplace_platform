@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\ProductStatus;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -78,5 +79,14 @@ class UpdateProductRequest extends FormRequest
             'brand_id' => 'brand',
             'gtin' => 'barcode (GTIN)',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if ($this->boolean('has_variants') && count(array_filter((array) $this->input('variants', []))) === 0) {
+                $validator->errors()->add('variants', 'Please add at least one variant, or turn off "Has Variant".');
+            }
+        });
     }
 }

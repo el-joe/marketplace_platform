@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initCountryToggles();
     initSeoPreview();
     initFilePond();
+    initVariantsRequiredGuard();
     initFormSubmit();
     initHighlightRows();
     initSpecificationRows();
@@ -565,6 +566,32 @@ function initFilePond() {
 /** Build the admin products URL base from current pathname. */
 function buildAdminUrl(segment) {
     return window.location.pathname.replace(/\/(create|[^/]+\/edit).*/, '') + '/' + segment;
+}
+
+// ─── "Has Variant" requires at least one variant row ─────────────────────────
+
+function initVariantsRequiredGuard() {
+    const $form = $('#product-form');
+    const T = window.TRANSLATIONS || {};
+
+    $form.on('submit', function (e) {
+        const hasVariants = $('#has_variants').is(':checked');
+        const variantCount = $('#variants-tbody tr.variant-row').length;
+
+        if (hasVariants && variantCount === 0) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            $('[x-data]').each(function () {
+                const alpineData = window.Alpine?.$data?.(this);
+                if (alpineData) alpineData.activeTab = 'variants';
+            });
+
+            window.Toast && window.Toast.error(
+                T.hasVariantsRequiresVariant || 'Please add at least one variant, or turn off "Has Variant".'
+            );
+        }
+    });
 }
 
 // ─── Form submit (AJAX PUT for edit) ─────────────────────────────────────────
