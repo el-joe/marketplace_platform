@@ -477,14 +477,6 @@ class ProductDetailController extends Controller
                 'label_ar' => $listing->express_badge_label_ar,
                 'color' => '#FFCC00',
             ] : null,
-            // A+ content — admin listings only
-            'aplus' => $source === 'admin' ? [
-                'headline_en' => $listing->aplus_headline_en,
-                'headline_ar' => $listing->aplus_headline_ar,
-                'video_url' => $listing->aplus_video_url,
-                'images' => $listing->aplus_images ?? [],
-                'infographics' => $listing->aplus_infographic_urls ?? [],
-            ] : null,
             'is_daily_deal' => $source === 'admin' ? (bool) $listing->is_daily_deal : false,
             // NEVER expose: cost_price, score, price_score, fulfillment_score,
             //               campaign_enabled, created_by_admin_id, search_boost

@@ -103,7 +103,6 @@
                             <th class="px-4 py-3 font-medium text-left"></th>
                             <th class="px-4 py-3 font-medium text-left">{{ __('admin.admin_listings.status_col') }}</th>
                             <th class="px-4 py-3 font-medium text-left">{{ __('admin.admin_listings.daily_deal_col') }}</th>
-                            <th class="px-4 py-3 font-medium text-center">{{ __('admin.admin_listings.aplus_col') }}</th>
                             <th class="px-4 py-3 font-medium text-right">{{ __('admin.admin_listings.actions_col') }}</th>
                         </tr>
                     </thead>
@@ -114,7 +113,6 @@
                                 $thumbnail = $product->images->first();
                                 $inventory = $listing->warehouseInventory;
                                 $lowStock = $inventory && $inventory->quantity_available <= $listing->low_stock_threshold;
-                                $hasAplus = $listing->aplus_video_url || filled($listing->aplus_images);
                             @endphp
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
@@ -168,13 +166,6 @@
                                         <span class="bg-orange-100 text-orange-700 text-xs font-semibold px-2 py-0.5 rounded">
                                             🔥 Deal {{ $listing->daily_deal_ends_at ? '· ends '.$listing->daily_deal_ends_at->diffForHumans() : '' }}
                                         </span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    @if($hasAplus)
-                                        <span class="text-purple-600 font-bold" title="{{ __('admin.admin_listings.aplus_col') }}">✦</span>
-                                    @else
-                                        <span class="text-gray-300">—</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right whitespace-nowrap">

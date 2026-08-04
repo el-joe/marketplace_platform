@@ -11,6 +11,7 @@ use App\Models\MarketplaceShippingRule;
 use App\Models\ProductCostReference;
 use App\Models\ProductVariant;
 use App\Models\ShippingMethod;
+use App\Enums\WarehouseType;
 use App\Models\Warehouse;
 use App\Services\ShippingMethodResolverService;
 use App\Models\WarehouseInventory;
@@ -225,17 +226,13 @@ class AdminListingController extends Controller
         $data = $request->validate($this->rules());
 
         $warehouse = Warehouse::findOrFail($data['warehouse_id']);
-        if ($warehouse->type !== 'platform_fbn') {
+        if ($warehouse->type !== WarehouseType::PlatformFbn) {
             return back()->withErrors(['warehouse_id' => 'Only platform FBN warehouses are allowed.'])->withInput();
         }
 
-        [$aplusImages, $aplusInfographics] = $this->parseAplusUrls($request);
-
-        $listing = DB::transaction(function () use ($data, $aplusImages, $aplusInfographics) {
+        $listing = DB::transaction(function () use ($data) {
             $listing = AdminListing::create(array_merge($data, [
                 'currency'               => Country::findOrFail($data['country_id'])->currency_code,
-                'aplus_images'           => $aplusImages ?: null,
-                'aplus_infographic_urls' => $aplusInfographics ?: null,
                 'created_by_admin_id'    => auth('admin')->id(),
             ]));
 
@@ -255,22 +252,6 @@ class AdminListingController extends Controller
         return redirect()
             ->route('admin.admin-listings.show', $listing)
             ->with('success', __('admin.admin_listings.created_success'));
-    }
-
-    /** Parses the newline-delimited A+ content URL textareas into validated URL arrays. */
-    private function parseAplusUrls(Request $request): array
-    {
-        $aplusImages = collect(preg_split('/\r?\n/', $request->input('aplus_images_raw', '')))
-            ->map(fn($l) => trim($l))
-            ->filter(fn($l) => filled($l) && filter_var($l, FILTER_VALIDATE_URL))
-            ->take(8)->values()->all();
-
-        $aplusInfographics = collect(preg_split('/\r?\n/', $request->input('aplus_infographic_urls_raw', '')))
-            ->map(fn($l) => trim($l))
-            ->filter(fn($l) => filled($l) && filter_var($l, FILTER_VALIDATE_URL))
-            ->take(5)->values()->all();
-
-        return [$aplusImages, $aplusInfographics];
     }
 
     public function edit(AdminListing $adminListing): View
@@ -295,16 +276,12 @@ class AdminListingController extends Controller
         $data = $request->validate($this->rules());
 
         $warehouse = Warehouse::findOrFail($data['warehouse_id']);
-        if ($warehouse->type !== 'platform_fbn') {
+        if ($warehouse->type !== WarehouseType::PlatformFbn) {
             return back()->withErrors(['warehouse_id' => 'Only platform FBN warehouses are allowed.'])->withInput();
         }
 
-        [$aplusImages, $aplusInfographics] = $this->parseAplusUrls($request);
-
         $adminListing->update(array_merge($data, [
             'currency'               => Country::findOrFail($data['country_id'])->currency_code,
-            'aplus_images'           => $aplusImages ?: null,
-            'aplus_infographic_urls' => $aplusInfographics ?: null,
             'updated_by_admin_id'    => auth('admin')->id(),
         ]));
 
@@ -723,11 +700,6 @@ class AdminListingController extends Controller
             'search_boost'               => ['integer', 'min:0', 'max:20'],
             'is_daily_deal'              => ['boolean'],
             'daily_deal_ends_at'         => ['nullable', 'date', 'after:now'],
-            'aplus_video_url'            => ['nullable', 'url', 'max:500'],
-            'aplus_headline_en'          => ['nullable', 'string', 'max:500'],
-            'aplus_headline_ar'          => ['nullable', 'string', 'max:500'],
-            'aplus_images_raw'           => ['nullable', 'string'],
-            'aplus_infographic_urls_raw' => ['nullable', 'string'],
             'weight_class'               => ['nullable', 'in:light,medium,heavy'],
             'handling_class'             => ['required', 'in:standard,refrigerated,fragile,special_tech'],
             'declared_weight_grams'      => ['nullable', 'integer', 'min:1'],

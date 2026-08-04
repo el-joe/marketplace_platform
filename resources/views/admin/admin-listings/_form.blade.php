@@ -11,9 +11,6 @@
     $bool = fn(string $f, bool $d = false): bool => (bool) old($f, $isEdit ? ($listing->{$f} ?? $d) : $d);
 
     $platformWarehouses = $warehouses->filter(fn($w) => ($w->type?->value ?? $w->type) === 'platform_fbn')->values();
-
-    $aplusImagesText = old('aplus_images_raw', $isEdit ? implode("\n", $listing->aplus_images ?? []) : '');
-    $aplusInfographicsText = old('aplus_infographic_urls_raw', $isEdit ? implode("\n", $listing->aplus_infographic_urls ?? []) : '');
 @endphp
 
 <div
@@ -47,7 +44,6 @@
                 ['id' => 'fulfillment', 'label' => __('admin.admin_listings.tab_fulfillment'),        'icon' => 'archive-box'],
                 ['id' => 'dimensions',  'label' => __('admin.admin_listings.tab_dimensions'),         'icon' => 'cube'],
                 ['id' => 'identity',    'label' => __('admin.admin_listings.tab_platform_identity'),  'icon' => 'sparkles'],
-                ['id' => 'aplus',       'label' => __('admin.admin_listings.tab_aplus_content'),      'icon' => 'photo'],
                 ['id' => 'settings',    'label' => __('admin.admin_listings.tab_settings'),           'icon' => 'cog-6-tooth'],
             ] as $tab)
             <button
@@ -364,52 +360,6 @@
                 :value="$val('daily_deal_ends_at')"
                 :enable-time="true"
             />
-        </div>
-    </div>
-
-    {{-- ─────────────────────────────────────────────── --}}
-    {{-- TAB: A+ Content                                  --}}
-    {{-- ─────────────────────────────────────────────── --}}
-    <div x-show="activeTab === 'aplus'" class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-4 sm:p-6 shadow-sm space-y-5 -mt-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_listings.aplus_headline_en') }}</label>
-                <textarea name="aplus_headline_en" dir="ltr" rows="3" maxlength="500"
-                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">{{ $val('aplus_headline_en') }}</textarea>
-                @error('aplus_headline_en')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_listings.aplus_headline_ar') }}</label>
-                <textarea name="aplus_headline_ar" dir="rtl" rows="3" maxlength="500"
-                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">{{ $val('aplus_headline_ar') }}</textarea>
-                @error('aplus_headline_ar')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-            </div>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_listings.aplus_video_url') }}</label>
-            <input type="url" name="aplus_video_url" dir="ltr" maxlength="500"
-                   value="{{ $val('aplus_video_url') }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-            <p class="mt-1 text-xs text-gray-400">{{ __('admin.admin_listings.aplus_video_url_hint') }}</p>
-            @error('aplus_video_url')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_listings.aplus_images_label') }}</label>
-            <textarea name="aplus_images_raw" dir="ltr" rows="4"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500">{{ $aplusImagesText }}</textarea>
-            <p class="mt-1 text-xs text-gray-400">{{ __('admin.admin_listings.aplus_images_hint') }}</p>
-            @error('aplus_images_raw')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_listings.aplus_infographic_urls_label') }}</label>
-            <textarea name="aplus_infographic_urls_raw" dir="ltr" rows="3"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500">{{ $aplusInfographicsText }}</textarea>
-            <p class="mt-1 text-xs text-gray-400">{{ __('admin.admin_listings.aplus_infographic_urls_hint') }}</p>
-            @error('aplus_infographic_urls_raw')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
         </div>
     </div>
 
