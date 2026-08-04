@@ -1838,6 +1838,7 @@ return [
         'bulk_commission_short'  => 'تحديد العمولة',
         'no_categories_yet'      => 'لا توجد فئات بعد.',
         'add_the_first_one'      => 'أضف الأولى',
+        'search_placeholder'     => 'البحث في الفئات...',
         'apply_rate_to_selected' => 'تطبيق نسبة جديدة على',
         'commission_rate_pct'    => 'نسبة العمولة (%)',
         'commission_rate_placeholder' => 'مثال: 10.00',

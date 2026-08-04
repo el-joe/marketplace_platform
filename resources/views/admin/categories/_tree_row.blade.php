@@ -1,6 +1,10 @@
-@php $hasChildren = $category->children->isNotEmpty(); @endphp
+@php
+    $hasChildren = $category->children->isNotEmpty();
+    $searchText = mb_strtolower(trim($category->name_en . ' ' . $category->name_ar . ' ' . $category->slug));
+@endphp
 <tr class="hover:bg-gray-50 transition-colors" data-id="{{ $category->id }}"
-    data-parent="{{ $category->parent_id ?? '' }}" data-depth="{{ $depth }}" @if($depth > 0) style="display:none"
+    data-parent="{{ $category->parent_id ?? '' }}" data-depth="{{ $depth }}"
+    data-search="{{ $searchText }}" @if($depth > 0) style="display:none"
     @endif>
 
     {{-- Expand toggle --}}

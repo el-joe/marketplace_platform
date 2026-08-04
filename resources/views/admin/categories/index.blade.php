@@ -10,12 +10,17 @@
     <div class="space-y-4">
 
         {{-- Toolbar --}}
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
                 <button type="button" id="bulk-commission-btn" class="btn btn-ghost btn-sm hidden">
                     <x-heroicon name="percent-badge" class="w-4 h-4 mr-1" />
                     {{ __('admin.categories.bulk_commission_short') }}
                 </button>
+            </div>
+            <div class="relative w-full max-w-xs">
+                <x-heroicon name="magnifying-glass" class="w-4 h-4 absolute inset-s-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input type="text" id="categories-search" class="input w-full ps-9"
+                    placeholder="{{ __('admin.categories.search_placeholder') }}" />
             </div>
             <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">
                 <x-heroicon name="plus" class="w-4 h-4 mr-1" />

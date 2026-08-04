@@ -1833,6 +1833,7 @@ return [
         'bulk_commission_short'  => 'Set Commission',
         'no_categories_yet'      => 'No categories yet.',
         'add_the_first_one'      => 'Add the first one',
+        'search_placeholder'     => 'Search categories...',
         'apply_rate_to_selected' => 'Apply a new rate to',
         'commission_rate_pct'    => 'Commission Rate (%)',
         'commission_rate_placeholder' => 'e.g. 10.00',

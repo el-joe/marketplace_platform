@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
         initBulkCommission();
         initFeaturedToggle();
         initDeleteCategory();
+        initSearch();
     }
 
     if (document.getElementById('category-form')) {
@@ -93,6 +94,57 @@ function initTree() {
         const btn = e.target.closest('.expand-btn[data-id]');
         if (!btn) return;
         window.catTree.toggle(btn.dataset.id);
+    });
+}
+
+// ─── Search ────────────────────────────────────────────────────────────────────
+
+function initSearch() {
+    const input = document.getElementById('categories-search');
+    const table = document.getElementById('categories-table');
+    if (!input || !table) return;
+
+    input.addEventListener('input', function () {
+        applySearch(table, input.value.trim().toLowerCase());
+    });
+}
+
+function applySearch(table, query) {
+    const rows = Array.from(table.querySelectorAll('tr[data-id]'));
+
+    // Reset to the default collapsed view (root rows only, respecting manual expand state).
+    if (!query) {
+        rows.forEach(function (row) {
+            row.classList.remove('bg-amber-50');
+            const depth = parseInt(row.dataset.depth, 10);
+            row.style.display = depth === 0 || expanded.has(row.dataset.parent) ? '' : 'none';
+        });
+        return;
+    }
+
+    const rowById = new Map(rows.map(function (row) { return [row.dataset.id, row]; }));
+    const visibleIds = new Set();
+    const matchedIds = new Set();
+
+    rows.forEach(function (row) {
+        if (!(row.dataset.search || '').includes(query)) return;
+
+        matchedIds.add(row.dataset.id);
+        visibleIds.add(row.dataset.id);
+
+        // Walk up so a matched child category always shows its parent chain.
+        let parentId = row.dataset.parent;
+        while (parentId) {
+            visibleIds.add(parentId);
+            const parentRow = rowById.get(parentId);
+            parentId = parentRow ? parentRow.dataset.parent : '';
+        }
+    });
+
+    rows.forEach(function (row) {
+        const id = row.dataset.id;
+        row.style.display = visibleIds.has(id) ? '' : 'none';
+        row.classList.toggle('bg-amber-50', matchedIds.has(id));
     });
 }
 

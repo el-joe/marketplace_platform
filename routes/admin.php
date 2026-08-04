@@ -1302,70 +1302,70 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     Route::prefix('admin-product-listings')->name('admin-product-listings.')
         ->middleware('admin.permission:admin_listings.view')
         ->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'index'])->name('index');
-        Route::post('/datatable', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'datatable'])->name('datatable');
-        Route::post('/bulk', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'bulkAction'])
-            ->middleware('admin.permission:admin_listings.edit')->name('bulk');
-        Route::get('/create', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'create'])
-            ->middleware('admin.permission:admin_listings.create')->name('create');
-        Route::get('/search/variants', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'searchVariants'])->name('search-variants');
-        Route::get('/categories', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'categories'])->name('categories');
-        Route::post('/categories/reorder', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'reorderCategories'])
-            ->middleware('admin.permission:admin_listings.edit')->name('categories.reorder');
-        Route::post('/categories/{category}/icon', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveCategoryIcon'])
-            ->middleware('admin.permission:admin_listings.edit')->name('categories.icon');
-        Route::post('/categories/{category}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'toggleCategoryFeatured'])
-            ->middleware('admin.permission:admin_listings.edit')->name('categories.toggle-featured');
-        Route::post('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'store'])
-            ->middleware('admin.permission:admin_listings.create')->name('store');
-        Route::get('/{adminProductListing}/edit', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'edit'])
-            ->middleware('admin.permission:admin_listings.edit')->name('edit');
-        Route::put('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'update'])
-            ->middleware('admin.permission:admin_listings.edit')->name('update');
-        Route::delete('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'destroy'])
-            ->middleware('admin.permission:admin_listings.delete')->name('destroy');
-        Route::post('/{adminProductListing}/activate', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'activate'])
-            ->middleware('admin.permission:admin_listings.toggle_status')->name('activate');
-        Route::get('/{adminProductListing}/nawy-preview', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'nawyPreview'])->name('nawy-preview');
-        Route::post('/{adminProductListing}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'toggleFeatured'])
-            ->middleware('admin.permission:admin_listings.toggle_status')->name('toggle-featured');
-        Route::post('/{adminProductListing}/reference', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveReference'])
-            ->middleware('admin.permission:admin_listings.edit')->name('save-reference');
-        Route::patch('/{adminProductListing}/status', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'updateStatus'])
-            ->middleware('admin.permission:admin_listings.toggle_status')->name('update-status');
-        Route::post('/{adminProductListing}/adjust-stock', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'adjustStock'])
-            ->middleware('admin.permission:admin_listings.edit')->name('adjust-stock');
-        Route::get('/{adminProductListing}/inventory', [\App\Http\Controllers\Admin\AdminListingInventoryController::class, 'index'])
-            ->name('inventory.index');
-        Route::post('/{adminProductListing}/inventory', [\App\Http\Controllers\Admin\AdminListingInventoryController::class, 'store'])
-            ->middleware('admin.permission:admin_listings.edit')->name('inventory.store');
-        Route::put('/{adminProductListing}/inventory/{inventory}', [\App\Http\Controllers\Admin\AdminListingInventoryController::class, 'update'])
-            ->middleware('admin.permission:admin_listings.edit')->name('inventory.update');
-        Route::post('/{adminProductListing}/shipping-rule', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveShippingRule'])
-            ->middleware('admin.permission:admin_listings.edit')->name('save-shipping-rule');
-        Route::post('/{adminProductListing}/cost-references/datatable', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'costReferences'])
-            ->name('cost-references.datatable');
-        Route::post('/{adminProductListing}/cost-references', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'storeCostReference'])
-            ->name('cost-references.store');
-        Route::put('/{adminProductListing}/cost-references/{costReference}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'updateCostReference'])
-            ->name('cost-references.update');
-        Route::delete('/{adminProductListing}/cost-references/{costReference}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'destroyCostReference'])
-            ->name('cost-references.destroy');
-        Route::get('/{adminProductListing}/reviews', [\App\Http\Controllers\Admin\AdminListingReviewController::class, 'index'])
-            ->name('reviews.index');
-        Route::get('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'show'])->name('show');
-    });
+            Route::get('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'index'])->name('index');
+            Route::post('/datatable', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'datatable'])->name('datatable');
+            Route::post('/bulk', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'bulkAction'])
+                ->middleware('admin.permission:admin_listings.edit')->name('bulk');
+            Route::get('/create', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'create'])
+                ->middleware('admin.permission:admin_listings.create')->name('create');
+            Route::get('/search/variants', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'searchVariants'])->name('search-variants');
+            Route::get('/categories', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'categories'])->name('categories');
+            Route::post('/categories/reorder', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'reorderCategories'])
+                ->middleware('admin.permission:admin_listings.edit')->name('categories.reorder');
+            Route::post('/categories/{category}/icon', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveCategoryIcon'])
+                ->middleware('admin.permission:admin_listings.edit')->name('categories.icon');
+            Route::post('/categories/{category}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'toggleCategoryFeatured'])
+                ->middleware('admin.permission:admin_listings.edit')->name('categories.toggle-featured');
+            Route::post('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'store'])
+                ->middleware('admin.permission:admin_listings.create')->name('store');
+            Route::get('/{adminProductListing}/edit', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'edit'])
+                ->middleware('admin.permission:admin_listings.edit')->name('edit');
+            Route::put('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'update'])
+                ->middleware('admin.permission:admin_listings.edit')->name('update');
+            Route::delete('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'destroy'])
+                ->middleware('admin.permission:admin_listings.delete')->name('destroy');
+            Route::post('/{adminProductListing}/activate', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'activate'])
+                ->middleware('admin.permission:admin_listings.toggle_status')->name('activate');
+            Route::get('/{adminProductListing}/nawy-preview', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'nawyPreview'])->name('nawy-preview');
+            Route::post('/{adminProductListing}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'toggleFeatured'])
+                ->middleware('admin.permission:admin_listings.toggle_status')->name('toggle-featured');
+            Route::post('/{adminProductListing}/reference', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveReference'])
+                ->middleware('admin.permission:admin_listings.edit')->name('save-reference');
+            Route::patch('/{adminProductListing}/status', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'updateStatus'])
+                ->middleware('admin.permission:admin_listings.toggle_status')->name('update-status');
+            Route::post('/{adminProductListing}/adjust-stock', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'adjustStock'])
+                ->middleware('admin.permission:admin_listings.edit')->name('adjust-stock');
+            Route::get('/{adminProductListing}/inventory', [\App\Http\Controllers\Admin\AdminListingInventoryController::class, 'index'])
+                ->name('inventory.index');
+            Route::post('/{adminProductListing}/inventory', [\App\Http\Controllers\Admin\AdminListingInventoryController::class, 'store'])
+                ->middleware('admin.permission:admin_listings.edit')->name('inventory.store');
+            Route::put('/{adminProductListing}/inventory/{inventory}', [\App\Http\Controllers\Admin\AdminListingInventoryController::class, 'update'])
+                ->middleware('admin.permission:admin_listings.edit')->name('inventory.update');
+            Route::post('/{adminProductListing}/shipping-rule', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveShippingRule'])
+                ->middleware('admin.permission:admin_listings.edit')->name('save-shipping-rule');
+            Route::post('/{adminProductListing}/cost-references/datatable', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'costReferences'])
+                ->name('cost-references.datatable');
+            Route::post('/{adminProductListing}/cost-references', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'storeCostReference'])
+                ->name('cost-references.store');
+            Route::put('/{adminProductListing}/cost-references/{costReference}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'updateCostReference'])
+                ->name('cost-references.update');
+            Route::delete('/{adminProductListing}/cost-references/{costReference}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'destroyCostReference'])
+                ->name('cost-references.destroy');
+            Route::get('/{adminProductListing}/reviews', [\App\Http\Controllers\Admin\AdminListingReviewController::class, 'index'])
+                ->name('reviews.index');
+            Route::get('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'show'])->name('show');
+        });
 
     // ─── Vendor Listings ──────────────────────────────────────────────────────
     Route::prefix('vendor-listings')->name('vendor-listings.')
         ->middleware('admin.permission:vendors.view')
         ->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\VendorListingController::class, 'index'])->name('index');
-        Route::post('/datatable', [\App\Http\Controllers\Admin\VendorListingController::class, 'datatable'])->name('datatable');
-        Route::get('/{vendorListing}/edit', [\App\Http\Controllers\Admin\VendorListingController::class, 'edit'])->name('edit');
-        Route::put('/{vendorListing}', [\App\Http\Controllers\Admin\VendorListingController::class, 'update'])->name('update');
-        Route::get('/{vendorListing}', [\App\Http\Controllers\Admin\VendorListingController::class, 'show'])->name('show');
-    });
+            Route::get('/', [\App\Http\Controllers\Admin\VendorListingController::class, 'index'])->name('index');
+            Route::post('/datatable', [\App\Http\Controllers\Admin\VendorListingController::class, 'datatable'])->name('datatable');
+            Route::get('/{vendorListing}/edit', [\App\Http\Controllers\Admin\VendorListingController::class, 'edit'])->name('edit');
+            Route::put('/{vendorListing}', [\App\Http\Controllers\Admin\VendorListingController::class, 'update'])->name('update');
+            Route::get('/{vendorListing}', [\App\Http\Controllers\Admin\VendorListingController::class, 'show'])->name('show');
+        });
 
     // ─── Travel Agencies & Packages ───────────────────────────────────────────
     Route::prefix('travel')->name('travel.')->group(function () {
