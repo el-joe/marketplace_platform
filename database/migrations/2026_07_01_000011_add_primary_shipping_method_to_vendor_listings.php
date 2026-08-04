@@ -9,7 +9,6 @@ return new class extends Migration {
     {
         Schema::table('vendor_listings', function (Blueprint $table) {
             $table->foreignUuid('primary_shipping_method_id')->nullable()
-                ->after('global_system_type')
                 ->constrained('shipping_methods')->nullOnDelete()
                 ->comment('Resolved default shipping method for this listing, cached from category rules + fulfillment type. Recomputed when category rules change.');
         });
