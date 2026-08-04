@@ -594,42 +594,76 @@ function initVariantsRequiredGuard() {
     });
 }
 
-// ─── Form submit (AJAX PUT for edit) ─────────────────────────────────────────
+// ─── Form submit (AJAX validate-before-submit, then AJAX PUT for edit) ───────
+
+function showValidationErrors(xhr, T) {
+    if (xhr.status === 422) {
+        const errors = xhr.responseJSON?.errors ?? {};
+        const msgs = Object.values(errors).flat();
+        window.Toast && window.Toast.error(msgs[0] || T.validationError || 'Validation error.');
+    } else {
+        window.Toast && window.Toast.error(xhr.responseJSON?.message || T.saveFailedRetry || 'Save failed. Please try again.');
+    }
+}
 
 function initFormSubmit() {
-    if (!isEditMode()) return; // Create uses standard HTML POST
+    const $form = $('#product-form');
+    const validateUrl = $form.data('validate-url');
+    let validated = false; // set once the AJAX validation call has passed
 
-    $('#product-form').on('submit', function (e) {
+    $form.on('submit', function (e) {
+        if (validated) return; // already validated — let the real submit through
+
         e.preventDefault();
 
         const T = window.TRANSLATIONS || {};
-        const $btn = $('#submit-btn').prop('disabled', true).text(T.savingEllipsis || 'Saving…');
+        const $btn = $('#submit-btn').prop('disabled', true).text(T.validatingEllipsis || 'Validating…');
         const formData = new FormData(this);
-        formData.set('_method', 'PUT');
-
-        const action = $(this).attr('action');
+        if (isEditMode()) formData.set('_method', 'PUT');
 
         $.ajax({
-            url: action,
-            method: 'POST', // tunnelled via _method=PUT
+            url: validateUrl,
+            method: 'POST',
             data: formData,
             processData: false,
             contentType: false,
         })
-            .done(function (res) {
-                window.Toast && window.Toast.success(res.message || T.productSaved || 'Product saved.');
+            .done(function () {
+                if (isEditMode()) {
+                    submitEditViaAjax($form, $btn, T);
+                    return;
+                }
+
+                validated = true;
+                $btn.prop('disabled', false).text(T.saveChangesBtn || 'Save changes');
+                $form.trigger('submit');
             })
             .fail(function (xhr) {
-                if (xhr.status === 422) {
-                    const errors = xhr.responseJSON?.errors ?? {};
-                    const msgs = Object.values(errors).flat();
-                    window.Toast && window.Toast.error(msgs[0] || T.validationError || 'Validation error.');
-                } else {
-                    window.Toast && window.Toast.error(xhr.responseJSON?.message || T.saveFailedRetry || 'Save failed. Please try again.');
-                }
-            })
-            .always(function () {
                 $btn.prop('disabled', false).text(T.saveChangesBtn || 'Save changes');
+                showValidationErrors(xhr, T);
             });
     });
+}
+
+function submitEditViaAjax($form, $btn, T) {
+    $btn.prop('disabled', true).text(T.savingEllipsis || 'Saving…');
+    const formData = new FormData($form[0]);
+    formData.set('_method', 'PUT');
+
+    $.ajax({
+        url: $form.attr('action'),
+        method: 'POST', // tunnelled via _method=PUT
+        data: formData,
+        processData: false,
+        contentType: false,
+    })
+        .done(function (res) {
+            window.Toast && window.Toast.success(res.message || T.productSaved || 'Product saved.');
+        })
+        .fail(function (xhr) {
+            showValidationErrors(xhr, T);
+        })
+        .always(function () {
+            $btn.prop('disabled', false).text(T.saveChangesBtn || 'Save changes');
+        });
 }

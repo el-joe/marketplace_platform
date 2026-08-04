@@ -3552,6 +3552,7 @@ return [
         'not_yet_saved'             => 'Not yet saved.',
         'save_cost_data'            => 'Save Cost Data',
         'saving_ellipsis'           => 'Saving…',
+        'validating_ellipsis'       => 'Validating…',
         'cost_ref_load_error'       => 'Cost ref load error',
         'cost_save_failed'          => 'Save failed.',
         'network_error'             => 'Network error.',

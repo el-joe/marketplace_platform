@@ -3323,6 +3323,7 @@ return [
         'reject'            => 'رفض',
         'featured'          => 'مميز',
         'saving_ellipsis'   => 'جارِ الحفظ…',
+        'validating_ellipsis' => 'جارٍ التحقق…',
         'network_error'     => 'خطأ في الشبكة.',
 
         // ─── Product form (create/edit) ────────────────────────────────────

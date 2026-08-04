@@ -130,6 +130,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/upload-image', [ProductController::class, 'uploadImage'])->name('upload-image');
         Route::get('/check-duplicate', [ProductController::class, 'checkDuplicate'])->name('check-duplicate');
         Route::get('/check-gtin', [ProductController::class, 'checkGtin'])->name('check-gtin');
+        Route::post('/validate', [ProductController::class, 'validateStore'])->name('validate');
         Route::delete('/delete-image/{mediaId}', [ProductController::class, 'deleteImage'])->name('delete-image');
         Route::post('/country-settings/{setting}', [ProductController::class, 'updateCountrySetting'])->name('update-country-setting');
 
@@ -139,6 +140,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
         Route::post('/{product}/reorder-images', [ProductController::class, 'reorderImages'])->name('reorder-images');
         Route::get('/{product}/country-settings', [ProductController::class, 'countrySettings'])->name('country-settings');
+        Route::post('/{product}/validate', [ProductController::class, 'validateUpdate'])->name('validate-update');
         Route::put('/{product}', [ProductController::class, 'update'])->name('update');
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
 

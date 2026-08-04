@@ -289,9 +289,19 @@ class ProductController extends Controller
         // }
     }
 
+    public function validateStore(StoreProductRequest $request): JsonResponse
+    {
+        return response()->json(['valid' => true]);
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // Edit / Update
     // ──────────────────────────────────────────────────────────────────────────
+
+    public function validateUpdate(UpdateProductRequest $request, string $product): JsonResponse
+    {
+        return response()->json(['valid' => true]);
+    }
 
     public function edit(string $product): View
     {

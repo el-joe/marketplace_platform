@@ -76,13 +76,17 @@ class ProductDetailController extends Controller
 
         $unifiedListings = $this->buildOtherSellers($variantId, $countryId, $listing);
 
+        $otherSellers = $isNawyNow
+            ? []
+            : array_values(array_filter($unifiedListings, fn (array $l) => !$l['is_current_listing']));
+
         return ApiResponse::success([
             'product' => $this->productShape($product),
             'variant' => $this->variantShape($variant),
             'listing' => $this->listingShape($listing, $listingType),
             'images' => $this->buildImages($product, $variant),
             'attributes' => $this->buildAttributeMatrix($product, $variant, $countryId, $isNawyNow),
-            'other_sellers' => $isNawyNow ? [] : $unifiedListings,
+            'other_sellers' => $otherSellers,
             'listings' => $unifiedListings,
             'buy_box' => $unifiedListings[0] ?? null,
             'shipping_methods' => $shippingMethodsData,
@@ -423,6 +427,8 @@ class ProductDetailController extends Controller
             ->where('product_variant_id', $variantId)
             ->where('country_id', $countryId)
             ->where('status', AdminListingStatus::Active->value)
+            ->orderByDesc('search_boost')
+            ->orderBy('created_at')
             ->get();
 
         $vendorListings = VendorListing::with(['warehouseInventories', 'primaryShippingMethod', 'vendor'])
