@@ -259,9 +259,8 @@ class AdminListingController extends Controller
         return view('admin.admin-listings.edit', [
             'listing'         => $adminListing,
             'countries'       => Country::where('is_active', true)->orderBy('name_en')->get(),
-            'warehouses'      => Warehouse::where('is_active', true)->orderBy('name')->get(),
-            'shippingMethods' => app(ShippingMethodResolverService::class)
-                ->getAvailableForListing($adminListing->id, 'admin_listing', $adminListing->country_id),
+            'warehouses'      => Warehouse::where('type', 'platform_fbn')->where('is_active', true)->orderBy('name')->get(),
+            'shippingMethods' => ShippingMethod::where('is_active', true)->orderBy('name')->get(),
             'selectedVariant' => $adminListing->productVariant()->with('product')->first(),
             'breadcrumbs'     => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
