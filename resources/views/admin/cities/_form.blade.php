@@ -66,10 +66,16 @@ Shared City form partial.
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-            <x-form.select name="country_id" label="{{ __('admin.geography.country_name') }}" :options="$countries" :value="$val('country_id')"
+            <x-form.select id="country_id" name="country_id" label="{{ __('admin.geography.country_name') }}" :options="$countries" :value="$val('country_id')"
                 :empty-option="__('admin.geography.select_country_placeholder')" required />
-            <x-form.select name="shipping_zone_id" label="{{ __('admin.shipping_section.zone_name') }}" :options="$shippingZones"
-                :value="$val('shipping_zone_id')" :empty-option="__('admin.geography.no_zone_placeholder')" />
+            <x-form.select id="shipping_zone_id" name="shipping_zone_id" label="{{ __('admin.shipping_section.zone_name') }}"
+                :value="$val('shipping_zone_id')" :placeholder="__('admin.geography.no_zone_placeholder')">
+                @foreach ($shippingZones as $zone)
+                    <option value="{{ $zone->id }}" data-country-id="{{ $zone->country_id }}" @selected($val('shipping_zone_id') == $zone->id)>
+                        {{ $zone->name }}
+                    </option>
+                @endforeach
+            </x-form.select>
         </div>
 
         <div class="grid grid-cols-2 gap-4">

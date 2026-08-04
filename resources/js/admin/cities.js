@@ -9,6 +9,31 @@
 
 $(function () {
     // ─────────────────────────────────────────────────────────────────────────
+    // Filter shipping zones by selected country
+    // ─────────────────────────────────────────────────────────────────────────
+
+    function filterZonesByCountry() {
+        const $country = $('#country_id');
+        const $zone = $('#shipping_zone_id');
+        if (!$country.length || !$zone.length) return;
+
+        const countryId = $country.val();
+        const selectedZone = $zone.val();
+        let selectedStillValid = false;
+
+        $zone.find('option[data-country-id]').each(function () {
+            const matches = !countryId || $(this).data('country-id') === countryId;
+            $(this).toggle(matches);
+            if (matches && this.value === selectedZone) selectedStillValid = true;
+        });
+
+        if (!selectedStillValid) $zone.val('');
+    }
+
+    $(document).on('change', '#country_id', filterZonesByCountry);
+    filterZonesByCountry();
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Delete city
     // ─────────────────────────────────────────────────────────────────────────
 

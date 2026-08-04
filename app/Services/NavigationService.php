@@ -29,6 +29,7 @@ class NavigationService
             [
                 'group' => __('admin.nav.overview'),
                 'icon' => 'home',
+                'flat' => true,
                 'items' => [
                     [
                         'label' => __('admin.nav.dashboard'),
@@ -79,13 +80,6 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
-                        'label' => __('admin.nav.product_relations'),
-                        'route' => 'admin.fbt.index',
-                        'icon' => 'link',
-                        'permission' => 'products.view',
-                        'badge' => null,
-                    ],
-                    [
                         'label' => __('admin.nav.brands'),
                         'route' => 'admin.brands.index',
                         'icon' => 'tag',
@@ -105,20 +99,6 @@ class NavigationService
                         'icon' => 'shield-check',
                         'permission' => 'warranty_plans.view',
                         'badge' => $this->cachedBadge('active_warranty_plans', fn() => $this->countActiveWarrantyPlans(), 300),
-                    ],
-                    [
-                        'label' => __('admin.nav.product_highlights'),
-                        'route' => 'admin.product-highlights.index',
-                        'icon' => 'star',
-                        'permission' => 'products.view',
-                        'badge' => null,
-                    ],
-                    [
-                        'label' => __('admin.nav.bestsellers'),
-                        'route' => 'admin.bestsellers.index',
-                        'icon' => 'trophy',
-                        'permission' => 'products.view',
-                        'badge' => null,
                     ],
                 ],
             ],

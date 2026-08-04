@@ -137,7 +137,7 @@ class CityController extends Controller
     {
         return view('admin.cities.create', [
             'countries' => Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id'),
-            'shippingZones' => ShippingZone::query()->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id'),
+            'shippingZones' => ShippingZone::query()->whereNull('deleted_at')->orderBy('name')->get(['id', 'name', 'country_id']),
             'breadcrumbs' => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.nav.cities'), 'url' => route('admin.cities.index')],
@@ -167,7 +167,7 @@ class CityController extends Controller
         return view('admin.cities.edit', [
             'city' => $city,
             'countries' => Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id'),
-            'shippingZones' => ShippingZone::query()->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id'),
+            'shippingZones' => ShippingZone::query()->whereNull('deleted_at')->orderBy('name')->get(['id', 'name', 'country_id']),
             'breadcrumbs' => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.nav.cities'), 'url' => route('admin.cities.index')],
