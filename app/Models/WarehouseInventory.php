@@ -68,7 +68,7 @@ class WarehouseInventory extends Model
 
     public function scopeForWarehouse(Builder $q, string $warehouseId): Builder
     {
-        return $q->where('warehouse_id', $warehouseId);
+        return $q->where('warehouse_inventories.warehouse_id', $warehouseId);
     }
 
     // ─── Accessors ────────────────────────────────────────────────────────────
