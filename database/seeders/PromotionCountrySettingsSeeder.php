@@ -15,6 +15,7 @@ class PromotionCountrySettingsSeeder extends Seeder
      */
     public function run(): void
     {
+        return;
         $adminCommission  = 2;
         $feePerCelebrity  = 9;
 
