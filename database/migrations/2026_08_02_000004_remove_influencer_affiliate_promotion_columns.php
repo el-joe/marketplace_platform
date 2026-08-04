@@ -118,7 +118,9 @@ return new class extends Migration
             });
         }
         // Modify the enum to remove promotion_fee and promotion_sample
-        \DB::statement("ALTER TABLE payout_items MODIFY COLUMN item_type ENUM('sub_order') NOT NULL DEFAULT 'sub_order'");
+        if (Schema::hasColumn('payout_items', 'item_type')) {
+            \DB::statement("ALTER TABLE payout_items MODIFY COLUMN item_type ENUM('sub_order') NOT NULL DEFAULT 'sub_order'");
+        }
     }
 
     public function down(): void

@@ -8,8 +8,13 @@ return new class extends Migration {
     public function up(): void
     {
         // Extend item_type enum to include marketer_commission
-        DB::statement("ALTER TABLE payout_items MODIFY COLUMN item_type
-            ENUM('sub_order', 'marketer_commission') NOT NULL DEFAULT 'sub_order'");
+        if (Schema::hasColumn('payout_items', 'item_type')) {
+            DB::statement("ALTER TABLE payout_items MODIFY COLUMN item_type
+                ENUM('sub_order', 'marketer_commission') NOT NULL DEFAULT 'sub_order'");
+        } else {
+            DB::statement("ALTER TABLE payout_items ADD COLUMN item_type
+                ENUM('sub_order', 'marketer_commission') NOT NULL DEFAULT 'sub_order' AFTER sub_order_id");
+        }
 
         // Add marketer conversion reference column
         Schema::table('payout_items', function (Blueprint $table) {
