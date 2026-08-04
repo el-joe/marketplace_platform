@@ -16,7 +16,6 @@ class CreateInquiryRequest extends FormRequest
         return [
             'message'       => ['required', 'string', 'max:2000'],
             'contact_phone' => ['nullable', 'string', 'max:30'],
-            'marketer_id'   => ['nullable', 'uuid', 'exists:marketers,id'],
         ];
     }
 }

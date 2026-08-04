@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -21,7 +22,9 @@ return new class extends Migration
         // column default), but marketer-requested items should be 0. Since no admin
         // approval flow has ever populated this column deliberately, all existing rows
         // are marketer-requested items incorrectly flagged as mandatory. Reset them.
-        DB::table('marketer_sample_items')->update(['is_mandatory' => 0]);
+        if (Schema::hasTable('marketer_sample_items')) {
+            DB::table('marketer_sample_items')->update(['is_mandatory' => 0]);
+        }
     }
 
     public function down(): void

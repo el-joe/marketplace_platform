@@ -11,7 +11,7 @@ class ClassifiedInquiry extends Model
     use HasUuids;
 
     protected $fillable = [
-        'classified_listing_id', 'customer_id', 'marketer_id',
+        'classified_listing_id', 'customer_id',
         'message', 'contact_phone', 'status',
     ];
 
@@ -27,10 +27,5 @@ class ClassifiedInquiry extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function marketer(): BelongsTo
-    {
-        return $this->belongsTo(Marketer::class);
     }
 }

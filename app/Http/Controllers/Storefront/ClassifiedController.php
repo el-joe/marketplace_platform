@@ -99,7 +99,7 @@ class ClassifiedController extends Controller
     {
         $listing = ClassifiedListing::with([
                 'classifiedCategory', 'seller', 'city', 'country',
-                'images', 'attachments', 'listingMarketers.marketer',
+                'images', 'attachments',
             ])
             ->where('listing_number', $listingNumber)
             ->where('status', 'active')
@@ -129,10 +129,8 @@ class ClassifiedController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        $marketers = Marketer::where('status', 'active')->get(['id', 'name']);
-
         return view('storefront.classifieds.create', compact(
-            'countryModel', 'categories', 'marketers'
+            'countryModel', 'categories'
         ));
     }
 
@@ -189,16 +187,6 @@ class ClassifiedController extends Controller
             }
         }
 
-        // Assign marketers
-        if ($request->filled('marketer_ids') || $request->boolean('open_to_all_marketers')) {
-            $this->service->assignMarketers(
-                $listing,
-                $request->input('marketer_ids', []),
-                $request->input('commission_type', 'percentage'),
-                (float) $request->input('commission_value', 5)
-            );
-        }
-
         return response()->json([
             'success'    => true,
             'listing_id' => $listing->id,
@@ -237,7 +225,7 @@ class ClassifiedController extends Controller
         $customer = auth('customer')->user();
 
         $this->service->recordInquiry($listing, $customer, $request->only(
-            'message', 'contact_phone', 'marketer_id'
+            'message', 'contact_phone'
         ));
 
         return response()->json(['success' => true]);

@@ -11,7 +11,7 @@ return new class extends Migration {
         DB::statement("ALTER TABLE support_tickets MODIFY COLUMN requester_role ENUM('customer','seller','marketer','delivery_agent') NOT NULL");
 
         Schema::table('support_tickets', function (Blueprint $table) {
-            $table->uuid('related_assignment_id')->nullable()->index()->after('related_campaign_id');
+            $table->uuid('related_assignment_id')->nullable()->index();
         });
     }
 

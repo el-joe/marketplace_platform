@@ -217,19 +217,6 @@
             </div>
             @endif
 
-            {{-- Marketers --}}
-            <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <h3 class="font-semibold text-gray-900 mb-2 text-sm">{{ __('admin.classifieds.marketers') }}</h3>
-                @forelse($listing->listingMarketers as $lm)
-                <div class="text-xs text-gray-600 py-1 border-b border-gray-50 last:border-0">
-                    <p class="font-medium">{{ $lm->marketer?->name ?? __('admin.classifieds.open_to_all') }}</p>
-                    <p>{{ $lm->commission_value }}{{ $lm->commission_type === \App\Enums\ClassifiedListingMarketerCommissionType::Percentage ? '%' : __('admin.classifieds.fixed_commission') }}</p>
-                </div>
-                @empty
-                <p class="text-xs text-gray-400">{{ __('admin.classifieds.no_marketers') }}</p>
-                @endforelse
-            </div>
-
         </div>
     </div>
 </div>

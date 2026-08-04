@@ -6,7 +6,6 @@ use App\Models\Admin;
 use App\Models\ClassifiedInquiry;
 use App\Models\ClassifiedListing;
 use App\Models\ClassifiedListingAttachment;
-use App\Models\ClassifiedListingMarketer;
 use App\Models\Customer;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
@@ -108,33 +107,6 @@ class ClassifiedListingService
         return $filename;
     }
 
-    public function assignMarketers(
-        ClassifiedListing $listing,
-        array $marketerIds,
-        string $commissionType,
-        float $commissionValue
-    ): void {
-        if (empty($marketerIds)) {
-            ClassifiedListingMarketer::create([
-                'classified_listing_id' => $listing->id,
-                'marketer_id'           => null,
-                'commission_type'       => $commissionType,
-                'commission_value'      => $commissionValue,
-            ]);
-        } else {
-            foreach ($marketerIds as $id) {
-                ClassifiedListingMarketer::create([
-                    'classified_listing_id' => $listing->id,
-                    'marketer_id'           => $id,
-                    'commission_type'       => $commissionType,
-                    'commission_value'      => $commissionValue,
-                ]);
-            }
-        }
-
-        $listing->update(['marketer_promotion_enabled' => true]);
-    }
-
     public function approve(ClassifiedListing $listing, Admin $admin): ClassifiedListing
     {
         if (! $listing->required_attachments_complete) {
@@ -184,7 +156,6 @@ class ClassifiedListingService
         return ClassifiedInquiry::create([
             'classified_listing_id' => $listing->id,
             'customer_id'           => $customer->id,
-            'marketer_id'           => $data['marketer_id'] ?? null,
             'message'               => $data['message'] ?? null,
             'contact_phone'         => $data['contact_phone'] ?? null,
         ]);

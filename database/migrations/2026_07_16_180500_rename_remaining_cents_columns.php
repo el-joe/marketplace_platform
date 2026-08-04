@@ -123,34 +123,46 @@ return new class extends Migration
             $table->renameColumn('denomination_cents', 'denomination');
         });
 
-        Schema::table('marketer_campaigns', function (Blueprint $table) {
-            $table->renameColumn('budget_cents', 'budget');
-            $table->renameColumn('budget_spent_cents', 'budget_spent');
-            $table->renameColumn('total_revenue_cents', 'total_revenue');
-        });
+        if (Schema::hasTable('marketer_campaigns')) {
+            Schema::table('marketer_campaigns', function (Blueprint $table) {
+                $table->renameColumn('budget_cents', 'budget');
+                $table->renameColumn('budget_spent_cents', 'budget_spent');
+                $table->renameColumn('total_revenue_cents', 'total_revenue');
+            });
+        }
 
-        Schema::table('marketer_conversions', function (Blueprint $table) {
-            $table->renameColumn('commission_amount_cents', 'commission_amount');
-            $table->renameColumn('order_value_cents', 'order_value');
-        });
+        if (Schema::hasTable('marketer_conversions')) {
+            Schema::table('marketer_conversions', function (Blueprint $table) {
+                $table->renameColumn('commission_amount_cents', 'commission_amount');
+                $table->renameColumn('order_value_cents', 'order_value');
+            });
+        }
 
-        Schema::table('marketer_payouts', function (Blueprint $table) {
-            $table->renameColumn('gross_commission_cents', 'gross_commission');
-            $table->renameColumn('net_amount_cents', 'net_amount');
-            $table->renameColumn('tax_deduction_cents', 'tax_deduction');
-        });
+        if (Schema::hasTable('marketer_payouts')) {
+            Schema::table('marketer_payouts', function (Blueprint $table) {
+                $table->renameColumn('gross_commission_cents', 'gross_commission');
+                $table->renameColumn('net_amount_cents', 'net_amount');
+                $table->renameColumn('tax_deduction_cents', 'tax_deduction');
+            });
+        }
 
-        Schema::table('marketer_sample_items', function (Blueprint $table) {
-            $table->renameColumn('sample_cost_cents', 'sample_cost');
-        });
+        if (Schema::hasTable('marketer_sample_items')) {
+            Schema::table('marketer_sample_items', function (Blueprint $table) {
+                $table->renameColumn('sample_cost_cents', 'sample_cost');
+            });
+        }
 
-        Schema::table('marketer_secret_promotions', function (Blueprint $table) {
-            $table->renameColumn('product_value_cents', 'product_value');
-        });
+        if (Schema::hasTable('marketer_secret_promotions')) {
+            Schema::table('marketer_secret_promotions', function (Blueprint $table) {
+                $table->renameColumn('product_value_cents', 'product_value');
+            });
+        }
 
-        Schema::table('marketers', function (Blueprint $table) {
-            $table->renameColumn('total_earnings_cents', 'total_earnings');
-        });
+        if (Schema::hasTable('marketers')) {
+            Schema::table('marketers', function (Blueprint $table) {
+                $table->renameColumn('total_earnings_cents', 'total_earnings');
+            });
+        }
 
         Schema::table('marketplace_shipping_rules', function (Blueprint $table) {
             $table->renameColumn('extra_delivery_fee_cents', 'extra_delivery_fee');
@@ -417,34 +429,46 @@ return new class extends Migration
             $table->renameColumn('denomination', 'denomination_cents');
         });
 
-        Schema::table('marketer_campaigns', function (Blueprint $table) {
-            $table->renameColumn('budget', 'budget_cents');
-            $table->renameColumn('budget_spent', 'budget_spent_cents');
-            $table->renameColumn('total_revenue', 'total_revenue_cents');
-        });
+        if (Schema::hasTable('marketer_campaigns')) {
+            Schema::table('marketer_campaigns', function (Blueprint $table) {
+                $table->renameColumn('budget', 'budget_cents');
+                $table->renameColumn('budget_spent', 'budget_spent_cents');
+                $table->renameColumn('total_revenue', 'total_revenue_cents');
+            });
+        }
 
-        Schema::table('marketer_conversions', function (Blueprint $table) {
-            $table->renameColumn('commission_amount', 'commission_amount_cents');
-            $table->renameColumn('order_value', 'order_value_cents');
-        });
+        if (Schema::hasTable('marketer_conversions')) {
+            Schema::table('marketer_conversions', function (Blueprint $table) {
+                $table->renameColumn('commission_amount', 'commission_amount_cents');
+                $table->renameColumn('order_value', 'order_value_cents');
+            });
+        }
 
-        Schema::table('marketer_payouts', function (Blueprint $table) {
-            $table->renameColumn('gross_commission', 'gross_commission_cents');
-            $table->renameColumn('net_amount', 'net_amount_cents');
-            $table->renameColumn('tax_deduction', 'tax_deduction_cents');
-        });
+        if (Schema::hasTable('marketer_payouts')) {
+            Schema::table('marketer_payouts', function (Blueprint $table) {
+                $table->renameColumn('gross_commission', 'gross_commission_cents');
+                $table->renameColumn('net_amount', 'net_amount_cents');
+                $table->renameColumn('tax_deduction', 'tax_deduction_cents');
+            });
+        }
 
-        Schema::table('marketer_sample_items', function (Blueprint $table) {
-            $table->renameColumn('sample_cost', 'sample_cost_cents');
-        });
+        if (Schema::hasTable('marketer_sample_items')) {
+            Schema::table('marketer_sample_items', function (Blueprint $table) {
+                $table->renameColumn('sample_cost', 'sample_cost_cents');
+            });
+        }
 
-        Schema::table('marketer_secret_promotions', function (Blueprint $table) {
-            $table->renameColumn('product_value', 'product_value_cents');
-        });
+        if (Schema::hasTable('marketer_secret_promotions')) {
+            Schema::table('marketer_secret_promotions', function (Blueprint $table) {
+                $table->renameColumn('product_value', 'product_value_cents');
+            });
+        }
 
-        Schema::table('marketers', function (Blueprint $table) {
-            $table->renameColumn('total_earnings', 'total_earnings_cents');
-        });
+        if (Schema::hasTable('marketers')) {
+            Schema::table('marketers', function (Blueprint $table) {
+                $table->renameColumn('total_earnings', 'total_earnings_cents');
+            });
+        }
 
         Schema::table('marketplace_shipping_rules', function (Blueprint $table) {
             $table->renameColumn('extra_delivery_fee', 'extra_delivery_fee_cents');

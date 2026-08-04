@@ -35,8 +35,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['marketer_id', 'tier', 'month', 'year']);
-
-            $table->foreign('marketer_id')->references('id')->on('marketers')->onDelete('cascade');
         });
     }
 

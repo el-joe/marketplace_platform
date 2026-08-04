@@ -195,17 +195,6 @@
                     </div>
                 </div>
 
-                <div id="specific-marketers" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">اختر المسوّقين</label>
-                    <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-3">
-                        @foreach($marketers as $m)
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="marketer_ids[]" value="{{ $m->id }}" class="rounded">
-                            <span class="text-sm text-gray-700">{{ $m->name }}</span>
-                        </label>
-                        @endforeach
-                    </div>
-                </div>
             </div>
 
             {{-- ─── Step 6: Contract ─────────────────────────────────────────── --}}
@@ -398,7 +387,6 @@ document.querySelectorAll('input[name=marketer_mode]').forEach(radio => {
     radio.addEventListener('change', () => {
         const mode = radio.value;
         document.getElementById('commission-fields').classList.toggle('hidden', mode === 'skip');
-        document.getElementById('specific-marketers').classList.toggle('hidden', mode !== 'specific');
         document.querySelectorAll('.marketer-mode-card').forEach(c => {
             c.classList.remove('border-primary-500','bg-primary-50');
             c.classList.add('border-gray-200');

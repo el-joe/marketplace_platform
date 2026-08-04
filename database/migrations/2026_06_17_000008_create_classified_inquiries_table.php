@@ -12,7 +12,6 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('classified_listing_id');
             $table->uuid('customer_id');
-            $table->uuid('marketer_id')->nullable();
             $table->text('message')->nullable();
             $table->string('contact_phone', 30)->nullable();
             $table->enum('status', ['new', 'contacted', 'closed'])->default('new');
@@ -20,7 +19,6 @@ return new class extends Migration
 
             $table->foreign('classified_listing_id')->references('id')->on('classified_listings')->cascadeOnDelete();
             $table->foreign('customer_id')->references('id')->on('customers');
-            $table->foreign('marketer_id')->references('id')->on('marketers')->nullOnDelete();
         });
     }
 

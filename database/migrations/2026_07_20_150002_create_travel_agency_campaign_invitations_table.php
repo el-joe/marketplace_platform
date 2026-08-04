@@ -12,8 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('travel_agency_campaign_offer_id')
                 ->constrained('travel_agency_campaign_offers', indexName: 'ta_c_invitations_offer_id_foreign')->cascadeOnDelete();
-            $table->foreignUuid('marketer_id')
-                ->constrained('marketers')->cascadeOnDelete();
+            $table->uuid('marketer_id');
             $table->enum('status', [
                 'pending',
                 'accepted',
@@ -28,8 +27,7 @@ return new class extends Migration
             $table->timestamp('responded_at')->nullable();
             $table->timestamp('expires_at')->nullable()
                 ->comment('Copied from offer.invitation_deadline at invite time — individual override possible');
-            $table->foreignUuid('resulting_campaign_id')->nullable()
-                ->constrained('marketer_campaigns')->nullOnDelete()
+            $table->uuid('resulting_campaign_id')->nullable()
                 ->comment('The marketer_campaigns row auto-created when this invitation is accepted');
             $table->timestamps();
 
