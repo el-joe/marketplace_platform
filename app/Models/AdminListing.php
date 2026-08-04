@@ -163,6 +163,11 @@ class AdminListing extends Model
         return $this->hasMany(ProductCostReference::class);
     }
 
+    public function marketerCampaigns(): HasMany
+    {
+        return $this->hasMany(MarketerCampaign::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');

@@ -350,7 +350,7 @@ class AdminListingController extends Controller
             'createdByAdmin',
             'warehouseInventories.warehouse',
             'reviews.customer',
-            'marketerCampaignProducts.campaign',
+            'marketerCampaigns',
             'flashSaleSubmissions.flashSale',
             'marketplaceShippingRule',
             'productCostReferences',

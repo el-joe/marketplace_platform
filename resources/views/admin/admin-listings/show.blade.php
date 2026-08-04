@@ -291,20 +291,18 @@
                             <tr>
                                 <th>{{ __('admin.admin_listings.campaign_col') }}</th>
                                 <th class="text-end">{{ __('admin.admin_listings.commission_override_col') }}</th>
-                                <th class="text-end">{{ __('admin.admin_listings.position_col') }}</th>
                                 <th>{{ __('admin.admin_listings.campaign_status_col') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($listing->marketerCampaignProducts as $mcp)
+                            @forelse($listing->marketerCampaigns as $campaign)
                                 <tr class="border-b border-gray-100">
-                                    <td>{{ $mcp->campaign?->name ?? '—' }}</td>
-                                    <td class="text-end">{{ $mcp->commission_override !== null ? $mcp->commission_override . '%' : '—' }}</td>
-                                    <td class="text-end">{{ $mcp->position ?? '—' }}</td>
-                                    <td>{{ $mcp->campaign?->status ? ucfirst(str_replace('_', ' ', $mcp->campaign->status->value)) : '—' }}</td>
+                                    <td>{{ $campaign->title ?? '—' }}</td>
+                                    <td class="text-end">{{ $campaign->marketer_commission_amount !== null ? $campaign->marketer_commission_amount : '—' }}</td>
+                                    <td>{{ $campaign->status ? ucfirst(str_replace('_', ' ', is_string($campaign->status) ? $campaign->status : $campaign->status->value)) : '—' }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="text-center text-gray-400 py-6">{{ __('admin.admin_listings.not_linked_marketer_campaigns') }}</td></tr>
+                                <tr><td colspan="3" class="text-center text-gray-400 py-6">{{ __('admin.admin_listings.not_linked_marketer_campaigns') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>
