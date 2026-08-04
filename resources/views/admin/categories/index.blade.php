@@ -10,22 +10,29 @@
     <div class="space-y-4">
 
         {{-- Toolbar --}}
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
             <div class="flex items-center gap-2">
                 <button type="button" id="bulk-commission-btn" class="btn btn-ghost btn-sm hidden">
                     <x-heroicon name="percent-badge" class="w-4 h-4 mr-1" />
                     {{ __('admin.categories.bulk_commission_short') }}
                 </button>
             </div>
-            <div class="relative w-full max-w-xs">
-                <x-heroicon name="magnifying-glass" class="w-4 h-4 absolute inset-s-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input type="text" id="categories-search" class="input w-full ps-9"
-                    placeholder="{{ __('admin.categories.search_placeholder') }}" />
+            <div class="flex items-center gap-2 ms-auto">
+                <div class="relative w-64">
+                    <x-heroicon name="magnifying-glass" class="w-4 h-4 absolute inset-s-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <input type="text" id="categories-search" autocomplete="off"
+                        class="w-full ps-9 pe-8 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none transition-colors placeholder:text-gray-400"
+                        placeholder="{{ __('admin.categories.search_placeholder') }}" />
+                    <button type="button" id="categories-search-clear"
+                        class="hidden absolute inset-e-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 rounded p-0.5">
+                        <x-heroicon name="x-mark" class="w-4 h-4" />
+                    </button>
+                </div>
+                <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">
+                    <x-heroicon name="plus" class="w-4 h-4 mr-1" />
+                    {{ __('admin.categories.new_category') }}
+                </a>
             </div>
-            <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">
-                <x-heroicon name="plus" class="w-4 h-4 mr-1" />
-                {{ __('admin.categories.new_category') }}
-            </a>
         </div>
 
         {{-- Tree Table --}}

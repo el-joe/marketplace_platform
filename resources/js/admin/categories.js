@@ -102,10 +102,20 @@ function initTree() {
 function initSearch() {
     const input = document.getElementById('categories-search');
     const table = document.getElementById('categories-table');
+    const clearBtn = document.getElementById('categories-search-clear');
     if (!input || !table) return;
 
     input.addEventListener('input', function () {
-        applySearch(table, input.value.trim().toLowerCase());
+        const query = input.value.trim().toLowerCase();
+        clearBtn?.classList.toggle('hidden', query === '');
+        applySearch(table, query);
+    });
+
+    clearBtn?.addEventListener('click', function () {
+        input.value = '';
+        clearBtn.classList.add('hidden');
+        applySearch(table, '');
+        input.focus();
     });
 }
 
