@@ -147,7 +147,7 @@ class Product extends Model
     }
 
     /**
-     * Rating is tracked per listing (vendor_listings / admin_product_listings), not on
+     * Rating is tracked per listing (vendor_listings / admin_listings), not on
      * products. This aggregates across this product's active listings on read, weighted
      * by each listing's own rating_count.
      */
@@ -161,10 +161,10 @@ class Product extends Model
             ->selectRaw('COALESCE(SUM(vl.rating_avg * vl.rating_count), 0) as weighted, COALESCE(SUM(vl.rating_count), 0) as count')
             ->first();
 
-        $adminAgg = DB::table('admin_product_listings as apl')
+        $adminAgg = DB::table('admin_listings as apl')
             ->join('product_variants as pv', 'pv.id', '=', 'apl.product_variant_id')
             ->where('pv.product_id', $this->id)
-            ->where('apl.status', \App\Enums\AdminProductListingStatus::Active->value)
+            ->where('apl.status', \App\Enums\AdminListingStatus::Active->value)
             ->selectRaw('COALESCE(SUM(apl.rating_avg * apl.rating_count), 0) as weighted, COALESCE(SUM(apl.rating_count), 0) as count')
             ->first();
 

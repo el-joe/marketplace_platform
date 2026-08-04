@@ -45,7 +45,7 @@
                 <tbody>
                     @forelse($items as $item)
                         @php
-                            $listing = $item->vendorListing ?? $item->adminProductListing;
+                            $listing = $item->vendorListing ?? $item->adminListing;
                             $product = $item->productVariant?->product;
                             $thumbnail = $item->productVariant?->images->first()?->url;
                         @endphp
@@ -61,7 +61,7 @@
                             <td class="py-2 pr-4">
                                 @if($item->vendorListing)
                                     <x-badge color="primary">{{ __('admin.wishlist_section.vendor_listing') }}</x-badge>
-                                @elseif($item->adminProductListing)
+                                @elseif($item->adminListing)
                                     <x-badge color="gray">{{ __('admin.wishlist_section.admin_listing') }}</x-badge>
                                 @else
                                     —

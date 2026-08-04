@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Enums\AdminProductListingStatus;
+use App\Enums\AdminListingStatus;
 use App\Enums\VendorListingStatus;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\AttributeValue;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -96,19 +96,19 @@ class VariantSlugService
     }
 
     /**
-     * Same as above but for AdminProductListing (for nawy_now context).
+     * Same as above but for AdminListing (for nawy_now context).
      */
-    public function bestAdminListing(ProductVariant $variant, string $countryId): ?AdminProductListing
+    public function bestAdminListing(ProductVariant $variant, string $countryId): ?AdminListing
     {
-        $activeListings = $variant->adminProductListings()
+        $activeListings = $variant->adminListings()
             ->where('country_id', $countryId)
-            ->where('status', AdminProductListingStatus::Active->value)
+            ->where('status', AdminListingStatus::Active->value)
             ->with('warehouseInventories')
             ->orderBy('price')
             ->get();
 
         $inStock = $activeListings->first(
-            fn (AdminProductListing $listing) => $listing->warehouseInventories
+            fn (AdminListing $listing) => $listing->warehouseInventories
                 ->sum(fn ($inventory) => $inventory->quantity_on_hand - $inventory->quantity_reserved) > 0
         );
 
@@ -119,7 +119,7 @@ class VariantSlugService
      * Given a product and a listing_id (vendor or admin), resolve the variant
      * and verify the listing belongs to it.
      *
-     * @return array{variant: ProductVariant, listing: VendorListing|AdminProductListing, type: string}|null
+     * @return array{variant: ProductVariant, listing: VendorListing|AdminListing, type: string}|null
      */
     public function resolveByListingId(Product $product, string $listingId): ?array
     {
@@ -137,8 +137,8 @@ class VariantSlugService
             ];
         }
 
-        $adminListing = AdminProductListing::where('id', $listingId)
-            ->where('status', AdminProductListingStatus::Active->value)
+        $adminListing = AdminListing::where('id', $listingId)
+            ->where('status', AdminListingStatus::Active->value)
             ->whereHas('productVariant', fn ($query) => $query->where('product_id', $product->id))
             ->with('productVariant')
             ->first();

@@ -43,7 +43,6 @@ return [
         'custom_html_sources' => 'HTML مضمّن',
         'banner_single_purpose' => 'بانر ترويجي واحد بعرض كامل',
         'banner_single_sources' => 'صورة البانر + الرابط',
-        'now_nawy_feed_purpose' => 'قوائم منتجات المسؤول (Nawy Now)',
     ],
 
     'slides' => [

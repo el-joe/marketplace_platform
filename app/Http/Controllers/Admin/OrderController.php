@@ -101,7 +101,7 @@ class OrderController extends Controller
                 'admin' => $q->whereExists(fn($sub) => $sub->selectRaw(1)
                     ->from('order_items')
                     ->whereColumn('order_items.order_id', 'orders.id')
-                    ->whereNotNull('order_items.admin_product_listing_id')),
+                    ->whereNotNull('order_items.admin_listing_id')),
                 'vendor' => $q->whereExists(fn($sub) => $sub->selectRaw(1)
                     ->from('order_items')
                     ->whereColumn('order_items.order_id', 'orders.id')
@@ -177,7 +177,7 @@ class OrderController extends Controller
     {
         $order = Order::with([
             'subOrders.items.productVariant',
-            'subOrders.items.adminProductListing.productVariant',
+            'subOrders.items.adminListing.productVariant',
             'subOrders.items.vendor',
             'subOrders.vendor',
             'subOrders.carrier',

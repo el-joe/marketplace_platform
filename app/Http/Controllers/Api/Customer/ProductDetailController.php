@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\Customer;
 
-use App\Enums\AdminProductListingStatus;
+use App\Enums\AdminListingStatus;
 use App\Enums\AttributeType;
 use App\Enums\ProductStatus;
 use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Attribute;
 use App\Models\Product;
 use App\Models\ProductImage;
@@ -74,13 +74,21 @@ class ProductDetailController extends Controller
 
         $selectedShippingMethodId = $this->resolveSelectedShippingMethodId($request, $shippingMethods);
 
+        $unifiedListings = $this->buildOtherSellers($variantId, $countryId, $listing);
+
+        $otherSellers = $isNawyNow
+            ? []
+            : array_values(array_filter($unifiedListings, fn (array $l) => !$l['is_current_listing']));
+
         return ApiResponse::success([
             'product' => $this->productShape($product),
             'variant' => $this->variantShape($variant),
             'listing' => $this->listingShape($listing, $listingType),
             'images' => $this->buildImages($product, $variant),
             'attributes' => $this->buildAttributeMatrix($product, $variant, $countryId, $isNawyNow),
-            'other_sellers' => $isNawyNow ? [] : $this->buildOtherSellers($variantId, $countryId, $listing),
+            'other_sellers' => $otherSellers,
+            'listings' => $unifiedListings,
+            'buy_box' => $unifiedListings[0] ?? null,
             'shipping_methods' => $shippingMethodsData,
             'selected_shipping_method_id' => $selectedShippingMethodId,
             'current_url' => $url,
@@ -201,14 +209,14 @@ class ProductDetailController extends Controller
     }
 
     /**
-     * @return array{0: VendorListing|AdminProductListing|null, 1: string}
+     * @return array{0: VendorListing|AdminListing|null, 1: string}
      */
     private function resolveListing(string $variantId, string $listingId, string $countryId, bool $isNawyNow): array
     {
         if ($isNawyNow) {
-            $listing = AdminProductListing::where('id', $listingId)
+            $listing = AdminListing::where('id', $listingId)
                 ->where('product_variant_id', $variantId)
-                ->where('status', AdminProductListingStatus::Active)
+                ->where('status', AdminListingStatus::Active)
                 ->first();
 
             if (!$listing) {
@@ -280,7 +288,7 @@ class ProductDetailController extends Controller
         ];
     }
 
-    private function listingShape(VendorListing|AdminProductListing $listing, string $listingType): array
+    private function listingShape(VendorListing|AdminListing $listing, string $listingType): array
     {
         $shape = [
             'id' => $listing->id,
@@ -413,30 +421,72 @@ class ProductDetailController extends Controller
         return $matrix;
     }
 
-    private function buildOtherSellers(string $variantId, string $countryId, VendorListing|AdminProductListing $currentListing): array
+    private function buildOtherSellers(string $variantId, string $countryId, VendorListing|AdminListing $currentListing): array
     {
-        return VendorListing::where('product_variant_id', $variantId)
+        $adminListings = AdminListing::with(['warehouseInventories', 'primaryShippingMethod'])
+            ->where('product_variant_id', $variantId)
+            ->where('country_id', $countryId)
+            ->where('status', AdminListingStatus::Active->value)
+            ->orderByDesc('search_boost')
+            ->orderBy('created_at')
+            ->get();
+
+        $vendorListings = VendorListing::with(['warehouseInventories', 'primaryShippingMethod', 'vendor'])
+            ->where('product_variant_id', $variantId)
             ->where('country_id', $countryId)
             ->whereIn('status', [VendorListingStatus::Active, VendorListingStatus::OutOfStock])
-            ->with('vendor:id,store_name,store_slug,store_rating_avg')
-            ->orderByRaw("CASE WHEN status = ? THEN 0 ELSE 1 END", [VendorListingStatus::Active->value])
-            ->orderByRaw('score IS NULL, score DESC')
-            ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
-            ->orderBy('rating_count', 'desc')
-            ->orderBy('price', 'asc')
-            ->limit(10)
-            ->get()
-            ->map(fn (VendorListing $listing) => [
-                'listing_id' => $listing->id,
-                'vendor_name' => $listing->vendor?->store_name,
-                'vendor_slug' => $listing->vendor?->store_slug,
-                'price' => $listing->price,
-                'currency' => $listing->currency,
-                'shipping_cost' => null,
-                'status' => $listing->status instanceof \BackedEnum ? $listing->status->value : $listing->status,
-                'rating_avg' => $listing->rating_avg,
-                'is_current_listing' => (string) $listing->id === (string) $currentListing->id,
-            ])->values()->all();
+            ->orderByDesc('score')
+            ->get();
+
+        $listings = $adminListings->map(fn (AdminListing $listing) => $this->formatListing($listing, 'admin', $currentListing))
+            ->concat($vendorListings->map(fn (VendorListing $listing) => $this->formatListing($listing, 'vendor', $currentListing)));
+
+        return $listings->values()->all();
+    }
+
+    private function formatListing(VendorListing|AdminListing $listing, string $source, VendorListing|AdminListing $currentListing): array
+    {
+        return [
+            'id' => $listing->id,
+            'price' => $listing->price,
+            'compare_at_price' => $listing->compare_at_price,
+            'currency' => $listing->currency,
+            'condition' => $listing->condition,
+            'condition_notes' => $listing->condition_notes,
+            'fulfillment_model' => $source === 'admin' ? $listing->fulfillment_type : $listing->fulfillment_model,
+            'global_system_type' => $source === 'vendor' ? $listing->global_system_type?->value : null,
+            'is_global_shipping' => $source === 'admin' ? (bool) $listing->is_global_shipping : false,
+            'vendor_covers_delivery' => (bool) $listing->vendor_covers_delivery,
+            'max_order_quantity' => $listing->max_order_quantity,
+            'status' => $listing->status instanceof \BackedEnum ? $listing->status->value : $listing->status,
+            'rating_avg' => $listing->rating_avg,
+            'rating_count' => $listing->rating_count,
+            'stock' => $listing->warehouseInventories->sum('quantity_available'),
+            'buy_box_won' => $listing->buy_box_won_at !== null,
+            'is_current_listing' => (string) $listing->id === (string) $currentListing->id,
+            // Seller identity
+            'seller' => $source === 'admin' ? [
+                'id' => null,
+                'name_en' => $listing->sold_by_label_en,
+                'name_ar' => $listing->sold_by_label_ar,
+                'is_platform' => true,
+            ] : [
+                'id' => $listing->vendor_id,
+                'name_en' => $listing->vendor?->store_name,
+                'name_ar' => $listing->vendor?->store_name_ar ?? $listing->vendor?->store_name,
+                'is_platform' => false,
+            ],
+            // Express badge — admin listings only
+            'badge' => $source === 'admin' ? [
+                'type' => 'express',
+                'label_en' => $listing->express_badge_label_en,
+                'label_ar' => $listing->express_badge_label_ar,
+                'color' => '#FFCC00',
+            ] : null,
+            'is_daily_deal' => $source === 'admin' ? (bool) $listing->is_daily_deal : false,
+            // NEVER expose: cost_price, score, price_score, fulfillment_score,
+            //               campaign_enabled, created_by_admin_id, search_boost
+        ];
     }
 
     private function buildImages(Product $product, ProductVariant $variant): array

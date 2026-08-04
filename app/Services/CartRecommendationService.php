@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Customer;
@@ -121,11 +121,10 @@ class CartRecommendationService
             $cartCategoryIds, $cartListingIds, $countryId, $currency, $isNawyNow
         ) {
             if ($isNawyNow) {
-                return AdminProductListing::whereIn('nawy_category_id', $cartCategoryIds)
-                    ->where('country_id', $countryId)
+                return AdminListing::where('country_id', $countryId)
                     ->where('currency', $currency)
                     ->where('status', 'active')
-                    ->where('featured_in_nawy', 1)
+                    ->whereHas('productVariant.product', fn ($q) => $q->whereIn('category_id', $cartCategoryIds))
                     ->whereNotIn('id', $cartListingIds)
                     ->orderByDesc('rating_avg')
                     ->limit(self::SECTION_LIMIT)
@@ -163,10 +162,9 @@ class CartRecommendationService
             $cartListingIds, $countryId, $currency, $isNawyNow
         ) {
             if ($isNawyNow) {
-                return AdminProductListing::where('country_id', $countryId)
+                return AdminListing::where('country_id', $countryId)
                     ->where('currency', $currency)
                     ->where('status', 'active')
-                    ->where('featured_in_nawy', 1)
                     ->whereNotIn('id', $cartListingIds)
                     ->orderByDesc('rating_count')
                     ->orderByDesc('rating_avg')
@@ -234,12 +232,11 @@ class CartRecommendationService
         }
 
         if ($isNawyNow) {
-            $listings = AdminProductListing::whereHas('productVariant', fn ($q) => $q
+            $listings = AdminListing::whereHas('productVariant', fn ($q) => $q
                     ->whereIn('product_id', $productIds))
                 ->where('country_id', $countryId)
                 ->where('currency', $currency)
                 ->where('status', 'active')
-                ->where('featured_in_nawy', 1)
                 ->whereNotIn('id', $excludeListingIds)
                 ->orderByRaw('score IS NULL, score DESC')
                 ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
@@ -310,7 +307,7 @@ class CartRecommendationService
         ];
     }
 
-    private function adminListingCard(AdminProductListing $listing): array
+    private function adminListingCard(AdminListing $listing): array
     {
         $variant = $listing->productVariant;
         $product = $variant?->product;
@@ -358,7 +355,7 @@ class CartRecommendationService
     private function extractListingIds(Collection $items, bool $isNawyNow): array
     {
         if ($isNawyNow) {
-            return $items->pluck('admin_product_listing_id')->filter()->unique()->values()->toArray();
+            return $items->pluck('admin_listing_id')->filter()->unique()->values()->toArray();
         }
 
         return $items->pluck('vendor_listing_id')->filter()->unique()->values()->toArray();
@@ -372,7 +369,7 @@ class CartRecommendationService
         }
 
         if ($isNawyNow) {
-            return AdminProductListing::whereIn('id', $listingIds)
+            return AdminListing::whereIn('id', $listingIds)
                 ->with('productVariant:id,product_id')
                 ->get()
                 ->pluck('productVariant.product_id')
@@ -394,8 +391,10 @@ class CartRecommendationService
         }
 
         if ($isNawyNow) {
-            return AdminProductListing::whereIn('id', $listingIds)
-                ->pluck('nawy_category_id')
+            return AdminListing::whereIn('id', $listingIds)
+                ->with('productVariant.product:id,category_id')
+                ->get()
+                ->pluck('productVariant.product.category_id')
                 ->filter()->unique()->values()->toArray();
         }
 

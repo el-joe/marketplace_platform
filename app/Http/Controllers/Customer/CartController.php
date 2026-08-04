@@ -174,12 +174,12 @@ class CartController extends Controller
         $items = CartItem::where('cart_id', $cart->id)
             ->with([
                 'vendorListing.vendor',
-                'adminProductListing',
+                'adminListing',
                 'selectedShippingMethod',
                 'vendorListing.productVariant.product',
                 'vendorListing.productVariant.images',
-                'adminProductListing.productVariant.product',
-                'adminProductListing.productVariant.images',
+                'adminListing.productVariant.product',
+                'adminListing.productVariant.images',
             ])
             ->get();
 
@@ -219,7 +219,7 @@ class CartController extends Controller
                 'items_count' => $groupItems->count(),
                 'items' => $groupItems->map(function ($item) use ($method) {
                     $isVendor = (bool) $item->vendor_listing_id;
-                    $listing = $isVendor ? $item->vendorListing : $item->adminProductListing;
+                    $listing = $isVendor ? $item->vendorListing : $item->adminListing;
                     $variant = $listing?->productVariant;
                     $product = $variant?->product;
                     $primaryImage = $variant?->images?->firstWhere('is_primary', true) ?? $variant?->images?->first();
@@ -229,12 +229,12 @@ class CartController extends Controller
                         'quantity' => $item->quantity,
                         'unit_price' => $item->unit_price,
                         'line_total' => $item->unit_price * $item->quantity,
-                        'product_url' => "/products/{$variant?->id}/" . ($isVendor ? $item->vendor_listing_id : $item->admin_product_listing_id),
+                        'product_url' => "/products/{$variant?->id}/" . ($isVendor ? $item->vendor_listing_id : $item->admin_listing_id),
                         'product_name_en' => $product?->name_en,
                         'product_name_ar' => $product?->name_ar,
                         'variant_name' => $variant?->variant_name,
                         'primary_image' => $primaryImage?->path,
-                        'listing_id' => $isVendor ? $item->vendor_listing_id : $item->admin_product_listing_id,
+                        'listing_id' => $isVendor ? $item->vendor_listing_id : $item->admin_listing_id,
                         'listing_type' => $isVendor ? 'vendor' : 'admin',
                         'vendor' => $isVendor ? [
                             'id' => $item->vendorListing->vendor->id,
@@ -270,7 +270,7 @@ class CartController extends Controller
 
         try {
             if ($isAdmin) {
-                $item = $this->cartService->addAdminItem($cart, $request->admin_product_listing_id, $request->quantity, $request->shipping_method_id, $countryId);
+                $item = $this->cartService->addAdminItem($cart, $request->admin_listing_id, $request->quantity, $request->shipping_method_id, $countryId);
             } else {
                 $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity, $request->shipping_method_id, $countryId);
             }
@@ -283,7 +283,7 @@ class CartController extends Controller
             'vendorListing.productVariant.product.images',
             'vendorListing.primaryShippingMethod',
             'vendorListing.warehouseInventories',
-            'adminProductListing.productVariant.product.images',
+            'adminListing.productVariant.product.images',
             'selectedShippingMethod',
         ]);
 

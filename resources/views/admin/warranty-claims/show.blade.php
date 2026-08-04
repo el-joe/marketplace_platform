@@ -251,7 +251,7 @@
                                     {{ $sellerLabel }}
                                 </a>
                             @elseif($claim->listing_type === \App\Models\WarrantyClaim::LISTING_TYPE_ADMIN && $claim->adminListing)
-                                <a href="{{ route('admin.admin-product-listings.edit', $claim->adminListing->id) }}" class="text-primary-600 hover:underline">
+                                <a href="{{ route('admin.admin-listings.edit', $claim->adminListing->id) }}" class="text-primary-600 hover:underline">
                                     {{ $sellerLabel }}
                                 </a>
                             @else

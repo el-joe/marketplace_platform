@@ -42,7 +42,6 @@ use App\Http\Controllers\Customer\BrowseController;
 use App\Http\Controllers\Customer\ListingController;
 use App\Http\Controllers\Customer\ListingDetailController;
 use App\Http\Controllers\Customer\NavigationController;
-use App\Http\Controllers\Customer\NawyController;
 use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\Customer\PageController;
 use App\Http\Controllers\Customer\AccountController;
@@ -501,19 +500,6 @@ Route::get('v1/products/{productSlug}/{variantSlug}', [ProductDetailController::
 
 Route::get('v1/products/{productSlug}', [ProductDetailController::class, 'redirectBySlug'])
     ->name('customer.products.redirect-by-slug');
-
-// ── Nawy Now curated feed (public, country-agnostic path — country_id is a query param) ──
-Route::prefix('v1/nawy')->name('customer.nawy.')->group(function (): void {
-    Route::get('feed', [NawyController::class, 'feed'])->name('feed');
-    Route::get('categories', [NawyController::class, 'categories'])->name('categories');
-    Route::get('{id}', [NawyController::class, 'show'])->name('show');
-});
-
-Route::get('v1/nawy-categories', [NawyController::class, 'nawyCategories'])
-    ->name('customer.nawy-categories.index');
-
-Route::get('v1/nawy-home', [NawyController::class, 'home'])
-    ->name('customer.nawy-home.index');
 
 // ── Dual-mode categories (marketplace / nawy_now via X-Listing-Type header) ──
 Route::prefix('v1')->middleware('auth:customer')->name('customer.dual-categories.')->group(function (): void {

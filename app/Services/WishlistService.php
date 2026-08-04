@@ -48,7 +48,7 @@ class WishlistService
             ->where('customer_id', $customer->id);
 
         if ($isAdminListing) {
-            $existingQuery->where('admin_product_listing_id', $listingId);
+            $existingQuery->where('admin_listing_id', $listingId);
         } else {
             $existingQuery->where('vendor_listing_id', $listingId);
         }
@@ -63,7 +63,7 @@ class WishlistService
                 'wishlist_group_id' => $group->id,
                 'customer_id' => $customer->id,
                 'vendor_listing_id' => $isAdminListing ? null : $listingId,
-                'admin_product_listing_id' => $isAdminListing ? $listingId : null,
+                'admin_listing_id' => $isAdminListing ? $listingId : null,
                 'product_variant_id' => $productVariantId,
                 'added_at' => now(),
             ]);
@@ -94,7 +94,7 @@ class WishlistService
         $query = WishlistItem::where('customer_id', $customer->id);
 
         if ($isAdminListing) {
-            $query->where('admin_product_listing_id', $listingId);
+            $query->where('admin_listing_id', $listingId);
         } else {
             $query->where('vendor_listing_id', $listingId);
         }
@@ -115,7 +115,7 @@ class WishlistService
                         if ($item->vendor_listing_id) {
                             $q->where('vendor_listing_id', $item->vendor_listing_id);
                         } else {
-                            $q->where('admin_product_listing_id', $item->admin_product_listing_id);
+                            $q->where('admin_listing_id', $item->admin_listing_id);
                         }
                     })->exists();
 

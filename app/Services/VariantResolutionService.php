@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Enums\AdminProductListingStatus;
+use App\Enums\AdminListingStatus;
 use App\Enums\VendorListingStatus;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\ProductVariant;
 use App\Models\VendorListing;
 
@@ -47,12 +47,12 @@ class VariantResolutionService
             ->first();
     }
 
-    public function bestAdminListing(string $variantId, string $countryId): ?AdminProductListing
+    public function bestAdminListing(string $variantId, string $countryId): ?AdminListing
     {
-        return AdminProductListing::query()
+        return AdminListing::query()
             ->where('product_variant_id', $variantId)
             ->where('country_id', $countryId)
-            ->where('status', AdminProductListingStatus::Active)
+            ->where('status', AdminListingStatus::Active)
             ->orderByRaw('score IS NULL, score DESC')
             ->orderByRaw('rating_avg IS NULL, rating_avg DESC')
             ->orderBy('rating_count', 'desc')

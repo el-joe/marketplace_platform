@@ -375,18 +375,6 @@ class HomePageSeeder extends Seeder
                 ],
             ],
 
-            // ── Position 15: NAWY CAROUSEL ───────────────────────────────────────────
-            [
-                'type'   => 'nawy_carousel',
-                'config' => [
-                    'title_en'           => 'Nawy Picks',
-                    'title_ar'           => 'اختيارات نوي',
-                    'fulfillment_filter' => 'all',
-                    'category_id'        => null,
-                    'limit'              => 10,
-                ],
-            ],
-
             // ── Position 16: VIDEO BANNER ─────────────────────────────────────────────
             [
                 'type'   => 'video_banner',

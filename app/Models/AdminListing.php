@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\AdminProductListingCommissionType;
-use App\Enums\AdminProductListingStatus;
+use App\Enums\AdminListingStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AdminProductListing extends Model
+class AdminListing extends Model
 {
     use HasUuids;
     use SoftDeletes;
@@ -24,25 +23,26 @@ class AdminProductListing extends Model
         'price',
         'compare_at_price',
         'cost_price',
-        'platform_sku',
         'condition',
         'condition_notes',
-        'commission_type',
-        'commission_value',
         'currency',
-        'payment_options',
-        'fulfillment_type',
-        'featured_in_nawy',
-        'nawy_category_id',
         'shipping_cost',
         'primary_shipping_method_id',
         'is_global_shipping',
-        'is_exclusive',
+        'vendor_covers_delivery',
         'status',
-        'available_for_vendors',
         'created_by_admin_id',
+        'updated_by_admin_id',
         'max_order_quantity',
         'low_stock_threshold',
+        'campaign_enabled',
+        'sold_by_label_en',
+        'sold_by_label_ar',
+        'express_badge_label_en',
+        'express_badge_label_ar',
+        'search_boost',
+        'is_daily_deal',
+        'daily_deal_ends_at',
         'total_sold',
         'buy_box_eligible',
         'buy_box_won_at',
@@ -73,15 +73,15 @@ class AdminProductListing extends Model
         'compare_at_price' => 'integer',
         'cost_price'   => 'integer',
         'shipping_cost'=> 'integer',
-        'commission_value'   => 'decimal:2',
-        'is_exclusive'       => 'boolean',
         'is_global_shipping' => 'boolean',
-        'featured_in_nawy'   => 'boolean',
-        'available_for_vendors'   => 'boolean',
+        'vendor_covers_delivery' => 'boolean',
+        'campaign_enabled'    => 'boolean',
+        'search_boost'        => 'integer',
+        'is_daily_deal'       => 'boolean',
+        'daily_deal_ends_at'  => 'datetime',
         'rating_avg'          => 'decimal:2',
         'rating_count'        => 'integer',
-        'status'              => AdminProductListingStatus::class,
-        'commission_type'     => AdminProductListingCommissionType::class,
+        'status'              => AdminListingStatus::class,
         'buy_box_eligible'    => 'boolean',
         'buy_box_won_at'      => 'datetime',
         'score'               => 'decimal:4',
@@ -108,14 +108,14 @@ class AdminProductListing extends Model
         return $this->belongsTo(Country::class);
     }
 
-    public function nawyCategory(): BelongsTo
-    {
-        return $this->belongsTo(Category::class, 'nawy_category_id');
-    }
-
     public function createdByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'created_by_admin_id');
+    }
+
+    public function updatedByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'updated_by_admin_id');
     }
 
     public function warehouse(): BelongsTo
@@ -138,6 +138,11 @@ class AdminProductListing extends Model
         return $this->hasMany(WarehouseInventory::class);
     }
 
+    public function warehouseInventory(): HasOne
+    {
+        return $this->hasOne(WarehouseInventory::class);
+    }
+
     public function marketplaceShippingRule(): HasOne
     {
         return $this->hasOne(MarketplaceShippingRule::class);
@@ -158,6 +163,11 @@ class AdminProductListing extends Model
         return $this->hasMany(ProductCostReference::class);
     }
 
+    public function marketerCampaigns(): HasMany
+    {
+        return $this->hasMany(MarketerCampaign::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
@@ -168,11 +178,6 @@ class AdminProductListing extends Model
         return $query->where('country_id', $countryId);
     }
 
-    public function scopeFeaturedInNawy(Builder $query): Builder
-    {
-        return $query->where('featured_in_nawy', true);
-    }
-
     /**
      * Restricts the query to the single best listing per (product_variant_id, country_id)
      * using the platform-wide "best listing" ordering: score, rating, price.
@@ -180,8 +185,8 @@ class AdminProductListing extends Model
     public function scopeBestPerVariant(Builder $query, string $countryId): Builder
     {
         return $query->whereRaw('id = (
-            SELECT id FROM admin_product_listings apl2
-            WHERE apl2.product_variant_id = admin_product_listings.product_variant_id
+            SELECT id FROM admin_listings apl2
+            WHERE apl2.product_variant_id = admin_listings.product_variant_id
               AND apl2.country_id = ?
               AND apl2.status = \'active\'
               AND apl2.deleted_at IS NULL
@@ -192,17 +197,5 @@ class AdminProductListing extends Model
                 apl2.price ASC
             LIMIT 1
         )', [$countryId]);
-    }
-
-    /** Whether COD is an allowed payment method for this listing. */
-    public function allowsCod(): bool
-    {
-        return in_array($this->payment_options, ['cod_only', 'both']);
-    }
-
-    /** Whether electronic payment is allowed for this listing. */
-    public function allowsElectronic(): bool
-    {
-        return in_array($this->payment_options, ['electronic_only', 'both']);
     }
 }

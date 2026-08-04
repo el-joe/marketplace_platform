@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\AdImageItem;
 use App\Models\Admin;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\BlockType;
 use App\Models\Brand;
 use App\Models\Category;
@@ -597,27 +597,6 @@ class PageBuilderService
     public function renderBlock(PageBlock $block, ?Country $country = null): \Illuminate\Contracts\View\View|string
     {
         switch ($block->block_type) {
-            case 'nawy_carousel':
-                $config = $block->config ?? [];
-                $query = AdminProductListing::where('status', 'active')
-                    ->with(['productVariant.product.images']);
-
-                if ($country) {
-                    $query->where('country_id', $country->id);
-                }
-
-                if (($config['fulfillment_filter'] ?? 'all') !== 'all') {
-                    $query->where('fulfillment_type', $config['fulfillment_filter']);
-                }
-
-                if (!empty($config['category_id'])) {
-                    $query->where('nawy_category_id', $config['category_id']);
-                }
-
-                $listings = $query->limit($config['limit'] ?? 10)->get();
-
-                return view('storefront.blocks.nawy-carousel', compact('listings', 'config'));
-
             default:
                 return '';
         }

@@ -43,7 +43,7 @@ class ReviewModerationService
 
     /**
      * Recalculate rating_avg and rating_count for whichever listing this review is
-     * attributed to. Ratings live on vendor_listings / admin_product_listings, not
+     * attributed to. Ratings live on vendor_listings / admin_listings, not
      * on products, since the same product can be sold by many sellers with very
      * different review experiences.
      */
@@ -53,8 +53,8 @@ class ReviewModerationService
             $this->recalculate('vendor_listings', 'vendor_listing_id', $review->vendor_listing_id);
         }
 
-        if ($review->admin_product_listing_id !== null) {
-            $this->recalculate('admin_product_listings', 'admin_product_listing_id', $review->admin_product_listing_id);
+        if ($review->admin_listing_id !== null) {
+            $this->recalculate('admin_listings', 'admin_listing_id', $review->admin_listing_id);
         }
     }
 

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api\Customer;
 
-use App\Enums\AdminProductListingStatus;
+use App\Enums\AdminListingStatus;
 use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Customer\AdminListingResource;
 use App\Http\Resources\Api\Customer\VendorListingResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Address;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Country;
 use App\Models\ProductVariant;
 use App\Models\ShippingMethod;
@@ -53,7 +53,7 @@ class ListingController extends Controller
             : $this->buildVendorQuery($request, $country)->paginate($perPage);
 
         $items = $isNawyNow
-            ? $paginator->getCollection()->map(fn (AdminProductListing $listing) => $this->adminListingShape($listing, $country))->values()->all()
+            ? $paginator->getCollection()->map(fn (AdminListing $listing) => $this->adminListingShape($listing, $country))->values()->all()
             : $paginator->getCollection()->map(fn (VendorListing $listing) => $this->vendorListingShape($listing, $country))->values()->all();
 
         return ApiResponse::success([
@@ -192,33 +192,29 @@ class ListingController extends Controller
 
     private function buildAdminQuery(Request $request, Country $country): Builder
     {
-        $query = AdminProductListing::query()
-            ->select('admin_product_listings.*')
-            ->where('admin_product_listings.country_id', $country->id)
-            ->where('admin_product_listings.status', AdminProductListingStatus::Active->value)
-            ->where('admin_product_listings.featured_in_nawy', 1)
-            ->leftJoin('categories', 'categories.id', '=', 'admin_product_listings.nawy_category_id')
+        $query = AdminListing::query()
+            ->select('admin_listings.*')
+            ->where('admin_listings.country_id', $country->id)
+            ->where('admin_listings.status', AdminListingStatus::Active->value)
             ->with([
                 'productVariant.images',
                 'productVariant.product.images',
                 'productVariant.product.category',
-                'nawyCategory',
             ]);
 
-        if ($nawyCategoryId = $request->query('nawy_category_id')) {
-            $query->where('admin_product_listings.nawy_category_id', $nawyCategoryId);
+        if ($categoryId = $request->query('category_id')) {
+            $query->whereHas('productVariant.product', fn ($q) => $q->where('category_id', $categoryId));
         }
 
         if ($minPrice = $request->query('min_price')) {
-            $query->where('admin_product_listings.price', '>=', (int) $minPrice);
+            $query->where('admin_listings.price', '>=', (int) $minPrice);
         }
 
         if ($maxPrice = $request->query('max_price')) {
-            $query->where('admin_product_listings.price', '<=', (int) $maxPrice);
+            $query->where('admin_listings.price', '<=', (int) $maxPrice);
         }
 
-        $query->orderBy('categories.nawy_sort_order', 'asc')
-            ->orderBy('admin_product_listings.price', 'asc');
+        $query->orderBy('admin_listings.price', 'asc');
 
         return $query;
     }
@@ -269,11 +265,10 @@ class ListingController extends Controller
 
     // ── Detail resolution ────────────────────────────────────────────────────
 
-    private function resolveAdminListing(string $identifier, Country $country): ?AdminProductListing
+    private function resolveAdminListing(string $identifier, Country $country): ?AdminListing
     {
-        $query = AdminProductListing::where('country_id', $country->id)
-            ->where('status', AdminProductListingStatus::Active->value)
-            ->where('featured_in_nawy', 1)
+        $query = AdminListing::where('country_id', $country->id)
+            ->where('status', AdminListingStatus::Active->value)
             ->with(['productVariant.product.images', 'productVariant.product.category']);
 
         if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
@@ -291,7 +286,7 @@ class ListingController extends Controller
 
     // ── Delivery info ────────────────────────────────────────────────────────
 
-    private function adminDeliveryInfo(AdminProductListing $listing): array
+    private function adminDeliveryInfo(AdminListing $listing): array
     {
         return [
             'shipping_cost' => $listing->shipping_cost,
@@ -336,7 +331,7 @@ class ListingController extends Controller
         return (new VendorListingResource($listing, $country))->toArray(request());
     }
 
-    private function adminListingShape(AdminProductListing $listing, Country $country): array
+    private function adminListingShape(AdminListing $listing, Country $country): array
     {
         return (new AdminListingResource($listing, $country))->toArray(request());
     }

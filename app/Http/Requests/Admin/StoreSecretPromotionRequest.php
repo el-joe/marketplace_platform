@@ -18,7 +18,7 @@ class StoreSecretPromotionRequest extends FormRequest
             'listing_type' => ['nullable', 'in:vendor,admin'],
             'vendor_id' => ['required_if:listing_type,vendor', 'nullable', 'exists:vendors,id'],
             'vendor_listing_id' => ['required_if:listing_type,vendor', 'nullable', 'exists:vendor_listings,id'],
-            'admin_product_listing_id' => ['required_if:listing_type,admin', 'nullable', 'exists:admin_product_listings,id'],
+            'admin_listing_id' => ['required_if:listing_type,admin', 'nullable', 'exists:admin_listings,id'],
             'marketer_id' => ['nullable', 'exists:marketers,id'],
             'product_value' => ['required', 'numeric', 'min:0.01'],
             'total_commission_pct' => ['required', 'numeric', 'min:0.01', 'max:99'],
@@ -61,9 +61,9 @@ class StoreSecretPromotionRequest extends FormRequest
                 }
             }
 
-            if ($isAdminListing && !$this->admin_product_listing_id) {
+            if ($isAdminListing && !$this->admin_listing_id) {
                 $v->errors()->add(
-                    'admin_product_listing_id',
+                    'admin_listing_id',
                     'Select an admin product listing.'
                 );
             }

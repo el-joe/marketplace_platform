@@ -43,7 +43,6 @@ return [
         'custom_html_sources' => 'Inline HTML',
         'banner_single_purpose' => 'Single full-width promo banner',
         'banner_single_sources' => 'Banner image + URL',
-        'now_nawy_feed_purpose' => 'Admin product listings (Nawy Now)',
     ],
 
     'slides' => [

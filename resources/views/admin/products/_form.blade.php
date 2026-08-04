@@ -894,6 +894,7 @@
             imageRevertFailed: @json(__('admin.products.image_revert_failed')),
             filepondLabelIdle: @json(__('admin.products.filepond_label_idle')),
             savingEllipsis: @json(__('admin.products.saving_ellipsis')),
+            validatingEllipsis: @json(__('admin.products.validating_ellipsis')),
             productSaved: @json(__('admin.products.product_saved')),
             validationError: @json(__('admin.products.validation_error')),
             saveFailedRetry: @json(__('admin.products.save_failed_retry')),

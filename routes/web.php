@@ -89,24 +89,6 @@ Route::domain($carrierDomain)->group(
 
 /*
 |--------------------------------------------------------------------------
-| Storefront — Now Nawy curated feed
-| {country}.noon.loc/now-nawy
-|--------------------------------------------------------------------------
-*/
-Route::prefix('{country}')
-    ->middleware(['web'])
-    ->name('nawy.')
-    ->group(function () {
-        Route::get('/now-nawy', [\App\Http\Controllers\Storefront\NawyController::class, 'index'])
-            ->name('index');
-        Route::get('/now-nawy/category/{category}', [\App\Http\Controllers\Storefront\NawyController::class, 'byCategory'])
-            ->name('category');
-        Route::get('/now-nawy/{listing}', [\App\Http\Controllers\Storefront\NawyController::class, 'show'])
-            ->name('show');
-    });
-
-/*
-|--------------------------------------------------------------------------
 | Storefront — Classifieds Marketplace
 | {country}.noon.loc/classifieds
 |--------------------------------------------------------------------------

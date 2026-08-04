@@ -172,15 +172,6 @@ class BlockTypeDescriptionSeeder extends Seeder
                 'config_schema' => ['title_en', 'title_ar', 'subtitle_en', 'subtitle_ar'],
                 'default_config' => [],
             ],
-            [
-                'code' => 'nawy_carousel', 'group' => 'products',
-                'label_en' => 'Now Nawy Carousel', 'label_ar' => 'كاروسيل Now Nawy',
-                'icon' => 'sparkles', 'max_per_page' => null,
-                'description_en' => "Horizontally scrolling carousel of admin-curated products from admin_product_listings.",
-                'description_ar' => "معرض أفقي قابل للتمرير لمنتجات منتقاة يدويًا من الإدارة من admin_product_listings.",
-                'config_schema' => ['fulfillment_filter', 'category_id', 'limit', 'title_en', 'title_ar'],
-                'default_config' => ['fulfillment_filter' => 'all', 'limit' => 10],
-            ],
         ];
 
         $sortOrder = 0;

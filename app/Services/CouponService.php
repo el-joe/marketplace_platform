@@ -132,12 +132,12 @@ class CouponService
     {
         $items = $cart->items()->with([
             'vendorListing.productVariant',
-            'adminProductListing.productVariant',
+            'adminListing.productVariant',
         ])->get();
 
         $productIds = $items->map(function ($item) {
             return $item->vendorListing?->productVariant?->product_id
-                ?? $item->adminProductListing?->productVariant?->product_id;
+                ?? $item->adminListing?->productVariant?->product_id;
         })->filter()->values();
 
         if ($coupon->scope === CouponScope::Vendor) {

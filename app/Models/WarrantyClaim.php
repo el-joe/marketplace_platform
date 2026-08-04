@@ -88,7 +88,7 @@ class WarrantyClaim extends Model
     public function adminListing(): \Illuminate\Database\Eloquent\Relations\HasOneThrough
     {
         return $this->hasOneThrough(
-            AdminProductListing::class,
+            AdminListing::class,
             ProductVariant::class,
             'product_id',
             'product_variant_id',

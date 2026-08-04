@@ -43,7 +43,6 @@ class VendorListingResource extends JsonResource
             'rating_avg' => (float) $listing->rating_avg,
             'rating_count' => (int) $listing->rating_count,
             'total_sold' => (int) $listing->total_sold,
-            'score' => $listing->score,
             'vendor_covers_delivery' => (bool) $listing->vendor_covers_delivery,
             'product' => [
                 'id' => $product->id,

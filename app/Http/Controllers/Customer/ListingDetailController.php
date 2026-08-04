@@ -7,7 +7,7 @@ use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Customer\ListingDetailResource;
 use App\Http\Responses\ApiResponse;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Country;
 use App\Models\VendorListing;
 use App\Models\Wishlist;
@@ -129,7 +129,7 @@ class ListingDetailController extends Controller
         ]));
     }
 
-    private function resolveListing(string $identifier, $country): VendorListing|AdminProductListing|null
+    private function resolveListing(string $identifier, $country): VendorListing|AdminListing|null
     {
         if ($this->appContext->isNawyNow()) {
             return $this->identifiers->resolveAdminListing($identifier, $country->id);
@@ -165,9 +165,9 @@ class ListingDetailController extends Controller
         return $this->identifiers->resolve($identifier, $type, $country);
     }
 
-    private function listingShape(VendorListing|AdminProductListing $listing, $country, bool $isWishlisted): array
+    private function listingShape(VendorListing|AdminListing $listing, $country, bool $isWishlisted): array
     {
-        if ($listing instanceof AdminProductListing) {
+        if ($listing instanceof AdminListing) {
             return [
                 'listing_id' => $listing->id,
                 'listing_ref' => $this->identifiers->buildListingRef($listing),
@@ -216,9 +216,9 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function sellerShape(VendorListing|AdminProductListing $listing): array
+    private function sellerShape(VendorListing|AdminListing $listing): array
     {
-        if ($listing instanceof AdminProductListing) {
+        if ($listing instanceof AdminListing) {
             return [
                 'id' => null,
                 'store_name' => 'Nawy',
@@ -257,7 +257,7 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function productShape($product, VendorListing|AdminProductListing $listing): array
+    private function productShape($product, VendorListing|AdminListing $listing): array
     {
         return [
             'id' => $product->id,
@@ -353,7 +353,7 @@ class ListingDetailController extends Controller
         $variantIds = $product->variants->pluck('id')->all();
 
         if ($this->appContext->isNawyNow()) {
-            $listings = AdminProductListing::whereIn('product_variant_id', $variantIds)
+            $listings = AdminListing::whereIn('product_variant_id', $variantIds)
                 ->where('country_id', $country->id)
                 ->where('status', 'active')
                 ->orderBy('price')
@@ -454,7 +454,7 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function frequentlyBoughtTogetherShape($product, VendorListing|AdminProductListing $listing, $country): array
+    private function frequentlyBoughtTogetherShape($product, VendorListing|AdminListing $listing, $country): array
     {
         $relatedProducts = $product->frequentlyBoughtTogether()
             ->with(['images', 'variants'])
@@ -528,7 +528,7 @@ class ListingDetailController extends Controller
         return $items;
     }
 
-    private function fbtItemShape(VendorListing|AdminProductListing $listing, $product, $country): array
+    private function fbtItemShape(VendorListing|AdminListing $listing, $product, $country): array
     {
         $primaryImage = $product->images->firstWhere('is_primary', true) ?? $product->images->first();
 

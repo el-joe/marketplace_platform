@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\AdminProductListing;
 use App\Models\CartItem;
 use Illuminate\Support\Collection;
 
@@ -31,44 +30,8 @@ class CheckoutService
      */
     public function resolvePaymentConstraint(Collection $items): string
     {
-        $listingIds = $items
-            ->filter(fn(CartItem $i) => $i->source_type === AdminProductListing::class || $i->source_type === 'admin_listing')
-            ->pluck('source_id');
-
-        if ($listingIds->isEmpty()) {
-            return 'all';
-        }
-
-        $listings = AdminProductListing::whereIn('id', $listingIds)->get()->keyBy('id');
-
-        $hasCodOnly        = false;
-        $hasElectronicOnly = false;
-
-        foreach ($listingIds as $id) {
-            $listing = $listings->get($id);
-            if (!$listing) {
-                continue;
-            }
-
-            match ($listing->payment_options) {
-                'cod_only'        => $hasCodOnly = true,
-                'electronic_only' => $hasElectronicOnly = true,
-                default           => null,
-            };
-        }
-
-        if ($hasCodOnly && $hasElectronicOnly) {
-            return 'conflict';
-        }
-
-        if ($hasCodOnly) {
-            return 'cod_only';
-        }
-
-        if ($hasElectronicOnly) {
-            return 'electronic_only';
-        }
-
+        // Admin listings no longer carry a per-listing payment_options constraint,
+        // so admin-sourced items are always unrestricted.
         return 'all';
     }
 
@@ -82,7 +45,7 @@ class CheckoutService
      *     'payment_constraint' => 'all' | 'cod_only' | 'electronic_only',
      *   ]
      *
-     * Items without an AdminProductListing source are treated as unrestricted
+     * Items without an AdminListing source are treated as unrestricted
      * and grouped with whichever first group is compatible.
      *
      * @param Collection<CartItem> $items
@@ -90,33 +53,11 @@ class CheckoutService
      */
     public function splitByPaymentConstraint(Collection $items): array
     {
-        $adminListingIds = $items
-            ->filter(fn(CartItem $i) => $i->source_type === AdminProductListing::class || $i->source_type === 'admin_listing')
-            ->pluck('source_id');
-
-        $listings = AdminProductListing::whereIn('id', $adminListingIds)->get()->keyBy('id');
-
+        // Admin listings no longer carry a per-listing payment_options constraint,
+        // so all items are treated as unrestricted.
         $codOnlyItems        = collect();
         $electronicOnlyItems = collect();
-        $unrestricted        = collect();
-
-        foreach ($items as $item) {
-            $isAdminListing = $item->source_type === AdminProductListing::class
-                || $item->source_type === 'admin_listing';
-
-            if (!$isAdminListing) {
-                $unrestricted->push($item);
-                continue;
-            }
-
-            $listing = $listings->get($item->source_id);
-
-            match ($listing?->payment_options ?? 'both') {
-                'cod_only'        => $codOnlyItems->push($item),
-                'electronic_only' => $electronicOnlyItems->push($item),
-                default           => $unrestricted->push($item),
-            };
-        }
+        $unrestricted        = $items;
 
         $groups = [];
 

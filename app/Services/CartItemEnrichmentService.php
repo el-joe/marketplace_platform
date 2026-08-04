@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Enums\CouponScope;
 use App\Enums\CouponType;
 use App\Enums\GlobalSystemType;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Address;
 use App\Models\Category;
 use App\Models\Coupon;
@@ -45,11 +45,11 @@ class CartItemEnrichmentService
     {
         $timezone = $country?->timezone ?? 'Asia/Dubai';
 
-        $vendorItems = $cartItems->filter(fn ($item) => empty($item->admin_product_listing_id));
-        $adminItems = $cartItems->filter(fn ($item) => !empty($item->admin_product_listing_id));
+        $vendorItems = $cartItems->filter(fn ($item) => empty($item->admin_listing_id));
+        $adminItems = $cartItems->filter(fn ($item) => !empty($item->admin_listing_id));
 
         $vendorListingIds = $vendorItems->pluck('vendor_listing_id')->filter()->unique()->values();
-        $adminListingIds = $adminItems->pluck('admin_product_listing_id')->filter()->unique()->values();
+        $adminListingIds = $adminItems->pluck('admin_listing_id')->filter()->unique()->values();
 
         $vendorListings = VendorListing::with([
             'vendor',
@@ -59,7 +59,7 @@ class CartItemEnrichmentService
             'primaryShippingMethod',
         ])->whereIn('id', $vendorListingIds)->get()->keyBy('id');
 
-        $adminListings = AdminProductListing::with([
+        $adminListings = AdminListing::with([
             'productVariant.product.category',
             'productVariant.attributeValues.attribute',
             'productVariant.images',
@@ -181,9 +181,9 @@ class CartItemEnrichmentService
             $warrantyPlansByRootCategory,
             $timezone,
         ) {
-            $isAdminListing = !empty($item->admin_product_listing_id);
+            $isAdminListing = !empty($item->admin_listing_id);
             $listing = $isAdminListing
-                ? $adminListings->get($item->admin_product_listing_id)
+                ? $adminListings->get($item->admin_listing_id)
                 : $vendorListings->get($item->vendor_listing_id);
 
             if (!$listing) {

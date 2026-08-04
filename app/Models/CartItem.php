@@ -13,7 +13,7 @@ class CartItem extends Model
     protected $fillable = [
         'cart_id',
         'vendor_listing_id',
-        'admin_product_listing_id',
+        'admin_listing_id',
         'selected_shipping_method_id',
         'quantity',
         'unit_price',
@@ -30,9 +30,9 @@ class CartItem extends Model
         return $this->belongsTo(VendorListing::class);
     }
 
-    public function adminProductListing(): BelongsTo
+    public function adminListing(): BelongsTo
     {
-        return $this->belongsTo(AdminProductListing::class);
+        return $this->belongsTo(AdminListing::class, 'admin_listing_id');
     }
 
     public function selectedShippingMethod(): BelongsTo

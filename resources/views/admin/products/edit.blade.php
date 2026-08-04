@@ -17,6 +17,7 @@
     id="product-form"
     method="POST"
     action="{{ route('admin.products.update', $product->id) }}"
+    data-validate-url="{{ route('admin.products.validate-update', $product->id) }}"
     enctype="multipart/form-data"
     novalidate
 >

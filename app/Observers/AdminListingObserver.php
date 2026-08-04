@@ -2,29 +2,29 @@
 
 namespace App\Observers;
 
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Services\CachedListingResolver;
 
-class AdminProductListingObserver
+class AdminListingObserver
 {
     public function __construct(
         private readonly CachedListingResolver $cachedListingResolver,
     ) {
     }
 
-    public function created(AdminProductListing $listing): void
+    public function created(AdminListing $listing): void
     {
         $this->cachedListingResolver->bustAdminListing($listing);
     }
 
-    public function updated(AdminProductListing $listing): void
+    public function updated(AdminListing $listing): void
     {
         if ($listing->wasChanged(['status', 'price', 'score', 'rating_avg', 'rating_count'])) {
             $this->cachedListingResolver->bustAdminListing($listing);
         }
     }
 
-    public function deleted(AdminProductListing $listing): void
+    public function deleted(AdminListing $listing): void
     {
         $this->cachedListingResolver->bustAdminListing($listing);
     }

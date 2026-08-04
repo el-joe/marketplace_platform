@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api\Customer;
 
-use App\Enums\AdminProductListingStatus;
+use App\Enums\AdminListingStatus;
 use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Customer\WishlistItemResource;
 use App\Http\Responses\ApiResponse;
-use App\Models\AdminProductListing;
+use App\Models\AdminListing;
 use App\Models\Country;
 use App\Models\VendorListing;
 use App\Models\WishlistGroup;
@@ -131,8 +131,8 @@ class WishlistController extends Controller
             ->with([
                 'vendorListing.productVariant.product.category',
                 'vendorListing.productVariant.product.images',
-                'adminProductListing.productVariant.product.category',
-                'adminProductListing.productVariant.product.images',
+                'adminListing.productVariant.product.category',
+                'adminListing.productVariant.product.images',
             ])
             ->orderByDesc('added_at')
             ->paginate(15);
@@ -169,9 +169,8 @@ class WishlistController extends Controller
         $isAdminListing = ListingModeResolver::isNawyNow($request);
 
         if ($isAdminListing) {
-            $listing = AdminProductListing::where('id', $data['listing_id'])
-                ->where('status', AdminProductListingStatus::Active->value)
-                ->where('featured_in_nawy', 1)
+            $listing = AdminListing::where('id', $data['listing_id'])
+                ->where('status', AdminListingStatus::Active->value)
                 ->first();
         } else {
             $listing = VendorListing::where('id', $data['listing_id'])

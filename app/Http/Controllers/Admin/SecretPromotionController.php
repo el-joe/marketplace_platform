@@ -73,7 +73,7 @@ class SecretPromotionController extends Controller
             ->with([
                 'vendor',
                 'vendorListing.productVariant.product.images',
-                'adminProductListing.productVariant.product.images',
+                'adminListing.productVariant.product.images',
                 'marketer',
                 'approvedBy',
             ])
@@ -81,8 +81,8 @@ class SecretPromotionController extends Controller
             ->leftJoin('vendor_listings', 'vendor_listings.id', '=', 'marketer_secret_promotions.vendor_listing_id')
             ->leftJoin('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
             ->leftJoin('products', 'products.id', '=', 'product_variants.product_id')
-            ->leftJoin('admin_product_listings', 'admin_product_listings.id', '=', 'marketer_secret_promotions.admin_product_listing_id')
-            ->leftJoin('product_variants as admin_product_variants', 'admin_product_variants.id', '=', 'admin_product_listings.product_variant_id')
+            ->leftJoin('admin_listings', 'admin_listings.id', '=', 'marketer_secret_promotions.admin_listing_id')
+            ->leftJoin('product_variants as admin_product_variants', 'admin_product_variants.id', '=', 'admin_listings.product_variant_id')
             ->leftJoin('products as admin_products', 'admin_products.id', '=', 'admin_product_variants.product_id')
             ->leftJoin('marketers', 'marketers.id', '=', 'marketer_secret_promotions.marketer_id')
             ->select('marketer_secret_promotions.*')
@@ -115,7 +115,7 @@ class SecretPromotionController extends Controller
                 $isExpiringSoon = $p->valid_until
                     && $p->valid_until->between(today(), today()->addDays(7));
 
-                $isAdminListing = (bool) $p->admin_product_listing_id;
+                $isAdminListing = (bool) $p->admin_listing_id;
 
                 return [
                     'id' => $p->id,
@@ -358,7 +358,7 @@ class SecretPromotionController extends Controller
     {
         $q = $request->input('q', '');
 
-        $listings = \App\Models\AdminProductListing::active()
+        $listings = \App\Models\AdminListing::active()
             ->when($q !== '', fn($query) => $query->where(
                 fn($w) => $w->where('platform_sku', 'like', "%{$q}%")
                     ->orWhereHas('productVariant.product', fn($p) => $p->where('name_en', 'like', "%{$q}%"))
@@ -369,7 +369,7 @@ class SecretPromotionController extends Controller
             ])
             ->limit(20)
             ->get()
-            ->map(function (\App\Models\AdminProductListing $l) {
+            ->map(function (\App\Models\AdminListing $l) {
                 $product = $l->productVariant?->product;
                 $image = $product?->images?->first();
                 $imageUrl = $image
