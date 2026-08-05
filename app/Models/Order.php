@@ -25,6 +25,9 @@ class Order extends Model
             'cancelled_at' => 'datetime',
             'status' => OrderStatus::class,
             'payment_status' => OrderPaymentStatus::class,
+            'loyalty_discount' => 'integer',
+            'loyalty_points_used' => 'decimal:2',
+            'loyalty_points_earned' => 'decimal:2',
         ];
     }
 
@@ -57,6 +60,9 @@ class Order extends Model
         'placed_at',
         'completed_at',
         'cancelled_at',
+        'loyalty_discount',
+        'loyalty_points_used',
+        'loyalty_points_earned',
     ];
 
     public function customer(): BelongsTo

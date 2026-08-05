@@ -41,6 +41,7 @@ use App\Services\Customer\CityShippingSurchargeService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\WarehouseShippingSurchargeService;
 use App\Services\Customer\CheckoutWalletService;
+use App\Services\Customer\LoyaltyService;
 use App\Services\CouponService;
 use App\Services\PaymentService;
 use App\Services\ShippingSubsidyService;
@@ -65,6 +66,7 @@ class CheckoutController extends Controller
         private readonly WarehouseShippingSurchargeService $warehouseShippingSurchargeService,
         private readonly ShippingSubsidyService $shippingSubsidyService,
         private readonly CouponService $couponService,
+        private readonly LoyaltyService $loyaltyService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -264,6 +266,7 @@ class CheckoutController extends Controller
             'wallet_currency' => $walletCurrency,
             'wallet_applicable' => $walletApplicable,
             'wallet' => $walletInfo,
+            'loyalty' => $this->loyaltyService->previewInfo($customer, $orderCurrency),
             'items' => $items,
         ], __('common.exceptions.checkout.preview_ready'));
     }
@@ -361,6 +364,25 @@ class CheckoutController extends Controller
         }
         $couponDiscountCents = $discountCents;
 
+        // ── Loyalty redemption ────────────────────────────────────────────────
+        $loyaltyDiscount      = 0;
+        $loyaltyPointsToUse   = 0.0;
+        if (! empty($validated['loyalty_points_to_use'])) {
+            $loyaltyPointsToUse = (float) $validated['loyalty_points_to_use'];
+            try {
+                $loyaltyDiscount = $this->loyaltyService->calculateRedemptionDiscount(
+                    $customer,
+                    $loyaltyPointsToUse,
+                    // Pass a temporary total estimate (subtotal - coupon) for the cap check.
+                    // The real cap is re-applied inside debitPointsForOrder after order creation.
+                    max(0, (int) collect($cartItems)->sum(fn ($i) => $i->unit_price * $i->quantity) - $couponDiscountCents),
+                );
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return ApiResponse::error($e->getMessage(), $e->errors(), 422);
+            }
+            $discountCents += $loyaltyDiscount;
+        }
+
         $summary = $this->calculationService->buildOrderSummary(
             $cartItems,
             $shippingFeeCents,
@@ -377,7 +399,8 @@ class CheckoutController extends Controller
             $result = DB::transaction(function () use (
                 $customer, $country, $address, $validated, $coupon,
                 $cartItems, $summary, $attribution, $vendorShipping,
-                $warrantySelections, $cart, $couponDiscountCents
+                $warrantySelections, $cart, $couponDiscountCents,
+                $loyaltyDiscount, $loyaltyPointsToUse
             ) {
                 $vendorShippingMap = $vendorShipping['per_vendor'];
                 $order = Order::create([
@@ -393,6 +416,8 @@ class CheckoutController extends Controller
                     'cod_fee' => $summary['cod_fee'],
                     'warranty_total' => $summary['warranty_total'],
                     'total' => $summary['total'],
+                    'loyalty_discount' => $loyaltyDiscount,
+                    'loyalty_points_used' => $loyaltyPointsToUse,
                     'coupon_id' => $coupon?->id,
                     'coupon_code_used' => $coupon?->code,
                     'payment_method' => $validated['payment_method'],
@@ -619,6 +644,16 @@ class CheckoutController extends Controller
                     }
 
                     $this->couponService->recordUsage($coupon, $order, $customer, $couponDiscountCents);
+                }
+
+                // ── Debit loyalty points ──────────────────────────────────────
+                if ($loyaltyPointsToUse > 0 && $loyaltyDiscount > 0) {
+                    $this->loyaltyService->debitPointsForOrder(
+                        $customer,
+                        $order,
+                        $loyaltyPointsToUse,
+                        $loyaltyDiscount,
+                    );
                 }
 
                 return ['order' => $order, 'sub_orders' => $subOrders, 'wallet_fully_paid' => $order->payment_status === 'captured'];

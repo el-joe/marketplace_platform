@@ -72,6 +72,10 @@ class SettingsSeeder extends Seeder
             ['key' => 'loyalty_tier_silver_points', 'value' => 500, 'category' => 'customers', 'description' => 'Points needed for Silver tier'],
             ['key' => 'loyalty_tier_gold_points', 'value' => 2000, 'category' => 'customers', 'description' => 'Points needed for Gold tier'],
             ['key' => 'loyalty_tier_platinum_points', 'value' => 5000, 'category' => 'customers', 'description' => 'Points needed for Platinum tier'],
+            ['key' => 'loyalty_enabled', 'value' => true, 'category' => 'customers', 'description' => 'Master switch — when false, no points are earned or redeemed', 'is_public' => 1],
+            ['key' => 'loyalty_earn_rate', 'value' => 0.01, 'category' => 'customers', 'description' => 'Points earned per 1 base-currency unit of sub-order subtotal (e.g. 0.01 = 1 pt per 100 units)', 'is_public' => 1],
+            ['key' => 'loyalty_redeem_rate', 'value' => 1.0, 'category' => 'customers', 'description' => 'Base-currency units of discount per 1 loyalty point redeemed (e.g. 1.0 = 1 pt = 1 unit)', 'is_public' => 1],
+            ['key' => 'loyalty_min_redeem', 'value' => 100, 'category' => 'customers', 'description' => 'Minimum loyalty points required to apply a redemption at checkout', 'is_public' => 1],
             ['key' => 'max_addresses_per_customer', 'value' => 10, 'category' => 'customers', 'description' => 'Maximum saved addresses per customer'],
             ['key' => 'customer_otp_expiry_minutes', 'value' => 10, 'category' => 'customers', 'description' => 'Minutes before phone OTP expires'],
 

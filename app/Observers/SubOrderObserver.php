@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\SubOrder;
 use App\Models\WarrantyPurchase;
+use App\Services\Customer\LoyaltyService;
 use Illuminate\Support\Facades\DB;
 
 class SubOrderObserver
@@ -20,6 +21,20 @@ class SubOrderObserver
 
         if ($newStatus !== 'delivered') {
             return;
+        }
+
+        // ── Loyalty points earn ───────────────────────────────────────────────
+        // Dispatched independently of the warranty transaction below, so a
+        // warranty failure doesn't block point earning and vice versa.
+        try {
+            app(LoyaltyService::class)->earnForSubOrder($subOrder);
+        } catch (\Throwable $e) {
+            // Non-fatal: log and continue. Points can be manually adjusted
+            // by admin if the earn fails — delivery must not be blocked.
+            \Illuminate\Support\Facades\Log::error('LoyaltyService::earnForSubOrder failed', [
+                'sub_order_id' => $subOrder->id,
+                'error'        => $e->getMessage(),
+            ]);
         }
 
         $warrantyPurchaseIds = $subOrder->items()

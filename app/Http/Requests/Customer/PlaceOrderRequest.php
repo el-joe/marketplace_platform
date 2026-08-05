@@ -28,6 +28,7 @@ class PlaceOrderRequest extends FormRequest
             'warranty_selections' => ['nullable', 'array'],
             'warranty_selections.*.listing_id' => ['required_with:warranty_selections', 'uuid'],
             'warranty_selections.*.warranty_plan_id' => ['required_with:warranty_selections', 'uuid'],
+            'loyalty_points_to_use' => ['nullable', 'numeric', 'min:1'],
         ];
     }
 
@@ -36,6 +37,8 @@ class PlaceOrderRequest extends FormRequest
         return [
             'wallet_amount_used.integer' => 'Wallet amount must be a whole number.',
             'wallet_amount_used.min'     => 'Wallet amount cannot be negative.',
+            'loyalty_points_to_use.numeric' => 'Loyalty points must be a number.',
+            'loyalty_points_to_use.min'     => 'Loyalty points to use must be at least 1.',
         ];
     }
 }

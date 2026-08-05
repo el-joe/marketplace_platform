@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,6 +20,7 @@ class CustomerResource extends JsonResource
             'total_orders' => $this->total_orders,
             'total_spent' => (float) $this->total_spent,
             'loyalty_points' => (float) $this->loyalty_points,
+            'loyalty_tier'   => $this->resolveLoyaltyTier(),
             'referral_code' => $this->referral_code,
             'email_verified' => $this->email_verified_at !== null,
             'phone_verified' => $this->phone_verified_at !== null,
@@ -30,5 +32,20 @@ class CustomerResource extends JsonResource
                 'whatsapp' => $this->marketing_whatsapp_enabled,
             ],
         ];
+    }
+
+    private function resolveLoyaltyTier(): string
+    {
+        $points   = (float) $this->loyalty_points;
+        $platinum = (int) Setting::get('loyalty_tier_platinum_points', 5000);
+        $gold     = (int) Setting::get('loyalty_tier_gold_points', 2000);
+        $silver   = (int) Setting::get('loyalty_tier_silver_points', 500);
+
+        return match (true) {
+            $points >= $platinum => 'platinum',
+            $points >= $gold     => 'gold',
+            $points >= $silver   => 'silver',
+            default              => 'standard',
+        };
     }
 }

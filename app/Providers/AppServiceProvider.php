@@ -93,6 +93,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(DeliveryFCMService::class);
         $this->app->singleton(GiftCardService::class);
         $this->app->singleton(AppContextService::class, fn () => new AppContextService());
+        $this->app->singleton(\App\Services\Customer\LoyaltyService::class);
 
         // Replace Laravel's built-in DatabaseChannel with our custom one that
         // writes to the platform's non-standard notifications table schema

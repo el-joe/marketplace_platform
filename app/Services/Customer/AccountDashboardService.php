@@ -5,6 +5,7 @@ namespace App\Services\Customer;
 use App\Models\ClassifiedListing;
 use App\Models\Country;
 use App\Models\Customer;
+use App\Models\Setting;
 
 class AccountDashboardService
 {
@@ -74,8 +75,23 @@ class AccountDashboardService
                 'created_at'     => $b->created_at?->toIso8601String(),
             ]),
             'loyalty_points'             => (float) $customer->loyalty_points,
+            'loyalty_tier'               => $this->resolveTier((float) $customer->loyalty_points),
             'wishlist_count'             => $customer->wishlists()->count(),
             'unread_notifications_count' => $customer->unreadNotifications()->count(),
         ];
+    }
+
+    private function resolveTier(float $points): string
+    {
+        $platinum = (int) Setting::get('loyalty_tier_platinum_points', 5000);
+        $gold     = (int) Setting::get('loyalty_tier_gold_points', 2000);
+        $silver   = (int) Setting::get('loyalty_tier_silver_points', 500);
+
+        return match (true) {
+            $points >= $platinum => 'platinum',
+            $points >= $gold     => 'gold',
+            $points >= $silver   => 'silver',
+            default              => 'standard',
+        };
     }
 }
