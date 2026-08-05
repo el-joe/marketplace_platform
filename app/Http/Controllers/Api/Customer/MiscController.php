@@ -6,12 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\ShippingMethod;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-// TODO: implement flat GET /shipping-methods.
-// Country-scoped shipping methods already exist at
-// checkout/shipping-methods in App\Http\Controllers\Customer\CheckoutController.
 class MiscController extends Controller
 {
     public function countries(Request $request): JsonResponse
@@ -68,8 +66,35 @@ class MiscController extends Controller
         return ApiResponse::success($cities);
     }
 
+    /**
+     * List all active shipping methods (flat, country-agnostic).
+     *
+     * GET /v1/shipping-methods
+     * Auth: required (auth:customer)
+     *
+     * Returns the platform's active shipping methods with their delivery day
+     * estimates. Does NOT calculate fees (no address/cart context available
+     * at this endpoint). Use the checkout shipping-methods endpoint for
+     * fee-calculated options once an address is selected.
+     */
     public function shippingMethods(Request $request): JsonResponse
     {
-        return ApiResponse::error(__('customer_api.not_implemented'), [], 501);
+        $methods = ShippingMethod::query()
+            ->where('is_active', 1)
+            ->orderBy('display_priority')
+            ->get()
+            ->map(fn (ShippingMethod $method) => [
+                'id'                   => $method->id,
+                'code'                 => $method->code,
+                'name'                 => $method->name,
+                'badge_label_en'       => $method->badge_label_en,
+                'badge_label_ar'       => $method->badge_label_ar,
+                'badge_color_hex'      => $method->badge_color_hex,
+                'badge_text_color_hex' => $method->badge_text_color_hex,
+                'delivery_days_min'    => $method->min_delivery_days,
+                'delivery_days_max'    => $method->max_delivery_days,
+            ]);
+
+        return ApiResponse::success($methods, __('common.exceptions.checkout.shipping_methods_retrieved'));
     }
 }

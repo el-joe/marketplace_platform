@@ -528,7 +528,6 @@ Route::middleware('auth:customer')->prefix('v1/coupons')->name('customer.api.cou
 });
 
 // ── Generic OTP (country-agnostic, public — no auth guard) ──
-// TODO: OtpController is a 501 stub; wire up to real send/verify OTP flow.
 Route::prefix('v1/otp')->name('customer.api.otp.')->group(function (): void {
     Route::post('send', [ApiOtpController::class, 'send'])->name('send');
     Route::post('verify', [ApiOtpController::class, 'verify'])->name('verify');
@@ -543,20 +542,17 @@ Route::prefix('v1/listings')->middleware('auth:customer')->name('customer.api.li
 });
 
 // ── Reviews (country-agnostic path, scoped to customer_id) ──
-// TODO: ReviewController (Api\Customer) is a 501 stub; wire up to real review store/mine logic.
 Route::prefix('v1/reviews')->middleware('auth:customer')->name('customer.api.reviews.')->group(function (): void {
     Route::post('/', [ApiReviewController::class, 'store'])->name('store');
     Route::get('mine', [ApiReviewController::class, 'mine'])->name('mine');
 });
 
 // ── Device tokens (country-agnostic path, scoped to customer_id) ──
-// TODO: DeviceTokenController is a 501 stub; wire up to real push-token registration.
 Route::post('v1/device-tokens', [ApiDeviceTokenController::class, 'store'])
     ->middleware('auth:customer')
     ->name('customer.api.device-tokens.store');
 
 // ── Misc (country-agnostic path, scoped to customer_id) ──
-// TODO: MiscController.shippingMethods is a 501 stub; wire up to real shipping-methods lookup.
 Route::middleware('auth:customer')->group(function (): void {
     Route::get('v1/countries', [ApiMiscController::class, 'countries'])->name('customer.api.countries.index');
     Route::get('v1/countries/{country}/cities', [ApiMiscController::class, 'cities'])->name('customer.api.countries.cities');
