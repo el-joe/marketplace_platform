@@ -15,8 +15,8 @@ return new class extends Migration {
         if (! $exists) {
             DB::statement("ALTER TABLE marketer_campaigns ADD CONSTRAINT chk_campaign_listing_xor
                 CHECK (
-                    (vendor_listing_id IS NOT NULL AND admin_product_listing_id IS NULL) OR
-                    (vendor_listing_id IS NULL AND admin_product_listing_id IS NOT NULL)
+                    (vendor_listing_id IS NOT NULL AND admin_listing_id IS NULL) OR
+                    (vendor_listing_id IS NULL AND admin_listing_id IS NOT NULL)
                 )");
         }
     }

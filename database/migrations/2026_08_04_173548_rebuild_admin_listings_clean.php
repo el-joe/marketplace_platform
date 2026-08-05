@@ -23,6 +23,7 @@ return new class extends Migration
             // Additional tables referencing admin_product_listings not listed in the
             // original spec — discovered via information_schema.KEY_COLUMN_USAGE.
             'ai_video_generation_jobs', 'cart_items', 'flash_sale_price_histories',
+            'vendor_campaign_offer_products',
         ];
         foreach ($tables as $table) {
             try {

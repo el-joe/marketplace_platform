@@ -40,15 +40,8 @@ return new class extends Migration {
                   ->comment('Vendor opted this listing into a marketer campaign');
         });
 
-        // admin_product_listings — campaign opt-in flag
-        // Note: original spec anchored this after `available_for_marketers`, which was
-        // dropped by the 2026_08_02_000005_final_marketer_cleanup migration. Anchored
-        // after `available_for_vendors` instead, the closest surviving column.
-        Schema::table('admin_product_listings', function (Blueprint $table) {
-            $table->boolean('campaign_enabled')->default(false)
-                  ->after('available_for_vendors')
-                  ->comment('Admin opted this listing into a marketer campaign');
-        });
+        // admin_listings already has a campaign_enabled column, added when the table
+        // was rebuilt in 2026_08_04_173548_rebuild_admin_listings_clean.
     }
 
     public function down(): void
@@ -60,9 +53,6 @@ return new class extends Migration {
             $table->dropColumn(['influencer_sample_qty','affiliate_sample_qty','platform_sample_qty','min_stock_for_campaign']);
         });
         Schema::table('vendor_listings', function (Blueprint $table) {
-            $table->dropColumn('campaign_enabled');
-        });
-        Schema::table('admin_product_listings', function (Blueprint $table) {
             $table->dropColumn('campaign_enabled');
         });
     }

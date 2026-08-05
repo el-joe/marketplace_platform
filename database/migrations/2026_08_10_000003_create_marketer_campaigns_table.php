@@ -16,7 +16,7 @@ return new class extends Migration {
 
             // Listing (XOR — enforced by CHECK below)
             $table->foreignUuid('vendor_listing_id')->nullable()->constrained('vendor_listings')->restrictOnDelete();
-            $table->foreignUuid('admin_product_listing_id')->nullable()->constrained('admin_product_listings')->restrictOnDelete();
+            $table->foreignUuid('admin_listing_id')->nullable()->constrained('admin_listings')->restrictOnDelete();
 
             $table->foreignUuid('country_id')->constrained('countries');
             $table->char('currency', 3);
@@ -71,8 +71,8 @@ return new class extends Migration {
         // XOR CHECK: exactly one listing type
         DB::statement("ALTER TABLE marketer_campaigns ADD CONSTRAINT chk_campaign_listing_xor
             CHECK (
-                (vendor_listing_id IS NOT NULL AND admin_product_listing_id IS NULL) OR
-                (vendor_listing_id IS NULL AND admin_product_listing_id IS NOT NULL)
+                (vendor_listing_id IS NOT NULL AND admin_listing_id IS NULL) OR
+                (vendor_listing_id IS NULL AND admin_listing_id IS NOT NULL)
             )");
     }
 
