@@ -159,6 +159,35 @@ class ProductQueryService
 
     public function baseQuery(Country $country)
     {
+        // ── Admin listing correlated subquery helpers ──────────────────────────
+        // admin_listings always win the buy-box when present (platform stock).
+        $al = fn(string $col) =>
+            '(SELECT '.$col.' FROM admin_listings al_b'
+            .' JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id'
+            ." WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL"
+            .' ORDER BY al_b.price ASC LIMIT 1)';
+
+        // ── Vendor listing correlated subquery helpers ─────────────────────────
+        $vl = fn(string $col) =>
+            '(SELECT '.$col.' FROM vendor_listings vl_b'
+            .' JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id'
+            ." WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL"
+            ." ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1)";
+
+        $vlImage = fn(string $col) =>
+            '(SELECT pi.'.$col.' FROM vendor_listings vl_b'
+            .' JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id'
+            .' JOIN product_images pi ON pi.product_variant_id = pv_b.id'
+            ." WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL"
+            ." ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC, pi.position ASC LIMIT 1)";
+
+        $alImage = fn(string $col) =>
+            '(SELECT pi.'.$col.' FROM admin_listings al_b'
+            .' JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id'
+            .' JOIN product_images pi ON pi.product_variant_id = pv_b.id'
+            ." WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL"
+            .' ORDER BY al_b.price ASC, pi.position ASC LIMIT 1)';
+
         return Product::query()
             ->select(
                 'products.*',
@@ -171,87 +200,66 @@ class ProductQueryService
                 DB::raw('COALESCE(SUM(vl.rating_avg * vl.rating_count) / NULLIF(SUM(vl.rating_count), 0), 0) as rating_avg'),
                 DB::raw('COALESCE(SUM(vl.rating_count), 0) as rating_count'),
             )
-            ->selectRaw("COALESCE(
-                (SELECT al_b.id FROM admin_listings al_b
-                 JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL
-                 ORDER BY al_b.price ASC LIMIT 1),
-                (SELECT vl_b.id FROM vendor_listings vl_b
-                 JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL
-                 ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1)
-            ) as buy_box_listing_id", [$country->id, $country->id, 'active'])
-            ->selectRaw("COALESCE(
-                (SELECT pv_b.slug FROM admin_listings al_b
-                 JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL
-                 ORDER BY al_b.price ASC LIMIT 1),
-                (SELECT pv_b.slug FROM vendor_listings vl_b
-                 JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL
-                 ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1)
-            ) as buy_box_variant_slug", [$country->id, $country->id, 'active'])
-            ->selectRaw("COALESCE(
-                (SELECT pv_b.variant_name FROM admin_listings al_b
-                 JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL
-                 ORDER BY al_b.price ASC LIMIT 1),
-                (SELECT pv_b.variant_name FROM vendor_listings vl_b
-                 JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL
-                 ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1)
-            ) as buy_box_variant_name", [$country->id, $country->id, 'active'])
-            ->selectRaw("COALESCE(
-                (SELECT pv_b.id FROM admin_listings al_b
-                 JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL
-                 ORDER BY al_b.price ASC LIMIT 1),
-                (SELECT pv_b.id FROM vendor_listings vl_b
-                 JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL
-                 ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC LIMIT 1)
-            ) as buy_box_variant_id", [$country->id, $country->id, 'active'])
-            ->selectRaw("COALESCE(
-                (SELECT pi.path FROM admin_listings al_b
-                 JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id
-                 JOIN product_images pi ON pi.product_variant_id = pv_b.id
-                 WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL
-                 ORDER BY al_b.price ASC, pi.position ASC LIMIT 1),
-                (SELECT pi.path FROM vendor_listings vl_b
-                 JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id
-                 JOIN product_images pi ON pi.product_variant_id = pv_b.id
-                 WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL
-                 ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC, pi.position ASC LIMIT 1)
-            ) as buy_box_variant_image_path", [$country->id, $country->id, 'active'])
-            ->selectRaw("COALESCE(
-                (SELECT pi.disk FROM admin_listings al_b
-                 JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id
-                 JOIN product_images pi ON pi.product_variant_id = pv_b.id
-                 WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL
-                 ORDER BY al_b.price ASC, pi.position ASC LIMIT 1),
-                (SELECT pi.disk FROM vendor_listings vl_b
-                 JOIN product_variants pv_b ON pv_b.id = vl_b.product_variant_id
-                 JOIN product_images pi ON pi.product_variant_id = pv_b.id
-                 WHERE pv_b.product_id = products.id AND vl_b.country_id = ? AND vl_b.status = ? AND vl_b.deleted_at IS NULL
-                 ORDER BY FIELD(vl_b.global_system_type,'express_fbn','merchant_fbp','marketplace'), vl_b.price ASC, pi.position ASC LIMIT 1)
-            ) as buy_box_variant_image_disk", [$country->id, $country->id, 'active'])
-            ->selectRaw("IF(
-                (SELECT al_b.id FROM admin_listings al_b
-                 JOIN product_variants pv_b ON pv_b.id = al_b.product_variant_id
-                 WHERE pv_b.product_id = products.id AND al_b.country_id = ? AND al_b.status = 'active' AND al_b.deleted_at IS NULL
-                 LIMIT 1) IS NOT NULL,
-                'admin', 'vendor'
-            ) as buy_box_listing_type", [$country->id])
+            // ── buy_box_listing_id: admin wins, else vendor ────────────────────
+            ->selectRaw(
+                'COALESCE('.$al('al_b.id').', '.$vl('vl_b.id').') as buy_box_listing_id',
+                [$country->id, $country->id, 'active'],
+            )
+            // ── buy_box_listing_type: 'admin' | 'vendor' ──────────────────────
+            ->selectRaw(
+                'IF('.$al('al_b.id').' IS NOT NULL, \'admin\', \'vendor\') as buy_box_listing_type',
+                [$country->id],
+            )
+            // ── buy_box_variant_slug ───────────────────────────────────────────
+            ->selectRaw(
+                'COALESCE('.$al('pv_b.slug').', '.$vl('pv_b.slug').') as buy_box_variant_slug',
+                [$country->id, $country->id, 'active'],
+            )
+            // ── buy_box_variant_name ───────────────────────────────────────────
+            ->selectRaw(
+                'COALESCE('.$al('pv_b.variant_name').', '.$vl('pv_b.variant_name').') as buy_box_variant_name',
+                [$country->id, $country->id, 'active'],
+            )
+            // ── buy_box_variant_id ────────────────────────────────────────────
+            ->selectRaw(
+                'COALESCE('.$al('pv_b.id').', '.$vl('pv_b.id').') as buy_box_variant_id',
+                [$country->id, $country->id, 'active'],
+            )
+            // ── buy_box_variant_image_path ────────────────────────────────────
+            ->selectRaw(
+                'COALESCE('.$alImage('path').', '.$vlImage('path').') as buy_box_variant_image_path',
+                [$country->id, $country->id, 'active'],
+            )
+            // ── buy_box_variant_image_disk ────────────────────────────────────
+            ->selectRaw(
+                'COALESCE('.$alImage('disk').', '.$vlImage('disk').') as buy_box_variant_image_disk',
+                [$country->id, $country->id, 'active'],
+            )
+            // ── admin_listing_count (for UI badges) ───────────────────────────
             ->selectRaw(
                 '(SELECT COUNT(*) FROM admin_listings al_c'
                 .' JOIN product_variants pv_c ON pv_c.id = al_c.product_variant_id'
-                .' WHERE pv_c.product_id = products.id AND al_c.country_id = ? AND al_c.status = \'active\' AND al_c.deleted_at IS NULL) as admin_listing_count',
-                [$country->id]
+                ." WHERE pv_c.product_id = products.id AND al_c.country_id = ? AND al_c.status = 'active' AND al_c.deleted_at IS NULL)"
+                .' as admin_listing_count',
+                [$country->id],
             )
-            ->join('product_country_settings as pcs', function ($j) use ($country) {
+            ->leftJoin('product_country_settings as pcs', function ($j) use ($country) {
                 $j->on('pcs.product_id', '=', 'products.id')
                     ->where('pcs.country_id', $country->id)
                     ->where('pcs.is_available', true);
+            })
+            // Include products that have an admin listing even without country settings
+            ->where(function ($q) use ($country) {
+                $q->whereNotNull('pcs.product_id')
+                  ->orWhereExists(function ($sub) use ($country) {
+                      $sub->select(DB::raw(1))
+                          ->from('admin_listings as al_check')
+                          ->join('product_variants as pv_check', 'pv_check.id', '=', 'al_check.product_variant_id')
+                          ->whereColumn('pv_check.product_id', 'products.id')
+                          ->where('al_check.country_id', $country->id)
+                          ->where('al_check.status', 'active')
+                          ->whereNull('al_check.deleted_at');
+                  });
             })
             ->leftJoin('product_variants as pv', function ($j) {
                 $j->on('pv.product_id', '=', 'products.id')

@@ -7,6 +7,8 @@ use App\Http\Requests\Customer\ProductListRequest;
 use App\Http\Resources\Customer\ProductCardResource;
 use App\Http\Resources\Customer\ProductDetailResource;
 use App\Http\Responses\ApiResponse;
+use App\Enums\AdminListingStatus;
+use App\Models\AdminListing;
 use App\Models\Country;
 use App\Models\Product;
 use App\Models\VendorListing;
@@ -41,12 +43,40 @@ class ProductController extends Controller
         $country = $request->attributes->get('country');
         $filters = $request->validated();
         $perPage = (int) ($filters['per_page'] ?? 20);
-        $page = (int) ($filters['page'] ?? 1);
+        $page    = (int) ($filters['page'] ?? 1);
 
-        $builder = VendorListing::where('country_id', $country->id)
+        // ── Admin listings (always first) ────────────────────────────────────────
+        $adminBuilder = AdminListing::where('country_id', $country->id)
+            ->where('status', AdminListingStatus::Active->value)
+            ->whereHas('productVariant.product', fn ($q) => $q->where('status', 'active'))
+            ->with([
+                'productVariant:id,sku,slug,variant_name,product_id',
+                'productVariant.images',
+                'productVariant.product.images',
+                'productVariant.product.category:id,name_en,name_ar,slug',
+                'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
+            ]);
+
+        // Apply category filter to admin listings if requested
+        if (!empty($filters['category'])) {
+            $adminBuilder->whereHas('productVariant.product',
+                fn ($q) => $q->where('category_id', $filters['category'])
+            );
+        }
+        if (!empty($filters['price_min'])) {
+            $adminBuilder->where('price', '>=', (int) ($filters['price_min'] * 100));
+        }
+        if (!empty($filters['price_max'])) {
+            $adminBuilder->where('price', '<=', (int) ($filters['price_max'] * 100));
+        }
+
+        $adminListings = $adminBuilder->orderBy('search_boost', 'desc')->orderBy('price')->get();
+
+        // ── Vendor listings ───────────────────────────────────────────────────────
+        $vendorBuilder = VendorListing::where('country_id', $country->id)
             ->where('status', 'active')
-            ->whereHas('productVariant.product', fn($q) => $q->where('status', 'active'))
-            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
+            ->whereHas('productVariant.product', fn ($q) => $q->where('status', 'active'))
+            ->whereHas('vendor', fn ($q) => $q->where('global_status', 'active'))
             ->with([
                 'vendor:id,store_name,store_rating_avg',
                 'productVariant:id,sku,slug,variant_name,product_id',
@@ -56,38 +86,55 @@ class ProductController extends Controller
                 'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
             ]);
 
-        $builder = $this->listings->applyFilters($builder, $filters);
-        $builder = $this->listings->applySort($builder, $filters['sort'] ?? 'relevance');
-
-        $paginator = $builder->paginate($perPage);
+        $vendorBuilder = $this->listings->applyFilters($vendorBuilder, $filters);
+        $vendorBuilder = $this->listings->applySort($vendorBuilder, $filters['sort'] ?? 'relevance');
+        $paginator     = $vendorBuilder->paginate($perPage);
 
         $wishlistIds = $this->listings->wishlistListingIds(auth('customer')->id());
 
-        $items = [];
-        foreach ($paginator as $listing) {
-            $product = $listing->productVariant->product;
+        // ── Admin cards (deduplicated against each other by product_variant_id) ──
+        $seenVariantIds = [];
+        $adminItems     = [];
+        foreach ($adminListings as $al) {
+            $variantId = $al->product_variant_id;
+            if (isset($seenVariantIds[$variantId])) {
+                continue;
+            }
+            $seenVariantIds[$variantId] = true;
+            $adminItems[] = $this->listings->toAdminCardShape(
+                $al,
+                $al->productVariant->product,
+                $country,
+                in_array($al->id, $wishlistIds),
+            );
+        }
 
-            $items[] = $this->listings->toCardShape(
+        // ── Vendor cards ──────────────────────────────────────────────────────────
+        $vendorItems = [];
+        foreach ($paginator as $listing) {
+            $vendorItems[] = $this->listings->toCardShape(
                 listing: $listing,
-                product: $product,
+                product: $listing->productVariant->product,
                 country: $country,
                 isWishlisted: in_array($listing->id, $wishlistIds),
                 isSponsored: false,
             );
         }
 
+        // Merge: admin first, then vendor
+        $items = array_merge($adminItems, $vendorItems);
         $items = $this->sponsored->inject($items, $country, $page, 'category_top');
 
         $facets = $this->products->facets($country, $filters);
 
         return ApiResponse::success([
-            'items' => ProductCardResource::collection($items),
+            'items'  => ProductCardResource::collection(collect($items)),
             'facets' => $facets,
-            'meta' => [
+            'meta'   => [
                 'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
+                'last_page'    => $paginator->lastPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total() + count($adminItems),
             ],
         ]);
     }

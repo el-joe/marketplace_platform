@@ -52,6 +52,15 @@ class ListingDetailController extends Controller
     }
 
     /**
+     * Build the full listing detail response from an already-resolved listing.
+     * Used when another controller has already determined the listing (e.g. admin buy-box injection).
+     */
+    public function showFromListing(Request $request, $country, VendorListing|AdminListing $listing): JsonResponse
+    {
+        return $this->buildDetailResponse($request, $country, $listing);
+    }
+
+    /**
      * Product detail by type-prefixed listing ID shorthand.
      *
      * GET /v1/{country}/products/v-{uuid}  → VendorListing
@@ -633,7 +642,11 @@ class ListingDetailController extends Controller
             'listing_id'     => $review->vendor_listing_id ?? $review->admin_listing_id,
             'listing_type'   => $isAdminListing ? 'admin' : 'vendor',
             'seller'         => $isAdminListing
-                ? ['id' => null, 'store_name' => $resolvedListing?->sold_by_label_en ?? 'Platform']
+                ? [
+                    'id'            => null,
+                    'store_name'    => $resolvedListing?->sold_by_label_en ?? 'Platform',
+                    'store_name_ar' => $resolvedListing?->sold_by_label_ar ?? 'المنصة',
+                ]
                 : ($resolvedListing?->vendor ? [
                     'id'         => $resolvedListing->vendor->id,
                     'store_name' => $resolvedListing->vendor->store_name,

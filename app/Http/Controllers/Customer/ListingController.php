@@ -141,6 +141,28 @@ class ListingController extends Controller
         $listings = $this->buyBox->getListings($product, $country);
         $product->setRelation('activeListings', $listings);
 
+        $adminListing = \App\Models\AdminListing::where('country_id', $country->id)
+            ->where('status', 'active')
+            ->whereHas('productVariant', fn ($q) => $q->where('product_id', $product->id))
+            ->with([
+                'productVariant.product.images',
+                'productVariant.product.category',
+                'productVariant.product.brand',
+                'productVariant.product.highlights',
+                'productVariant.product.specifications',
+                'productVariant.variantAttributes.attribute',
+                'productVariant.variantAttributes.attributeValue',
+                'primaryShippingMethod',
+            ])
+            ->orderBy('price')
+            ->first();
+
+        // Admin listing wins the buy-box; redirect detail to it.
+        if ($adminListing) {
+            return app(\App\Http\Controllers\Customer\ListingDetailController::class)
+                ->showFromListing($request, $country, $adminListing);
+        }
+
         $reviews = $product->reviews()
             ->where('status', 'published')
             ->with([
