@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Http\View\Composers\SettingsComposer;
-use App\Http\View\Composers\MarketerSidebarComposer;
 use App\Http\View\Composers\TravelAgencySidebarComposer;
 use App\View\Components\Form\AsyncSelect;
 use App\View\Components\Form\FileUpload;
@@ -13,7 +12,6 @@ use App\View\Components\Form\RichEditor;
 use App\View\Components\Form\Select;
 use App\Events\SubOrderPlaced;
 use App\Listeners\InvalidateVendorDashboardCache;
-use App\Listeners\RecordMarketerConversion;
 use App\Services\GiftCardService;
 use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\AppContextService;
@@ -24,7 +22,6 @@ use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\UnifiedCategoryService;
 use App\Services\Shipping\ShippingCarrierFactory;
 use App\Services\Vendor\VendorFCMService;
-use App\Services\Marketer\MarketerFCMService;
 use App\Services\Carrier\CarrierFCMService;
 use App\Services\Delivery\DeliveryFCMService;
 use App\Notifications\Channels\VendorPushChannel;
@@ -33,16 +30,13 @@ use App\Models\PaymentMethod;
 use App\Models\Country;
 use App\Models\FlashSaleSubmission;
 use App\Models\MarketerCampaign;
-use App\Models\MarketerQrCode;
 use App\Models\Payout;
 use App\Models\SubOrder;
 use App\Models\VendorBankAccount;
 use App\Models\ReturnRequest;
 use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
-use App\Models\MarketerSampleRequest;
 use App\Models\DeliveryAssignment;
-use App\Models\MarketerWhatsappLink;
 use App\Models\DeliveryAgent;
 use App\Models\ShippingCompanySupervisor;
 use App\Policies\AddressPolicy;
@@ -50,17 +44,13 @@ use App\Policies\PaymentMethodPolicy;
 use App\Policies\CarrierAgentPolicy;
 use App\Policies\SupervisorPolicy;
 use App\Policies\DeliveryAssignmentPolicy;
-use App\Policies\CampaignPolicy;
 use App\Policies\FlashSaleSubmissionPolicy;
 use App\Policies\PayoutPolicy;
-use App\Policies\QrCodePolicy;
-use App\Policies\SampleRequestPolicy;
 use App\Policies\SubOrderPolicy;
 use App\Policies\VendorBankAccountPolicy;
 use App\Policies\ReturnRequestPolicy;
 use App\Policies\VendorListingPolicy;
 use App\Policies\WarehouseInventoryPolicy;
-use App\Policies\WhatsappLinkPolicy;
 use App\Models\ClassifiedListing;
 use App\Models\ClassifiedInquiry;
 use App\Models\PaidAdSlot;
@@ -99,7 +89,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(UnifiedCategoryService::class);
         $this->app->singleton(CheckoutCalculationService::class);
         $this->app->singleton(VendorFCMService::class);
-        $this->app->singleton(MarketerFCMService::class);
         $this->app->singleton(CarrierFCMService::class);
         $this->app->singleton(DeliveryFCMService::class);
         $this->app->singleton(GiftCardService::class);
@@ -132,10 +121,6 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Address::class, AddressPolicy::class);
         Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);
-        Gate::policy(MarketerCampaign::class, CampaignPolicy::class);
-        Gate::policy(MarketerQrCode::class, QrCodePolicy::class);
-        Gate::policy(MarketerWhatsappLink::class, WhatsappLinkPolicy::class);
-        Gate::policy(MarketerSampleRequest::class, SampleRequestPolicy::class);
         Gate::policy(FlashSaleSubmission::class, FlashSaleSubmissionPolicy::class);
         Gate::policy(Payout::class, PayoutPolicy::class);
         Gate::policy(SubOrder::class, SubOrderPolicy::class);
@@ -156,7 +141,6 @@ class AppServiceProvider extends ServiceProvider
         SubOrder::observe(SubOrderObserver::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
-        Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);
 
         \Illuminate\Support\Facades\Notification::extend('push', function ($app) {
             return $app->make(VendorPushChannel::class);
@@ -201,8 +185,6 @@ class AppServiceProvider extends ServiceProvider
         // the layout's sidebar.
         View::composer('travel-agency.*', TravelAgencySidebarComposer::class);
         View::composer('layouts.travel-agency', TravelAgencySidebarComposer::class);
-
-        View::composer('layouts.marketer', MarketerSidebarComposer::class);
 
         View::composer('*', SettingsComposer::class);
 

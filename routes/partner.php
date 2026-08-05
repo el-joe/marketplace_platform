@@ -119,7 +119,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/search-marketers', 'searchMarketers')->name('search-marketers')->middleware('vendor.can:listings.view');
         Route::get('/category-samples', 'categorySamples')->name('category-samples')->middleware('vendor.can:listings.view');
         Route::get('/campaign-pricing', 'campaignPricing')->name('campaign-pricing')->middleware('vendor.can:listings.view');
-        Route::get('/influencer-fee', 'getInfluencerFee')->name('influencer-fee')->middleware('vendor.can:listings.view');
+        Route::get('/marketer-fee', 'getInfluencerFee')->name('marketer-fee')->middleware('vendor.can:listings.view');
         Route::get('/{listing}/edit', 'edit')->name('edit')->middleware('vendor.can:listings.edit');
         Route::put('/{listing}', 'update')->name('update')->middleware('vendor.can:listings.edit');
         Route::post('/{listing}/resubmit', 'resubmit')->name('resubmit')->middleware('vendor.can:listings.create');
