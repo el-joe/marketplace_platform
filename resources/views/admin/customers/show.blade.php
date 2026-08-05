@@ -63,6 +63,7 @@
                     'payment_methods' => __('admin.customers_section.tab_payment_methods'),
                     'wallet'          => __('admin.customers_section.tab_wallet'),
                     'wallet_credits'  => __('admin.customers_section.tab_wallet_credits'),
+                    'referrals'       => 'Referrals (' . $referralStats['total_referred'] . ')',
                     'warranty'        => __('admin.customers_section.tab_warranty_claims'),
                     'gift_cards'      => __('admin.customers_section.tab_gift_cards'),
                     'notifications'   => __('admin.customers_section.tab_notifications'),
@@ -500,6 +501,51 @@
                 </x-card>
             </div>
 
+            {{-- ─── Referrals tab ─────────────────────────────────────────────────────── --}}
+            <div x-show="tab === 'referrals'" x-cloak>
+                <x-card title="Referred Customers">
+                    {{-- Summary stats --}}
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-gray-900">{{ number_format($referralStats['total_referred']) }}</div>
+                            <div class="text-xs text-gray-500 mt-1">Customers Referred</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-gray-900">{{ number_format($referralStats['total_referred_orders']) }}</div>
+                            <div class="text-xs text-gray-500 mt-1">Orders by Referrals</div>
+                        </div>
+                    </div>
+
+                    @if($referralStats['total_referred'] > 0)
+                        <div id="referrals-datatable-wrapper">
+                            <table id="referrals-datatable" class="w-full text-sm"
+                                   data-url="{{ route('admin.customers.referrals.datatable', $customer->id) }}">
+                                <thead>
+                                    <tr class="border-b border-gray-100 text-left text-xs text-gray-500 uppercase tracking-wide">
+                                        <th class="pb-2 pr-3 font-medium">Name</th>
+                                        <th class="pb-2 pr-3 font-medium">Email</th>
+                                        <th class="pb-2 pr-3 font-medium">Orders</th>
+                                        <th class="pb-2 pr-3 font-medium">Loyalty Pts</th>
+                                        <th class="pb-2 font-medium">Joined</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const el = document.getElementById('referrals-datatable');
+                                if (el && typeof initDataTable === 'function') {
+                                    initDataTable(el, el.dataset.url);
+                                }
+                            });
+                        </script>
+                    @else
+                        <p class="text-sm text-gray-400 text-center py-6">This customer has not referred anyone yet.</p>
+                    @endif
+                </x-card>
+            </div>
+
             {{-- ── Warranty Claims ─────────────────────────────────────────── --}}
             <div x-show="tab === 'warranty'">
                 <x-card title="{{ __('admin.customers_section.warranty_claims_title') }}" subtitle="{{ __('admin.customers_section.latest_20') }}">
@@ -867,12 +913,20 @@
                 <div class="flex items-center justify-between gap-2">
                     <span class="text-gray-500">{{ __('admin.customers_section.referral_code') }}</span>
                     @if($customer->referral_code)
-                        <button type="button"
-                            class="text-gray-900 hover:text-primary-600 font-mono text-xs js-copy"
-                            data-value="{{ $customer->referral_code }}"
-                            title="{{ __('admin.customers_section.click_to_copy') }}">
-                            {{ $customer->referral_code }}
-                        </button>
+                        <div class="flex flex-col items-end gap-1">
+                            <button type="button"
+                                class="text-gray-900 hover:text-primary-600 font-mono text-xs js-copy"
+                                data-value="{{ $customer->referral_code }}"
+                                title="{{ __('admin.customers_section.click_to_copy') }}">
+                                {{ $customer->referral_code }}
+                            </button>
+                            <button type="button"
+                                class="text-xs text-primary-500 hover:text-primary-700 js-copy"
+                                data-value="{{ rtrim(config('app.url'), '/') }}/r/{{ $customer->referral_code }}"
+                                title="Copy referral link">
+                                Copy link
+                            </button>
+                        </div>
                     @else
                         <span class="text-gray-400">—</span>
                     @endif

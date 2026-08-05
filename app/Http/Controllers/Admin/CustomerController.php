@@ -198,6 +198,7 @@ class CustomerController extends Controller
             'country',
             'referredBy',
             'addresses.country',
+            'referrals',   // eager-load referred customers for count in sidebar
         ]);
 
         $orders = $customer->orders()->latest('placed_at')->take(20)->get();
@@ -226,6 +227,11 @@ class CustomerController extends Controller
             'total_credited' => WalletTransaction::forCustomer($customer->id)->credits()->sum('amount'),
             'total_debited' => WalletTransaction::forCustomer($customer->id)->debits()->sum('amount'),
             'transaction_count' => WalletTransaction::forCustomer($customer->id)->count(),
+        ];
+
+        $referralStats = [
+            'total_referred' => $customer->referrals->count(),
+            'total_referred_orders' => $customer->referrals->sum('total_orders'),
         ];
 
         $warrantyClaims = $customer->warrantyClaims()
@@ -263,7 +269,8 @@ class CustomerController extends Controller
             'warrantyClaims',
             'giftCards',
             'notifications',
-            'deviceTokens'
+            'deviceTokens',
+            'referralStats',   // add this
         ));
     }
 
@@ -533,6 +540,41 @@ class CustomerController extends Controller
                     ? e(class_basename($row->reference_type)) . ' #' . e((string) $row->reference_id)
                     : '—',
                 'note' => e($row->note ?? '—'),
+            ];
+        });
+    }
+
+    // ─── Referrals datatable ────────────────────────────────────────────────────
+
+    public function referralsDatatable(Request $request, Customer $customer): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('customers.view'), 403);
+
+        $columns = [
+            ['orderable_column' => 'name'],
+            ['orderable_column' => 'email'],
+            ['orderable_column' => 'total_orders'],
+            ['orderable_column' => 'loyalty_points'],
+            ['orderable_column' => 'created_at'],
+        ];
+
+        $query = Customer::where('referred_by', $customer->id)
+            ->select(['id', 'name', 'email', 'status', 'total_orders', 'loyalty_points', 'created_at']);
+
+        return $this->dataTableResponse($request, $query, $columns, function (Customer $row) {
+            $statusColors = [
+                'active'    => 'success',
+                'suspended' => 'warning',
+                'banned'    => 'danger',
+            ];
+
+            return [
+                '<a href="' . route('admin.customers.show', $row->id) . '" class="text-primary-600 hover:underline font-medium">' . e($row->name) . '</a>',
+                e($row->email),
+                number_format($row->total_orders),
+                number_format((float) $row->loyalty_points, 2),
+                $row->created_at?->format('d M Y'),
             ];
         });
     }

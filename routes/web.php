@@ -204,3 +204,23 @@ Route::post('/blog/{post}/views', [\App\Http\Controllers\Admin\BlogPostControlle
 Route::post('/webhooks/payment/{gatewayCode}', [\App\Http\Controllers\WebhookController::class, 'payment'])
     ->name('webhooks.payment')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+// ── Referral shortlink ────────────────────────────────────────────────────────
+// Encodes config('app.url') . '/r/' . referral_code in customer QR codes.
+// Redirects to the app registration page with the referral code as a query param.
+// Mobile apps intercept this URL via universal links / app links.
+Route::get('/r/{code}', function (string $code) {
+    // Validate the code exists before redirecting to prevent open-redirect abuse.
+    $exists = \App\Models\Customer::where('referral_code', strtoupper($code))
+        ->where('status', 'active')
+        ->exists();
+
+    if (! $exists) {
+        // Redirect to home silently — don't leak which codes are valid.
+        return redirect('/');
+    }
+
+    // Redirect to the portal registration page with ref= query param.
+    // The registration page (or mobile app) reads ?ref= and pre-fills the field.
+    return redirect(url('/register?ref=' . strtoupper($code)));
+})->name('referral.shortlink');

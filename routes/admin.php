@@ -783,6 +783,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{customer}/wallet/transactions/datatable', [CustomerController::class, 'walletTransactions'])->name('wallet.transactions.datatable');
         Route::post('/{customer}/wallet/adjust', [CustomerController::class, 'adjustWallet'])->name('wallet.adjust')
             ->middleware('admin.permission:wallet.manual_adjust');
+        Route::post('/{customer}/referrals/datatable', [CustomerController::class, 'referralsDatatable'])->name('referrals.datatable');
     });
 
     // ─── Wishlist Overview (read-only) ────────────────────────────────────────

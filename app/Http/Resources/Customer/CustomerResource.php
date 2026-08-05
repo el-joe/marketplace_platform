@@ -22,6 +22,12 @@ class CustomerResource extends JsonResource
             'loyalty_points' => (float) $this->loyalty_points,
             'loyalty_tier'   => $this->resolveLoyaltyTier(),
             'referral_code' => $this->referral_code,
+            'referral_link' => $this->referral_code
+                ? rtrim(config('app.url'), '/') . '/r/' . $this->referral_code
+                : null,
+            'qr_code_url'   => $this->qr_code_path
+                ? asset('storage/' . $this->qr_code_path)
+                : null,
             'email_verified' => $this->email_verified_at !== null,
             'phone_verified' => $this->phone_verified_at !== null,
             'member_since' => $this->created_at->toDateString(),

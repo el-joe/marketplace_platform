@@ -37,6 +37,10 @@ class AccountDashboardService
             ->limit(3)
             ->get();
 
+        $referralCount = $customer->referrals()->count();
+
+        $referralLink = rtrim(config('app.url'), '/') . '/r/' . $customer->referral_code;
+
         return [
             'profile' => [
                 'id'            => $customer->id,
@@ -44,6 +48,16 @@ class AccountDashboardService
                 'email'         => $customer->email,
                 'phone'         => $customer->phone,
                 'referral_code' => $customer->referral_code,
+            ],
+            'referral' => [
+                'code'            => $customer->referral_code,
+                'link'            => $referralLink,
+                'qr_code_url'     => $customer->qr_code_path
+                                        ? asset('storage/' . $customer->qr_code_path)
+                                        : null,
+                'total_referrals' => $referralCount,
+                'bonus_points'    => (float) Setting::get('loyalty_referral_bonus_points', 50),
+                'referee_bonus'   => (float) Setting::get('loyalty_new_customer_bonus_points', 50),
             ],
             'recent_orders' => $recentOrders->map(fn ($o) => [
                 'order_number' => $o->order_number,
