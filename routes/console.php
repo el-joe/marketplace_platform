@@ -4,7 +4,6 @@ use App\Jobs\AutoCompleteOrdersJob;
 use App\Jobs\GenerateCodSettlementsJob;
 use App\Jobs\ReleaseExpiredLocksJob;
 use App\Jobs\CheckSlaBreachJob;
-use App\Jobs\CheckInfluencerPromotionTimeoutsJob;
 use App\Jobs\GenerateVendorPayoutsJob;
 use App\Jobs\BannerSchedulerJob;
 use App\Jobs\FlashSaleSchedulerJob;
@@ -26,7 +25,6 @@ Artisan::command('inspire', function () {
 
 Schedule::job(new ReleaseExpiredLocksJob)->everyMinute()->withoutOverlapping()->name('release-expired-locks');
 Schedule::job(new CheckSlaBreachJob)->everyFifteenMinutes();
-Schedule::job(new CheckInfluencerPromotionTimeoutsJob)->everyFifteenMinutes()->name('check-influencer-promotion-timeouts');
 Schedule::job(new AutoCompleteOrdersJob)->dailyAt('02:00');
 Schedule::job(new TransitionFlashSaleStatusJob)->everyFiveMinutes();
 Schedule::job(new FlashSaleSchedulerJob)->everyFiveMinutes()->withoutOverlapping()->name('flash-sale-scheduler');

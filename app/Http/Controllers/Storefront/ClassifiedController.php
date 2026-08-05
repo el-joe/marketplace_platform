@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedListing;
 use App\Models\Country;
-use App\Models\Marketer;
 use App\Services\ClassifiedListingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

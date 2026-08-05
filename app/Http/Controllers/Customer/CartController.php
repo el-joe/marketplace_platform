@@ -14,7 +14,6 @@ use App\Http\Responses\ApiResponse;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CountryShippingSetting;
-use App\Models\Coupon;
 use App\Models\CustomerWallet;
 use App\Services\BannerService;
 use App\Services\Customer\CartService;
@@ -383,59 +382,36 @@ class CartController extends Controller
         return ApiResponse::success(new CartResource($cart), __('common.exceptions.cart.coupon_removed'));
     }
 
-    /**
-     * Applies a discount code to the cart, trying the coupons table first
-     * and falling back to affiliate promo codes.
-     */
     public function applyPromoCode(ApplyCouponRequest $request): JsonResponse
     {
         $customer = auth('customer')->user();
         $cart = $this->resolveCart($request);
         $code = $request->code;
 
-        $coupon = Coupon::where('code', $code)->first();
-        if ($coupon) {
-            try {
-                $this->cartService->applyCoupon($cart, $customer, $code);
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-                return ApiResponse::error(__('common.exceptions.cart.coupon_not_found'), [], 404);
-            } catch (\DomainException $e) {
-                return ApiResponse::error($e->getMessage(), [], 422);
-            }
-
-            return ApiResponse::success([
-                'success' => true,
-                'message' => __('common.exceptions.cart.coupon_applied', ['code' => $code]),
-                'data' => [
-                    'discount_amount' => $cart->discount,
-                    'type' => 'coupon',
-                ],
-                'cart' => new CartResource($cart),
-            ], __('common.exceptions.cart.coupon_applied', ['code' => $code]));
-        }
-
         try {
-            $this->cartService->applyAffiliatePromoCode($cart, $code);
+            $coupon = $this->cartService->applyCoupon($cart, $customer, $code);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return ApiResponse::error(__('common.exceptions.cart.coupon_not_found'), [], 404);
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
         return ApiResponse::success([
             'success' => true,
-            'message' => __('common.exceptions.cart.promo_applied', ['code' => $code]),
+            'message' => __('common.exceptions.cart.coupon_applied', ['code' => $code]),
             'data' => [
                 'discount_amount' => $cart->discount,
-                'type' => 'affiliate_promo',
+                'type' => 'coupon',
             ],
             'cart' => new CartResource($cart),
-        ], "Promo code \"{$code}\" applied");
+        ], __('common.exceptions.cart.coupon_applied', ['code' => $code]));
     }
 
     public function removePromoCode(Request $request): JsonResponse
     {
         $cart = $this->resolveCart($request);
 
-        $this->cartService->removeAffiliatePromoCode($cart);
+        $this->cartService->removeCoupon($cart);
 
         return ApiResponse::success(new CartResource($cart), __('common.exceptions.cart.promo_removed'));
     }

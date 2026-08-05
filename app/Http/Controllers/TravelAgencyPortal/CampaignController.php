@@ -7,7 +7,6 @@ use App\Enums\VendorCampaignOfferStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\Admin;
-use App\Models\Marketer;
 use App\Models\MarketerCampaign;
 use App\Models\TravelAgencyCampaignInvitation;
 use App\Models\TravelAgencyCampaignOffer;
@@ -23,7 +22,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CampaignController extends Controller
@@ -289,12 +287,12 @@ class CampaignController extends Controller
 
         $validated = $request->validate([
             'marketer_ids'   => 'required|array|min:1|max:50',
-            'marketer_ids.*' => 'uuid|exists:marketers,id',
+            'marketer_ids.*' => 'uuid|exists:vendors,id',
             'vendor_note'    => 'nullable|string|max:1000',
         ]);
 
-        $activeMarketers = Marketer::whereIn('id', $validated['marketer_ids'])
-            ->where('status', 'active')
+        $activeMarketers = \App\Models\Vendor::whereIn('id', $validated['marketer_ids'])
+            ->whereNotNull('marketer_type')
             ->pluck('id')
             ->all();
 
@@ -343,32 +341,23 @@ class CampaignController extends Controller
 
     public function searchMarketers(Request $request): JsonResponse
     {
-        $q     = $request->input('q', '');
-        $type  = $request->input('type');
-        $niche = $request->input('niche');
+        $q    = $request->input('q', '');
+        $type = $request->input('type');
 
         return response()->json(
-            Marketer::where('status', 'active')
+            \App\Models\Vendor::whereNotNull('marketer_type')
                 ->where(fn($query) => $query
                     ->where('name', 'like', "%{$q}%")
-                    ->orWhere('niche', 'like', "%{$q}%"))
-                ->when($type, fn($q, $t) => $q->where('type', $t))
-                ->when($niche, fn($q, $n) => $q->where('niche', 'like', "%{$n}%"))
-                ->select(['id', 'name', 'type', 'niche', 'followers_count', 'profile_photo_path', 'commission_rate'])
+                    ->orWhere('store_name', 'like', "%{$q}%"))
+                ->when($type, fn($q, $t) => $q->where('marketer_type', $t))
+                ->select(['id', 'name', 'store_name', 'marketer_type', 'commission_rate'])
                 ->limit(20)
                 ->get()
                 ->map(fn($m) => [
                     'id'             => $m->id,
-                    'name'           => $m->name,
-                    'type'           => ucfirst($m->type),
-                    'niche'          => $m->niche,
-                    'followers'      => $m->followers_count
-                        ? number_format($m->followers_count) . ' followers'
-                        : null,
-                    'avatar_initial' => mb_substr($m->name, 0, 1),
-                    'photo_url'      => $m->profile_photo_path
-                        ? Storage::url($m->profile_photo_path)
-                        : null,
+                    'name'           => $m->store_name ?: $m->name,
+                    'type'           => ucfirst($m->marketer_type ?? ''),
+                    'avatar_initial' => mb_substr($m->store_name ?: $m->name, 0, 1),
                 ])
         );
     }

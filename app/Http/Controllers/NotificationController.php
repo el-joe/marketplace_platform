@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Marketer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -29,12 +28,11 @@ class NotificationController extends Controller
 {
     /** Ordered list of panel guards — only one is authenticated per subdomain request. */
     private const GUARDS = [
-        'admin' => 'layouts.admin',
-        'vendor' => 'layouts.partner',
-        'marketer' => 'layouts.marketer',
+        'admin'               => 'layouts.admin',
+        'vendor'              => 'layouts.partner',
         'shipping_supervisor' => 'layouts.carrier',
-        'travel_agency' => 'layouts.travel-agency',
-        'delivery' => 'layouts.delivery',
+        'travel_agency'       => 'layouts.travel-agency',
+        'delivery'            => 'layouts.delivery',
     ];
 
     private function notifiable(): ?object
@@ -150,10 +148,6 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        if ($user instanceof Marketer) {
-            Cache::forget("marketer_badges_{$user->id}");
-        }
-
         return response()->json(['success' => true]);
     }
 
@@ -166,10 +160,6 @@ class NotificationController extends Controller
             ->where('notifiable_id', $user->getKey())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
-
-        if ($user instanceof Marketer) {
-            Cache::forget("marketer_badges_{$user->id}");
-        }
 
         return response()->json(['success' => true]);
     }
