@@ -28,6 +28,12 @@ Route::prefix('v1/{country}')
         require __DIR__ . '/api_customer_v1.php';
     });
 
+// ── Product by type-id shorthand (country-agnostic) ──────────────────────────
+Route::get('v1/products/{typeAndId}', [\App\Http\Controllers\Customer\ListingDetailController::class, 'showByTypeId'])
+    ->where('typeAndId', '(v|p)-[0-9a-f-]{36}')
+    ->middleware('auth:customer')
+    ->name('customer.products.by-type-id.agnostic');
+
 // ── Product detail by variant + listing UUID (public, country-agnostic path —
 // country resolved from the authenticated customer or the X-Country-Id header) ──
 Route::get('v1/products/{variantId}/{listingId}', [ProductDetailController::class, 'show'])

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\SearchRequest;
 use App\Http\Responses\ApiResponse;
+use App\Models\AdminListing;
 use App\Models\Country;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\SearchService;
@@ -44,7 +45,7 @@ class SearchController extends Controller
             return $this->searchTravel($data, $perPage);
         }
 
-        $paginator = $this->search->search(
+        $result = $this->search->search(
             country: $country,
             query: $data['q'],
             filters: $data,
@@ -53,20 +54,8 @@ class SearchController extends Controller
             sessionId: $request->hasSession() ? $request->session()->getId() : '',
         );
 
-        $wishlistIds = $this->listings->wishlistListingIds(auth('customer')->id());
-
-        $items = [];
-        foreach ($paginator as $listing) {
-            $product = $listing->productVariant->product;
-
-            $items[] = $this->listings->toCardShape(
-                listing: $listing,
-                product: $product,
-                country: $country,
-                isWishlisted: in_array($listing->id, $wishlistIds),
-                isSponsored: false,
-            );
-        }
+        $paginator = $result['paginator'];
+        $items = $result['items'];
 
         $items = $this->sponsored->inject($items, $country, $page, 'search_results', $data['q']);
 
@@ -132,7 +121,7 @@ class SearchController extends Controller
 
         $query = $data['q'];
 
-        $productPaginator = $this->search->search(
+        $productResult = $this->search->search(
             country: $country,
             query: $query,
             filters: $data,
@@ -141,20 +130,29 @@ class SearchController extends Controller
             sessionId: $request->hasSession() ? $request->session()->getId() : '',
         );
 
+        $productPaginator = $productResult['paginator'];
+        $productItems = $productResult['items'];
+
         $wishlistIds = $this->listings->wishlistListingIds(auth('customer')->id());
 
-        $productItems = [];
-        foreach ($productPaginator as $listing) {
-            $product = $listing->productVariant->product;
+        // Inject admin listings into product results (admin first, deduped by product_id)
+        $adminSearchListings = AdminListing::where('country_id', $country->id)
+            ->where('status', 'active')
+            ->whereHas('productVariant.product', fn ($q) =>
+                $q->where('status', 'active')
+                  ->where(fn ($q2) => $q2->where('name_en', 'like', "%{$query}%")
+                                         ->orWhere('name_ar', 'like', "%{$query}%"))
+            )
+            ->with(['productVariant.product.images', 'productVariant.images', 'primaryShippingMethod'])
+            ->orderBy('search_boost', 'desc')->limit(4)->get();
 
-            $productItems[] = $this->listings->toCardShape(
-                listing: $listing,
-                product: $product,
-                country: $country,
-                isWishlisted: in_array($listing->id, $wishlistIds),
-                isSponsored: false,
-            );
-        }
+        $seenProductIds = array_column($productItems, 'product_id');
+        $adminResults   = $adminSearchListings->map(function ($al) use ($country, $wishlistIds) {
+            return $this->listings->toAdminCardShape($al, $al->productVariant->product, $country,
+                in_array($al->id, $wishlistIds));
+        })->filter(fn ($i) => !in_array($i['product_id'], $seenProductIds))->values()->all();
+
+        $productItems = array_merge($adminResults, $productItems);
 
         $classifiedPaginator = $this->search->searchClassifieds($query, $data, 4);
         $classifiedItems = $classifiedPaginator->getCollection()

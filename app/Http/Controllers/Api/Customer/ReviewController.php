@@ -33,13 +33,21 @@ class ReviewController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'order_number' => ['required', 'string'],
-            'order_item_id'=> ['required', 'uuid', 'exists:order_items,id'],
-            'rating'       => ['required', 'integer', 'min:1', 'max:5'],
-            'comment'      => ['nullable', 'string', 'max:5000'],
-            'images'       => ['nullable', 'array', 'max:5'],
-            'images.*'     => ['image', 'max:5120'],
+            'order_number'      => ['required', 'string'],
+            'order_item_id'     => ['required', 'uuid', 'exists:order_items,id'],
+            'vendor_listing_id' => ['nullable', 'uuid', 'exists:vendor_listings,id'],
+            'admin_listing_id'  => ['nullable', 'uuid', 'exists:admin_listings,id'],
+            'rating'            => ['required', 'integer', 'min:1', 'max:5'],
+            'comment'           => ['nullable', 'string', 'max:5000'],
+            'images'            => ['nullable', 'array', 'max:5'],
+            'images.*'          => ['image', 'max:5120'],
         ]);
+
+        $validator->after(function ($validator) use ($request): void {
+            if ($request->filled('vendor_listing_id') && $request->filled('admin_listing_id')) {
+                $validator->errors()->add('listing', 'Provide either vendor_listing_id or admin_listing_id, not both.');
+            }
+        });
 
         if ($validator->fails()) {
             return ApiResponse::error(__('customer_api.validation_failed'), $validator->errors()->toArray(), 422);

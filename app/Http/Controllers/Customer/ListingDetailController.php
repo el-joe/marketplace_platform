@@ -42,13 +42,76 @@ class ListingDetailController extends Controller
     public function show(Request $request, $country, string $identifier): JsonResponse
     {
         $country = $request->attributes->get('country');
-
         $listing = $this->resolveListing($identifier, $country);
 
         if (!$listing) {
             return ApiResponse::error(__('common.exceptions.listing_detail.not_found'), [], 404);
         }
 
+        return $this->buildDetailResponse($request, $country, $listing);
+    }
+
+    /**
+     * Product detail by type-prefixed listing ID shorthand.
+     *
+     * GET /v1/{country}/products/v-{uuid}  → VendorListing
+     * GET /v1/{country}/products/p-{uuid}  → AdminListing (platform)
+     *
+     * Delegates to the existing show() logic by resolving the listing directly
+     * from the type prefix, then forwarding to the full detail response.
+     */
+    public function showByTypeId(Request $request, $country, string $typeAndId): JsonResponse
+    {
+        $country = $request->attributes->get('country');
+
+        if (! preg_match('/^(v|p)-([0-9a-f\-]{36})$/i', $typeAndId, $m)) {
+            return ApiResponse::error(__('common.exceptions.listing_detail.not_found'), [], 404);
+        }
+
+        [, $type, $id] = $m;
+
+        if ($type === 'p') {
+            $listing = AdminListing::where('id', $id)
+                ->where('country_id', $country->id)
+                ->where('status', 'active')
+                ->with([
+                    'productVariant.product.images',
+                    'productVariant.product.category',
+                    'productVariant.product.brand',
+                    'productVariant.product.highlights',
+                    'productVariant.product.specifications',
+                    'productVariant.variantAttributes.attribute',
+                    'productVariant.variantAttributes.attributeValue',
+                    'primaryShippingMethod',
+                ])
+                ->first();
+        } else {
+            $listing = VendorListing::where('id', $id)
+                ->where('country_id', $country->id)
+                ->where('status', 'active')
+                ->with([
+                    'productVariant.product.images',
+                    'productVariant.product.category',
+                    'productVariant.product.brand',
+                    'productVariant.product.highlights',
+                    'productVariant.product.specifications',
+                    'productVariant.variantAttributes.attribute',
+                    'productVariant.variantAttributes.attributeValue',
+                    'vendor:id,store_name,store_rating_avg,store_rating_count',
+                    'primaryShippingMethod',
+                ])
+                ->first();
+        }
+
+        if (! $listing) {
+            return ApiResponse::error(__('common.exceptions.listing_detail.not_found'), [], 404);
+        }
+
+        return $this->buildDetailResponse($request, $country, $listing);
+    }
+
+    private function buildDetailResponse(Request $request, $country, VendorListing|AdminListing $listing): JsonResponse
+    {
         $siblings = $listing instanceof VendorListing
             ? $this->identifiers->getSiblings($listing, $country)
             : ['same_variant' => collect(), 'other_variants' => collect()];
@@ -90,9 +153,14 @@ class ListingDetailController extends Controller
                 'vendorReply',
                 'customer:id,name',
                 'files',
+                // vendor listing context
                 'vendorListing.vendor:id,store_name',
                 'vendorListing.productVariant.variantAttributes.attribute',
                 'vendorListing.productVariant.variantAttributes.attributeValue',
+                // admin listing context (platform reviews)
+                'adminListing',
+                'adminListing.productVariant.variantAttributes.attribute',
+                'adminListing.productVariant.variantAttributes.attributeValue',
             ])
             ->orderByDesc('helpful_count')
             ->limit(5)
@@ -546,36 +614,41 @@ class ListingDetailController extends Controller
 
     private function reviewShape($review): array
     {
+        // Resolve whichever listing type this review belongs to
+        $resolvedListing = $review->admin_listing_id
+            ? $review->adminListing
+            : $review->vendorListing;
+
+        $isAdminListing = (bool) $review->admin_listing_id;
+
         return [
-            'id' => $review->id,
-            'rating' => $review->rating,
-            'title' => $review->title,
-            'body' => $review->body,
-            'reviewer_name' => $review->customer?->name,
-            'helpful_count' => $review->helpful_count,
-            'created_at' => $review->created_at?->toIso8601String(),
-            'images' => $review->files->map(fn($f) => $f->full_path)->values()->all(),
-            'listing_id' => $review->vendor_listing_id,
-            'seller' => $review->vendorListing?->vendor ? [
-                'id' => $review->vendorListing->vendor->id,
-                'store_name' => $review->vendorListing->vendor->store_name,
-            ] : null,
-            'variant' => $review->vendorListing?->productVariant ? [
-                'id' => $review->vendorListing->productVariant->id,
-                'variant_name' => $review->vendorListing->productVariant->variant_name,
-                'attributes' => $review->vendorListing->productVariant->variantAttributes->map(fn($va) => [
-                    'name' => [
-                        'ar' => $va->attribute?->name_ar,
-                        'en' => $va->attribute?->name_en,
-                    ],
-                    'value' => [
-                        'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
-                        'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
-                    ],
+            'id'             => $review->id,
+            'rating'         => $review->rating,
+            'title'          => $review->title,
+            'body'           => $review->body,
+            'reviewer_name'  => $review->customer?->name,
+            'helpful_count'  => $review->helpful_count,
+            'created_at'     => $review->created_at?->toIso8601String(),
+            'images'         => $review->files->map(fn($f) => $f->full_path)->values()->all(),
+            'listing_id'     => $review->vendor_listing_id ?? $review->admin_listing_id,
+            'listing_type'   => $isAdminListing ? 'admin' : 'vendor',
+            'seller'         => $isAdminListing
+                ? ['id' => null, 'store_name' => $resolvedListing?->sold_by_label_en ?? 'Platform']
+                : ($resolvedListing?->vendor ? [
+                    'id'         => $resolvedListing->vendor->id,
+                    'store_name' => $resolvedListing->vendor->store_name,
+                ] : null),
+            'variant'        => $resolvedListing?->productVariant ? [
+                'id'         => $resolvedListing->productVariant->id,
+                'variant_name' => $resolvedListing->productVariant->variant_name,
+                'attributes' => $resolvedListing->productVariant->variantAttributes->map(fn($va) => [
+                    'name'  => ['ar' => $va->attribute?->name_ar, 'en' => $va->attribute?->name_en],
+                    'value' => ['ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
+                                 'en' => $va->attributeValue?->value_en ?? $va->value_text_en],
                 ])->values()->all(),
             ] : null,
-            'vendor_reply' => $review->vendorReply ? [
-                'body' => $review->vendorReply->body,
+            'vendor_reply'   => $review->vendorReply ? [
+                'body'       => $review->vendorReply->body,
                 'created_at' => $review->vendorReply->created_at?->toIso8601String(),
             ] : null,
         ];

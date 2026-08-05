@@ -21,7 +21,7 @@ class ProductListResource extends JsonResource
         return [
             'id'           => $this->id,
             'listing_id'   => $this->buy_box_listing_id,
-            'listing_type' => 'vendor',
+            'listing_type' => $this->buy_box_listing_type ?? 'vendor',
             'variant_id'   => $this->buy_box_variant_id,
             'product_slug' => $this->slug,
             'slug'         => $this->slug,
@@ -29,7 +29,9 @@ class ProductListResource extends JsonResource
             'variant_name' => $this->buy_box_variant_name ?? null,
             'variant_image' => $variantImage,
             'product_url' => $this->buy_box_listing_id && $this->buy_box_variant_id
-                ? "/products/{$this->buy_box_variant_id}/{$this->buy_box_listing_id}" // ✓ correct UUID format
+                ? ($this->buy_box_listing_type === 'admin'
+                    ? "/products/p-{$this->buy_box_listing_id}"
+                    : "/products/v-{$this->buy_box_listing_id}")
                 : null,
             'name'         => $name,
             'primary_image' => $variantImage ?? $this->whenLoaded('images', function () {
@@ -42,7 +44,9 @@ class ProductListResource extends JsonResource
             ],
             'rating_avg'   => (float) $this->rating_avg,
             'rating_count' => (int) $this->rating_count,
-            'seller_count' => (int) ($this->active_seller_count ?? $this->seller_count),
+            'admin_listing_count' => (int) ($this->admin_listing_count ?? 0),
+            'seller_count' => (int) ($this->active_seller_count ?? $this->seller_count ?? 0),
+            'total_seller_count' => (int) ($this->active_seller_count ?? 0) + (int) ($this->admin_listing_count ?? 0),
             'is_in_stock'  => (int) ($this->total_stock ?? 0) > 0,
             'is_sponsored' => (bool) ($this->is_sponsored ?? false),
             'is_wishlisted' => (bool) ($this->is_wishlisted ?? false),

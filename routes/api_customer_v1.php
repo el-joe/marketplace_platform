@@ -53,6 +53,15 @@ use Illuminate\Support\Facades\Route;
 
         // ── Product catalog (public) ──────────────────────────────────────────
         Route::prefix('products')->name('customer.products.')->group(function (): void {
+            // ── Product detail shorthand: /products/v-{uuid} or /products/p-{uuid} ──────
+            // v-{uuid} = VendorListing   →  delegates to ListingDetailController
+            // p-{uuid} = AdminListing    →  delegates to ListingDetailController
+            // This MUST be declared before other /products/* routes to avoid UUID being
+            // captured as a product slug.
+            Route::get('/{typeAndId}', [\App\Http\Controllers\Customer\ListingDetailController::class, 'showByTypeId'])
+                ->where('typeAndId', '(v|p)-[0-9a-f-]{36}')
+                ->name('by-type-id');
+
             Route::get('/', [ProductController::class, 'index'])->name('index');
         });
 
@@ -95,6 +104,20 @@ use Illuminate\Support\Facades\Route;
             'listings/travel/{slug}/bookings/{booking_number}/contract',
             [ListingController::class, 'signContract']
         )->middleware('auth:customer')->name('customer.listings.travel.bookings.contract');
+
+        // ── Unified listing type shortcuts ────────────────────────────────────────────
+        // travel/{id}    → TravelPackage detail
+        // classified/{id} → ClassifiedListing detail
+        // These mirror the existing /listings/{type}/{slug} pattern but accept UUIDs directly.
+        Route::get('travel/{id}', [\App\Http\Controllers\Customer\ListingController::class, 'show'])
+            ->whereUuid('id')
+            ->defaults('type', 'travel')
+            ->name('customer.travel.show');
+
+        Route::get('classified/{id}', [\App\Http\Controllers\Customer\ListingController::class, 'show'])
+            ->whereUuid('id')
+            ->defaults('type', 'classified')
+            ->name('customer.classified.show');
 
         // ── Dual-mode catalog listings (vendor marketplace / nawy_now admin) ────
         // Mode selected via X-Listing-Type header (see ListingModeResolver).

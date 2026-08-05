@@ -2,6 +2,8 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\AdminListingStatus;
+use App\Models\AdminListing;
 use App\Models\ClassifiedListing;
 use App\Models\Country;
 use App\Models\TravelPackage;
@@ -20,7 +22,8 @@ class SearchService
 
     /**
      * Listing-centric search: one row per active vendor listing matching the query,
-     * so a product sold by several vendors appears once per vendor.
+     * so a product sold by several vendors appears once per vendor. Admin (platform
+     * stock) listings matching the query are prepended so they always surface first.
      */
     public function search(
         Country $country,
@@ -29,7 +32,7 @@ class SearchService
         int $perPage = 20,
         ?string $customerId = null,
         string $sessionId = '',
-    ): LengthAwarePaginator {
+    ): array {
 
         $builder = $this->listings->baseSearchQuery($country, $query)
             ->with([
@@ -56,7 +59,70 @@ class SearchService
             language: app()->getLocale(),
         ))->afterResponse();
 
-        return $paginator;
+        $wishlistIds = $this->listings->wishlistListingIds($customerId ?? auth('customer')->id());
+
+        $items = [];
+        foreach ($paginator as $listing) {
+            $product = $listing->productVariant->product;
+
+            $items[] = $this->listings->toCardShape(
+                listing: $listing,
+                product: $product,
+                country: $country,
+                isWishlisted: in_array($listing->id, $wishlistIds),
+                isSponsored: false,
+            );
+        }
+
+        // Prepend admin listings (platform stock always surfaces first).
+        $adminListings = $this->adminListingSearch($country, $query, 4);
+
+        $adminItems = $adminListings->map(function (AdminListing $al) use ($country, $wishlistIds) {
+            $product = $al->productVariant->product;
+            return $this->listings->toAdminCardShape($al, $product, $country,
+                in_array($al->id, $wishlistIds));
+        })->values()->all();
+
+        // Deduplicate by product_id so the same product doesn't appear twice
+        // if it has both an admin and vendor listing.
+        $seenProductIds = array_column($adminItems, 'product_id');
+        $vendorItems    = array_filter($items, fn ($i) => !in_array($i['product_id'], $seenProductIds));
+
+        $items = array_merge($adminItems, array_values($vendorItems));
+
+        return [
+            'items' => $items,
+            'paginator' => $paginator,
+        ];
+    }
+
+    /**
+     * Search admin_listings for the query — returns up to $limit active listings
+     * in the given country whose product name matches the query.
+     * Admin listings appear before vendor listings in all product search results.
+     */
+    private function adminListingSearch(Country $country, string $query, int $limit = 4): \Illuminate\Support\Collection
+    {
+        return AdminListing::where('country_id', $country->id)
+            ->where('status', AdminListingStatus::Active->value)
+            ->whereHas('productVariant.product', function ($q) use ($query) {
+                $q->where('status', 'active')
+                  ->where(function ($q2) use ($query) {
+                      $q2->where('name_en', 'like', "%{$query}%")
+                         ->orWhere('name_ar', 'like', "%{$query}%");
+                  });
+            })
+            ->with([
+                'productVariant.product.images',
+                'productVariant.images',
+                'productVariant.variantAttributes.attribute',
+                'productVariant.variantAttributes.attributeValue',
+                'primaryShippingMethod',
+            ])
+            ->orderBy('search_boost', 'desc')
+            ->orderBy('price', 'asc')
+            ->limit($limit)
+            ->get();
     }
 
     public function searchClassifieds(string $query, array $filters = [], int $perPage = 20): LengthAwarePaginator

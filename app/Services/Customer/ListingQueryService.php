@@ -8,6 +8,7 @@ use App\Enums\ProductStatus;
 use App\Enums\TravelPackageStatus;
 use App\Enums\VendorGlobalStatus;
 use App\Enums\VendorListingStatus;
+use App\Models\AdminListing;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedListing;
 use App\Models\Country;
@@ -298,6 +299,84 @@ class ListingQueryService
             'is_wishlisted' => $isWishlisted,
             'is_sponsored' => $isSponsored,
         ];
+    }
+
+    /**
+     * Shape an AdminListing into the same card shape as toCardShape().
+     * listing_type = 'admin', vendor = null (platform sells directly).
+     */
+    public function toAdminCardShape(
+        AdminListing $listing,
+        Product $product,
+        Country $country,
+        bool $isWishlisted = false,
+    ): array {
+        $variant = $listing->productVariant;
+        $variantImage = $variant->images->first()?->url ?? $product->images->first()?->url ?? null;
+
+        return [
+            'listing_id'       => $listing->id,
+            'listing_type'     => 'admin',
+            'listing_ref'      => app(ListingIdentifierService::class)->buildListingRef($listing),
+            'sku'              => $variant->sku,
+            'vendor_sku'       => null,
+            'admin_sku'        => $listing->platform_sku ?? $variant->sku,
+            'product_id'       => $product->id,
+            'product_slug'     => $product->slug,
+            'slug'             => $product->slug,
+            'variant_id'       => $variant->id,
+            'variant_slug'     => $variant->slug,
+            'variant_name'     => $variant->variant_name ?? $variant->sku,
+            'variant_image'    => $variantImage,
+            'primary_image'    => $variantImage,
+            'product_url'      => "/products/p-{$listing->id}",
+            'url_param'        => "p-{$listing->id}",
+            'name'             => ['ar' => $product->name_ar, 'en' => $product->name_en],
+            'name_ar'          => $product->name_ar,
+            'name_en'          => $product->name_en,
+            'price'            => $listing->price,
+            'price_formatted'  => number_format($listing->price / 100, 2),
+            'currency'         => $country->currency_code,
+            'condition'        => $listing->condition,
+            'is_admin_listing' => true,
+            'is_express_fbn'   => true,
+            'fulfillment_model'=> $listing->fulfillment_model ?? 'fbn',
+            'express_badge'    => [
+                'label' => ['ar' => $listing->express_badge_label_ar, 'en' => $listing->express_badge_label_en],
+            ],
+            'sold_by'          => ['ar' => $listing->sold_by_label_ar, 'en' => $listing->sold_by_label_en],
+            'vendor'           => null,
+            'rating_avg'       => (float) $listing->rating_avg,
+            'rating_count'     => (int) $listing->rating_count,
+            'is_wishlisted'    => $isWishlisted,
+            'is_sponsored'     => false,
+            'shipping_badge'   => $listing->primaryShippingMethod ? [
+                'label'           => \App\Support\Bilingual::pair($listing->primaryShippingMethod, 'badge_label'),
+                'color_hex'       => $listing->primaryShippingMethod->badge_color_hex,
+                'text_color_hex'  => $listing->primaryShippingMethod->badge_text_color_hex,
+                'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,
+                'delivery_days_max' => $listing->primaryShippingMethod->max_delivery_days,
+            ] : null,
+        ];
+    }
+
+    /**
+     * Dispatch to toCardShape() or toAdminCardShape() based on listing type.
+     *
+     * @param VendorListing|AdminListing $listing
+     */
+    public function toMixedCardShape(
+        VendorListing|AdminListing $listing,
+        Product $product,
+        Country $country,
+        bool $isWishlisted = false,
+        bool $isSponsored = false,
+    ): array {
+        if ($listing instanceof AdminListing) {
+            return $this->toAdminCardShape($listing, $product, $country, $isWishlisted);
+        }
+
+        return $this->toCardShape($listing, $product, $country, $isWishlisted, $isSponsored);
     }
 
     public function wishlistListingIds(?string $customerId): array

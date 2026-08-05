@@ -58,8 +58,8 @@ class ReviewService
         return DB::transaction(function () use ($customer, $item, $product, $data, $order): Review {
             $review = Review::create([
                 'product_id' => $product->id,
-                'vendor_listing_id' => $item->vendor_listing_id,
-                'admin_listing_id' => $item->admin_listing_id,
+                'vendor_listing_id' => $data['vendor_listing_id'] ?? $item->vendor_listing_id,
+                'admin_listing_id' => $data['admin_listing_id'] ?? $item->admin_listing_id,
                 'customer_id' => $customer->id,
                 'order_item_id' => $item->id,
                 'country_id' => $customer->country_id,
