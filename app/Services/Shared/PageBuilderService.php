@@ -2,6 +2,7 @@
 
 namespace App\Services\Shared;
 
+use App\Models\Banner;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\FlashSale;
@@ -118,6 +119,31 @@ class PageBuilderService
             'device_target' => $b->device_target,
             'config' => $b->config,
         ];
+
+        if ($b->block_type === 'full_banner' && !empty($b->config['banner_id'])) {
+            $banner = Banner::with('files')->find($b->config['banner_id']);
+
+            if ($banner) {
+                $desktopImage = $banner->files->firstWhere('file_type', 'banner_desktop');
+                $mobileImage  = $banner->files->firstWhere('file_type', 'banner_mobile');
+
+                if ($desktopImage) {
+                    $data['banner'] = [
+                        'image_url'           => $desktopImage->full_path,
+                        'mobile_image_url'    => $mobileImage?->full_path,
+                        'link_url'            => $b->config['link_url'] ?? $banner->cta_url,
+                        'link_type'           => $b->config['link_type'] ?? $banner->link_type?->value,
+                        'link_reference_id'   => $b->config['link_reference_id'] ?? $banner->link_reference_id,
+                        'alt_text'            => [
+                            'ar' => $banner->title_ar,
+                            'en' => $banner->title_en,
+                        ],
+                        'aspect_ratio'        => $b->config['aspect_ratio'] ?? '4:1',
+                        'mobile_aspect_ratio' => $b->config['mobile_aspect_ratio'] ?? '2:1',
+                    ];
+                }
+            }
+        }
 
         if ($b->slides->isNotEmpty()) {
             $data['slides'] = $b->slides->map(fn($s) => [
