@@ -21,7 +21,10 @@ class AdminListingObserver
 
     public function updated(AdminListing $listing): void
     {
-        if ($listing->wasChanged(['status', 'price', 'score', 'rating_avg', 'rating_count'])) {
+        if ($listing->wasChanged(['status', 'price', 'score', 'rating_avg', 'rating_count',
+                                   'primary_shipping_method_id', 'vendor_covers_delivery',
+                                   'sold_by_label_en', 'sold_by_label_ar',
+                                   'express_badge_label_en', 'express_badge_label_ar'])) {
             $this->cachedListingResolver->bustAdminListing($listing);
             $this->pageCache->bustAdminListing($listing);
         }
@@ -30,5 +33,6 @@ class AdminListingObserver
     public function deleted(AdminListing $listing): void
     {
         $this->cachedListingResolver->bustAdminListing($listing);
+        $this->pageCache->bustAdminListing($listing);
     }
 }

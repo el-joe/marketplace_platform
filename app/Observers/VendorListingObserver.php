@@ -32,7 +32,8 @@ class VendorListingObserver
             ));
         }
 
-        if ($listing->wasChanged(['status', 'price', 'score', 'rating_avg', 'rating_count'])) {
+        if ($listing->wasChanged(['status', 'price', 'score', 'rating_avg', 'rating_count',
+                                   'primary_shipping_method_id', 'vendor_covers_delivery'])) {
             $this->cachedListingResolver->bustVendorListing($listing);
             $this->pageCache->bustVendorListing($listing);
         }
@@ -41,5 +42,6 @@ class VendorListingObserver
     public function deleted(VendorListing $listing): void
     {
         $this->cachedListingResolver->bustVendorListing($listing);
+        $this->pageCache->bustVendorListing($listing);
     }
 }
