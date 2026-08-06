@@ -107,6 +107,12 @@ class PortalContentSeeder extends Seeder
         // PortalContent::flush('nav');
         // PortalContent::flush('cta_footer');
         // PortalContent::flush('home');
+        $this->call([
+            PortalContentSeederBatch1::class,
+            PortalContentSeederBatch2::class,
+            PortalContentSeederBatch3::class,
+            PortalContentSeederBatch4::class,
+        ]);
         PortalContent::flush('faq');
     }
 }
