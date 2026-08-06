@@ -405,6 +405,17 @@ class PageBuilderController extends Controller
             $extra['flashSales'] = FlashSale::whereIn('status', ['submission_open', 'approved', 'live'])
                 ->orWhere('id', $config['flash_sale_id'] ?? null)
                 ->orderBy('name_en')->get(['id', 'name_en']);
+
+            // Resolve human-readable labels so the async-select pre-populates
+            // with the name instead of the raw UUID.
+            if (!empty($config['category_id']) && empty($config['category_label'])) {
+                $config['category_label'] = Category::where('id', $config['category_id'])
+                    ->value('name_en');
+            }
+            if (!empty($config['flash_sale_id']) && empty($config['flash_sale_label'])) {
+                $config['flash_sale_label'] = FlashSale::where('id', $config['flash_sale_id'])
+                    ->value('name_en');
+            }
         }
         if (in_array($blockType->code, ['flash_sale', 'deal_of_day'])) {
             $extra['flashSales'] = FlashSale::whereIn('status', ['submission_open', 'approved', 'live'])
