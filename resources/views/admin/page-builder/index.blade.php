@@ -189,6 +189,12 @@
                 <x-heroicon name="eye" class="w-4 h-4" /> {{ __('admin.page_builder.preview') }}
             </a>
 
+            <button type="button" id="clear-page-cache-btn"
+                    class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg border border-gray-200">
+                <x-heroicon name="arrow-path" class="w-4 h-4" />
+                Clear Cache
+            </button>
+
             <button type="button" id="publish-btn"
                     class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg">
                 <x-heroicon name="check-circle" class="w-4 h-4" /> {{ __('admin.page_builder.publish') }}

@@ -24,6 +24,7 @@ const ROUTES = {
     load: '/page-builder/load',
     pages: '/page-builder/pages',
     publish: (id) => `/page-builder/pages/${id}/publish`,
+    clearPageCache: (pageId) => `/page-builder/pages/${pageId}/clear-cache`,
     pageRevisions: (id) => `/page-builder/pages/${id}/revisions`,
     pageRevRestore: (id) => `/page-builder/page-revisions/${id}/restore`,
 
@@ -152,6 +153,7 @@ function loadPage(pageId) {
         $('#canvas-empty').removeClass('hidden');
         $('#publish-btn, #version-history-btn, #preview-btn').addClass('hidden');
         $('#home-page-banner').addClass('hidden').empty();
+        $('#clear-page-cache-btn').toggleClass('hidden', !state.currentPageId);
         return;
     }
 
@@ -166,6 +168,7 @@ function loadPage(pageId) {
         renderHomeBanner(res.page);
         $('#publish-btn, #version-history-btn').removeClass('hidden');
         $('#preview-btn').attr('href', `/preview/page/${res.page.id}`).removeClass('hidden');
+        $('#clear-page-cache-btn').toggleClass('hidden', !state.currentPageId);
         setSaveStatus('');
     }).fail(() => {
         setSaveStatus(window.TRANSLATIONS?.loadFailed || 'Load failed', 'error');
@@ -978,6 +981,17 @@ $('#publish-btn').on('click', async function () {
         data: { reason: 'Published from page builder' },
     }).done(() => Toast.success(window.TRANSLATIONS?.pagePublished || 'Page published.'))
         .fail((xhr) => Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.couldNotPublish || 'Could not publish.')));
+});
+
+$('#clear-page-cache-btn').on('click', function () {
+    if (!state.currentPageId) return;
+
+    ajax({
+        url: ROUTES.clearPageCache(state.currentPageId),
+        method: 'POST',
+    })
+        .done(() => Toast.success('Cache cleared — changes are live.'))
+        .fail(() => Toast.error('Failed to clear cache.'));
 });
 
 $('#version-history-btn').on('click', function () {

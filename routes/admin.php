@@ -410,6 +410,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::delete('/pages/{page}', [PageBuilderController::class, 'deletePage'])->name('pages.delete');
         Route::post('/pages/{page}/duplicate', [PageBuilderController::class, 'duplicatePage'])->name('pages.duplicate');
         Route::post('/pages/{page}/publish', [PageBuilderController::class, 'publishPage'])->name('pages.publish');
+        Route::post('/pages/{page}/clear-cache', [PageBuilderController::class, 'clearPageCache'])->name('pages.clear-cache');
         Route::get('/pages/{page}/revisions', [PageBuilderController::class, 'getPageRevisions'])->name('pages.revisions');
         Route::post('/page-revisions/{revision}/restore', [PageBuilderController::class, 'restorePageRevision'])->name('page-revisions.restore');
 
@@ -1348,6 +1349,9 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
                 ->middleware('admin.permission:admin_listings.toggle_status')->name('update-status');
             Route::post('/{adminListing}/adjust-stock', [\App\Http\Controllers\Admin\AdminListingController::class, 'adjustStock'])
                 ->middleware('admin.permission:admin_listings.edit')->name('adjust-stock');
+            Route::post('/{adminListing}/clear-cache', [\App\Http\Controllers\Admin\AdminListingController::class, 'clearCache'])
+                ->middleware('admin.permission:admin_listings.edit')
+                ->name('clear-cache');
             Route::get('/{adminListing}/inventory', [\App\Http\Controllers\Admin\AdminListingInventoryController::class, 'index'])
                 ->name('inventory.index');
             Route::post('/{adminListing}/inventory', [\App\Http\Controllers\Admin\AdminListingInventoryController::class, 'store'])

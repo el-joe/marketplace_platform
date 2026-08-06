@@ -14,6 +14,7 @@ use App\Models\ShippingMethod;
 use App\Enums\WarehouseType;
 use App\Models\Warehouse;
 use App\Services\ShippingMethodResolverService;
+use App\Services\Shared\PageCacheService;
 use App\Models\WarehouseInventory;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
@@ -439,6 +440,31 @@ class AdminListingController extends Controller
             'success' => true,
             'message' => __('admin.admin_listings.stock_adjusted'),
             'inventory' => $inventory->fresh('warehouse'),
+        ]);
+    }
+
+    /**
+     * Clear all API caches related to this admin listing:
+     * - CachedListingResolver (buy-box resolution cache)
+     * - Any page_block that references this listing directly
+     * - Product listing caches (none stored — ProductQueryService is uncached)
+     *
+     * POST /admin/admin-listings/{adminListing}/clear-cache
+     */
+    public function clearCache(AdminListing $adminListing, PageCacheService $pageCache): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('admin_listings.edit'), 403);
+
+        // Bust buy-box resolution cache
+        app(\App\Services\CachedListingResolver::class)->bustAdminListing($adminListing);
+
+        // Bust any page builder blocks that reference this listing
+        $pageCache->bustAdminListingBlocks($adminListing);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cache cleared for this listing.',
         ]);
     }
 

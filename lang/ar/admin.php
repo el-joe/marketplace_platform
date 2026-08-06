@@ -9433,6 +9433,7 @@ return [
         'save_shipping_rule' => 'حفظ قاعدة الشحن',
         'quick_status_title' => 'الحالة السريعة',
         'delete_listing_btn' => 'حذف القائمة',
+        'clear_cache_btn'    => 'مسح ذاكرة التخزين المؤقت',
         'audit_trail_title'  => 'سجل التدقيق',
         'created_by_dt'      => 'أنشأه',
         'last_updated_dt'    => 'آخر تحديث',

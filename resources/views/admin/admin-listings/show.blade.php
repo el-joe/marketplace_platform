@@ -15,6 +15,7 @@
                 'adjustStock' => route('admin.admin-listings.adjust-stock', $listing),
                 'saveShippingRule' => route('admin.admin-listings.save-shipping-rule', $listing),
                 'destroy' => route('admin.admin-listings.destroy', $listing),
+                'clearCache' => route('admin.admin-listings.clear-cache', $listing),
             ],
             'reviewApproveUrl' => route('admin.reviews.approve', ['review' => '__ID__']),
             'reviewRejectUrl' => route('admin.reviews.reject', ['review' => '__ID__']),
@@ -386,6 +387,10 @@
 
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-2">
                     <a href="{{ route('admin.admin-listings.edit', $listing) }}" class="btn btn-secondary btn-sm w-full justify-center">{{ __('admin.admin_listings.edit_listing_btn') }}</a>
+                    <button type="button" @click="clearListingCache()" class="btn btn-secondary btn-sm w-full justify-center">
+                        <x-heroicon name="arrow-path" class="w-4 h-4" />
+                        {{ __('admin.admin_listings.clear_cache_btn') }}
+                    </button>
                     <button type="button" @click="confirmDelete = true" class="btn btn-danger btn-sm w-full justify-center">{{ __('admin.admin_listings.delete_listing_btn') }}</button>
                 </div>
 
@@ -587,6 +592,19 @@
                         }
                     } catch (e) {
                         if (window.Toast) window.Toast.error('Failed to reject review.');
+                    }
+                },
+
+                async clearListingCache() {
+                    try {
+                        const res = await fetch(config.urls.clearCache, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', Accept: 'application/json' },
+                        });
+                        const data = await res.json();
+                        if (window.Toast) window.Toast[data.success ? 'success' : 'error'](data.message || (data.success ? 'Cache cleared.' : 'Failed to clear cache.'));
+                    } catch (e) {
+                        if (window.Toast) window.Toast.error('Failed to clear cache.');
                     }
                 },
 

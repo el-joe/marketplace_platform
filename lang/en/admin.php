@@ -9474,6 +9474,7 @@ return [
         'save_shipping_rule' => 'Save Shipping Rule',
         'quick_status_title' => 'Quick Status',
         'delete_listing_btn' => 'Delete Listing',
+        'clear_cache_btn'    => 'Clear Cache',
         'audit_trail_title'  => 'Audit Trail',
         'created_by_dt'      => 'Created By',
         'last_updated_dt'    => 'Last Updated',

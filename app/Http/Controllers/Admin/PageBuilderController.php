@@ -23,6 +23,7 @@ use App\Models\SliderSlide;
 use App\Models\Vendor;
 use App\Models\File;
 use App\Services\PageBuilderService;
+use App\Services\Shared\PageCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -32,8 +33,10 @@ use Illuminate\Support\Str;
 
 class PageBuilderController extends Controller
 {
-    public function __construct(private PageBuilderService $service)
-    {
+    public function __construct(
+        private PageBuilderService $service,
+        private PageCacheService $pageCache,
+    ) {
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -142,6 +145,7 @@ class PageBuilderController extends Controller
 
         $this->service->publishPage($page, $this->admin(), $data['reason'] ?? '');
         $page->refresh();
+        $this->pageCache->bustPage($page);
 
         return response()->json([
             'success' => true,
@@ -151,6 +155,13 @@ class PageBuilderController extends Controller
             ],
             'message' => 'Page published successfully.',
         ]);
+    }
+
+    public function clearPageCache(Page $page): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+        $this->pageCache->bustPage($page);
+        return response()->json(['success' => true, 'message' => 'Page cache cleared.']);
     }
 
     public function getPageRevisions(Page $page)
@@ -196,6 +207,8 @@ class PageBuilderController extends Controller
 
         $page = Page::findOrFail($data['page_id']);
         $block = $this->service->addBlock($page, $data['block_type_code'], (int) $data['position'], $this->admin());
+        $page->load('blocks');
+        $this->pageCache->bustPage($block->page ?? $page);
 
         return response()->json([
             'block_id' => $block->id,
@@ -307,6 +320,7 @@ class PageBuilderController extends Controller
             $data['change_type'] ?? 'config_updated',
             $this->admin()
         );
+        $this->pageCache->bustBlock($block);
 
         return response()->json([
             'success' => true,
@@ -328,6 +342,7 @@ class PageBuilderController extends Controller
         ]);
 
         $revisionNumber = $this->service->updateBlockVisibility($block, $data, $this->admin());
+        $this->pageCache->bustBlock($block);
 
         return response()->json(['success' => true, 'revision_number' => $revisionNumber]);
     }
@@ -335,7 +350,11 @@ class PageBuilderController extends Controller
     public function removeBlock(PageBlock $block)
     {
         $this->authorizeManage();
+        $page = $block->page;
         $this->service->removeBlock($block);
+        if ($page) {
+            $this->pageCache->bustPage($page);
+        }
         return response()->json(['success' => true]);
     }
 
@@ -344,12 +363,19 @@ class PageBuilderController extends Controller
         $this->authorizeManage();
 
         $data = $request->validate([
+            'page_id' => 'nullable|uuid',
             'blocks' => 'required|array|min:1',
             'blocks.*.id' => 'required|uuid',
             'blocks.*.position' => 'required|integer|min:0',
         ]);
 
         $this->service->reorderBlocks($data['blocks']);
+
+        $page = isset($data['page_id']) ? Page::find($data['page_id']) : null;
+        if ($page) {
+            $this->pageCache->bustPage($page);
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -508,13 +534,18 @@ class PageBuilderController extends Controller
         ]);
 
         $slide = $this->service->saveSlide($block, $data['id'] ?? null, $data);
+        $this->pageCache->bustBlock($block);
         return response()->json(['slide' => $slide]);
     }
 
     public function deleteSlide(SliderSlide $slide)
     {
         $this->authorizeManage();
+        $block = $slide->block;
         $slide->delete();
+        if ($block) {
+            $this->pageCache->bustBlock($block);
+        }
         return response()->json(['success' => true]);
     }
 

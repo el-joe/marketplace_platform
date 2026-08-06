@@ -456,7 +456,16 @@ class PageRendererService
             default => 'relevance',
         };
 
-        $categoryIds = isset($cfg['category_id']) ? [$cfg['category_id']] : null;
+        // Include the selected category AND all its subcategories (same as BrowseController).
+        // Without this, products in child categories never appear in the block.
+        if (!empty($cfg['category_id'])) {
+            $rootCategory = \App\Models\Category::find($cfg['category_id']);
+            $categoryIds = $rootCategory
+                ? app(\App\Services\Customer\CategoryService::class)->getDescendantIds($rootCategory)
+                : [$cfg['category_id']];
+        } else {
+            $categoryIds = null;
+        }
 
         $paginator = $this->productQuery->paginate(
             $country,
