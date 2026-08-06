@@ -16,8 +16,39 @@
     <x-form.toggle name="__vis_is_visible" label="{{ __('admin.page_builder.config_forms.visibility.visible') }}" :value="$vis['is_visible']" />
 
     <div class="grid grid-cols-2 gap-3">
-        <x-form.date-picker name="__vis_visible_from"  label="{{ __('admin.page_builder.config_forms.visibility.visible_from') }}"  :value="$vis['visible_from']"  enableTime />
-        <x-form.date-picker name="__vis_visible_until" label="{{ __('admin.page_builder.config_forms.visibility.visible_until') }}" :value="$vis['visible_until']" enableTime />
+        {{-- Visible From (optional) --}}
+        <div class="space-y-1">
+            <div class="flex items-center justify-between">
+                <label for="__vis_visible_from" class="block text-sm font-medium text-gray-700">
+                    {{ __('admin.page_builder.config_forms.visibility.visible_from') }}
+                </label>
+                <button type="button"
+                        data-clear-date="__vis_visible_from"
+                        class="text-xs text-gray-400 hover:text-gray-600 {{ $vis['visible_from'] ? '' : 'hidden' }}"
+                        tabindex="-1">
+                    ✕ {{ __('admin.page_builder.config_forms.visibility.clear') }}
+                </button>
+            </div>
+            <x-form.date-picker name="__vis_visible_from" :value="$vis['visible_from']" enableTime
+                placeholder="{{ __('admin.page_builder.config_forms.visibility.not_scheduled') }}" />
+        </div>
+
+        {{-- Visible Until (optional) --}}
+        <div class="space-y-1">
+            <div class="flex items-center justify-between">
+                <label for="__vis_visible_until" class="block text-sm font-medium text-gray-700">
+                    {{ __('admin.page_builder.config_forms.visibility.visible_until') }}
+                </label>
+                <button type="button"
+                        data-clear-date="__vis_visible_until"
+                        class="text-xs text-gray-400 hover:text-gray-600 {{ $vis['visible_until'] ? '' : 'hidden' }}"
+                        tabindex="-1">
+                    ✕ {{ __('admin.page_builder.config_forms.visibility.clear') }}
+                </button>
+            </div>
+            <x-form.date-picker name="__vis_visible_until" :value="$vis['visible_until']" enableTime
+                placeholder="{{ __('admin.page_builder.config_forms.visibility.not_scheduled') }}" />
+        </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3">

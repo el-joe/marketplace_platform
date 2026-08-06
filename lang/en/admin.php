@@ -9014,6 +9014,8 @@ return [
                 'visible'        => 'Visible',
                 'visible_from'   => 'Visible from',
                 'visible_until'  => 'Visible until',
+                'clear'          => 'Clear',
+                'not_scheduled'  => 'No schedule',
                 'device_target'  => 'Device target',
                 'all_devices'    => 'All devices',
                 'desktop_only'   => 'Desktop only',

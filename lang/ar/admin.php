@@ -8973,6 +8973,8 @@ return [
                 'visible'        => 'مرئي',
                 'visible_from'   => 'مرئي من',
                 'visible_until'  => 'مرئي حتى',
+                'clear'          => 'مسح',
+                'not_scheduled'  => 'بلا جدول',
                 'device_target'  => 'الجهاز المستهدف',
                 'all_devices'    => 'جميع الأجهزة',
                 'desktop_only'   => 'سطح المكتب فقط',

@@ -664,6 +664,35 @@ function applyConfigToForm(cfg) {
     $form.find('[name="__vis_audience"]').val(cfg.audience || 'all');
 }
 
+/* ─── Clear schedule date buttons ───────────────────────────────────────── */
+$(document).on('click', '[data-clear-date]', function () {
+    const fieldName = $(this).data('clear-date');
+    const $input = $(`[name="${fieldName}"]`);
+    if (!$input.length) return;
+
+    // Clear via flatpickr API if instance exists, else clear the value directly
+    const fp = $input[0]?._flatpickr;
+    if (fp) {
+        fp.clear();
+    } else {
+        $input.val('');
+        $input[0]?.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // Hide this clear button until a new date is picked
+    $(this).addClass('hidden');
+});
+
+// Show the clear button whenever a date is picked for a scheduled field
+$(document).on('change', '[name="__vis_visible_from"], [name="__vis_visible_until"]', function () {
+    const $btn = $(`[data-clear-date="${$(this).attr('name')}"]`);
+    if ($(this).val()) {
+        $btn.removeClass('hidden');
+    } else {
+        $btn.addClass('hidden');
+    }
+});
+
 /* ─── Auto-save on config change ────────────────────────────────────────── */
 $(document).on('input change', '#config-form-body form[data-config-form] :input', function () {
     if (!state.selectedBlockId) return;
