@@ -223,11 +223,13 @@ class AdminListingController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate($this->rules());
+        $data = $request->validate($this->storeRules());
 
-        $warehouse = Warehouse::findOrFail($data['warehouse_id']);
-        if ($warehouse->type !== WarehouseType::PlatformFbn) {
-            return back()->withErrors(['warehouse_id' => 'Only platform FBN warehouses are allowed.'])->withInput();
+        if (!empty($data['warehouse_id'])) {
+            $warehouse = Warehouse::find($data['warehouse_id']);
+            if (!$warehouse || $warehouse->type !== WarehouseType::PlatformFbn) {
+                return back()->withErrors(['warehouse_id' => 'Only platform FBN warehouses are allowed.'])->withInput();
+            }
         }
 
         $listing = DB::transaction(function () use ($data) {
@@ -236,15 +238,17 @@ class AdminListingController extends Controller
                 'created_by_admin_id'    => auth('admin')->id(),
             ]));
 
-            WarehouseInventory::create([
-                'admin_listing_id'  => $listing->id,
-                'vendor_listing_id' => null,
-                'warehouse_id'      => $listing->warehouse_id,
-                'quantity_on_hand'  => 0,
-                'quantity_reserved' => 0,
-                'quantity_inbound'  => 0,
-                'quantity_damaged'  => 0,
-            ]);
+            if (!empty($listing->warehouse_id)) {
+                WarehouseInventory::create([
+                    'admin_listing_id'  => $listing->id,
+                    'vendor_listing_id' => null,
+                    'warehouse_id'      => $listing->warehouse_id,
+                    'quantity_on_hand'  => 0,
+                    'quantity_reserved' => 0,
+                    'quantity_inbound'  => 0,
+                    'quantity_damaged'  => 0,
+                ]);
+            }
 
             return $listing;
         });
@@ -272,17 +276,30 @@ class AdminListingController extends Controller
 
     public function update(Request $request, AdminListing $adminListing): RedirectResponse
     {
-        $data = $request->validate($this->rules());
+        $data = $request->validate($this->updateRules());
 
-        $warehouse = Warehouse::findOrFail($data['warehouse_id']);
-        if ($warehouse->type !== WarehouseType::PlatformFbn) {
-            return back()->withErrors(['warehouse_id' => 'Only platform FBN warehouses are allowed.'])->withInput();
+        if (!empty($data['warehouse_id'])) {
+            $warehouse = Warehouse::find($data['warehouse_id']);
+            if (!$warehouse || $warehouse->type !== WarehouseType::PlatformFbn) {
+                return back()->withErrors(['warehouse_id' => 'Only platform FBN warehouses are allowed.'])->withInput();
+            }
         }
 
         $adminListing->update(array_merge($data, [
-            'currency'               => Country::findOrFail($data['country_id'])->currency_code,
-            'updated_by_admin_id'    => auth('admin')->id(),
+            'updated_by_admin_id' => auth('admin')->id(),
         ]));
+
+        if (!empty($data['warehouse_id']) && !$adminListing->warehouseInventories()->exists()) {
+            WarehouseInventory::create([
+                'admin_listing_id'  => $adminListing->id,
+                'vendor_listing_id' => null,
+                'warehouse_id'      => $data['warehouse_id'],
+                'quantity_on_hand'  => 0,
+                'quantity_reserved' => 0,
+                'quantity_inbound'  => 0,
+                'quantity_damaged'  => 0,
+            ]);
+        }
 
         return redirect()
             ->route('admin.admin-listings.show', $adminListing)
@@ -675,12 +692,12 @@ class AdminListingController extends Controller
         ];
     }
 
-    private function rules(): array
+    private function storeRules(): array
     {
         return [
-            'product_variant_id'         => ['required', 'exists:product_variants,id'],
+            'product_variant_id'         => ['required', 'uuid', 'exists:product_variants,id'],
             'country_id'                 => ['required', 'exists:countries,id'],
-            'warehouse_id'               => ['required', 'exists:warehouses,id'],
+            'warehouse_id'               => ['nullable', 'exists:warehouses,id'],
             'price'                      => ['required', 'integer', 'min:0'],
             'compare_at_price'           => ['nullable', 'integer', 'min:0'],
             'cost_price'                 => ['nullable', 'integer', 'min:0'],
@@ -706,5 +723,18 @@ class AdminListingController extends Controller
             'declared_width_cm'          => ['nullable', 'numeric', 'min:0'],
             'declared_height_cm'         => ['nullable', 'numeric', 'min:0'],
         ];
+    }
+
+    /**
+     * product_variant_id and country_id are locked after creation and submitted
+     * as hidden inputs; excluded here so a validation failure elsewhere never
+     * wipes them via withInput() (the async variant select isn't restored by old()).
+     */
+    private function updateRules(): array
+    {
+        return array_diff_key($this->storeRules(), [
+            'product_variant_id' => true,
+            'country_id'         => true,
+        ]);
     }
 }

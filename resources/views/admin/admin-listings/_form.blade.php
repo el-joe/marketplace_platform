@@ -82,6 +82,11 @@
                         <option value="{{ $selectedVariant->id }}" selected>
                             {{ $selectedVariant->product?->name_en }} ({{ $selectedVariant->variant_name }}) [{{ $selectedVariant->slug }}] — {{ $selectedVariant->sku }}
                         </option>
+                    @elseif(old('product_variant_id'))
+                        {{-- Restore after validation failure — variant UUID preserved via old() --}}
+                        <option value="{{ old('product_variant_id') }}" selected>
+                            {{ old('product_variant_id') }}
+                        </option>
                     @endif
                 </select>
             @endif
