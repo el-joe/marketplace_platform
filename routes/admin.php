@@ -451,6 +451,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/search/vendors', [PageBuilderController::class, 'searchVendors'])->name('search.vendors');
         Route::get('/search/flash-sales', [PageBuilderController::class, 'searchFlashSales'])->name('search.flash-sales');
         Route::get('/search/vendor-listings', [PageBuilderController::class, 'searchVendorListings'])->name('search.vendor-listings');
+        Route::get('/search/admin-listings', [PageBuilderController::class, 'searchAdminListings'])->name('search.admin-listings');
 
         // Block product pickers
         Route::get('/blocks/{block}/products', [PageBuilderController::class, 'getBlockProducts'])->name('products.list');

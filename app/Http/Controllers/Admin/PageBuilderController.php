@@ -422,6 +422,31 @@ class PageBuilderController extends Controller
                 ->orWhere('id', $config['flash_sale_id'] ?? null)
                 ->orderBy('name_en')->get(['id', 'name_en']);
         }
+        if ($blockType->code === 'deal_of_day') {
+            if (!empty($config['vendor_listing_id']) && empty($config['vendor_listing_label'])) {
+                $vl = \App\Models\VendorListing::with(['productVariant.product:id,name_en', 'vendor:id,store_name'])
+                    ->find($config['vendor_listing_id']);
+                if ($vl) {
+                    $config['vendor_listing_label'] = trim(
+                        optional(optional($vl->productVariant)->product)->name_en
+                        . ' — ' . optional($vl->vendor)->store_name
+                        . ' — ' . number_format((float) $vl->price, 2) . ' ' . $vl->currency,
+                        ' —'
+                    );
+                }
+            }
+            if (!empty($config['admin_listing_id']) && empty($config['admin_listing_label'])) {
+                $al = \App\Models\AdminListing::query()
+                    ->join('product_variants as pv', 'pv.id', '=', 'admin_listings.product_variant_id')
+                    ->join('products as p', 'p.id', '=', 'pv.product_id')
+                    ->where('admin_listings.id', $config['admin_listing_id'])
+                    ->first(['admin_listings.id', 'admin_listings.price', 'admin_listings.currency', 'p.name_en']);
+                if ($al) {
+                    $config['admin_listing_label'] = $al->name_en
+                        . ' (Platform) — ' . number_format((float) $al->price, 2) . ' ' . $al->currency;
+                }
+            }
+        }
         if ($blockType->code === 'full_banner') {
             $extra['banners'] = Banner::orderBy('name')->get(['id', 'name']);
         }
@@ -665,6 +690,35 @@ class PageBuilderController extends Controller
                     . ' — ' . number_format((float) $vl->price, 2) . ' ' . $vl->currency,
                     ' —'
                 ),
+            ])->values(),
+        ]);
+    }
+
+    public function searchAdminListings(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $rows = \App\Models\AdminListing::query()
+            ->join('product_variants as pv', 'pv.id', '=', 'admin_listings.product_variant_id')
+            ->join('products as p', 'p.id', '=', 'pv.product_id')
+            ->where('admin_listings.status', 'active')
+            ->whereNull('admin_listings.deleted_at')
+            ->when($q !== '', fn($query) => $query->where(function ($inner) use ($q) {
+                $inner->where('p.name_en', 'like', "%{$q}%")
+                      ->orWhere('pv.sku', 'like', "%{$q}%");
+            }))
+            ->limit(20)
+            ->get([
+                'admin_listings.id',
+                'admin_listings.price',
+                'admin_listings.currency',
+                'p.name_en',
+            ]);
+
+        return response()->json([
+            'results' => $rows->map(fn($al) => [
+                'id'   => $al->id,
+                'text' => $al->name_en . ' (Platform) — ' . number_format((float) $al->price, 2) . ' ' . $al->currency,
             ])->values(),
         ]);
     }
