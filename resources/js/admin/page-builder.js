@@ -484,8 +484,19 @@ function openConfigPanel(blockId) {
         const cfg = configRes[0] || {};
         $('#config-title').text(($card.find('.text-sm.font-medium').text() || window.TRANSLATIONS?.blockSettings || 'Block settings').trim());
         $('#config-form-body').html(html);
+
+        // Initialize Alpine on the injected HTML so x-data / x-show / x-model work
+        if (window.Alpine) {
+            try { window.Alpine.initTree(document.getElementById('config-form-body')); } catch (_) {}
+        }
+
+        // Initialize Select2 async-selects (category, flash-sale, brand, vendor pickers)
+        if (window.initSelect2) window.initSelect2($('#config-form-body'));
+
+        // Initialize date pickers (flatpickr, async — must come after Alpine init)
         if (window.initDatePickers) window.initDatePickers($('#config-form-body'));
-        // Apply config after flatpickr async init settles (initDatePicker uses await internally)
+
+        // Apply saved config values after both Alpine and Select2 have initialized
         Promise.resolve().then(() => {
             applyConfigToForm(cfg);
             if (getBlockTypeOf(blockId) === 'hero_slider') loadSlidesList(blockId);
