@@ -126,7 +126,11 @@ class HomeService
             ->filter(fn ($submission) => $submission->vendorListing && $submission->vendorListing->productVariant?->product);
 
         $ordered = $submissions
-            ->sortBy(fn ($submission) => self::BUY_BOX_ORDER[$submission->vendorListing->global_system_type->value] ?? 3)
+            ->sortBy(function ($submission) {
+                $gst = $submission->vendorListing->global_system_type;
+                $key = $gst instanceof \BackedEnum ? $gst->value : (string) $gst;
+                return self::BUY_BOX_ORDER[$key] ?? 3;
+            })
             ->take(8)
             ->values();
 
@@ -196,11 +200,15 @@ class HomeService
             ->values();
 
         $sorted = $pairs
-            ->sortBy(fn (array $pair) => self::BUY_BOX_ORDER[$pair[1]->global_system_type->value] ?? 3)
+            ->sortBy(function (array $pair) {
+                $gst = $pair[1]->global_system_type;
+                $key = $gst instanceof \BackedEnum ? $gst->value : (string) $gst;
+                return self::BUY_BOX_ORDER[$key] ?? 3;
+            })
             ->values();
 
         return $sorted
-            ->map(fn (array $pair) => $this->listingQuery->toCardShape(
+            ->map(fn (array $pair) => $this->listingQuery->toMixedCardShape(
                 $pair[1],
                 $pair[0],
                 $country,
