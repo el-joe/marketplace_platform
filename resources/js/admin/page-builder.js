@@ -508,6 +508,7 @@ function openConfigPanel(blockId) {
             if ($('#config-form-body [data-block-products-list]').length) loadPickerList('products', blockId);
             if ($('#config-form-body [data-block-categories-list]').length) loadPickerList('categories', blockId);
             if ($('#config-form-body [data-block-sellers-list]').length) loadPickerList('sellers', blockId);
+            if ($('#config-form-body [data-ad-images-panel]').length) loadAdImagesPanel(blockId);
         });
     }).fail(() => {
         $('#config-form-body').html('<div class="text-sm text-rose-600 text-center py-8">Failed to load config form.</div>');
@@ -927,16 +928,9 @@ $('#slide-form').on('submit', function (e) {
 
 /* ─── Ad images (ad_images_2col / ad_images_4col) ──────────────────────── */
 
-$(document).on('click', '[data-action="manage-ad-images"]', function (e) {
-    e.preventDefault();
-    const blockId = $(this).data('block-id');
-    const $panel = $(this).closest('form').find('[data-ad-images-panel]');
-    $panel.removeClass('hidden');
-
-    if ($panel.find('[data-ad-images-list]').length) {
-        loadAdImagesList(blockId);
-        return;
-    }
+function loadAdImagesPanel(blockId) {
+    const $panel = $(`#config-form-body [data-ad-images-panel][data-block-id="${blockId}"]`);
+    if (!$panel.length) return;
 
     ajax({ url: ROUTES.adImagesManagerPartial(blockId), method: 'GET' })
         .done((html) => {
@@ -947,7 +941,7 @@ $(document).on('click', '[data-action="manage-ad-images"]', function (e) {
             loadAdImagesList(blockId);
         })
         .fail(() => Toast.error(window.TRANSLATIONS?.couldNotLoadAdImages || 'Could not load ad images panel.'));
-});
+}
 
 function loadAdImagesList(blockId) {
     const $container = $(`[data-ad-images-list][data-block-id="${blockId}"]`);

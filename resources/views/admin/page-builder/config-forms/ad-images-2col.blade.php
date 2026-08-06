@@ -15,12 +15,7 @@
         <option value="3:4">{{ __('admin.page_builder.config_forms.ratio_3_4') }}</option>
     </x-form.select>
 
-    <div class="mt-4 text-xs text-gray-500">
-        {{ __('admin.page_builder.config_forms.manage_two_images') }}
-        <a href="#" class="text-primary-600 hover:underline" data-action="manage-ad-images" data-block-id="{{ $block?->id }}">{{ __('admin.page_builder.config_forms.ad_images_panel_link') }}</a>.
-    </div>
-
-    <div data-ad-images-panel class="hidden"></div>
+    <div data-ad-images-panel data-block-id="{{ $block?->id }}" class="mt-4"></div>
 
     @include('admin.page-builder.config-forms.partials.visibility', ['block' => $block])
 </form>
