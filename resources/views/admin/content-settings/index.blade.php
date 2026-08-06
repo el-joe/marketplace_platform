@@ -106,8 +106,8 @@
                                         @case('select')
                                             <select name="{{ $name }}" class="form-select">
                                                 @foreach ($setting->options ?? [] as $option)
-                                                    <option value="{{ $option['value'] }}" {{ (string) $setting->value === (string) $option['value'] ? 'selected' : '' }}>
-                                                        {{ $option['label_en'] ?? $option['label'] ?? $option['value'] }}
+                                                    <option value="{{ $option }}" {{ (string) $setting->value === (string) $option ? 'selected' : '' }}>
+                                                        {{ $option }}
                                                     </option>
                                                 @endforeach
                                             </select>
