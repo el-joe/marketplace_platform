@@ -437,6 +437,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/blocks/{block}/slides/reorder', [PageBuilderController::class, 'reorderSlides'])->name('slides.reorder');
 
         // Ad images
+        Route::get('/blocks/{block}/ad-images/panel', [PageBuilderController::class, 'getAdImagesManagerPanel'])->name('ad-images.panel');
         Route::get('/blocks/{block}/ad-images', [PageBuilderController::class, 'getAdImages'])->name('ad-images.list');
         Route::post('/blocks/{block}/ad-images', [PageBuilderController::class, 'saveAdImage'])->name('ad-images.save');
         Route::delete('/ad-images/{adImage}', [PageBuilderController::class, 'deleteAdImage'])->name('ad-images.delete');

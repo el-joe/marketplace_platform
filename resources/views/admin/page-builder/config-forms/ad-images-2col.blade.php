@@ -20,9 +20,7 @@
         <a href="#" class="text-primary-600 hover:underline" data-action="manage-ad-images" data-block-id="{{ $block?->id }}">{{ __('admin.page_builder.config_forms.ad_images_panel_link') }}</a>.
     </div>
 
-    <div data-ad-images-panel class="hidden">
-        @include('admin.page-builder.config-forms.partials.ad-images-manager', ['block' => $block])
-    </div>
+    <div data-ad-images-panel class="hidden"></div>
 
     @include('admin.page-builder.config-forms.partials.visibility', ['block' => $block])
 </form>

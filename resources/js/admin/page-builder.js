@@ -44,6 +44,7 @@ const ROUTES = {
     slideReorder: (id) => `/page-builder/blocks/${id}/slides/reorder`,
     slideUploadImage: '/page-builder/slides/upload-image',
 
+    adImagesManagerPartial: (id) => `/page-builder/blocks/${id}/ad-images/panel`,
     adImages: (id) => `/page-builder/blocks/${id}/ad-images`,
     adImageSave: (id) => `/page-builder/blocks/${id}/ad-images`,
     adImageDelete: (id) => `/page-builder/ad-images/${id}`,
@@ -507,7 +508,6 @@ function openConfigPanel(blockId) {
             if ($('#config-form-body [data-block-products-list]').length) loadPickerList('products', blockId);
             if ($('#config-form-body [data-block-categories-list]').length) loadPickerList('categories', blockId);
             if ($('#config-form-body [data-block-sellers-list]').length) loadPickerList('sellers', blockId);
-            if ($('#config-form-body [data-ad-images-list]').length) loadAdImagesList(blockId);
         });
     }).fail(() => {
         $('#config-form-body').html('<div class="text-sm text-rose-600 text-center py-8">Failed to load config form.</div>');
@@ -930,8 +930,23 @@ $('#slide-form').on('submit', function (e) {
 $(document).on('click', '[data-action="manage-ad-images"]', function (e) {
     e.preventDefault();
     const blockId = $(this).data('block-id');
-    $(this).closest('form').find('[data-ad-images-panel]').removeClass('hidden');
-    loadAdImagesList(blockId);
+    const $panel = $(this).closest('form').find('[data-ad-images-panel]');
+    $panel.removeClass('hidden');
+
+    if ($panel.find('[data-ad-images-list]').length) {
+        loadAdImagesList(blockId);
+        return;
+    }
+
+    ajax({ url: ROUTES.adImagesManagerPartial(blockId), method: 'GET' })
+        .done((html) => {
+            $panel.html(html);
+            if (window.Alpine) {
+                try { window.Alpine.initTree($panel[0]); } catch (_) {}
+            }
+            loadAdImagesList(blockId);
+        })
+        .fail(() => Toast.error(window.TRANSLATIONS?.couldNotLoadAdImages || 'Could not load ad images panel.'));
 });
 
 function loadAdImagesList(blockId) {

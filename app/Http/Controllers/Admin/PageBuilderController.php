@@ -579,6 +579,11 @@ class PageBuilderController extends Controller
     // Ad images
     // ─────────────────────────────────────────────────────────────────────
 
+    public function getAdImagesManagerPanel(PageBlock $block)
+    {
+        return view('admin.page-builder.config-forms.partials.ad-images-manager', ['block' => $block]);
+    }
+
     public function getAdImages(PageBlock $block)
     {
         $items = $block->adImageItems()->orderBy('position')->get();
