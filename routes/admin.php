@@ -1381,6 +1381,8 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             Route::post('/datatable', [\App\Http\Controllers\Admin\VendorListingController::class, 'datatable'])->name('datatable');
             Route::get('/{vendorListing}/edit', [\App\Http\Controllers\Admin\VendorListingController::class, 'edit'])->name('edit');
             Route::put('/{vendorListing}', [\App\Http\Controllers\Admin\VendorListingController::class, 'update'])->name('update');
+            Route::post('/{vendorListing}/clear-cache', [\App\Http\Controllers\Admin\VendorListingController::class, 'clearCache'])
+                ->name('clear-cache');
             Route::get('/{vendorListing}', [\App\Http\Controllers\Admin\VendorListingController::class, 'show'])->name('show');
         });
 

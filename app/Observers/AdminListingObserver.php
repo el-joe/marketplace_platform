@@ -4,11 +4,13 @@ namespace App\Observers;
 
 use App\Models\AdminListing;
 use App\Services\CachedListingResolver;
+use App\Services\Shared\PageCacheService;
 
 class AdminListingObserver
 {
     public function __construct(
         private readonly CachedListingResolver $cachedListingResolver,
+        private readonly PageCacheService $pageCache,
     ) {
     }
 
@@ -21,6 +23,7 @@ class AdminListingObserver
     {
         if ($listing->wasChanged(['status', 'price', 'score', 'rating_avg', 'rating_count'])) {
             $this->cachedListingResolver->bustAdminListing($listing);
+            $this->pageCache->bustAdminListing($listing);
         }
     }
 

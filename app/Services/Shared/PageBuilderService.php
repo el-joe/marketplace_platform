@@ -2,7 +2,6 @@
 
 namespace App\Services\Shared;
 
-use App\Http\Resources\Customer\ProductListResource;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\FlashSale;
@@ -155,19 +154,22 @@ class PageBuilderService
 
         if ($b->blockProducts->isNotEmpty()) {
             $data['products'] = $b->blockProducts
-                ->filter(fn($bp) => $bp->productVariant?->product !== null)
+                ->filter(fn ($bp) => $bp->productVariant?->product !== null)
                 ->map(function ($bp) use ($country) {
-                    $product = $bp->productVariant->product;
-                    $listing = $this->listingQuery->getForVariant($bp->productVariant->id, $country, 1)->first();
+                    $variantId = $bp->productVariant->id;
+                    $product   = $bp->productVariant->product;
 
-                    if ($listing) {
-                        $product->setAttribute('buy_box_listing_id', $listing->id);
-                        $product->setAttribute('buy_box_variant_slug', $bp->productVariant->slug);
-                        $product->setAttribute('buy_box_variant_name', $bp->productVariant->variant_name);
+                    // Admin listing wins over vendor listing — use getForVariant() which
+                    // now checks AdminListing first (from ListingQueryService fix).
+                    $listing = $this->listingQuery->getForVariant($variantId, $country, 1)->first();
+
+                    if (! $listing) {
+                        return null; // No active listing in this country — skip
                     }
 
-                    return (new ProductListResource($product))->toArray(request());
+                    return $this->listingQuery->toMixedCardShape($listing, $product, $country);
                 })
+                ->filter()  // remove null (no listing) entries
                 ->values()
                 ->all();
         }
@@ -259,9 +261,10 @@ class PageBuilderService
             ->with(['variants', 'images']);
 
         if (!empty($config['category_id'])) {
-            $categoryIds = Category::where('id', $config['category_id'])
-                ->orWhere('parent_id', $config['category_id'])
-                ->pluck('id');
+            $rootCat = Category::find($config['category_id']);
+            $categoryIds = $rootCat
+                ? app(\App\Services\Customer\CategoryService::class)->getDescendantIds($rootCat)
+                : [$config['category_id']];
             $query->whereIn('category_id', $categoryIds);
         }
 
@@ -285,9 +288,13 @@ class PageBuilderService
         $buyBox = $this->listingQuery->getBuyBoxForProducts($products, $country);
 
         return $products
-            ->map(fn(Product $p) => [$p, $buyBox[$p->id] ?? null])
-            ->filter(fn(array $pair) => $pair[1] !== null)
-            ->map(fn(array $pair) => $this->listingQuery->toCardShape($pair[1], $pair[0], $country))
+            ->map(fn (Product $p) => [$p, $buyBox[$p->id] ?? null])
+            ->filter(fn (array $pair) => $pair[1] !== null)
+            ->map(fn (array $pair) => $this->listingQuery->toMixedCardShape(
+                $pair[1],
+                $pair[0],
+                $country,
+            ))
             ->values()
             ->all();
     }
@@ -322,9 +329,9 @@ class PageBuilderService
             ->filter(fn($s) => $s->vendorListing && $s->vendorListing->productVariant?->product);
 
         return $submissions
-            ->sortBy(fn($s) => self::BUY_BOX_ORDER[$s->vendorListing->global_system_type->value] ?? 3)
+            ->sortBy(fn ($s) => self::BUY_BOX_ORDER[$s->vendorListing->global_system_type->value] ?? 3)
             ->take($maxProducts)
-            ->map(fn($s) => $this->listingQuery->toCardShape(
+            ->map(fn ($s) => $this->listingQuery->toMixedCardShape(
                 $s->vendorListing,
                 $s->vendorListing->productVariant->product,
                 $country,

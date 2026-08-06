@@ -314,13 +314,25 @@ class PageBuilderController extends Controller
             'change_type' => 'nullable|string|in:created,config_updated,moved,visibility_changed,deleted',
         ]);
 
+        // Capture original source BEFORE saving (getOriginal works before save)
+        $oldSource = is_array($block->config)
+            ? ($block->config['source'] ?? null)
+            : null;
+
         $revisionNumber = $this->service->updateBlockConfig(
             $block,
             $data['config'],
             $data['change_type'] ?? 'config_updated',
             $this->admin()
         );
+
         $this->pageCache->bustBlock($block);
+
+        // Clean up orphaned manual product rows when source changes away from manual
+        $newSource = $data['config']['source'] ?? null;
+        if ($newSource !== null && $newSource !== 'manual' && $oldSource === 'manual') {
+            PageBlockProduct::where('page_block_id', $block->id)->delete();
+        }
 
         return response()->json([
             'success' => true,

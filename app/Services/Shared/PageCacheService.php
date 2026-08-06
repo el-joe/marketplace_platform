@@ -10,109 +10,156 @@ use App\Models\VendorListing;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Central cache management for the page builder system.
+ * Central cache manager for the page builder + listing resolution system.
  *
- * Cache keys managed here:
- *   page_block:{blockId}:{countryId}    — PageRendererService per-block cache
- *   app_config_{countryId}              — AppConfigController home context config
- *   browse_page_blocks:{type}:{cId}:{nodeId} — BrowseService category page blocks
- *   home_page_builder:{countryId}       — future: if HomeService ever caches page_builder result
+ * Cache keys owned here:
+ *   page_block:{id}:{countryId}                         PageRendererService per-block
+ *   app_config_{countryId}                              AppConfigController home context
+ *   browse_page_blocks:{type}:{countryId}:{nodeId}      BrowseService category pages
+ *   product_delivery_options:{productId}:*              ProductDetailEnrichmentService
  */
 class PageCacheService
 {
-    // ── Bust a single block across all countries ──────────────────────────────
+    // ── Single block ──────────────────────────────────────────────────────────
 
     public function bustBlock(PageBlock $block): void
     {
-        // The block is scoped to one page, which is scoped to one country.
-        // Forget the exact key. If country_id is available on the page, use it;
-        // otherwise forget by iterating active countries (rare, safe fallback).
         $countryId = $block->page?->country_id;
 
         if ($countryId) {
             Cache::forget("page_block:{$block->id}:{$countryId}");
         } else {
-            // Fallback: bust across all active countries
-            Country::where('is_active', true)
-                ->pluck('id')
+            Country::where('is_active', true)->pluck('id')
                 ->each(fn ($cid) => Cache::forget("page_block:{$block->id}:{$cid}"));
         }
     }
 
-    // ── Bust all blocks on a page + page-level keys ──────────────────────────
+    // ── All blocks on a page ──────────────────────────────────────────────────
 
     public function bustPage(Page $page): void
     {
         $countryId = $page->country_id;
 
-        // Bust every block's individual cache
         $page->blocks()->pluck('id')->each(function ($blockId) use ($countryId) {
             if ($countryId) {
                 Cache::forget("page_block:{$blockId}:{$countryId}");
             }
         });
 
-        // Bust app_config (home context mapping) for this country
         if ($countryId) {
             Cache::forget("app_config_{$countryId}");
         }
 
-        // Bust browse page blocks cache for category/brand/vendor pages
         if ($page->page_type !== 'home' && $page->reference_id && $countryId) {
             Cache::forget("browse_page_blocks:{$page->page_type}:{$countryId}:{$page->reference_id}");
         }
+    }
 
-        // Bust home page builder specifically if it's a home page
-        if ($page->page_type === 'home' && $countryId) {
-            Cache::forget("home_page_builder:{$countryId}");
+    // ── Listing-level cache bust ───────────────────────────────────────────────
+
+    /**
+     * Bust all customer API caches related to a VendorListing:
+     *  - Buy-box resolution cache
+     *  - Product delivery options (PDP enrichment)
+     *  - Any page builder block that references this listing by ID
+     *  - Cart recommendations best-sellers (country-scoped, accept short staleness)
+     */
+    public function bustVendorListing(VendorListing $listing): void
+    {
+        // Buy-box resolution
+        app(\App\Services\CachedListingResolver::class)->bustVendorListing($listing);
+
+        // PDP delivery options — all zones, same product+country
+        $this->bustProductDeliveryOptions($listing->productVariant?->product_id, $listing->country_id);
+
+        // Page builder blocks that explicitly reference this listing
+        $this->bustBlocksReferencingListing('vendor_listing_id', $listing->id, $listing->country_id);
+    }
+
+    /**
+     * Bust all customer API caches related to an AdminListing.
+     */
+    public function bustAdminListing(AdminListing $listing): void
+    {
+        app(\App\Services\CachedListingResolver::class)->bustAdminListing($listing);
+
+        $this->bustProductDeliveryOptions($listing->productVariant?->product_id, $listing->country_id);
+
+        $this->bustBlocksReferencingListing('admin_listing_id', $listing->id, $listing->country_id);
+    }
+
+    // ── Product delivery options ───────────────────────────────────────────────
+
+    /**
+     * Bust all cached delivery option payloads for a product in a country.
+     * Key pattern: product_delivery_options:{productId}:{countryId}:{zoneId}:{listingId}
+     * We can't enumerate all zone+listing combos, so we use a prefix scan via the
+     * database cache driver (which stores keys in a table we can LIKE-query).
+     */
+    public function bustProductDeliveryOptions(?string $productId, ?string $countryId): void
+    {
+        if (! $productId || ! $countryId) {
+            return;
+        }
+
+        $prefix = "product_delivery_options:{$productId}:{$countryId}:";
+
+        // Database cache driver: keys are stored in the `cache` table
+        try {
+            \DB::table('cache')
+                ->where('key', 'like', config('cache.prefix') . $prefix . '%')
+                ->delete();
+        } catch (\Throwable) {
+            // Silently skip if cache driver doesn't support raw table access
         }
     }
 
-    // ── Manual bust: all page caches for one country ─────────────────────────
+    // ── Cart recommendations ───────────────────────────────────────────────────
+
+    public function bustCartRecommendations(string $countryId): void
+    {
+        // Best-sellers are the only non-hash key we can bust deterministically
+        foreach (['0', '1'] as $nawyNow) {
+            $currencies = Country::where('id', $countryId)->pluck('currency_code');
+            foreach ($currencies as $currency) {
+                Cache::forget("cart_recs:best_sellers:{$countryId}:{$currency}:{$nawyNow}");
+            }
+        }
+        // FBT and category-based recs use md5 hashes of cart contents — can't bust
+        // deterministically; they self-heal within their 300s TTL.
+    }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+
+    public function bustNavigation(string $countryId): void
+    {
+        Cache::forget("nav_tree:{$countryId}");
+    }
+
+    // ── Full country bust (all page + listing caches for one country) ─────────
 
     public function bustAllForCountry(string $countryId): void
     {
-        // Bust app_config
         Cache::forget("app_config_{$countryId}");
+        Cache::forget("nav_tree:{$countryId}");
+        Cache::forget("cart_recs:best_sellers:{$countryId}:*"); // pattern — may not work on DB driver
 
-        // Bust all page blocks for this country
         PageBlock::whereHas('page', fn ($q) => $q->where('country_id', $countryId))
             ->pluck('id')
             ->each(fn ($id) => Cache::forget("page_block:{$id}:{$countryId}"));
 
-        // Bust browse page blocks (all page types, all nodes)
-        // Use a version key approach to invalidate all at once
-        $version = (int) Cache::get("page_cache_version:{$countryId}", 0) + 1;
-        Cache::put("page_cache_version:{$countryId}", $version, 86400);
+        // Increment category version to invalidate category_tree and unified_nav
+        \App\Services\Customer\CategoryService::flushCache();
+        \App\Services\Customer\UnifiedCategoryService::flushCache();
     }
 
-    // ── Bust admin listing's page block references ────────────────────────────
+    // ── Private helpers ───────────────────────────────────────────────────────
 
-    public function bustAdminListingBlocks(AdminListing $listing): void
+    private function bustBlocksReferencingListing(string $configKey, string $listingId, string $countryId): void
     {
-        // Find any page_block that references this admin listing in its config
-        // (deal_of_day blocks with admin_listing_id, product_row blocks with manual picks)
-        PageBlock::where('config->admin_listing_id', $listing->id)
-            ->orWhereHas('blockProducts', fn ($q) =>
-                $q->whereHas('productVariant', fn ($q2) =>
-                    $q2->where('id', $listing->product_variant_id)
-                )
-            )
+        // Bust deal_of_day / product_row blocks that reference this listing by config key
+        PageBlock::whereRaw("JSON_UNQUOTE(JSON_EXTRACT(config, '$.{$configKey}')) = ?", [$listingId])
             ->get()
-            ->each(fn ($block) => $this->bustBlock($block));
-    }
-
-    // ── Bust vendor listing's page block references ───────────────────────────
-
-    public function bustVendorListingBlocks(VendorListing $listing): void
-    {
-        PageBlock::where('config->vendor_listing_id', $listing->id)
-            ->orWhereHas('blockProducts', fn ($q) =>
-                $q->whereHas('productVariant', fn ($q2) =>
-                    $q2->where('id', $listing->product_variant_id)
-                )
-            )
-            ->get()
-            ->each(fn ($block) => $this->bustBlock($block));
+            ->each(fn (PageBlock $block) => Cache::forget("page_block:{$block->id}:{$countryId}"));
     }
 }

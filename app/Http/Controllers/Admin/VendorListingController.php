@@ -9,6 +9,7 @@ use App\Models\ShippingMethod;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Services\ListingCertificationGate;
+use App\Services\Shared\PageCacheService;
 use App\Services\ShippingMethodResolverService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
@@ -177,5 +178,21 @@ class VendorListingController extends Controller
         return redirect()
             ->route('admin.vendor-listings.show', $vendorListing)
             ->with('success', 'Listing updated successfully.');
+    }
+
+    /**
+     * POST /admin/vendor-listings/{vendorListing}/clear-cache
+     * Clears all customer-facing API caches for this listing.
+     */
+    public function clearCache(VendorListing $vendorListing, PageCacheService $pageCache): JsonResponse
+    {
+        abort_unless(auth('admin')->user()?->hasPermissionTo('admin_listings.edit'), 403);
+
+        $pageCache->bustVendorListing($vendorListing);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All customer API caches cleared for this listing.',
+        ]);
     }
 }

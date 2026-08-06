@@ -131,6 +131,9 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/{listing}/toggle-covers-delivery', 'toggleCoversDelivery')->name('toggle-covers-delivery')->middleware('vendor.can:listings.edit');
         Route::post('/{listing}/update-dimensions', 'updateDimensions')->name('update-dimensions')->middleware('vendor.can:listings.edit');
         Route::get('/{listing}/shipping-preview', 'shippingPreview')->name('shipping-preview')->middleware('vendor.can:listings.view');
+        Route::post('/{listing}/clear-cache', 'clearCache')
+            ->name('clear-cache')
+            ->middleware('vendor.can:listings.view');
     });
 
     // ── Inventory module ─────────────────────────────────────────────────────

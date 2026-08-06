@@ -24,6 +24,7 @@ use App\Models\PageSection;
 use App\Models\ProductCountrySetting;
 use App\Models\ProductVariant;
 use App\Models\VendorListing;
+use App\Enums\VendorGlobalStatus;
 use App\Support\Bilingual;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -374,7 +375,7 @@ class PageRendererService
 
         $products = match ($source) {
             'manual' => $this->productRowManual($block, $country),
-            'flash_sale', 'flash_sale_products' => $this->productRowFlashSale($cfg, $maxProducts),
+            'flash_sale', 'flash_sale_products' => $this->productRowFlashSale($cfg, $maxProducts, $country),
             default => $this->productRowQueried($source, $cfg, $country, $maxProducts),
         };
 
@@ -396,49 +397,80 @@ class PageRendererService
     private function productRowManual(PageBlock $block, Country $country): array
     {
         $blockProducts = PageBlockProduct::where('page_block_id', $block->id)
-            ->with(['productVariant.product.images'])
+            ->with(['productVariant.product.images', 'productVariant.images'])
             ->orderBy('position')
             ->get();
 
-        $productIds = $blockProducts
-            ->map(fn($bp) => optional($bp->productVariant)->product_id)
-            ->filter()
-            ->unique()
-            ->all();
+        if ($blockProducts->isEmpty()) {
+            return [];
+        }
 
+        $productIds = $blockProducts
+            ->map(fn ($bp) => optional($bp->productVariant)->product_id)
+            ->filter()->unique()->all();
+
+        // Filter products unavailable in this country
         $unavailableIds = ProductCountrySetting::whereIn('product_id', $productIds)
             ->where('country_id', $country->id)
             ->where('is_available', false)
-            ->pluck('product_id')
-            ->flip()
-            ->all();
+            ->pluck('product_id')->flip()->all();
 
-        $variantIds = $blockProducts->pluck('product_variant_id')->all();
-        $priceByVariant = $this->minPricesByVariant($variantIds, $country);
+        $variantIds = $blockProducts->pluck('product_variant_id')->filter()->all();
+
+        // ── Resolve buy-box per variant: admin first, vendor fallback ─────────
+        $adminByVariant = \App\Models\AdminListing::query()
+            ->whereIn('product_variant_id', $variantIds)
+            ->where('country_id', $country->id)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->with([
+                'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
+                'productVariant:id,sku,slug,variant_name',
+                'productVariant.images',
+            ])
+            ->orderBy('price')
+            ->get()
+            ->keyBy('product_variant_id');
+
+        $vendorByVariant = VendorListing::query()
+            ->whereIn('product_variant_id', $variantIds)
+            ->where('country_id', $country->id)
+            ->where('status', VendorListingStatus::Active->value)
+            ->whereHas('vendor', fn ($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
+            ->with([
+                'vendor:id,store_name,store_rating_avg',
+                'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
+                'productVariant:id,sku,slug,variant_name',
+                'productVariant.images',
+            ])
+            ->orderByRaw('score IS NULL, score DESC')
+            ->orderBy('price')
+            ->get()
+            ->keyBy('product_variant_id');
 
         return $blockProducts
-            ->filter(fn($bp) => $bp->productVariant
+            ->filter(fn ($bp) =>
+                $bp->productVariant
                 && $bp->productVariant->product_id
-                && !isset($unavailableIds[$bp->productVariant->product_id]))
-            ->map(function ($bp) use ($priceByVariant, $country) {
-                $product = $bp->productVariant->product;
-                $price = $priceByVariant[$bp->product_variant_id] ?? null;
-                $product->setAttribute('min_price', $price['min_price'] ?? null);
-                $product->setAttribute('max_price', $price['max_price'] ?? null);
-                $product->setAttribute('active_seller_count', $price['seller_count'] ?? 0);
-                $product->setAttribute('total_stock', ($price['seller_count'] ?? 0) > 0 ? 1 : 0);
-                $product->setAttribute('rating_avg', 0);
-                $product->setAttribute('rating_count', 0);
+                && !isset($unavailableIds[$bp->productVariant->product_id])
+            )
+            ->map(function ($bp) use ($adminByVariant, $vendorByVariant, $country) {
+                $variantId = $bp->product_variant_id;
+                $product   = $bp->productVariant->product;
 
-                $listing = $this->listingQuery->getForVariant($bp->product_variant_id, $country, 1)->first();
-                if ($listing) {
-                    $product->setAttribute('buy_box_listing_id', $listing->id);
-                    $product->setAttribute('buy_box_variant_slug', $bp->productVariant->slug);
-                    $product->setAttribute('buy_box_variant_name', $bp->productVariant->variant_name);
+                // Admin wins; fall back to vendor
+                $isAdmin = isset($adminByVariant[$variantId]);
+                $listing = $isAdmin
+                    ? $adminByVariant[$variantId]
+                    : ($vendorByVariant[$variantId] ?? null);
+
+                if (! $listing) {
+                    return null; // No active listing in this country — skip card
                 }
 
-                return (new ProductListResource($product))->toArray(request());
+                return $this->listingQuery->toMixedCardShape($listing, $product, $country);
             })
+            ->filter()
             ->values()
             ->all();
     }
@@ -477,38 +509,36 @@ class PageRendererService
         return $this->productQuery->buildProductsPayload($paginator, $country, 1, 'page_block')['items'];
     }
 
-    private function productRowFlashSale(array $cfg, int $maxProducts): array
+    private function productRowFlashSale(array $cfg, int $maxProducts, Country $country): array
     {
         if (empty($cfg['flash_sale_id'])) {
             return [];
         }
 
         $submissions = FlashSaleSubmission::where('flash_sale_id', $cfg['flash_sale_id'])
-            ->where('status', 'approved')
-            ->with(['vendorListing.productVariant.product.images'])
+            ->whereIn('status', ['approved', 'live'])
+            ->with([
+                'vendorListing.vendor:id,store_name,store_rating_avg',
+                'vendorListing.primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
+                'vendorListing.productVariant.product.images',
+                'vendorListing.productVariant.images',
+            ])
             ->orderBy('created_at')
             ->limit($maxProducts)
             ->get();
 
         return $submissions
-            ->filter(fn($s) => $s->vendorListing && $s->vendorListing->productVariant && $s->vendorListing->productVariant->product)
-            ->map(function (FlashSaleSubmission $s) {
-                $product = $s->vendorListing->productVariant->product;
-                // Only non-sensitive, already-public pricing fields are used here —
-                // flash_price/original_price on flash_sale_submissions, never the
-                // marketer_secret_promotions table's admin_share_pct/product_value.
-                $product->setAttribute('min_price', $s->flash_price);
-                $product->setAttribute('max_price', $s->flash_price);
-                $product->setAttribute('active_seller_count', 1);
-                $product->setAttribute('total_stock', $s->quantity_remaining > 0 ? 1 : 0);
-                $product->setAttribute('rating_avg', 0);
-                $product->setAttribute('rating_count', 0);
-                $product->setAttribute('buy_box_listing_id', $s->vendorListing->id);
-                $product->setAttribute('buy_box_variant_slug', $s->vendorListing->productVariant->slug);
-                $product->setAttribute('buy_box_variant_name', $s->vendorListing->productVariant->variant_name);
-
-                return (new ProductListResource($product))->toArray(request());
-            })
+            ->filter(fn ($s) =>
+                $s->vendorListing
+                && $s->vendorListing->productVariant
+                && $s->vendorListing->productVariant->product
+                && $s->quantity_remaining > 0
+            )
+            ->map(fn ($s) => $this->listingQuery->toCardShape(
+                $s->vendorListing,
+                $s->vendorListing->productVariant->product,
+                $country,
+            ))
             ->values()
             ->all();
     }

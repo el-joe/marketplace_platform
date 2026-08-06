@@ -9,10 +9,39 @@
             <h1 class="text-xl font-bold text-gray-900">{{ $listing->productVariant->product->name_en }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ $listing->vendor->business_name }} · {{ $listing->country->name_en }}</p>
         </div>
-        <a href="{{ route('admin.vendor-listings.edit', $listing) }}"
-           class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
-            {{ __('common.edit') }}
-        </a>
+        <div class="flex items-center gap-2">
+            <button type="button"
+                onclick="
+                    fetch('{{ route('admin.vendor-listings.clear-cache', $listing) }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(r => r.json())
+                    .then(d => {
+                        window.Toastify && window.Toastify({
+                            text: '✅ ' + d.message,
+                            duration: 3500,
+                            backgroundColor: '#10b981'
+                        }).showToast();
+                    })
+                    .catch(() => alert('Failed to clear cache.'));
+                "
+                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Clear Cache
+            </button>
+
+            <a href="{{ route('admin.vendor-listings.edit', $listing) }}"
+               class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                {{ __('common.edit') }}
+            </a>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">

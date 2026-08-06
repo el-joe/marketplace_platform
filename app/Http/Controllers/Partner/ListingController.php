@@ -24,6 +24,7 @@ use App\Models\Vendor;
 use App\Services\ListingCertificationGate;
 use App\Services\ListingShippingResolver;
 use App\Services\MarketerCampaignService;
+use App\Services\Shared\PageCacheService;
 use App\Services\ShippingWeightService;
 use App\Traits\HasDataTable;
 use App\Traits\HasExport;
@@ -558,6 +559,27 @@ class ListingController extends Controller
             ->first();
 
         return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods', 'defaultShippingMethod', 'marketerCampaign'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Clear Cache
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * POST /partner/listings/{listing}/clear-cache
+     * Vendors can clear their own listing's customer-facing cache.
+     */
+    public function clearCache(VendorListing $listing, PageCacheService $pageCache): JsonResponse
+    {
+        // Scope to this vendor only
+        abort_unless($listing->vendor_id === $this->vendor()->id, 403);
+
+        $pageCache->bustVendorListing($listing);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Listing cache cleared. Changes are now live in the customer app.',
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

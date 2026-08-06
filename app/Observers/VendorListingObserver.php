@@ -5,11 +5,13 @@ namespace App\Observers;
 use App\Jobs\RecomputeListingShippingMethodsJob;
 use App\Models\VendorListing;
 use App\Services\CachedListingResolver;
+use App\Services\Shared\PageCacheService;
 
 class VendorListingObserver
 {
     public function __construct(
         private readonly CachedListingResolver $cachedListingResolver,
+        private readonly PageCacheService $pageCache,
     ) {
     }
 
@@ -32,6 +34,7 @@ class VendorListingObserver
 
         if ($listing->wasChanged(['status', 'price', 'score', 'rating_avg', 'rating_count'])) {
             $this->cachedListingResolver->bustVendorListing($listing);
+            $this->pageCache->bustVendorListing($listing);
         }
     }
 

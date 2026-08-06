@@ -160,14 +160,45 @@ class ListingQueryService
     }
 
     /**
-     * All active listings for one product variant in a country, buy-box ordered.
-     * Used on product detail page (shows the full "More sellers" list).
+     * Resolve the best buy-box listing for a product variant in a country.
+     * Admin listings (Noon Express / platform stock) always win over vendor listings.
+     *
+     * Returns an object with:
+     *   ->id             listing UUID
+     *   ->price          BIGINT base-currency
+     *   ->listing_type   'admin' | 'vendor'
+     *   ->vendor         Vendor|null
+     *   ->primaryShippingMethod  ShippingMethod|null
+     *   ->productVariant ProductVariant
      */
     public function getForVariant(
         string $productVariantId,
         Country $country,
         int $limit = 10,
     ): Collection {
+        // 1. Check admin listing first (platform stock always wins)
+        $admin = AdminListing::query()
+            ->where('product_variant_id', $productVariantId)
+            ->where('country_id', $country->id)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->with([
+                'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
+                'productVariant:id,sku',
+            ])
+            ->orderBy('price')
+            ->get()
+            ->map(function (AdminListing $al) {
+                $al->setAttribute('listing_type', 'admin');
+                $al->setAttribute('vendor', null);
+                return $al;
+            });
+
+        if ($admin->isNotEmpty()) {
+            return $admin->take($limit);
+        }
+
+        // 2. Fall back to vendor listings
         return VendorListing::query()
             ->where('product_variant_id', $productVariantId)
             ->where('country_id', $country->id)
@@ -183,28 +214,59 @@ class ListingQueryService
             ->orderByDesc('rating_count')
             ->orderBy('price')
             ->limit($limit)
-            ->get();
+            ->get()
+            ->map(function (VendorListing $vl) {
+                $vl->setAttribute('listing_type', 'vendor');
+                return $vl;
+            });
     }
 
     /**
-     * Best listing per product (buy-box winner) for a collection of products.
-     * Returns array keyed by product.id => VendorListing|null.
-     * Used on listing grids (category, search, home carousels).
+     * Resolve the best buy-box listing for each product in a collection.
+     * AdminListing (platform/Express FBN) always wins over VendorListing.
+     *
+     * Returns array keyed by product_id → VendorListing|AdminListing|null
      */
     public function getBuyBoxForProducts(
         Collection $products,
         Country $country,
     ): array {
-        $variantIds = $products
-            ->flatMap(fn(Product $product) => $product->variants->pluck('id'))
-            ->unique()
-            ->values();
+        $productIds = $products->pluck('id')->all();
 
-        $listings = VendorListing::query()
+        // Collect all variant IDs for these products
+        $variantMap = [];  // variant_id => product_id
+        foreach ($products as $product) {
+            foreach ($product->variants as $variant) {
+                $variantMap[$variant->id] = $product->id;
+            }
+        }
+        $variantIds = array_keys($variantMap);
+
+        if (empty($variantIds)) {
+            return array_fill_keys($productIds, null);
+        }
+
+        // ── Admin listings (platform stock — always first) ────────────────────
+        $adminListings = AdminListing::query()
+            ->whereIn('product_variant_id', $variantIds)
+            ->where('country_id', $country->id)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->with([
+                'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
+                'productVariant:id,sku,slug,variant_name,product_id',
+                'productVariant.images',
+            ])
+            ->orderBy('price')
+            ->get()
+            ->groupBy('product_variant_id');
+
+        // ── Vendor listings (fallback) ─────────────────────────────────────────
+        $vendorListings = VendorListing::query()
             ->whereIn('product_variant_id', $variantIds)
             ->where('country_id', $country->id)
             ->where('status', VendorListingStatus::Active->value)
-            ->whereHas('vendor', fn($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
+            ->whereHas('vendor', fn ($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
             ->with([
                 'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
                 'vendor:id,store_name,store_rating_avg',
@@ -218,15 +280,26 @@ class ListingQueryService
             ->get()
             ->groupBy('product_variant_id');
 
+        // ── Build result: admin wins per product, fall back to vendor ──────────
         $result = [];
 
         foreach ($products as $product) {
             $bestListing = null;
 
             foreach ($product->variants as $variant) {
-                if ($listings->has($variant->id)) {
-                    $bestListing = $listings->get($variant->id)->first();
+                // Admin first
+                if ($adminListings->has($variant->id)) {
+                    $bestListing = $adminListings->get($variant->id)->first();
                     break;
+                }
+            }
+
+            if ($bestListing === null) {
+                foreach ($product->variants as $variant) {
+                    if ($vendorListings->has($variant->id)) {
+                        $bestListing = $vendorListings->get($variant->id)->first();
+                        break;
+                    }
                 }
             }
 
