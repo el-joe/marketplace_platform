@@ -160,29 +160,15 @@
     <main class="pb-canvas flex flex-col">
 
         <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white">
-            <label class="text-sm font-medium text-gray-700">{{ __('admin.page_builder.context') }}</label>
-            <select id="context-filter" class="w-40 rounded-lg border-gray-300 text-sm">
-                <option value="">{{ __('admin.page_builder.all_contexts') }}</option>
-                @foreach($appContexts as $ctx)
-                    <option value="{{ $ctx->key }}">{{ $ctx->name_en }}</option>
-                @endforeach
-                <option value="__none">{{ __('admin.page_builder.no_context') }}</option>
-            </select>
-
             <label class="text-sm font-medium text-gray-700">{{ __('admin.page_builder.page') }}</label>
             <select id="page-select" class="w-72 rounded-lg border-gray-300 text-sm">
                 <option value="">{{ __('admin.page_builder.select_page_placeholder') }}</option>
                 @foreach($pages as $p)
-                    @php
-                        $ctx = $appContexts->firstWhere('key', $p->app_context_key);
-                    @endphp
-                    <option value="{{ $p->id }}" data-context="{{ $p->app_context_key ?? '__none' }}">
-                        {{ $p->name }} ({{ $p->page_type }} · {{ optional($countries->firstWhere('id', $p->country_id))->site_code ?? '—' }}{{ $ctx ? ' · ' . $ctx->name_en : '' }})
+                    <option value="{{ $p->id }}">
+                        {{ $p->name }} ({{ $p->page_type }} · {{ optional($countries->firstWhere('id', $p->country_id))->site_code ?? '—' }})
                     </option>
                 @endforeach
             </select>
-
-            <span id="page-context-badge"></span>
 
             <button type="button" id="create-page-btn"
                     class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700">

@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\PageStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdImageItem;
-use App\Models\AppContext;
-use App\Models\AppContextCountry;
 use App\Models\BlockAnalytic;
 use App\Models\BlockClickEvent;
 use App\Models\Banner;
@@ -49,10 +47,6 @@ class PageBuilderController extends Controller
 
         $countries = Country::orderBy('name_en')->get(['id', 'name_en', 'site_code']);
 
-        $appContexts = AppContext::where('is_active', true)->orderBy('sort_order')->get(['id', 'key', 'name_en', 'color_hex']);
-
-        $homePageIds = AppContextCountry::whereNotNull('home_page_id')->pluck('home_page_id')->all();
-
         $blockTypes = BlockType::where('is_active', true)
             ->orderBy('sort_order')
             ->get()
@@ -66,7 +60,7 @@ class PageBuilderController extends Controller
             ->with(['slides.desktopFile', 'slides.mobileFile', 'page:id,name,slug'])
             ->get();
 
-        return view('admin.page-builder.index', compact('pages', 'countries', 'appContexts', 'homePageIds', 'blockTypes', 'sliderPreviewBlocks'));
+        return view('admin.page-builder.index', compact('pages', 'countries', 'blockTypes', 'sliderPreviewBlocks'));
     }
 
     public function loadPage(Request $request)
@@ -87,8 +81,6 @@ class PageBuilderController extends Controller
             'name' => 'required|string|max:150',
             'page_type' => 'required|string|in:home,category,brand,vendor',
             'country_id' => 'required|uuid|exists:countries,id',
-            'app_context_key' => 'nullable|string|max:50|exists:app_contexts,key',
-            'set_as_home' => 'nullable|boolean',
             'reference_id' => match ($request->input('page_type')) {
                 'category' => ['required', 'uuid', 'exists:categories,id'],
                 'brand' => ['required', 'uuid', 'exists:brands,id'],
@@ -98,16 +90,6 @@ class PageBuilderController extends Controller
         ]);
 
         $page = $this->service->createPage($data, $this->admin());
-
-        if ($request->boolean('set_as_home') && !empty($data['app_context_key'])) {
-            $context = AppContext::where('key', $data['app_context_key'])->first();
-            if ($context) {
-                AppContextCountry::updateOrCreate(
-                    ['app_context_id' => $context->id, 'country_id' => $data['country_id']],
-                    ['home_page_id' => $page->id, 'is_active' => true]
-                );
-            }
-        }
 
         return response()->json(['page' => $page]);
     }
