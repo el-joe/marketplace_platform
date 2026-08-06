@@ -273,7 +273,7 @@ class PageRendererService
             'countdown_deal', 'countdown_timer' => $this->hydrateCountdown($block),
             'video_banner' => $this->hydrateVideoBanner($block),
             'product_row' => $this->hydrateProductRow($block, $country),
-            'flash_sale' => $this->hydrateFlashSale($block),
+            'flash_sale' => $this->hydrateFlashSale($block, $country),
             'deal_of_day' => $this->hydrateDealOfDay($block, $country),
             'ad_images_2col' => $this->hydrateAdImages($block, 2),
             'ad_images_4col' => $this->hydrateAdImages($block, 4),
@@ -374,7 +374,7 @@ class PageRendererService
 
         $products = match ($source) {
             'manual' => $this->productRowManual($block, $country),
-            'flash_sale_products' => $this->productRowFlashSale($cfg, $maxProducts),
+            'flash_sale', 'flash_sale_products' => $this->productRowFlashSale($cfg, $maxProducts),
             default => $this->productRowQueried($source, $cfg, $country, $maxProducts),
         };
 
@@ -449,6 +449,9 @@ class PageRendererService
             'best_sellers' => 'best_selling',
             'new_arrivals' => 'newest',
             'top_rated' => 'rating',
+            'trending' => 'best_selling', // approximated by total_sold until a dedicated view_count sort is available
+            'category' => 'best_selling', // already scoped to category via $cfg['category_id']
+            'personalized' => 'rating', // no personalization engine yet; best approximate
             'featured' => 'relevance',
             default => 'relevance',
         };
@@ -530,23 +533,34 @@ class PageRendererService
 
     // ─── 5. flash_sale ──────────────────────────────────────────────────────
 
-    private function hydrateFlashSale(PageBlock $block): ?array
+    private function hydrateFlashSale(PageBlock $block, Country $country): ?array
     {
         $cfg = $block->config ?? [];
 
         if (empty($cfg['flash_sale_id'])) {
-            return null;
-        }
+            // No specific flash sale configured — auto-resolve the current live sale
+            // for this country (same fallback logic used in HomeService).
+            $flashSale = FlashSale::where('country_id', $block->country_override ?? $country->id)
+                ->where('status', 'live')
+                ->where('sale_starts_at', '<=', now())
+                ->where('sale_ends_at', '>', now())
+                ->orderBy('sale_ends_at')
+                ->first();
 
-        $flashSale = FlashSale::find($cfg['flash_sale_id']);
+            if (!$flashSale) {
+                return null;
+            }
+        } else {
+            $flashSale = FlashSale::find($cfg['flash_sale_id']);
 
-        if (!$flashSale) {
-            return null;
-        }
+            if (!$flashSale) {
+                return null;
+            }
 
-        $now = now();
-        if (!($flashSale->sale_starts_at <= $now && $now <= $flashSale->sale_ends_at)) {
-            return null;
+            $now = now();
+            if (!($flashSale->sale_starts_at <= $now && $now <= $flashSale->sale_ends_at)) {
+                return null;
+            }
         }
 
         $maxItems = (int) ($cfg['max_items_shown'] ?? 10);
@@ -596,14 +610,24 @@ class PageRendererService
     {
         $cfg = $block->config ?? [];
 
-        if (empty($cfg['vendor_listing_id'])) {
+        // Resolve the listing — admin listing takes priority over vendor listing
+        if (!empty($cfg['admin_listing_id'])) {
+            $listing = \App\Models\AdminListing::with('productVariant.product.images')
+                ->where('id', $cfg['admin_listing_id'])
+                ->where('status', 'active')
+                ->first();
+        } elseif (!empty($cfg['vendor_listing_id'])) {
+            $listing = VendorListing::with('productVariant.product.images')
+                ->find($cfg['vendor_listing_id']);
+
+            if ($listing && $listing->status !== VendorListingStatus::Active) {
+                $listing = null;
+            }
+        } else {
             return null;
         }
 
-        $listing = VendorListing::with('productVariant.product.images')
-            ->find($cfg['vendor_listing_id']);
-
-        if (!$listing || $listing->status !== VendorListingStatus::Active) {
+        if (!$listing) {
             return null;
         }
 
