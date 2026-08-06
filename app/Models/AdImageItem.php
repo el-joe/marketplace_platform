@@ -33,6 +33,8 @@ class AdImageItem extends Model
         'position' => 'integer',
     ];
 
+    protected $appends = ['file_url'];
+
     public function pageBlock(): BelongsTo
     {
         return $this->belongsTo(PageBlock::class);

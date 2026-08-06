@@ -167,6 +167,7 @@ return [
             'edit_label'           => 'تعديل',
             'delete_label'         => 'حذف',
             'slider_updated'       => 'السلايدر — تم التحديث',
+            'no_ad_images_yet'     => 'لا توجد صور بعد. انقر على "إضافة صورة" أعلاه.',
         ],
 
         'warehouse_detail' => [

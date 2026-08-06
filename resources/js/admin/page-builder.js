@@ -48,6 +48,7 @@ const ROUTES = {
     adImageSave: (id) => `/page-builder/blocks/${id}/ad-images`,
     adImageDelete: (id) => `/page-builder/ad-images/${id}`,
     adImageReorder: (id) => `/page-builder/blocks/${id}/ad-images/reorder`,
+    adImageUploadImage: '/page-builder/ad-images/upload-image',
 
     pageUpdate: (id) => `/page-builder/pages/${id}`,
     pageDelete: (id) => `/page-builder/pages/${id}`,
@@ -506,6 +507,7 @@ function openConfigPanel(blockId) {
             if ($('#config-form-body [data-block-products-list]').length) loadPickerList('products', blockId);
             if ($('#config-form-body [data-block-categories-list]').length) loadPickerList('categories', blockId);
             if ($('#config-form-body [data-block-sellers-list]').length) loadPickerList('sellers', blockId);
+            if ($('#config-form-body [data-ad-images-list]').length) loadAdImagesList(blockId);
         });
     }).fail(() => {
         $('#config-form-body').html('<div class="text-sm text-rose-600 text-center py-8">Failed to load config form.</div>');
@@ -921,6 +923,154 @@ $('#slide-form').on('submit', function (e) {
             $(`.block-card[data-block-id="${blockId}"] [data-preview]`).text(t('admin.page_builder.slider_updated'));
         })
         .fail((xhr) => Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.couldNotSaveSlide || 'Could not save slide.'));
+});
+
+/* ─── Ad images (ad_images_2col / ad_images_4col) ──────────────────────── */
+
+$(document).on('click', '[data-action="manage-ad-images"]', function (e) {
+    e.preventDefault();
+    const blockId = $(this).data('block-id');
+    $(this).closest('form').find('[data-ad-images-panel]').removeClass('hidden');
+    loadAdImagesList(blockId);
+});
+
+function loadAdImagesList(blockId) {
+    const $container = $(`[data-ad-images-list][data-block-id="${blockId}"]`);
+    if (!$container.length) return;
+
+    ajax({ url: ROUTES.adImages(blockId), method: 'GET' })
+        .done((res) => {
+            const items = res.items || [];
+            if (!items.length) {
+                $container.html(`<div class="text-xs text-gray-400 px-2 py-3 text-center">${t('admin.page_builder.no_ad_images_yet')}</div>`);
+                return;
+            }
+            const html = items.map((img) => `
+                <div class="flex items-center gap-2 px-2 py-1.5 border border-gray-100 rounded hover:bg-gray-50" data-ad-image-id="${img.id}">
+                    ${img.file_url
+                        ? `<img src="${img.file_url}" alt="" class="w-10 h-8 object-cover rounded border border-gray-200 flex-shrink-0">`
+                        : `<div class="w-10 h-8 bg-gray-100 rounded border border-gray-200 flex-shrink-0"></div>`}
+                    <span class="flex-1 truncate text-sm text-gray-700">${escapeHtml(img.title_en || img.link_url || 'Image')}</span>
+                    <button type="button" class="text-xs text-gray-500 hover:text-gray-900" data-action="edit-ad-image" data-image-id="${img.id}" data-block-id="${blockId}">${t('admin.page_builder.edit_label')}</button>
+                    <button type="button" class="text-xs text-rose-500 hover:text-rose-700" data-action="delete-ad-image" data-image-id="${img.id}">${t('admin.page_builder.delete_label')}</button>
+                </div>
+            `).join('');
+            $container.html(html);
+        });
+}
+
+$(document).on('click', '[data-action="add-ad-image"]', function () {
+    const blockId = $(this).data('block-id');
+    openAdImageModal(blockId, null, {});
+});
+
+$(document).on('click', '[data-action="edit-ad-image"]', function () {
+    const blockId = $(this).data('block-id');
+    const imageId = $(this).data('image-id');
+    ajax({ url: ROUTES.adImages(blockId), method: 'GET' }).done((res) => {
+        const img = (res.items || []).find((i) => i.id === imageId);
+        openAdImageModal(blockId, imageId, img || {});
+    });
+});
+
+$(document).on('click', '[data-action="delete-ad-image"]', async function () {
+    const imageId = $(this).data('image-id');
+    const blockId = $(this).closest('[data-ad-images-list]').data('block-id');
+    const ok = await window.confirmDialog({
+        title: window.TRANSLATIONS?.deleteSlideTitle || 'Delete image?', message: window.TRANSLATIONS?.deleteSlideMessage || 'This image will be removed.', confirmLabel: window.TRANSLATIONS?.delete || 'Delete', danger: true,
+    });
+    if (!ok) return;
+    ajax({ url: ROUTES.adImageDelete(imageId), method: 'DELETE' })
+        .done(() => { Toast.success(window.TRANSLATIONS?.imageUploaded ? '' : 'Image deleted.'); loadAdImagesList(blockId); })
+        .fail(() => Toast.error('Could not delete image.'));
+});
+
+function setAdImagePreview(fileId, url) {
+    $('#ad-image-file-id').val(fileId || '');
+    if (url) {
+        $('#ad-image-preview-img').attr('src', url);
+        $('#ad-image-preview').removeClass('hidden');
+    } else {
+        $('#ad-image-preview').addClass('hidden');
+        $('#ad-image-preview-img').attr('src', '');
+    }
+}
+
+function openAdImageModal(blockId, imageId, img) {
+    $('#ad-image-block-id').val(blockId);
+    $('#ad-image-id').val(imageId || '');
+    const $form = $('#ad-image-form');
+    $form[0].reset();
+    setAdImagePreview('', '');
+
+    Object.entries(img || {}).forEach(([k, v]) => {
+        const $f = $form.find(`[name="${k}"]`);
+        if (!$f.length) return;
+        if ($f.is(':checkbox')) $f.prop('checked', !!v);
+        else $f.val(v ?? '');
+    });
+
+    if (img?.file_url) setAdImagePreview(img.file_id, img.file_url);
+
+    $('#ad-image-modal').modal('open');
+}
+
+$(document).on('change', '[data-ad-image-upload]', function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('_token', csrfToken());
+
+    const $label = $(this).closest('label');
+    $label.addClass('opacity-50 pointer-events-none');
+
+    $.ajax({
+        url: ROUTES.adImageUploadImage,
+        method: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        headers: { 'X-CSRF-TOKEN': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+    }).done((res) => {
+        setAdImagePreview(res.file_id, res.url);
+        Toast.success(window.TRANSLATIONS?.imageUploaded || 'Image uploaded.');
+    }).fail((xhr) => {
+        Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.uploadFailed || 'Upload failed.');
+    }).always(() => {
+        $label.removeClass('opacity-50 pointer-events-none');
+        this.value = '';
+    });
+});
+
+$(document).on('click', '[data-clear-ad-image]', function (e) {
+    e.preventDefault();
+    setAdImagePreview('', '');
+});
+
+$('#ad-image-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const blockId = $('#ad-image-block-id').val();
+    const data = {};
+    $form.find(':input[name]').each(function () {
+        const $f = $(this);
+        const name = $f.attr('name');
+        if (!name || name === '_token') return;
+        if ($f.is(':checkbox')) data[name] = $f.is(':checked') ? 1 : 0;
+        else data[name] = $f.val();
+    });
+    if (!data.id) delete data.id;
+
+    ajax({ url: ROUTES.adImageSave(blockId), method: 'POST', data })
+        .done(() => {
+            Toast.success('Image saved.');
+            $('#ad-image-modal').modal('close');
+            loadAdImagesList(blockId);
+            $(`.block-card[data-block-id="${blockId}"] [data-preview]`).text('Ad images — updated');
+        })
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not save image.'));
 });
 
 /* ─── Page creation ─────────────────────────────────────────────────────── */

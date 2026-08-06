@@ -968,6 +968,38 @@ class PageBuilderController extends Controller
         ]);
     }
 
+    public function uploadAdImage(Request $request)
+    {
+        $this->authorizeManage();
+
+        $request->validate([
+            'image' => ['required', 'image', 'max:8192'],
+        ]);
+
+        $uploaded = $request->file('image');
+        $ext = $uploaded->getClientOriginalExtension() ?: $uploaded->guessExtension();
+        $path = $uploaded->storeAs(
+            'page-builder/ad-images',
+            Str::random(16) . '.' . $ext,
+            'public'
+        );
+
+        $file = File::create([
+            'key' => 'page-builder/ad-images/' . basename($path),
+            'path' => $path,
+            'storage_type' => 'public',
+            'file_type' => 'ad_image',
+            'mime_type' => $uploaded->getMimeType(),
+            'extension' => $ext,
+            'size' => $uploaded->getSize(),
+        ]);
+
+        return response()->json([
+            'file_id' => $file->id,
+            'url' => Storage::disk('public')->url($path),
+        ]);
+    }
+
     // Helpers
     // ─────────────────────────────────────────────────────────────────────
 

@@ -182,6 +182,7 @@ return [
             'edit_label'           => 'Edit',
             'delete_label'         => 'Delete',
             'slider_updated'       => 'Slider — updated',
+            'no_ad_images_yet'     => 'No images yet. Click "Add image" above.',
         ],
 
         'warehouse_detail' => [

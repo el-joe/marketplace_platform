@@ -8823,6 +8823,22 @@ return [
             'save_slide'           => 'Save slide',
         ],
 
+        'ad_image_modal' => [
+            'title'               => 'Ad image',
+            'image'               => 'Image',
+            'upload'              => 'Click to upload image',
+            'remove'              => 'Remove',
+            'title_en'            => 'Title (EN)',
+            'title_ar'            => 'Title (AR)',
+            'link_url'            => 'Link URL',
+            'alt_text_en'         => 'Alt text (EN)',
+            'alt_text_ar'         => 'Alt text (AR)',
+            'open_new_tab'        => 'Open link in new tab',
+            'show_title_overlay'  => 'Show title overlay',
+            'active'              => 'Active',
+            'save_image'          => 'Save image',
+        ],
+
         'config_forms' => [
             'title_en'             => 'Title (EN)',
             'title_ar'             => 'Title (AR)',

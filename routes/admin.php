@@ -445,6 +445,9 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         // Slide image upload
         Route::post('/slides/upload-image', [PageBuilderController::class, 'uploadSlideImage'])->name('slides.upload-image');
 
+        // Ad image upload
+        Route::post('/ad-images/upload-image', [PageBuilderController::class, 'uploadAdImage'])->name('ad-images.upload-image');
+
         // Search (for manual selectors)
         Route::get('/search/products', [PageBuilderController::class, 'searchProducts'])->name('search.products');
         Route::get('/search/categories', [PageBuilderController::class, 'searchCategories'])->name('search.categories');

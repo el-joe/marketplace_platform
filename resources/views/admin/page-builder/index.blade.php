@@ -252,6 +252,7 @@
 
 @include('admin.page-builder.partials.create-page-modal')
 @include('admin.page-builder.partials.slide-modal')
+@include('admin.page-builder.partials.ad-image-modal')
 @include('admin.page-builder.partials.version-drawer')
 
 @endsection
