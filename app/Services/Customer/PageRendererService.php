@@ -952,6 +952,9 @@ class PageRendererService
         return [
             'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
             'subtitle' => Bilingual::pairFromKeys($cfg, 'subtitle_ar', 'subtitle_en'),
+            'subscribe_url' => '/api/customer/v1/{country}/newsletter/subscribe',
+            'placeholder_email' => ['ar' => 'بريدك الإلكتروني', 'en' => 'Your email address'],
+            'button_label' => ['ar' => 'اشترك الآن', 'en' => 'Subscribe Now'],
         ];
     }
 

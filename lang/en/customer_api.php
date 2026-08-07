@@ -68,6 +68,13 @@ return [
         'country_not_found' => 'Country not found.',
     ],
 
+    'newsletter' => [
+        'subscribed'    => 'You have been subscribed to our newsletter.',
+        'resubscribed'  => 'Welcome back! You have been re-subscribed to our newsletter.',
+        'unsubscribed'  => 'You have been unsubscribed from our newsletter.',
+        'invalid_token' => 'Invalid or expired unsubscribe link.',
+    ],
+
     'notification' => [
         'not_found'             => 'Notification not found.',
         'all_marked_read'       => 'All notifications marked as read.',

@@ -322,6 +322,7 @@ return [
         'content'               => 'Content',
         'pages'                 => 'Pages',
         'banners'               => 'Banners',
+        'newsletter'            => 'Newsletter',
         'reviews'               => 'Reviews',
         'blog'                  => 'Blog',
         'blog_posts'            => 'Blog Posts',

@@ -41,6 +41,7 @@ use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Api\Customer\OrderController as ApiOrderController;
 use App\Http\Controllers\Api\Customer\GiftCardController as ApiGiftCardController;
 use App\Http\Controllers\Api\Customer\CustomerWalletController;
+use App\Http\Controllers\Api\Customer\NewsletterController;
 
 // ── Home composite (public) ───────────────────────────────────────────
 
@@ -174,6 +175,15 @@ use Illuminate\Support\Facades\Route;
         Route::prefix('search')->name('customer.search.')->group(function (): void {
             Route::get('/', [SearchController::class, 'search'])->name('search');
             Route::get('suggestions', [SearchController::class, 'suggestions'])->name('suggestions');
+        });
+
+        // ── Newsletter (public — guest + authenticated) ───────────────────────
+        Route::prefix('newsletter')->name('customer.api.newsletter.')->group(function (): void {
+            Route::post('subscribe', [NewsletterController::class, 'subscribe'])
+                ->middleware('throttle:10,1')
+                ->name('subscribe');
+            Route::get('unsubscribe', [NewsletterController::class, 'unsubscribe'])
+                ->name('unsubscribe');
         });
 
         // ── Public auth endpoints ─────────────────────────────────────────────

@@ -951,6 +951,14 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/clear-cache', [SettingsController::class, 'clearCache'])->name('clear-cache')->middleware('admin.permission:settings.edit');
     });
 
+    // ─── Newsletter ───────────────────────────────────────────────────────────
+    Route::prefix('newsletter')->name('newsletter.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('index');
+        Route::post('/datatable', [\App\Http\Controllers\Admin\NewsletterController::class, 'datatable'])->name('datatable');
+        Route::get('/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'export'])->name('export');
+        Route::delete('/{subscriber}', [\App\Http\Controllers\Admin\NewsletterController::class, 'destroy'])->name('destroy');
+    });
+
     // ─── Content Settings ─────────────────────────────────────────────────────
     Route::prefix('content-settings')->name('content-settings.')->middleware('admin.permission:settings.content')->group(function () {
         Route::get('/', [ContentSettingsController::class, 'index'])->name('index');

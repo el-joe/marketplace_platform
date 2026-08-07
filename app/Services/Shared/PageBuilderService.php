@@ -283,6 +283,16 @@ class PageBuilderService
                 ->all();
         }
 
+        // ── newsletter_signup ─────────────────────────────────────────────────────
+        if ($b->block_type === 'newsletter_signup') {
+            $cfg = $b->config ?? [];
+            $data['title']              = ['ar' => $cfg['title_ar'] ?? null, 'en' => $cfg['title_en'] ?? null];
+            $data['subtitle']           = ['ar' => $cfg['subtitle_ar'] ?? null, 'en' => $cfg['subtitle_en'] ?? null];
+            $data['subscribe_url']      = '/api/customer/v1/{country}/newsletter/subscribe';
+            $data['placeholder_email']  = ['ar' => 'بريدك الإلكتروني', 'en' => 'Your email address'];
+            $data['button_label']       = ['ar' => 'اشترك الآن', 'en' => 'Subscribe Now'];
+        }
+
         if ($booking !== null) {
             $data['paid_banner'] = [
                 'image_url' => $booking->image_url,

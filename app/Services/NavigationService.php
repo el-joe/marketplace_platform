@@ -231,6 +231,13 @@ class NavigationService
                         'permission' => 'ad_campaigns.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.newsletter'),
+                        'route' => 'admin.newsletter.index',
+                        'icon' => 'envelope',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
                 ],
             ],
             [
