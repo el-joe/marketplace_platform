@@ -1759,6 +1759,9 @@ return [
         'evidence_hint' => 'PDF, JPG, PNG — max 5MB',
         'evidence_description_placeholder' => 'Evidence description (optional)',
         'upload_evidence' => 'Upload Evidence',
+        'statuses' => [
+            'closed' => 'Closed', 'escalated' => 'Escalated', 'open' => 'Open', 'resolved' => 'Resolved', 'seller_responded' => 'Seller Responded', 'under_review' => 'Under Review',
+        ],
     ],
 
     'flash_sales_extra' => [
@@ -1860,6 +1863,37 @@ return [
         'modal_min_discount_hint' => 'Note: the minimum required discount is :pct%',
         'modal_price_drop_hint' => ', and the price must be below the 30-day average.',
         'cancel' => 'Cancel',
+        'sale_statuses' => [
+            'approved' => 'Approved',
+            'submission_closed' => 'Submission Closed',
+            'under_review' => 'Under Review',
+        ],
+        'invitation_statuses' => [
+            'accepted' => 'Accepted',
+            'declined' => 'Declined',
+            'pending' => 'Pending',
+            'submitted' => 'Submitted',
+        ],
+        'submission_statuses' => [
+            'approved' => 'Approved',
+            'draft' => 'Draft',
+            'ended' => 'Ended',
+            'live' => 'Live',
+            'rejected' => 'Rejected',
+            'sold_out' => 'Sold Out',
+            'submitted' => 'Submitted',
+            'under_review' => 'Under Review',
+            'withdrawn' => 'Withdrawn',
+        ],
+        'submissions_table' => [
+            'discount' => 'Discount',
+            'flash_price' => 'Flash Price',
+            'original_price' => 'Original Price',
+            'product' => 'Product',
+            'quantity' => 'Qty',
+            'status' => 'Status',
+            'submitted_at' => 'Submitted',
+        ],
     ],
 
     'fulfillment' => [
@@ -1951,6 +1985,15 @@ return [
         'cancel_request_confirm' => 'Are you sure you want to cancel this request?',
         'tracking_placeholder' => 'Tracking number',
         'save_tracking' => 'Save Tracking',
+        'inventory_columns' => [
+            'available' => 'Available',
+            'location' => 'Location',
+            'on_hand' => 'On Hand',
+            'product' => 'Product',
+            'reorder_point' => 'Reorder Point',
+            'reserved' => 'Reserved',
+            'warehouse' => 'Warehouse',
+        ],
         'messages' => [
             'inbound_request_submitted' => 'Inbound request :number submitted successfully.',
             'cannot_cancel_current_state' => 'This request cannot be cancelled in its current state.',
@@ -2037,6 +2080,9 @@ return [
             'missing_parts' => 'Missing Parts',
             'software_issue' => 'Software Issue',
             'other' => 'Other',
+        ],
+        'statuses' => [
+            'status_approved' => 'Approved', 'status_rejected' => 'Rejected', 'status_resolved' => 'Resolved', 'status_submitted' => 'Submitted', 'status_under_review' => 'Under Review',
         ],
     ],
 
@@ -2286,6 +2332,28 @@ return [
             'rejected' => 'Rejected by admin',
             'auto_approved' => 'Auto-approved',
         ],
+
+        'conversions_table' => [
+            'auto_approve_at' => 'Auto Approve At', 'click_time' => 'Click Time', 'commission_earned' => 'Commission Earned', 'commission_type' => 'Type', 'country' => 'Country', 'created_at' => 'Created At', 'currency' => 'Currency', 'date' => 'Date', 'delivered_at' => 'Delivered At', 'dispatched_at' => 'Dispatched At', 'from_sale_number' => 'From Sale #', 'marketer' => 'Marketer', 'marketer_commission_amount' => 'Commission', 'max_commission_budget' => 'Budget', 'notes' => 'Notes', 'order_number' => 'Order #', 'per_marketer_sample_qty' => 'Samples/Marketer', 'platform_commission_amount' => 'Platform Fee', 'platform_sample_qty' => 'Platform Samples', 'product' => 'Product', 'qr_code' => 'QR Code', 'quantity' => 'Qty', 'referral_link' => 'Referral Link', 'rejection_reason' => 'Rejection Reason', 'responded_at' => 'Responded At', 'reviewed_at' => 'Reviewed At', 'status' => 'Status', 'type' => 'Type',
+        ],
+        'invitation_statuses' => [
+            'accepted' => 'Accepted', 'declined' => 'Declined', 'pending' => 'Pending', 'timed_out' => 'Timed Out',
+        ],
+        'samples' => [
+            'per_marketer_samples' => 'Per-Marketer Samples', 'platform_samples' => 'Platform Samples',
+        ],
+        'statuses' => [
+            'active' => 'Active', 'auto_approved' => 'Auto Approved', 'cancelled' => 'Cancelled', 'done' => 'Done', 'paused' => 'Paused', 'pending_admin' => 'Pending Admin', 'rejected' => 'Rejected',
+        ],
+        'tabs' => [
+            'tab_conversions' => 'Conversions', 'tab_info' => 'Campaign Info', 'tab_marketers' => 'Marketers', 'tab_samples' => 'Samples',
+        ],
+        'timeline_table' => [
+            'commission_type' => 'Commission Type', 'country' => 'Country', 'created_at' => 'Created At', 'invited' => 'Invited', 'product' => 'Product', 'status' => 'Status', 'tiered_rules' => 'Tiered Rules',
+        ],
+        'timeline_statuses' => [
+            'auto_approved' => 'Auto Approved', 'created' => 'Created', 'rejected' => 'Rejected', 'reviewed' => 'Reviewed',
+        ],
     ],
 
     'marketer_profile' => [
@@ -2338,6 +2406,9 @@ return [
             'rejected' => 'Rejected',
             'timed_out' => 'Timed Out',
         ],
+        'statuses' => [
+            'accepted' => 'Accepted', 'pending' => 'Pending', 'rejected' => 'Rejected', 'timed_out' => 'Timed Out',
+        ],
     ],
 
     'marketer_my_campaigns' => [
@@ -2386,6 +2457,12 @@ return [
             'order' => 'Order #',
             'commission' => 'Commission',
             'date' => 'Date',
+        ],
+        'conversions_table' => [
+            'commission_earned' => 'Commission', 'commission_type' => 'Type', 'conversions' => 'Conversions', 'product' => 'Product', 'status' => 'Status', 'title' => 'Conversions',
+        ],
+        'performance' => [
+            'title' => 'Performance Summary', 'no_conversions' => 'No conversions yet.', 'total_campaigns' => 'Total Campaigns', 'total_conversions' => 'Total Conversions', 'total_earnings' => 'Total Earnings',
         ],
     ],
 
@@ -2459,6 +2536,9 @@ return [
         ],
         'messages' => [
             'uploaded' => 'Certificate uploaded and is now pending review.',
+        ],
+        'table' => [
+            'table_actions' => 'Actions', 'table_cert_name' => 'Certificate', 'table_country' => 'Country', 'table_product' => 'Product', 'table_status' => 'Status', 'table_uploaded_at' => 'Uploaded At',
         ],
     ],
 ];

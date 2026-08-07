@@ -1759,6 +1759,9 @@ return [
         'evidence_hint' => 'PDF، JPG، PNG — حد أقصى 5 ميغابايت',
         'evidence_description_placeholder' => 'وصف الدليل (اختياري)',
         'upload_evidence' => 'رفع الدليل',
+        'statuses' => [
+            'closed' => 'مغلقة', 'escalated' => 'تم التصعيد', 'open' => 'مفتوحة', 'resolved' => 'تم الحل', 'seller_responded' => 'تم الرد من البائع', 'under_review' => 'قيد المراجعة',
+        ],
     ],
 
     'flash_sales_extra' => [
@@ -1860,6 +1863,37 @@ return [
         'modal_min_discount_hint' => 'تنبيه: أدنى نسبة خصم مطلوبة هي :pct%',
         'modal_price_drop_hint' => '، ويجب أن يكون السعر أقل من متوسط السعر خلال 30 يومًا.',
         'cancel' => 'إلغاء',
+        'sale_statuses' => [
+            'approved' => 'موافَق عليه',
+            'submission_closed' => 'باب التقديم مغلق',
+            'under_review' => 'قيد المراجعة',
+        ],
+        'invitation_statuses' => [
+            'accepted' => 'مقبولة',
+            'declined' => 'مرفوضة',
+            'pending' => 'قيد الانتظار',
+            'submitted' => 'تم التقديم',
+        ],
+        'submission_statuses' => [
+            'approved' => 'موافَق عليه',
+            'draft' => 'مسودة',
+            'ended' => 'منتهٍ',
+            'live' => 'مباشر',
+            'rejected' => 'مرفوض',
+            'sold_out' => 'نفدت الكمية',
+            'submitted' => 'تم التقديم',
+            'under_review' => 'قيد المراجعة',
+            'withdrawn' => 'مسحوب',
+        ],
+        'submissions_table' => [
+            'discount' => 'الخصم',
+            'flash_price' => 'سعر العرض',
+            'original_price' => 'السعر الأصلي',
+            'product' => 'المنتج',
+            'quantity' => 'الكمية',
+            'status' => 'الحالة',
+            'submitted_at' => 'تاريخ التقديم',
+        ],
     ],
 
     'fulfillment' => [
@@ -1959,6 +1993,15 @@ return [
             'cannot_update_tracking_stage' => 'لا يمكن تحديث التتبع في هذه المرحلة.',
             'tracking_number_saved' => 'تم حفظ رقم التتبع.',
         ],
+        'inventory_columns' => [
+            'available' => 'المتاح',
+            'location' => 'الموقع',
+            'on_hand' => 'المتوفر',
+            'product' => 'المنتج',
+            'reorder_point' => 'حد إعادة الطلب',
+            'reserved' => 'المحجوز',
+            'warehouse' => 'المستودع',
+        ],
     ],
 
     'suspended' => [
@@ -2037,6 +2080,9 @@ return [
             'missing_parts' => 'أجزاء مفقودة',
             'software_issue' => 'مشكلة برمجية',
             'other' => 'أخرى',
+        ],
+        'statuses' => [
+            'status_approved' => 'موافَق عليه', 'status_rejected' => 'مرفوض', 'status_resolved' => 'تم الحل', 'status_submitted' => 'تم التقديم', 'status_under_review' => 'قيد المراجعة',
         ],
     ],
 
@@ -2286,6 +2332,28 @@ return [
             'rejected' => 'مرفوضة من الإدارة',
             'auto_approved' => 'موافقة تلقائية',
         ],
+
+        'conversions_table' => [
+            'auto_approve_at' => 'تاريخ الموافقة التلقائية', 'click_time' => 'وقت النقرة', 'commission_earned' => 'العمولة المكتسبة', 'commission_type' => 'النوع', 'country' => 'الدولة', 'created_at' => 'تاريخ الإنشاء', 'currency' => 'العملة', 'date' => 'التاريخ', 'delivered_at' => 'تاريخ التسليم', 'dispatched_at' => 'تاريخ الشحن', 'from_sale_number' => 'من العرض رقم', 'marketer' => 'الماركتر', 'marketer_commission_amount' => 'العمولة', 'max_commission_budget' => 'الميزانية', 'notes' => 'ملاحظات', 'order_number' => 'رقم الطلب', 'per_marketer_sample_qty' => 'العينات لكل ماركتر', 'platform_commission_amount' => 'رسوم المنصة', 'platform_sample_qty' => 'عينات المنصة', 'product' => 'المنتج', 'qr_code' => 'رمز QR', 'quantity' => 'الكمية', 'referral_link' => 'رابط الإحالة', 'rejection_reason' => 'سبب الرفض', 'responded_at' => 'تاريخ الرد', 'reviewed_at' => 'تاريخ المراجعة', 'status' => 'الحالة', 'type' => 'النوع',
+        ],
+        'invitation_statuses' => [
+            'accepted' => 'مقبولة', 'declined' => 'مرفوضة', 'pending' => 'قيد الانتظار', 'timed_out' => 'انتهت المهلة',
+        ],
+        'samples' => [
+            'per_marketer_samples' => 'عينات لكل ماركتر', 'platform_samples' => 'عينات المنصة',
+        ],
+        'statuses' => [
+            'active' => 'نشطة', 'auto_approved' => 'موافقة تلقائية', 'cancelled' => 'ملغاة', 'done' => 'منتهية', 'paused' => 'موقوفة', 'pending_admin' => 'بانتظار الإدارة', 'rejected' => 'مرفوضة',
+        ],
+        'tabs' => [
+            'tab_conversions' => 'التحويلات', 'tab_info' => 'معلومات الحملة', 'tab_marketers' => 'الماركتر', 'tab_samples' => 'العينات',
+        ],
+        'timeline_table' => [
+            'commission_type' => 'نوع العمولة', 'country' => 'الدولة', 'created_at' => 'تاريخ الإنشاء', 'invited' => 'المدعوون', 'product' => 'المنتج', 'status' => 'الحالة', 'tiered_rules' => 'قواعد العمولة المتدرجة',
+        ],
+        'timeline_statuses' => [
+            'auto_approved' => 'موافقة تلقائية', 'created' => 'تم الإنشاء', 'rejected' => 'مرفوضة', 'reviewed' => 'تمت المراجعة',
+        ],
     ],
 
     'marketer_profile' => [
@@ -2338,6 +2406,9 @@ return [
             'rejected' => 'مرفوضة',
             'timed_out' => 'انتهت المهلة',
         ],
+        'statuses' => [
+            'accepted' => 'مقبولة', 'pending' => 'قيد الانتظار', 'rejected' => 'مرفوضة', 'timed_out' => 'انتهت المهلة',
+        ],
     ],
 
     'marketer_my_campaigns' => [
@@ -2386,6 +2457,12 @@ return [
             'order' => 'رقم الطلب',
             'commission' => 'العمولة',
             'date' => 'التاريخ',
+        ],
+        'conversions_table' => [
+            'commission_earned' => 'العمولة', 'commission_type' => 'النوع', 'conversions' => 'التحويلات', 'product' => 'المنتج', 'status' => 'الحالة', 'title' => 'التحويلات',
+        ],
+        'performance' => [
+            'title' => 'ملخص الأداء', 'no_conversions' => 'لا توجد تحويلات بعد.', 'total_campaigns' => 'إجمالي الحملات', 'total_conversions' => 'إجمالي التحويلات', 'total_earnings' => 'إجمالي الأرباح',
         ],
     ],
 
@@ -2459,6 +2536,9 @@ return [
         ],
         'messages' => [
             'uploaded' => 'تم رفع الشهادة وهي الآن قيد المراجعة.',
+        ],
+        'table' => [
+            'table_actions' => 'الإجراءات', 'table_cert_name' => 'الشهادة', 'table_country' => 'الدولة', 'table_product' => 'المنتج', 'table_status' => 'الحالة', 'table_uploaded_at' => 'تاريخ الرفع',
         ],
     ],
 ];
