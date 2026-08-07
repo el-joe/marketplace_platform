@@ -138,11 +138,18 @@
                     @if(!empty($address['address_line_2']))
                         <p>{{ $address['address_line_2'] }}</p>
                     @endif
+                    @php
+                        $addrStr = function ($val): ?string {
+                            if (is_array($val))  return $val['name_en'] ?? $val['name_ar'] ?? null;
+                            if (is_object($val)) return $val->name_en   ?? $val->name_ar   ?? null;
+                            return $val ?: null;
+                        };
+                    @endphp
                     <p>
                         {{ implode(', ', array_filter([
-        $address['area'] ?? null,
-        $address['city'] ?? null,
-        $address['country'] ?? null,
+        $addrStr($address['area']    ?? null),
+        $addrStr($address['city']    ?? null),
+        $addrStr($address['country'] ?? null),
     ])) }}
                     </p>
                     @if(!empty($address['zip_code']))
