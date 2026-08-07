@@ -8903,17 +8903,11 @@ return [
             'full_banner' => [
                 'banner'            => 'البانر',
                 'select_banner_placeholder' => 'اختر بانر…',
-                'link_url'          => 'رابط الوجهة',
-                'link_type'         => 'نوع الرابط',
-                'link_type_url'     => 'رابط خارجي',
-                'link_type_product' => 'منتج',
-                'link_type_category' => 'فئة',
-                'link_type_brand'   => 'علامة تجارية',
-                'link_type_flash_sale' => 'عرض سريع',
                 'desktop_ratio'     => 'نسبة سطح المكتب',
                 'mobile_ratio'      => 'نسبة الجوال',
                 'select_banner_help' => 'هل تحتاج لإنشاء أو رفع بانر جديد؟ يمكنك إدارة البانرات عبر',
                 'banners_page_link' => 'صفحة البانرات',
+                'link_managed_on_banner' => 'رابط الانتقال ونوعه يُدار من سجل البانر.',
             ],
 
             'text_block' => [

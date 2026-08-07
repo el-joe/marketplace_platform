@@ -752,9 +752,9 @@ class PageRendererService
         return [
             'image_url' => $desktopImage->full_path,
             'mobile_image_url' => $mobileImage?->full_path,
-            'link_url' => $cfg['link_url'] ?? $banner->cta_url,
-            'link_type' => $cfg['link_type'] ?? null,
-            'link_reference_id' => $cfg['link_reference_id'] ?? null,
+            'link_url' => $banner->cta_url,
+            'link_type' => $banner->link_type?->value,
+            'link_reference_id' => $banner->link_reference_id,
             'alt_text' => Bilingual::pair($banner, 'title'),
             'aspect_ratio' => $cfg['aspect_ratio'] ?? null,
             'mobile_aspect_ratio' => $cfg['mobile_aspect_ratio'] ?? null,

@@ -131,9 +131,9 @@ class PageBuilderService
                     $data['banner'] = [
                         'image_url'           => $desktopImage->full_path,
                         'mobile_image_url'    => $mobileImage?->full_path,
-                        'link_url'            => $b->config['link_url'] ?? $banner->cta_url,
-                        'link_type'           => $b->config['link_type'] ?? $banner->link_type?->value,
-                        'link_reference_id'   => $b->config['link_reference_id'] ?? $banner->link_reference_id,
+                        'link_url'            => $banner->cta_url,
+                        'link_type'           => $banner->link_type?->value,
+                        'link_reference_id'   => $banner->link_reference_id,
                         'alt_text'            => [
                             'ar' => $banner->title_ar,
                             'en' => $banner->title_en,

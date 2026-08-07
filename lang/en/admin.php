@@ -8944,17 +8944,11 @@ return [
             'full_banner' => [
                 'banner'            => 'Banner',
                 'select_banner_placeholder' => 'Select a banner…',
-                'link_url'          => 'Link URL',
-                'link_type'         => 'Link type',
-                'link_type_url'     => 'External URL',
-                'link_type_product' => 'Product',
-                'link_type_category' => 'Category',
-                'link_type_brand'   => 'Brand',
-                'link_type_flash_sale' => 'Flash sale',
                 'desktop_ratio'     => 'Desktop ratio',
                 'mobile_ratio'      => 'Mobile ratio',
                 'select_banner_help' => 'Need to create or upload a new banner first? Manage banners via the',
                 'banners_page_link' => 'Banners page',
+                'link_managed_on_banner' => 'Link URL and link type are managed on the Banner record.',
             ],
 
             'text_block' => [
