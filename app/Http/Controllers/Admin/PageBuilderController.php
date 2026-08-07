@@ -15,6 +15,7 @@ use App\Models\Country;
 use App\Models\FlashSale;
 use App\Models\Page;
 use App\Models\PageBlock;
+use App\Models\PageBlockBrand;
 use App\Models\PageBlockProduct;
 use App\Models\PageBlockRevision;
 use App\Models\PageRevision;
@@ -659,17 +660,25 @@ class PageBuilderController extends Controller
         ]);
     }
 
-    public function searchBrands(Request $request)
+    public function searchBrands(Request $request): \Illuminate\Http\JsonResponse
     {
         $q = trim((string) $request->query('q', ''));
 
-        $rows = Brand::query()
-            ->when($q !== '', fn($query) => $query->where('name_en', 'like', "%{$q}%"))
+        $brands = Brand::where('is_active', true)
+            ->whereNull('deleted_at')
+            ->when($q !== '', fn ($query) =>
+                $query->where('name_en', 'like', "%{$q}%")
+                      ->orWhere('name_ar', 'like', "%{$q}%")
+            )
+            ->orderBy('name_en')
             ->limit(20)
-            ->get(['id', 'name_en']);
+            ->get(['id', 'name_en', 'name_ar', 'logo_media_id']);
 
         return response()->json([
-            'results' => $rows->map(fn($b) => ['id' => $b->id, 'text' => $b->name_en])->values(),
+            'results' => $brands->map(fn ($b) => [
+                'id'   => $b->id,
+                'text' => $b->name_en . ($b->name_ar ? ' — ' . $b->name_ar : ''),
+            ]),
         ]);
     }
 
@@ -935,6 +944,90 @@ class PageBuilderController extends Controller
         ]);
 
         $this->service->reorderBlockSellers($data['sellers']);
+        return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Brand Strip — Brands
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function loadBlockBrands(PageBlock $block): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+
+        $items = PageBlockBrand::where('page_block_id', $block->id)
+            ->orderBy('position')
+            ->with('brand')
+            ->get()
+            ->map(fn ($pb) => [
+                'id'   => $pb->id,
+                'text' => $pb->brand?->name_en . ($pb->brand?->name_ar ? ' — ' . $pb->brand?->name_ar : ''),
+            ]);
+
+        return response()->json(['results' => $items]);
+    }
+
+    public function addBlockBrand(Request $request, PageBlock $block): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'brand_id' => ['required', 'uuid', 'exists:brands,id'],
+        ]);
+
+        $exists = PageBlockBrand::where('page_block_id', $block->id)
+            ->where('brand_id', $data['brand_id'])
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['error' => 'Brand already added.'], 422);
+        }
+
+        $maxPos = PageBlockBrand::where('page_block_id', $block->id)->max('position') ?? -1;
+
+        $item = PageBlockBrand::create([
+            'page_block_id' => $block->id,
+            'brand_id'      => $data['brand_id'],
+            'position'      => $maxPos + 1,
+        ]);
+
+        $brand = Brand::find($data['brand_id']);
+
+        return response()->json([
+            'item' => [
+                'id'       => $item->id,
+                'brand_id' => $brand->id,
+                'name'     => $brand->name_en,
+                'name_ar'  => $brand->name_ar,
+                'logo_url' => $brand->logo_url,
+                'position' => $item->position,
+            ],
+        ]);
+    }
+
+    public function removeBlockBrand(PageBlockBrand $blockBrand): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+        $blockBrand->delete();
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderBlockBrands(Request $request, PageBlock $block): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'brands'            => ['required', 'array'],
+            'brands.*.id'       => ['required', 'uuid'],
+            'brands.*.position' => ['required', 'integer', 'min:0'],
+        ]);
+
+        foreach ($data['brands'] as $item) {
+            PageBlockBrand::where('id', $item['id'])
+                ->where('page_block_id', $block->id)
+                ->update(['position' => $item['position']]);
+        }
+
         return response()->json(['success' => true]);
     }
 

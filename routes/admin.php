@@ -475,6 +475,12 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/blocks/{block}/sellers', [PageBuilderController::class, 'addBlockSeller'])->name('sellers.add');
         Route::delete('/block-sellers/{blockSeller}', [PageBuilderController::class, 'removeBlockSeller'])->name('sellers.remove');
         Route::post('/blocks/{block}/sellers/reorder', [PageBuilderController::class, 'reorderBlockSellers'])->name('sellers.reorder');
+
+        // ── Brand Strip — Brand picker ─────────────────────────────────────────────
+        Route::get('/blocks/{block}/brands', [PageBuilderController::class, 'loadBlockBrands'])->name('blocks.brands.load');
+        Route::post('/blocks/{block}/brands', [PageBuilderController::class, 'addBlockBrand'])->name('blocks.brands.add');
+        Route::delete('/block-brands/{blockBrand}', [PageBuilderController::class, 'removeBlockBrand'])->name('block-brands.remove');
+        Route::post('/blocks/{block}/brands/reorder', [PageBuilderController::class, 'reorderBlockBrands'])->name('blocks.brands.reorder');
     });
 
     // ─── Vendors ─────────────────────────────────────────────────────────────────

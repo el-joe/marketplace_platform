@@ -71,6 +71,11 @@ const ROUTES = {
     blockSellers: (id) => `/page-builder/blocks/${id}/sellers`,
     blockSellerRemove: (id) => `/page-builder/block-sellers/${id}`,
     blockSellerReorder: (id) => `/page-builder/blocks/${id}/sellers/reorder`,
+
+    blockBrands: (id) => `/page-builder/blocks/${id}/brands`,
+    blockBrandRemove: (id) => `/page-builder/block-brands/${id}`,
+    blockBrandReorder: (id) => `/page-builder/blocks/${id}/brands/reorder`,
+    searchBrands: '/page-builder/search/brands',
 };
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
@@ -508,6 +513,7 @@ function openConfigPanel(blockId) {
             if ($('#config-form-body [data-block-products-list]').length) loadPickerList('products', blockId);
             if ($('#config-form-body [data-block-categories-list]').length) loadPickerList('categories', blockId);
             if ($('#config-form-body [data-block-sellers-list]').length) loadPickerList('sellers', blockId);
+            if ($('#config-form-body [data-block-brands-list]').length) loadPickerList('brands', blockId);
             if ($('#config-form-body [data-ad-images-panel]').length) loadAdImagesPanel(blockId);
         });
     }).fail(() => {
@@ -552,6 +558,18 @@ const PICKER_CONFIG = {
         searchInputSelector: '[data-action="search-block-sellers"]',
         resultsSelector: '[data-block-seller-search-results]',
         emptyText: window.TRANSLATIONS?.noVendorsYet || 'No vendors added yet. Search above to add some.',
+    },
+    brands: {
+        listUrl: ROUTES.blockBrands,
+        removeUrl: ROUTES.blockBrandRemove,
+        reorderUrl: ROUTES.blockBrandReorder,
+        searchUrl: ROUTES.searchBrands,
+        idField: 'brand_id',
+        reorderPayloadKey: 'brands',
+        listSelector: '[data-block-brands-list]',
+        searchInputSelector: '[data-action="search-block-brands"]',
+        resultsSelector: '[data-block-brand-search-results]',
+        emptyText: window.TRANSLATIONS?.noBrandsYet || 'No brands added yet. Search above to add some.',
     },
 };
 

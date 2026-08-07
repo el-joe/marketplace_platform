@@ -8866,8 +8866,8 @@ return [
             'brand_strip' => [
                 'max_brands'       => 'Max brands',
                 'logos_only'       => 'Logos only',
-                'vendors'          => 'Vendors',
-                'add_vendor'       => 'Add vendor',
+                'brands'           => 'Brands',
+                'add_brand'        => 'Search by brand name…',
             ],
 
             'nawy_carousel' => [

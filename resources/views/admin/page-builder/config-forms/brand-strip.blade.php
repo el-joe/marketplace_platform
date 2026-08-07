@@ -12,7 +12,7 @@
         <x-form.toggle name="show_logo_only" label="{{ __('admin.page_builder.config_forms.brand_strip.logos_only') }}" :value="$config['show_logo_only'] ?? true" />
     </div>
 
-    @include('admin.page-builder.config-forms.partials.sellers-manager', ['block' => $block])
+    @include('admin.page-builder.config-forms.partials.brands-manager', ['block' => $block])
 
     @include('admin.page-builder.config-forms.partials.visibility', ['block' => $block])
 </form>

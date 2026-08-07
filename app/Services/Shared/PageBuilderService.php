@@ -145,6 +145,41 @@ class PageBuilderService
             }
         }
 
+        if ($b->block_type === 'search_trends') {
+            $cfg      = $b->config ?? [];
+            $maxTerms = (int) ($cfg['max_terms'] ?? 10);
+            $source   = $cfg['source'] ?? 'auto';
+
+            if ($source === 'manual' && !empty($cfg['manual_keywords'])) {
+                $terms = collect(explode("\n", $cfg['manual_keywords']))
+                    ->map(fn ($t) => trim($t))
+                    ->filter(fn ($t) => strlen($t) > 0)
+                    ->take($maxTerms)
+                    ->values()
+                    ->all();
+            } else {
+                $terms = \Illuminate\Support\Facades\DB::table('search_logs')
+                    ->where('country_id', $country->id)
+                    ->where('created_at', '>=', now()->subDays(7))
+                    ->whereNotNull('query_normalized')
+                    ->whereRaw('LENGTH(query_normalized) > 2')
+                    ->selectRaw('query_normalized, COUNT(*) as cnt')
+                    ->groupBy('query_normalized')
+                    ->orderByDesc('cnt')
+                    ->limit($maxTerms)
+                    ->pluck('query_normalized')
+                    ->all();
+            }
+
+            $data['terms'] = $terms;
+            $data['title'] = [
+                'ar' => $cfg['title_ar'] ?? null,
+                'en' => $cfg['title_en'] ?? null,
+            ];
+            $data['show_icons']           = (bool) ($cfg['show_icons'] ?? true);
+            $data['show_category_filter'] = (bool) ($cfg['show_category_filter'] ?? false);
+        }
+
         if ($b->slides->isNotEmpty()) {
             $data['slides'] = $b->slides->map(fn($s) => [
                 'id' => $s->id,
@@ -222,6 +257,27 @@ class PageBuilderService
                     'id' => $bc->category->id,
                     'name' => Bilingual::pair($bc->category, 'name'),
                     'slug' => $bc->category->slug,
+                ])
+                ->values()
+                ->all();
+        }
+
+        if ($b->block_type === 'brand_strip') {
+            $maxItems = (int) ($b->config['max_items'] ?? 10);
+            $brands   = \App\Models\PageBlockBrand::where('page_block_id', $b->id)
+                ->orderBy('position')
+                ->limit($maxItems)
+                ->with('brand')
+                ->get();
+
+            $data['brands'] = $brands
+                ->filter(fn ($bb) => $bb->brand?->is_active)
+                ->map(fn ($bb) => [
+                    'id'         => $bb->brand->id,
+                    'name'       => ['ar' => $bb->brand->name_ar, 'en' => $bb->brand->name_en],
+                    'slug'       => $bb->brand->slug,
+                    'logo_url'   => $bb->brand->logo_url,
+                    'browse_url' => "/browse/brand/{$bb->brand->id}",
                 ])
                 ->values()
                 ->all();

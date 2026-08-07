@@ -8825,8 +8825,8 @@ return [
             'brand_strip' => [
                 'max_brands'       => 'أقصى عدد للعلامات التجارية',
                 'logos_only'       => 'الشعارات فقط',
-                'vendors'          => 'البائعون',
-                'add_vendor'       => 'إضافة بائع',
+                'brands'           => 'العلامات التجارية',
+                'add_brand'        => 'ابحث باسم العلامة التجارية…',
             ],
 
             'nawy_carousel' => [

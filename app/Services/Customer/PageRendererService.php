@@ -814,24 +814,26 @@ class PageRendererService
 
     private function hydrateBrandStrip(PageBlock $block): array
     {
-        $cfg = $block->config ?? [];
+        $cfg      = $block->config ?? [];
         $maxItems = (int) ($cfg['max_items'] ?? 10);
 
-        $blockSellers = PageBlockSeller::where('page_block_id', $block->id)
+        $blockBrands = \App\Models\PageBlockBrand::where('page_block_id', $block->id)
             ->orderBy('position')
             ->limit($maxItems)
-            ->with('seller')
+            ->with('brand')
             ->get();
 
         return [
-            'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
-            'show_logo_only' => (bool) ($cfg['show_logo_only'] ?? false),
-            'brands' => $blockSellers
-                ->filter(fn($bs) => $bs->seller !== null)
-                ->map(fn($bs) => [
-                    'name' => $bs->seller->store_name,
-                    'logo_url' => $bs->seller->avatar,
-                    'store_slug' => $bs->seller->store_slug,
+            'title'          => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'show_logo_only' => (bool) ($cfg['show_logo_only'] ?? true),
+            'brands'         => $blockBrands
+                ->filter(fn ($bb) => $bb->brand !== null && $bb->brand->is_active)
+                ->map(fn ($bb) => [
+                    'id'       => $bb->brand->id,
+                    'name'     => ['ar' => $bb->brand->name_ar, 'en' => $bb->brand->name_en],
+                    'slug'     => $bb->brand->slug,
+                    'logo_url' => $bb->brand->logo_url,
+                    'browse_url' => "/browse/brand/{$bb->brand->id}",
                 ])
                 ->values()
                 ->all(),
@@ -842,33 +844,45 @@ class PageRendererService
 
     private function hydrateSearchTrends(PageBlock $block, Country $country): array
     {
-        $cfg = $block->config ?? [];
+        $cfg      = $block->config ?? [];
         $maxTerms = (int) ($cfg['max_terms'] ?? 10);
+        $source   = $cfg['source'] ?? 'auto';
 
-        $terms = $this->cacheRememberTagged(
-            "search_trends:{$country->id}:{$maxTerms}",
-            1800,
-            ['search_trends'],
-            function () use ($country, $maxTerms) {
-                // NOTE: spec assumed a `search_query` column — the actual search_logs
-                // table stores this as `query`/`query_normalized`. Semantics preserved.
-                return DB::table('search_logs')
-                    ->where('country_id', $country->id)
-                    ->where('created_at', '>=', now()->subDays(7))
-                    ->whereNotNull('query_normalized')
-                    ->whereRaw('LENGTH(query_normalized) > 2')
-                    ->selectRaw('query_normalized, COUNT(*) as cnt')
-                    ->groupBy('query_normalized')
-                    ->orderByDesc('cnt')
-                    ->limit($maxTerms)
-                    ->pluck('query_normalized')
-                    ->all();
-            },
-        );
+        if ($source === 'manual' && !empty($cfg['manual_keywords'])) {
+            // Admin-defined keywords — no caching needed, served as-is
+            $terms = collect(explode("\n", $cfg['manual_keywords']))
+                ->map(fn ($t) => trim($t))
+                ->filter(fn ($t) => strlen($t) > 0)
+                ->take($maxTerms)
+                ->values()
+                ->all();
+        } else {
+            // Auto: top queries from search_logs last 7 days, cached 30 min
+            $terms = $this->cacheRememberTagged(
+                "search_trends:{$country->id}:{$maxTerms}",
+                1800,
+                ['search_trends'],
+                function () use ($country, $maxTerms) {
+                    return DB::table('search_logs')
+                        ->where('country_id', $country->id)
+                        ->where('created_at', '>=', now()->subDays(7))
+                        ->whereNotNull('query_normalized')
+                        ->whereRaw('LENGTH(query_normalized) > 2')
+                        ->selectRaw('query_normalized, COUNT(*) as cnt')
+                        ->groupBy('query_normalized')
+                        ->orderByDesc('cnt')
+                        ->limit($maxTerms)
+                        ->pluck('query_normalized')
+                        ->all();
+                },
+            );
+        }
 
         return [
-            'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
-            'terms' => $terms,
+            'title'                 => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'terms'                 => $terms,
+            'show_icons'            => (bool) ($cfg['show_icons'] ?? true),
+            'show_category_filter'  => (bool) ($cfg['show_category_filter'] ?? false),
         ];
     }
 
