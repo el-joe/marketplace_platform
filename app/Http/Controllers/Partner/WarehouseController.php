@@ -464,6 +464,53 @@ class WarehouseController extends Controller
         ));
     }
 
+    // ─── Transfer Item Search ─────────────────────────────────────────────────
+
+    public function transferItemSearch(Request $request): JsonResponse
+    {
+        $vendor = $this->vendor();
+        $search = trim((string) $request->query('search', ''));
+        $warehouseId = $request->query('source_warehouse_id');
+
+        $query = WarehouseInventory::query()
+            ->join('vendor_listings', 'vendor_listings.id', '=', 'warehouse_inventories.vendor_listing_id')
+            ->join('product_variants as pv', 'pv.id', '=', 'vendor_listings.product_variant_id')
+            ->join('products as p', 'p.id', '=', 'pv.product_id')
+            ->where('vendor_listings.vendor_id', $vendor->id)
+            ->whereRaw('warehouse_inventories.quantity_on_hand - warehouse_inventories.quantity_reserved > 0')
+            ->select([
+                'vendor_listings.id',
+                'vendor_listings.vendor_sku',
+                'p.name_en',
+                'p.name_ar',
+                'pv.sku',
+                'warehouse_inventories.quantity_on_hand',
+                'warehouse_inventories.quantity_reserved',
+            ]);
+
+        if ($warehouseId) {
+            $query->where('warehouse_inventories.warehouse_id', $warehouseId);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('p.name_en', 'like', "%{$search}%")
+                    ->orWhere('p.name_ar', 'like', "%{$search}%")
+                    ->orWhere('pv.sku', 'like', "%{$search}%")
+                    ->orWhere('vendor_listings.vendor_sku', 'like', "%{$search}%");
+            });
+        }
+
+        $items = $query->limit(20)->get()->map(fn($row) => [
+            'id' => $row->id,
+            'name_en' => $row->name_en,
+            'name_ar' => $row->name_ar,
+            'vendor_sku' => $row->vendor_sku ?: $row->sku,
+        ]);
+
+        return response()->json(['data' => $items]);
+    }
+
     // ─── Transfer Store ───────────────────────────────────────────────────────
 
     public function transferStore(StoreTransferRequest $request): JsonResponse

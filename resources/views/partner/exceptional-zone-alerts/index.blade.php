@@ -195,8 +195,12 @@
             modal.classList.remove('flex');
         };
 
+        let citiesRequestId = 0;
+
         window.loadCitiesForWarehouse = async function (warehouseId) {
             const list = document.getElementById('alertCitiesList');
+            const requestId = ++citiesRequestId;
+
             if (!warehouseId) {
                 list.innerHTML = i18n.selectWarehouseFirst;
                 return;
@@ -208,6 +212,11 @@
                 headers: { 'Accept': 'application/json' },
             });
             const data = await res.json();
+
+            // Discard the response if a newer warehouse selection has been made since this request started.
+            if (requestId !== citiesRequestId) {
+                return;
+            }
 
             if (!data.cities || data.cities.length === 0) {
                 list.innerHTML = '<p class="text-gray-400">' + i18n.noActiveCities + '</p>';

@@ -44,7 +44,7 @@ class ShippingCalculationService
                 $query->whereNull('max_weight_grams')
                     ->orWhere('max_weight_grams', '>=', $effectiveWeightGrams);
             })
-            ->value('extra_fee_cents');
+            ->value('extra_fee');
 
         return (int) ($extraFee ?? 0);
     }

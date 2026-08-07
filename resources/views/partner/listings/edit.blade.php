@@ -459,7 +459,7 @@
                 },
                 async fetchInfluencerFee() {
                     try {
-                        const res = await fetch('{{ route('partner.listings.influencer-fee') }}', {
+                        const res = await fetch('{{ route("partner.listings.marketer-fee") }}', {
                             headers: { 'Accept': 'application/json' },
                         });
                         const data = await res.json();

@@ -345,6 +345,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
             Route::get('/', [WarehouseController::class, 'transfersIndex'])->name('index');
             Route::get('/datatable', [WarehouseController::class, 'transfersDatatable'])->name('datatable');
             Route::get('/create', [WarehouseController::class, 'transferCreate'])->name('create');
+            Route::get('/item-search', [WarehouseController::class, 'transferItemSearch'])->name('item-search');
             Route::post('/', [WarehouseController::class, 'transferStore'])->name('store');
             Route::get('/{transfer}', [WarehouseController::class, 'transferShow'])->name('show');
             Route::post('/{transfer}/ship', [WarehouseController::class, 'transferShip'])->name('ship');

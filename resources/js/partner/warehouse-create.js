@@ -128,7 +128,8 @@ function initTransferCreate() {
         searchTimer = setTimeout(async () => {
             resultsEl.innerHTML = `<p class="text-xs text-gray-400 p-2">${t('shared.searching')}</p>`;
             try {
-                const res = await fetch(`/partner/listings?search=${encodeURIComponent(q)}&format=json`, {
+                const sourceWarehouseId = document.getElementById('source-warehouse-select')?.value || '';
+                const res = await fetch(`/partner/warehouses/transfers/item-search?search=${encodeURIComponent(q)}&source_warehouse_id=${encodeURIComponent(sourceWarehouseId)}`, {
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
                 });
                 const json = await res.json();

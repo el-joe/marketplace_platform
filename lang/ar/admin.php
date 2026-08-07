@@ -274,6 +274,9 @@ return [
     'api_keys_encrypted'    => 'مفاتيح API والأسرار مشفّرة. القيم الموجودة مخفية — اتركها فارغة للإبقاء على القيمة الحالية.',
     'live_preview'          => 'معاينة مباشرة',
     'switch_to_vendor'      => 'التبديل إلى التاجر',
+    'features'              => 'الميزات',
+    'hidden'                => 'مخفي',
+    'opened'                => 'مفتوح',
 
     // ─── Navigation ──────────────────────────────────────────────────────────
     'nav' => [
@@ -767,6 +770,7 @@ return [
     // ─── Vendors ─────────────────────────────────────────────────────────────
     'vendors' => [
         'title'                 => 'التجار',
+        'status'                => 'الحالة',
         'payout_schedule_weekly'   => 'أسبوعي',
         'payout_schedule_biweekly' => 'كل أسبوعين',
         'payout_schedule_monthly'  => 'شهري',
@@ -1388,6 +1392,23 @@ return [
 
     // ─── Marketer Campaigns ──────────────────────────────────────────────────
     'marketer_campaigns' => [
+        'affiliate_column' => 'مسوق (عمولة)',
+        'commission_owed_column' => 'العمولة المستحقة',
+        'conversions_column' => 'التحويلات',
+        'date_from' => 'من تاريخ',
+        'date_to' => 'إلى تاريخ',
+        'fee_status_column' => 'حالة الرسوم',
+        'fee_status_paid' => 'مدفوعة',
+        'fee_status_pending' => 'معلقة',
+        'fees_column' => 'رسوم المنصة',
+        'fees_pending_collection' => 'رسوم قيد التحصيل',
+        'financials_subtitle' => 'متابعة رسوم المنصة والعمولات لجميع حملات المسوقين.',
+        'financials_title' => 'المالية التسويقية',
+        'influencer_column' => 'مؤثر',
+        'influencers_accepted' => 'مؤثرون قبلوا',
+        'no_campaigns_period' => 'لا حملات في هذه الفترة.',
+        'total_fees_collected' => 'إجمالي الرسوم المحصلة',
+        'total_fees_expected' => 'إجمالي الرسوم المتوقعة',
         'title'                       => 'حملات المسوقين',
         'manage_subtitle'             => 'مراجعة والموافقة على حملات المسوقين والمؤثرين.',
         'pending_review'              => 'بانتظار المراجعة',
@@ -1492,8 +1513,18 @@ return [
         'sample_delivered_count'        => 'تم تسليمها',
     ],
 
+    'marketer_settings' => [
+        'country_column'  => 'الدولة',
+        'currency_column' => 'العملة',
+        'fee_column'      => 'الرسوم',
+        'note_affiliate_free' => 'نوع المسوق بالعمولة مجاني دائماً.',
+        'subtitle'        => 'إعداد رسوم المؤثرين وعمولات المسوقين لكل دولة.',
+        'title'           => 'إعدادات المسوقين',
+    ],
+
     // ─── Ad Campaigns ────────────────────────────────────────────────────────
     'ad_campaigns' => [
+        'campaign_details' => 'تفاصيل الحملة',
         'title'             => 'الحملات الإعلانية',
         'pending_review'    => 'قيد المراجعة',
         'cpc'               => 'تكلفة النقرة',
@@ -2689,6 +2720,18 @@ return [
         'alt_text_en_placeholder' => 'وصف الصورة…',
         'seo_section_title'     => 'تحسين محركات البحث (SEO)',
         'current_status'        => 'الحالة الحالية:',
+        'all_statuses' => 'جميع الحالات',
+        'current_og_replace' => 'الصورة الحالية (انقر للاستبدال)',
+        'featured_star' => '★ مميز',
+        'replace_featured_image' => 'استبدال الصورة المميزة',
+        'republish' => 'إعادة نشر',
+        'scheduled_for' => 'مجدول في',
+        'set_schedule' => 'تحديد جدول',
+        'slug' => 'الرابط المختصر',
+        'slug_auto_generated' => 'يُنشأ تلقائياً من العنوان',
+        'soft_delete_post_confirm' => 'هل تريد حذف هذا المقال؟ يمكن استعادته لاحقاً.',
+        'update_schedule' => 'تحديث الجدول',
+        'upload_new_replace' => 'رفع جديد للاستبدال',
         'data_table' => [
             'name' => 'الاسم',
             'slug' => 'الرابط المختصر',
@@ -2861,6 +2904,9 @@ return [
             'cancel' => 'إلغاء',
             'save' => 'حفظ',
             'active' => 'نشط',
+            'category_description_placeholder' => 'أدخل وصف الفئة…',
+            'name_ar_placeholder' => 'اسم الفئة بالعربية',
+            'name_en_placeholder' => 'اسم الفئة بالإنجليزية',
         ],
         'delete_modal' => [
             'delete_category' => 'حذف الفئة',
@@ -2904,6 +2950,7 @@ return [
 
     // ─── Travel ──────────────────────────────────────────────────────────────
     'travel' => [
+        'view_file' => 'عرض الملف',
         'title'             => 'السفر',
         'packages'          => 'الباقات',
         'bookings'          => 'الحجوزات',
@@ -3295,6 +3342,9 @@ return [
 
     // ─── Products ────────────────────────────────────────────────────────────
     'products' => [
+        'images' => 'الصور',
+        'listings' => 'العروض',
+        'this_product' => 'هذا المنتج',
         'title'             => 'المنتجات',
         'add_product'       => 'إضافة منتج',
         'edit_product'      => 'تعديل المنتج',
@@ -4194,6 +4244,7 @@ return [
 
     // ─── Gift Cards ──────────────────────────────────────────────────────────
     'gift_cards_section' => [
+        'total_revenue' => 'إجمالي الإيرادات',
         'admin_blocked_card_note' => 'تم حظر البطاقة من قبل المسؤول',
         'title'                 => 'بطاقات الهدايا',
         'batches_title'         => 'دفعات بطاقات الهدايا',
@@ -5503,6 +5554,8 @@ return [
 
     // ─── Shipping ────────────────────────────────────────────────────────────
     'shipping_section' => [
+        'failed_to_duplicate' => 'فشل التكرار.',
+        'failed_to_save' => 'فشل الحفظ.',
         'title'                 => 'الشحن',
         'shipping_company'      => 'شركة الشحن',
         'company_name'          => 'اسم الشركة',
@@ -7900,6 +7953,7 @@ return [
 
     // ─── transactions ───────────────────────────────────────────
     'transactions' => [
+        'payment_method' => 'طريقة الدفع',
         'title'                     => 'معاملات الدفع',
         'subtitle'                  => 'عرض والبحث في جميع معاملات بوابة الدفع.',
         'refund_queue'              => 'قائمة الاستردادات',
@@ -7968,6 +8022,7 @@ return [
 
     // ─── payouts ───────────────────────────────────────────
     'payouts' => [
+        'gateway_fee' => 'رسوم البوابة',
         'title'                 => 'المدفوعات',
         'payout_number'          => 'رقم الدفعة',
         'vendor'                 => 'التاجر',
@@ -8691,6 +8746,7 @@ return [
     ],
 
     'page_builder' => [
+        'slider_preview' => 'معاينة السلايدر',
         'title'                    => 'منشئ الصفحات',
         'analytics'                => 'التحليلات',
         'block_info_aria'          => 'ما وظيفة هذه الكتلة؟',
@@ -9651,6 +9707,8 @@ return [
     ],
 
     'notifications_section' => [
+        'channel_sms' => 'SMS',
+        'channel_whatsapp' => 'واتساب',
         'title'                 => 'إدارة الإشعارات',
         'subtitle'              => 'عرض سجل إشعارات المنصة وإرسال إشعارات جماعية للعملاء.',
         'send_notification'     => 'إرسال إشعار',
@@ -10102,5 +10160,15 @@ return [
         'settled_success' => 'تم تحديد التسوية كمسواة والموافقة على أرباح المندوب.',
         'already_settled_cannot_dispute' => 'لا يمكن الاعتراض على سجل تمت تسويته.',
         'disputed_success' => 'تم تحديد التسوية كمتنازع عليها.',
+    ],
+
+    // ─── Marketer Settings ─────────────────────────────────────────────────────
+    'marketer_settings' => [
+        'country_column' => 'الدولة',
+        'currency_column' => 'العملة',
+        'fee_column' => 'الرسوم',
+        'note_affiliate_free' => 'نوع المسوق بالعمولة مجاني دائماً.',
+        'subtitle' => 'إعداد رسوم المؤثرين وعمولات المسوقين لكل دولة.',
+        'title' => 'إعدادات المسوقين',
     ],
 ];

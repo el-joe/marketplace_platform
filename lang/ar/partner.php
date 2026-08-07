@@ -173,6 +173,21 @@ return [
             'cancelled' => 'ملغي',
             'completed' => 'مكتمل',
         ],
+        'awaiting_shipping_method' => 'في انتظار اختيار طريقة الشحن',
+        'confirm_order' => 'تأكيد الطلب',
+        'customer_notes' => 'ملاحظات العميل',
+        'estimated_delivery' => 'التسليم المتوقع',
+        'gateway_fee' => 'رسوم البوابة',
+        'gateway_fee_tooltip' => 'رسوم معالجة الدفع.',
+        'order_title' => 'طلب :number',
+        'product' => 'المنتج',
+        'shipment_tracking' => 'تتبع الشحنة',
+        'shipping_info' => 'معلومات الشحن',
+        'shipping_method' => 'طريقة الشحن',
+        'status_extra' => [
+            'return_requested' => 'طلب إرجاع',
+            'returned' => 'تم الإرجاع',
+        ],
     ],
 
     'listings' => [
@@ -391,6 +406,20 @@ return [
         'commission_type_tiered' => 'متدرج',
         'commission_type_last_click' => 'آخر نقرة',
         'fix_and_resubmit' => 'قم بإصلاح المشكلة أعلاه، ثم احفظ وأعد الإرسال.',
+        'attribute_summary' => 'الخصائص',
+        'copy_url' => 'نسخ الرابط',
+        'customer_url' => 'رابط العميل',
+        'customer_url_hint' => 'شارك هذا الرابط مع العملاء.',
+        'edit_price' => 'تعديل السعر',
+        'platform_warehouse_type' => 'مستودع المنصة',
+        'preferred_shipping_method' => 'طريقة الشحن المفضلة',
+        'preferred_shipping_method_hint' => 'اتركه فارغاً لاستخدام الإعداد الافتراضي للفئة.',
+        'select_warehouse_placeholder' => 'اختر مستودعاً…',
+        'shipping_method' => [
+            'category_default' => 'الإعداد الافتراضي للفئة',
+            'shipping_method_default_option' => 'استخدام الإعداد الافتراضي للفئة',
+        ],
+        'vendor_warehouse_type' => 'مستودعك',
     ],
 
     'auth' => [
@@ -403,6 +432,19 @@ return [
         'register_now' => 'سجّل الآن',
         'sign_in_title' => 'تسجيل الدخول كبائع',
         'access_store_dashboard' => 'الوصول إلى لوحة تحكم البائع',
+        'back_to_login' => 'العودة لتسجيل الدخول',
+        'brand_suffix' => 'بوابة الشركاء',
+        'confirm_password' => 'تأكيد كلمة المرور',
+        'forgot_password_desc' => 'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.',
+        'forgot_password_heading' => 'نسيت كلمة المرور؟',
+        'forgot_password_title' => 'نسيت كلمة المرور',
+        'new_password' => 'كلمة المرور الجديدة',
+        'reset_password_desc' => 'أدخل كلمة مرورك الجديدة.',
+        'reset_password_heading' => 'إعادة تعيين كلمة المرور',
+        'reset_password_title' => 'إعادة التعيين',
+        'send_reset_link' => 'إرسال رابط الإعادة',
+        'set_new_password' => 'تعيين كلمة مرور جديدة',
+        'vendor_panel_subtitle' => 'إدارة متجرك وعروضك وطلباتك.',
     ],
 
     'ads' => [
@@ -529,6 +571,10 @@ return [
         'messages' => [
             'listings_not_owned' => 'واحد أو أكثر من المنتجات المحددة لا ينتمي إلى متجرك.',
         ],
+        'click_bid' => 'مزايدة النقرة',
+        'loading_categories' => 'جاري تحميل الفئات…',
+        'loading_products' => 'جاري تحميل المنتجات…',
+        'no_active_products' => 'لا توجد منتجات نشطة.',
     ],
 
     'ai_tools' => [
@@ -660,6 +706,19 @@ return [
         'no_shipments_found' => 'لا توجد شحنات',
         'subsidy_footnote' => 'دعم التوصيل هو المبلغ الذي تتحمله المنصة من رسوم التوصيل نيابةً عنك وعن العميل.',
         'export' => 'تصدير CSV',
+        'choose_date_range' => 'اختر نطاق التاريخ',
+        'details' => 'التفاصيل',
+        'download_receipt' => 'تحميل الإيصال',
+        'included_in' => 'ضمن الدفعة رقم :number',
+        'net_profit' => 'صافي الربح',
+        'not_settled_yet' => 'لم تتم التسوية بعد',
+        'payout' => 'الدفعة',
+        'payouts' => 'الدفعات',
+        'profit_details' => 'تفاصيل الربح',
+        'refund' => 'استرداد',
+        'refunds' => 'المرتجعات',
+        'sales' => 'المبيعات',
+        'settlement_status' => 'حالة التسوية',
     ],
 
     'inventory' => [

@@ -7,15 +7,15 @@
     @vite(['resources/js/components/select2.js', 'resources/js/partner/listings.js', 'resources/js/partner/listing-create-campaign.js'])
     <script>
         window.LISTINGS_CREATE = {
-            productSearchUrl: '{{ route('partner.listings.product-search') }}',
-            slugPreviewUrlTemplate: '{{ route('partner.listings.slug-preview', ['product' => '__PRODUCT__', 'variant' => '__VARIANT__']) }}',
-            urlInfoUrlTemplate: '{{ route('partner.listings.variants.url-info', ['variant' => '__VARIANT__']) }}',
-            warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
-            availableShippingMethodsUrl: '{{ route('partner.listings.available-shipping-methods') }}',
-            categorySamplesUrl: '{{ route('partner.listings.category-samples') }}',
-            campaignPricingUrl: '{{ route('partner.listings.campaign-pricing') }}',
-            influencerFeeUrl: '{{ route('partner.listings.influencer-fee') }}',
-            storeUrl: '{{ route('partner.listings.store') }}',
+            productSearchUrl: '{{ route("partner.listings.product-search") }}',
+            slugPreviewUrlTemplate: '{{ route("partner.listings.slug-preview", ["product" => "__PRODUCT__", "variant" => "__VARIANT__"]) }}',
+            urlInfoUrlTemplate: '{{ route("partner.listings.variants.url-info", ["variant" => "__VARIANT__"]) }}',
+            warehousesByCountryUrl: '{{ route("partner.listings.warehouses-by-country") }}',
+            availableShippingMethodsUrl: '{{ route("partner.listings.available-shipping-methods") }}',
+            categorySamplesUrl: '{{ route("partner.listings.category-samples") }}',
+            campaignPricingUrl: '{{ route("partner.listings.campaign-pricing") }}',
+            influencerFeeUrl: '{{ route("partner.listings.marketer-fee") }}',
+            storeUrl: '{{ route("partner.listings.store") }}',
             csrf: '{{ csrf_token() }}',
         };
     </script>

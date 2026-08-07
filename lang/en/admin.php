@@ -274,6 +274,9 @@ return [
     'api_keys_encrypted'    => 'API keys and secrets are encrypted at rest. Existing values are masked — leave blank to keep the current value.',
     'live_preview'          => 'Live Preview',
     'switch_to_vendor'      => 'Switch to Vendor',
+    'features'              => 'Features',
+    'hidden'                => 'Hidden',
+    'opened'                => 'Opened',
 
     // ─── Navigation ──────────────────────────────────────────────────────────
     'nav' => [
@@ -763,6 +766,7 @@ return [
     // ─── Vendors ─────────────────────────────────────────────────────────────
     'vendors' => [
         'title'                 => 'Vendors',
+        'status'                => 'Status',
         'payout_schedule_weekly'   => 'Weekly',
         'payout_schedule_biweekly' => 'Biweekly',
         'payout_schedule_monthly'  => 'Monthly',
@@ -1431,6 +1435,23 @@ return [
 
     // ─── Marketer Campaigns ──────────────────────────────────────────────────
     'marketer_campaigns' => [
+        'affiliate_column' => 'Affiliate',
+        'commission_owed_column' => 'Commission Owed',
+        'conversions_column' => 'Conversions',
+        'date_from' => 'Date From',
+        'date_to' => 'Date To',
+        'fee_status_column' => 'Fee Status',
+        'fee_status_paid' => 'Paid',
+        'fee_status_pending' => 'Pending',
+        'fees_column' => 'Platform Fees',
+        'fees_pending_collection' => 'Fees Pending Collection',
+        'financials_subtitle' => 'Platform fee and commission tracking for all marketer campaigns.',
+        'financials_title' => 'Campaign Financials',
+        'influencer_column' => 'Influencer',
+        'influencers_accepted' => 'Influencers Accepted',
+        'no_campaigns_period' => 'No campaigns in this period.',
+        'total_fees_collected' => 'Total Fees Collected',
+        'total_fees_expected' => 'Total Fees Expected',
         'title'                       => 'Marketer Campaigns',
         'manage_subtitle'             => 'Review and approve marketer/influencer campaigns.',
         'pending_review'              => 'Pending Review',
@@ -1535,8 +1556,18 @@ return [
         'sample_delivered_count'        => 'delivered',
     ],
 
+    'marketer_settings' => [
+        'country_column'  => 'Country',
+        'currency_column' => 'Currency',
+        'fee_column'      => 'Fee',
+        'note_affiliate_free' => 'Affiliate type is always free — no fee charged.',
+        'subtitle'        => 'Configure influencer fees and affiliate commission settings per country.',
+        'title'           => 'Marketer Settings',
+    ],
+
     // ─── Ad Campaigns ────────────────────────────────────────────────────────
     'ad_campaigns' => [
+        'campaign_details'  => 'Campaign Details',
         'title'             => 'Ad Campaigns',
         'pending_review'    => 'Pending Review',
         'cpc'               => 'CPC',
@@ -2729,6 +2760,18 @@ return [
         'alt_text_en_placeholder' => 'Image description…',
         'seo_section_title'     => 'SEO',
         'current_status'        => 'Current status:',
+        'all_statuses' => 'All Statuses',
+        'current_og_replace' => 'Current OG image (click to replace)',
+        'featured_star' => '★ Featured',
+        'replace_featured_image' => 'Replace featured image',
+        'republish' => 'Republish',
+        'scheduled_for' => 'Scheduled for',
+        'set_schedule' => 'Set Schedule',
+        'slug' => 'Slug',
+        'slug_auto_generated' => 'Auto-generated from title',
+        'soft_delete_post_confirm' => 'Are you sure you want to delete this post? It can be restored later.',
+        'update_schedule' => 'Update Schedule',
+        'upload_new_replace' => 'Upload new to replace',
         'data_table' => [
             'name' => 'Name',
             'slug' => 'Slug',
@@ -2901,6 +2944,9 @@ return [
             'cancel' => 'Cancel',
             'save' => 'Save',
             'active' => 'Active',
+            'category_description_placeholder' => 'Enter category description…',
+            'name_ar_placeholder' => 'Category name in Arabic',
+            'name_en_placeholder' => 'Category name in English',
         ],
         'delete_modal' => [
             'delete_category' => 'Delete Category',
@@ -2944,6 +2990,7 @@ return [
 
     // ─── Travel ──────────────────────────────────────────────────────────────
     'travel' => [
+        'view_file' => 'View File',
         'title'             => 'Travel',
         'packages'          => 'Packages',
         'bookings'          => 'Bookings',
@@ -3335,6 +3382,9 @@ return [
 
     // ─── Products ────────────────────────────────────────────────────────────
     'products' => [
+        'images' => 'Images',
+        'listings' => 'Listings',
+        'this_product' => 'This product',
         'title'             => 'Products',
         'add_product'       => 'Add Product',
         'edit_product'      => 'Edit Product',
@@ -4234,6 +4284,7 @@ return [
 
     // ─── Gift Cards ──────────────────────────────────────────────────────────
     'gift_cards_section' => [
+        'total_revenue' => 'Total Revenue',
         'admin_blocked_card_note' => 'Admin blocked card',
         'title'                 => 'Gift Cards',
         'batches_title'         => 'Gift Card Batches',
@@ -5535,6 +5586,8 @@ return [
 
     // ─── Shipping ────────────────────────────────────────────────────────────
     'shipping_section' => [
+        'failed_to_duplicate' => 'Failed to duplicate. Please try again.',
+        'failed_to_save' => 'Failed to save. Please check your input.',
         'title'                 => 'Shipping',
         'shipping_company'      => 'Shipping Company',
         'company_name'          => 'Company Name',
@@ -7941,6 +7994,7 @@ return [
 
     // ─── transactions ───────────────────────────────────────────
     'transactions' => [
+        'payment_method' => 'Payment Method',
         'title'                     => 'Payment Transactions',
         'subtitle'                  => 'View and search all gateway transactions.',
         'refund_queue'              => 'Refund Queue',
@@ -8009,6 +8063,7 @@ return [
 
     // ─── payouts ───────────────────────────────────────────
     'payouts' => [
+        'gateway_fee' => 'Gateway Fee',
         'title'                 => 'Payouts',
         'payout_number'          => 'Payout #',
         'vendor'                 => 'Vendor',
@@ -8732,6 +8787,7 @@ return [
     ],
 
     'page_builder' => [
+        'slider_preview' => 'Slider Preview',
         'title'                    => 'Page Builder',
         'analytics'                => 'Analytics',
         'block_info_aria'          => 'What does this block do?',
@@ -9692,6 +9748,8 @@ return [
     ],
 
     'notifications_section' => [
+        'channel_sms' => 'SMS',
+        'channel_whatsapp' => 'WhatsApp',
         'title'                 => 'Notification Management',
         'subtitle'              => 'View platform notification history and send manual broadcasts to customers.',
         'send_notification'     => 'Send Notification',
@@ -10144,5 +10202,15 @@ return [
         'settled_success' => 'Settlement marked as settled and agent earnings approved.',
         'already_settled_cannot_dispute' => 'A settled record cannot be disputed.',
         'disputed_success' => 'Settlement marked as disputed.',
+    ],
+
+    // ─── Marketer Settings ─────────────────────────────────────────────────────
+    'marketer_settings' => [
+        'country_column' => 'Country',
+        'currency_column' => 'Currency',
+        'fee_column' => 'Fee',
+        'note_affiliate_free' => 'Affiliate type is always free — no fee charged.',
+        'subtitle' => 'Configure influencer fees and affiliate commission settings per country.',
+        'title' => 'Marketer Settings',
     ],
 ];
