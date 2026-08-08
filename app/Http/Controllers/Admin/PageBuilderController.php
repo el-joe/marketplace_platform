@@ -203,12 +203,19 @@ class PageBuilderController extends Controller
 
         $data = $request->validate([
             'page_id'         => ['required', 'uuid', 'exists:pages,id'],
-            'name'            => ['nullable', 'string', 'max:150'],
+            'name'            => ['sometimes', 'nullable', 'string', 'max:150'],
             'position'        => ['required', 'integer', 'min:0'],
             'layout'          => ['nullable', 'in:stack,columns'],
             'columns_config'  => ['nullable', 'string', 'max:100'],
             'background_image_url' => ['nullable', 'string', 'max:500'],
+            'background_color' => ['nullable', 'string', 'max:20'],
+            'max_width'       => ['nullable', 'string', 'max:20'],
+            'padding_top'     => ['nullable', 'integer', 'min:0', 'max:200'],
+            'padding_bottom'  => ['nullable', 'integer', 'min:0', 'max:200'],
+            'is_visible'      => ['sometimes', 'boolean'],
         ]);
+
+        $data['name'] = $data['name'] ?? 'New Section';
 
         $section = PageSection::create($data);
 
@@ -307,10 +314,19 @@ class PageBuilderController extends Controller
             'page_id' => 'required|uuid|exists:pages,id',
             'block_type_code' => 'required|string',
             'position' => 'required|integer|min:0',
+            'section_id' => 'nullable|uuid|exists:page_sections,id',
+            'column_index' => 'nullable|integer|min:0',
         ]);
 
         $page = Page::findOrFail($data['page_id']);
-        $block = $this->service->addBlock($page, $data['block_type_code'], (int) $data['position'], $this->admin());
+        $block = $this->service->addBlock(
+            $page,
+            $data['block_type_code'],
+            (int) $data['position'],
+            $this->admin(),
+            $data['section_id'] ?? null,
+            $data['column_index'] ?? null,
+        );
         $page->load('blocks');
         $this->pageCache->bustPage($block->page ?? $page);
 
@@ -1191,6 +1207,38 @@ class PageBuilderController extends Controller
             'path' => $path,
             'storage_type' => 'public',
             'file_type' => 'section_background',
+            'mime_type' => $uploaded->getMimeType(),
+            'extension' => $ext,
+            'size' => $uploaded->getSize(),
+        ]);
+
+        return response()->json([
+            'file_id' => $file->id,
+            'url' => Storage::disk('public')->url($path),
+        ]);
+    }
+
+    public function uploadPromoTileImage(Request $request)
+    {
+        $this->authorizeManage();
+
+        $request->validate([
+            'image' => ['required', 'image', 'max:8192'],
+        ]);
+
+        $uploaded = $request->file('image');
+        $ext = $uploaded->getClientOriginalExtension() ?: $uploaded->guessExtension();
+        $path = $uploaded->storeAs(
+            'page-builder/promo-tiles',
+            Str::random(16) . '.' . $ext,
+            'public'
+        );
+
+        $file = File::create([
+            'key' => 'page-builder/promo-tiles/' . basename($path),
+            'path' => $path,
+            'storage_type' => 'public',
+            'file_type' => 'promo_tile',
             'mime_type' => $uploaded->getMimeType(),
             'extension' => $ext,
             'size' => $uploaded->getSize(),

@@ -74,6 +74,7 @@
     <script>
     (function() {
         let idx = {{ count($tabs) }};
+        const searchCategoriesUrl = @json(route('admin.page-builder.search.categories'));
         document.getElementById('add-mega-tab')?.addEventListener('click', function() {
             const row = document.createElement('div');
             row.className = 'mega-tab-row p-3 border border-gray-200 rounded-lg bg-gray-50 space-y-2';
@@ -85,7 +86,7 @@
                         class="text-sm border border-gray-300 rounded px-2 py-1">
                 </div>
                 <select name="tabs[${idx}][category_id]" data-async-select
-                    data-config='${JSON.stringify({url: "${!! route('admin.page-builder.search.categories') !!}", param: "q", minLength: 0, delay: 300})}'
+                    data-config='${JSON.stringify({url: searchCategoriesUrl, param: "q", minLength: 0, delay: 300})}'
                     class="block w-full text-sm border border-gray-300 rounded px-2 py-1">
                 </select>
                 <div class="flex items-center gap-2">

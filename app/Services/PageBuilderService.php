@@ -128,7 +128,7 @@ class PageBuilderService
     // Blocks
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function addBlock(Page $page, string $blockTypeCode, int $position, Admin $admin): PageBlock
+    public function addBlock(Page $page, string $blockTypeCode, int $position, Admin $admin, ?string $sectionId = null, ?int $columnIndex = null): PageBlock
     {
         $type = BlockType::where('code', $blockTypeCode)->where('is_active', true)->first();
         if (!$type) {
@@ -150,11 +150,13 @@ class PageBuilderService
             }
         }
 
-        $block = DB::transaction(function () use ($page, $type, $position, $admin) {
+        $block = DB::transaction(function () use ($page, $type, $position, $admin, $sectionId, $columnIndex) {
             $block = PageBlock::create([
                 'page_id' => $page->id,
                 'block_type' => $type->code,
                 'position' => $position,
+                'section_id' => $sectionId,
+                'column_index' => $columnIndex ?? 0,
                 'config' => $type->default_config ?? [],
                 'is_visible' => true,
                 'device_target' => 'all',

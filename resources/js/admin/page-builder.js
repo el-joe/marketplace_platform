@@ -21,6 +21,7 @@ const state = {
     sections: [],
     sectionSortable: null,
     blockSortables: [],
+    paletteSortables: [],
     editingSectionId: null,
 };
 
@@ -62,6 +63,7 @@ const ROUTES = {
     adImageUploadImage: '/page-builder/ad-images/upload-image',
 
     sectionBackgroundUploadImage: '/page-builder/sections/upload-background-image',
+    promoTileUploadImage: '/page-builder/promo-tiles/upload-image',
 
     pageUpdate: (id) => `/page-builder/pages/${id}`,
     pageDelete: (id) => `/page-builder/pages/${id}`,
@@ -224,7 +226,17 @@ function renderSectionWrapper(section, blocks) {
     const widths = cfg && cfg.widths ? String(cfg.widths).trim().split(/\s+/) : [];
 
     let bodyHtml;
-    if (!blocks.length) {
+    if (!blocks.length && isColumns && widths.length) {
+        const columns = widths.length;
+        const colsHtml = widths.map((w, i) => `
+            <div class="section-column" style="${widthToStyle(w)}">
+                <div class="section-column-blocks is-empty text-xs text-gray-400" data-section-id="${section.id}" data-col-index="${i}" style="min-height: 40px;">
+                    ${i === 0 ? 'No blocks in this section yet — drag one here or add from the left.' : ''}
+                </div>
+            </div>
+        `).join('');
+        bodyHtml = `<div class="section-body"><div class="section-columns-row">${colsHtml}</div></div>`;
+    } else if (!blocks.length) {
         bodyHtml = `<div class="section-body is-empty text-xs text-gray-400 section-blocks" data-section-id="${section.id}">No blocks in this section yet — drag one here or add from the left.</div>`;
     } else if (isColumns && widths.length) {
         const columns = widths.length;
@@ -335,6 +347,7 @@ function initSortable() {
             animation: 150,
             ghostClass: 'sortable-ghost',
             onEnd: persistOrder,
+            onAdd: handlePaletteDrop,
         }));
     });
 
@@ -346,8 +359,62 @@ function initSortable() {
             animation: 150,
             ghostClass: 'sortable-ghost',
             onEnd: persistOrder,
+            onAdd: handlePaletteDrop,
         });
     }
+
+    initPaletteSortable();
+}
+
+/* ─── Palette drag source ───────────────────────────────────────────────── */
+function initPaletteSortable() {
+    state.paletteSortables?.forEach((s) => s.destroy());
+    state.paletteSortables = [];
+
+    document.querySelectorAll('.pb-group').forEach((el) => {
+        state.paletteSortables.push(Sortable.create(el, {
+            group: { name: 'pb-blocks', pull: 'clone', put: false },
+            sort: false,
+            animation: 150,
+            onClone: (evt) => { evt.clone.setAttribute('data-palette-clone', 'true'); },
+        }));
+    });
+}
+
+function handlePaletteDrop(evt) {
+    const $item = $(evt.item);
+    if (!$item.attr('data-palette-clone')) return; // ordinary block move — handled by onEnd/persistOrder
+
+    if (!state.currentPageId) {
+        $item.remove();
+        Toast.warning(window.TRANSLATIONS?.selectOrCreatePageFirst || 'Select or create a page first.');
+        return;
+    }
+
+    const $to = $(evt.to);
+    const sectionId = $to.data('section-id') || null;
+    const colIndex = $to.data('col-index');
+    const code = $item.data('block-type');
+    const position = evt.newIndex;
+    $item.remove();
+
+    ajax({
+        url: ROUTES.blocks,
+        method: 'POST',
+        data: {
+            page_id: state.currentPageId,
+            block_type_code: code,
+            position,
+            section_id: sectionId,
+            ...(colIndex !== undefined ? { column_index: colIndex } : {}),
+        },
+    }).done((res) => {
+        Toast.success(`${res.label_en || res.block_type} added.`);
+        loadPage(state.currentPageId);
+    }).fail((xhr) => {
+        const msg = xhr.responseJSON?.message || xhr.responseJSON?.errors?.block_type_code?.[0] || window.TRANSLATIONS?.couldNotAddBlock || 'Could not add block.';
+        Toast.error(msg);
+    });
 }
 
 function persistSectionOrder() {
@@ -958,11 +1025,41 @@ function collectFormData($form) {
             visibility[name.replace('__vis_', '')] = val;
             return;
         }
-        config[name] = val;
+        setNestedValue(config, name, val);
     });
     // Convert booleans for visibility
     if ('is_visible' in visibility) visibility.is_visible = !!Number(visibility.is_visible);
     return { config, visibility };
+}
+
+// Parses bracket-notation field names like "tiles[0][label_en]" into nested
+// arrays/objects on `target`, e.g. target.tiles[0].label_en = val.
+function setNestedValue(target, name, val) {
+    const keys = [];
+    const re = /^[^\[\]]+|\[[^\[\]]*\]/g;
+    let m;
+    while ((m = re.exec(name))) {
+        keys.push(m[0].startsWith('[') ? m[0].slice(1, -1) : m[0]);
+    }
+    if (keys.length <= 1) {
+        target[name] = val;
+        return;
+    }
+    let cursor = target;
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const isLast = i === keys.length - 1;
+        if (isLast) {
+            cursor[key] = val;
+        } else {
+            const nextKey = keys[i + 1];
+            const nextIsArray = nextKey === '' || /^\d+$/.test(nextKey);
+            if (typeof cursor[key] !== 'object' || cursor[key] === null) {
+                cursor[key] = nextIsArray ? [] : {};
+            }
+            cursor = cursor[key];
+        }
+    }
 }
 
 /* ─── Slides ────────────────────────────────────────────────────────────── */
@@ -1134,6 +1231,52 @@ $(document).on('change', '[data-section-bg-upload]', function () {
 $(document).on('click', '[data-clear-section-bg-image]', function (e) {
     e.preventDefault();
     setSectionBackgroundImagePreview('');
+});
+
+function setPromoTileImagePreview($row, url) {
+    $row.find('[data-tile-image-url]').val(url || '');
+    if (url) {
+        $row.find('[data-tile-image-img]').attr('src', url);
+        $row.find('[data-tile-image-preview]').removeClass('hidden');
+    } else {
+        $row.find('[data-tile-image-preview]').addClass('hidden');
+        $row.find('[data-tile-image-img]').attr('src', '');
+    }
+}
+
+$(document).on('change', '[data-tile-image-upload]', function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const $row = $(this).closest('.tile-row');
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('_token', csrfToken());
+
+    const $label = $(this).closest('label');
+    $label.addClass('opacity-50 pointer-events-none');
+
+    $.ajax({
+        url: ROUTES.promoTileUploadImage,
+        method: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        headers: { 'X-CSRF-TOKEN': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+    }).done((res) => {
+        setPromoTileImagePreview($row, res.url);
+        Toast.success(window.TRANSLATIONS?.imageUploaded || 'Image uploaded.');
+    }).fail((xhr) => {
+        Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.uploadFailed || 'Upload failed.');
+    }).always(() => {
+        $label.removeClass('opacity-50 pointer-events-none');
+        this.value = '';
+    });
+});
+
+$(document).on('click', '[data-clear-tile-image]', function (e) {
+    e.preventDefault();
+    setPromoTileImagePreview($(this).closest('.tile-row'), '');
 });
 
 $('#slide-form').on('submit', function (e) {
@@ -1355,6 +1498,7 @@ function openSectionDrawer(section) {
         $('#sd-delete').removeClass('hidden');
     } else {
         $('#sd-title').text('Add section');
+        $('#sd-name').val('New Section');
     }
 
     window.dispatchEvent(new CustomEvent('open-section-drawer'));
@@ -1438,11 +1582,11 @@ $('#sd-save').on('click', function () {
         request = ajax({ url: ROUTES.sections, method: 'POST', data: payload });
     }
 
-    withLoading($btn, request).done(() => {
+    withLoading($btn, request).then(() => {
         Toast.success(sectionId ? 'Section updated.' : 'Section added.');
         window.dispatchEvent(new CustomEvent('close-section-drawer'));
         loadPage(state.currentPageId);
-    }).fail((xhr) => {
+    }).catch((xhr) => {
         const errs = xhr.responseJSON?.errors || {};
         const first = Object.values(errs)[0]?.[0] || xhr.responseJSON?.message || 'Could not save section.';
         Toast.error(first);

@@ -30,9 +30,19 @@
                             value="{{ $tile['label_ar'] ?? '' }}" placeholder="التسمية" dir="rtl"
                             class="text-sm border border-gray-300 rounded px-2 py-1">
                     </div>
-                    <input type="url" name="tiles[{{ $i }}][image_url]"
-                        value="{{ $tile['image_url'] ?? '' }}" placeholder="Image URL"
-                        class="w-full text-sm border border-gray-300 rounded px-2 py-1">
+                    <div>
+                        <input type="hidden" data-tile-image-url name="tiles[{{ $i }}][image_url]"
+                            value="{{ $tile['image_url'] ?? '' }}">
+                        <div data-tile-image-preview class="{{ empty($tile['image_url']) ? 'hidden' : '' }} mb-2">
+                            <img data-tile-image-img src="{{ $tile['image_url'] ?? '' }}" alt="Tile image"
+                                class="w-full h-24 object-cover rounded border border-gray-200">
+                            <button type="button" data-clear-tile-image class="mt-1 text-xs text-rose-500 hover:text-rose-700">Remove</button>
+                        </div>
+                        <label class="flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition text-xs text-gray-500">
+                            <span>Upload image</span>
+                            <input type="file" accept="image/*" class="sr-only" data-tile-image-upload>
+                        </label>
+                    </div>
                     <input type="text" name="tiles[{{ $i }}][link_url]"
                         value="{{ $tile['link_url'] ?? '' }}" placeholder="Link URL (e.g. /browse/product/cat-id)"
                         class="w-full text-sm border border-gray-300 rounded px-2 py-1">
@@ -63,7 +73,17 @@
                     <input type="text" name="tiles[${idx}][label_en]" placeholder="Label (EN)" dir="ltr" class="text-sm border border-gray-300 rounded px-2 py-1">
                     <input type="text" name="tiles[${idx}][label_ar]" placeholder="التسمية" dir="rtl" class="text-sm border border-gray-300 rounded px-2 py-1">
                 </div>
-                <input type="url" name="tiles[${idx}][image_url]" placeholder="Image URL" class="w-full text-sm border border-gray-300 rounded px-2 py-1">
+                <div>
+                    <input type="hidden" data-tile-image-url name="tiles[${idx}][image_url]" value="">
+                    <div data-tile-image-preview class="hidden mb-2">
+                        <img data-tile-image-img src="" alt="Tile image" class="w-full h-24 object-cover rounded border border-gray-200">
+                        <button type="button" data-clear-tile-image class="mt-1 text-xs text-rose-500 hover:text-rose-700">Remove</button>
+                    </div>
+                    <label class="flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition text-xs text-gray-500">
+                        <span>Upload image</span>
+                        <input type="file" accept="image/*" class="sr-only" data-tile-image-upload>
+                    </label>
+                </div>
                 <input type="text" name="tiles[${idx}][link_url]" placeholder="Link URL" class="w-full text-sm border border-gray-300 rounded px-2 py-1">
                 <div class="grid grid-cols-2 gap-2">
                     <input type="text" name="tiles[${idx}][badge_label_en]" placeholder="Badge (EN)" class="text-sm border border-gray-300 rounded px-2 py-1">

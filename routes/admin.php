@@ -455,6 +455,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
 
         // Ad image upload
         Route::post('/ad-images/upload-image', [PageBuilderController::class, 'uploadAdImage'])->name('ad-images.upload-image');
+        Route::post('/promo-tiles/upload-image', [PageBuilderController::class, 'uploadPromoTileImage'])->name('promo-tiles.upload-image');
 
         // Section background image upload
         Route::post('/sections/upload-background-image', [PageBuilderController::class, 'uploadSectionBackgroundImage'])->name('sections.upload-background-image');
