@@ -270,8 +270,11 @@ function renderSectionWrapper(section, blocks) {
                 ${isColumns ? '<span class="section-badge">columns</span>' : ''}
                 ${!section.is_visible ? `<span class="section-badge" style="background:#f3f4f6;color:#6b7280;">${window.TRANSLATIONS?.hidden || 'Hidden'}</span>` : ''}
                 <div class="section-actions">
-                    <button type="button" data-action="edit-section" data-section-id="${section.id}" title="${window.TRANSLATIONS?.edit || 'Edit'}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h-6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6m-6-9 6 6m-6-6L21 3l-4 4"/></svg>
+                    <button type="button" data-action="edit-section" data-section-id="${section.id}"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded"
+                        title="${window.TRANSLATIONS?.sectionSettings || 'Section settings'}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.766.79.93.409.164.878.14 1.24-.12l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.26.362-.283.831-.12 1.24.164.406.505.72.93.79l.894.15c.542.09.94.56.94 1.109v1.094c0 .55-.398 1.02-.94 1.11l-.894.149c-.425.07-.766.384-.93.79-.164.409-.14.878.12 1.24l.526.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.362-.26-.83-.283-1.24-.12-.405.164-.719.506-.789.93l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.766-.79-.93-.409-.164-.878-.14-1.24.12l-.737.527a1.125 1.125 0 0 1-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.26-.362.283-.831.12-1.24-.165-.406-.506-.72-.93-.79l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.766-.384.93-.79.163-.409.14-.878-.12-1.24l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.774-.773a1.125 1.125 0 0 1 1.449-.12l.738.527c.362.26.83.283 1.24.12.405-.164.72-.506.789-.93l.15-.894Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                        <span>${window.TRANSLATIONS?.settings || 'Settings'}</span>
                     </button>
                     <button type="button" data-action="delete-section" data-section-id="${section.id}" title="${window.TRANSLATIONS?.delete || 'Delete'}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166M5.84 19.673a2.25 2.25 0 0 0 2.244 2.077h7.832a2.25 2.25 0 0 0 2.244-2.077L19.228 5.79m-14.456 0a48.108 48.108 0 0 1 3.478-.397m11.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
@@ -1492,7 +1495,27 @@ function openSectionDrawer(section) {
         $('#sd-section-id').val(section.id);
         $('#sd-name').val(section.name || '');
         $('#sd-layout').val(section.layout || 'stack').trigger('change');
-        $('#sd-columns-config').val(section.columns_config ? JSON.stringify(section.columns_config) : '');
+        if (section.columns_config) {
+            const cfg = typeof section.columns_config === 'string'
+                ? JSON.parse(section.columns_config)
+                : section.columns_config;
+            const normalized = JSON.stringify(cfg);
+            if ($('#sd-columns-config').find(`option[value="${normalized}"]`).length) {
+                $('#sd-columns-config').val(normalized);
+            } else {
+                $('#sd-columns-config option').each(function () {
+                    try {
+                        const opt = JSON.parse($(this).val());
+                        if (opt.columns === cfg.columns && opt.widths === cfg.widths) {
+                            $('#sd-columns-config').val($(this).val());
+                            return false;
+                        }
+                    } catch (_) {}
+                });
+            }
+        } else {
+            $('#sd-columns-config').val('');
+        }
         $('#sd-is-visible').prop('checked', section.is_visible !== false);
         $('#sd-background-color').val(section.background_color || '');
         setSectionBackgroundImagePreview(section.background_image_url || '');

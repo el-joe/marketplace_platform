@@ -8806,6 +8806,7 @@ return [
         'scheduled'                => 'Scheduled',
         'drag_to_reorder'          => 'Drag to reorder',
         'settings'                 => 'Settings',
+        'ungrouped_blocks'         => 'Ungrouped Blocks',
         'analytics_impressions'    => 'Impressions',
         'analytics_clicks'         => 'Clicks',
         'analytics_ctr'            => 'CTR',

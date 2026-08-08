@@ -8765,6 +8765,7 @@ return [
         'scheduled'                => 'مجدول',
         'drag_to_reorder'          => 'اسحب لإعادة الترتيب',
         'settings'                 => 'الإعدادات',
+        'ungrouped_blocks'         => 'بلوكات غير مجمّعة',
         'analytics_impressions'    => 'مرات الظهور',
         'analytics_clicks'         => 'النقرات',
         'analytics_ctr'            => 'معدل النقر',
