@@ -65,7 +65,7 @@ class WishlistController extends Controller
         return ApiResponse::success($this->groupShape($group->loadCount('items')), __('customer_api.wishlist.group_created'), 201);
     }
 
-    public function updateGroup(Request $request, string $groupId): JsonResponse
+    public function updateGroup(Request $request, $countryId, string $groupId): JsonResponse
     {
         $customer = auth('customer')->user();
 
@@ -93,7 +93,7 @@ class WishlistController extends Controller
         return ApiResponse::success($this->groupShape($group->loadCount('items')), __('customer_api.wishlist.group_updated'));
     }
 
-    public function deleteGroup(Request $request, string $groupId): JsonResponse
+    public function deleteGroup(Request $request, $countryId, string $groupId): JsonResponse
     {
         $customer = auth('customer')->user();
 
@@ -112,7 +112,7 @@ class WishlistController extends Controller
         return ApiResponse::success(null, __('customer_api.wishlist.group_deleted'));
     }
 
-    public function showGroup(Request $request, string $groupId): JsonResponse
+    public function showGroup(Request $request, $countryId , string $groupId): JsonResponse
     {
         $customer = auth('customer')->user();
 
@@ -211,7 +211,7 @@ class WishlistController extends Controller
         ], $result['already_existed'] ? __('customer_api.wishlist.already_in_wishlist') : __('customer_api.wishlist.added_to_wishlist'), $status);
     }
 
-    public function removeItem(Request $request, string $itemId): JsonResponse
+    public function removeItem(Request $request, $countryId, string $itemId): JsonResponse
     {
         $customer = auth('customer')->user();
 
