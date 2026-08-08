@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\Customer;
 
-use App\Enums\GlobalSystemType;
 use App\Services\Customer\ListingIdentifierService;
 use App\Support\Bilingual;
 use Illuminate\Http\Request;
@@ -12,7 +11,8 @@ class CartItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $listing = $this->vendorListing;
+        $isAdmin = !is_null($this->admin_listing_id);
+        $listing = $isAdmin ? $this->adminListing : $this->vendorListing;
         $variant = $listing?->productVariant;
         $product = $variant?->product;
         $available = $listing?->warehouseInventories->sum('quantity_available') ?? 0;
@@ -22,7 +22,7 @@ class CartItemResource extends JsonResource
             'listing_id'         => $listing?->id,
             'listing_ref'        => $listing ? app(ListingIdentifierService::class)->buildListingRef($listing) : null,
             'sku'                => $variant?->sku,
-            'vendor_sku'         => $listing?->vendor_sku,
+            'vendor_sku'         => $isAdmin ? null : $listing?->vendor_sku,
             'name'               => $product ? Bilingual::pair($product, 'name') : ['ar' => null, 'en' => null],
             'thumbnail'          => $product?->images?->firstWhere('is_primary', true)?->url
                                         ?? $product?->images?->first()?->url,
@@ -30,11 +30,11 @@ class CartItemResource extends JsonResource
             'quantity'           => $this->quantity,
             'line_total'   => $this->unit_price * $this->quantity,
             'max_order_quantity' => $listing?->max_order_quantity,
-            'vendor'             => $listing?->vendor ? [
+            'vendor'             => !$isAdmin && $listing?->vendor ? [
                 'id'         => $listing->vendor->id,
                 'store_name' => $listing->vendor->store_name,
             ] : null,
-            'is_admin_listing' => $listing?->global_system_type === GlobalSystemType::ExpressFbn,
+            'is_admin_listing' => $isAdmin,
             'shipping_badge'   => $listing?->primaryShippingMethod ? [
                 'label'             => Bilingual::pairFromKeys($listing->primaryShippingMethod, 'badge_label_ar', 'badge_label_en'),
                 'color_hex'         => $listing->primaryShippingMethod->badge_color_hex,

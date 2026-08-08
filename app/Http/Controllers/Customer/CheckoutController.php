@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\AdminListingStatus;
 use App\Enums\GlobalSystemType;
 use App\Enums\VendorListingStatus;
 use App\Events\SubOrderPlaced;
@@ -138,7 +139,11 @@ class CheckoutController extends Controller
         $validated = $request->validated();
 
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
-        $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product']);
+        $cart->load([
+            'items.vendorListing.vendor',
+            'items.vendorListing.productVariant.product',
+            'items.adminListing.productVariant.product',
+        ]);
 
         if ($cart->items->isEmpty()) {
             return ApiResponse::error(__('common.exceptions.checkout.cart_empty'), [], 422);
@@ -292,6 +297,11 @@ class CheckoutController extends Controller
             'items.vendorListing.productVariant.product.brand',
             'items.vendorListing.productVariant.product.images',
             'items.vendorListing.warehouseInventories',
+            // Admin listing (platform stock)
+            'items.adminListing.productVariant.product.category',
+            'items.adminListing.productVariant.product.brand',
+            'items.adminListing.productVariant.product.images',
+            'items.adminListing.warehouseInventories',
         ]);
 
         if ($cart->items->isEmpty()) {
@@ -299,13 +309,38 @@ class CheckoutController extends Controller
         }
 
         foreach ($cart->items as $item) {
-            if ($item->vendorListing->status !== VendorListingStatus::Active) {
-                return ApiResponse::error(__('common.exceptions.checkout.listing_not_available', ['id' => $item->vendorListing->id]), [], 422);
+            $isAdmin = ! is_null($item->admin_listing_id);
+            $listing = $isAdmin ? $item->adminListing : $item->vendorListing;
+
+            if (! $listing) {
+                return ApiResponse::error(
+                    __('common.exceptions.checkout.listing_not_available', ['id' => $item->id]),
+                    [], 422
+                );
             }
 
-            $available = $item->vendorListing->warehouseInventories->sum('quantity_available');
+            if ($isAdmin) {
+                if ($listing->status !== AdminListingStatus::Active) {
+                    return ApiResponse::error(
+                        __('common.exceptions.checkout.listing_not_available', ['id' => $listing->id]),
+                        [], 422
+                    );
+                }
+            } else {
+                if ($listing->status !== VendorListingStatus::Active) {
+                    return ApiResponse::error(
+                        __('common.exceptions.checkout.listing_not_available', ['id' => $listing->id]),
+                        [], 422
+                    );
+                }
+            }
+
+            $available = $listing->warehouseInventories->sum('quantity_available');
             if ($available < $item->quantity) {
-                return ApiResponse::error(__('common.exceptions.checkout.insufficient_stock_available', ['available' => $available]), [], 422);
+                return ApiResponse::error(
+                    __('common.exceptions.checkout.insufficient_stock_available', ['available' => $available]),
+                    [], 422
+                );
             }
         }
 

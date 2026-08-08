@@ -325,13 +325,21 @@ class CartController extends Controller
             'vendorListing.productVariant.product.images',
             'vendorListing.primaryShippingMethod',
             'vendorListing.warehouseInventories',
+            'adminListing.productVariant.product.images',
+            'adminListing.warehouseInventories',
             'selectedShippingMethod',
         ]);
 
+        $listing = $item->vendor_listing_id
+            ? $item->vendorListing
+            : $item->adminListing;
+
         return ApiResponse::success([
-            'cart' => new CartResource($cart),
-            'item' => new CartItemResource($item),
-            'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
+            'cart'        => new CartResource($cart),
+            'item'        => new CartItemResource($item),
+            'listing_ref' => $listing
+                ? $this->listingIdentifierService->buildListingRef($listing)
+                : null,
         ], __('common.exceptions.cart.item_updated'));
     }
 
