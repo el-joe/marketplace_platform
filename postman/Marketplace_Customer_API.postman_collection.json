@@ -14085,6 +14085,240 @@
       ]
     },
     {
+      "name": "Newsletter",
+      "item": [
+        {
+          "name": "Subscribe to Newsletter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/newsletter/subscribe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "newsletter",
+                "subscribe"
+              ]
+            },
+            "description": "Subscribes an email address to the marketing newsletter. Public endpoint — works for guests and authenticated customers alike (if a Bearer token is sent, the subscription is linked to that customer). Idempotent: re-subscribing a previously unsubscribed email simply re-activates it. Rate-limited to 10 requests/minute per IP.\n\n**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `email` | string | Yes | Email address to subscribe, max 191 chars |\n| `locale` | string | No | Preferred content locale, `ar` or `en` |\n| `source` | string | No | Signup source: `website`, `app`, `checkout`, or `page_builder` |\n\n**Auth:** Public endpoint, no token required.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sara.hassan@example.com\",\n  \"locale\": \"en\",\n  \"source\": \"website\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/newsletter/subscribe",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "newsletter",
+                    "subscribe"
+                  ]
+                },
+                "description": "Subscribes an email address to the marketing newsletter. Public endpoint — works for guests and authenticated customers alike (if a Bearer token is sent, the subscription is linked to that customer). Idempotent: re-subscribing a previously unsubscribed email simply re-activates it. Rate-limited to 10 requests/minute per IP.\n\n**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `email` | string | Yes | Email address to subscribe, max 191 chars |\n| `locale` | string | No | Preferred content locale, `ar` or `en` |\n| `source` | string | No | Signup source: `website`, `app`, `checkout`, or `page_builder` |\n\n**Auth:** Public endpoint, no token required.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"sara.hassan@example.com\",\n  \"locale\": \"en\",\n  \"source\": \"website\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"You have been subscribed to our newsletter.\",\n  \"data\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Unsubscribe from Newsletter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/newsletter/unsubscribe?token=b7e1c2a4d5f6e7a8b9c0d1e2f3a4b5c6",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "newsletter",
+                "unsubscribe"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "b7e1c2a4d5f6e7a8b9c0d1e2f3a4b5c6",
+                  "description": "(required) Unsubscribe token from the email link"
+                }
+              ]
+            },
+            "description": "Unsubscribes an email address from the newsletter via the unique token sent in marketing emails. GET method so the unsubscribe link works directly from email clients without JavaScript. Public endpoint.\n\n**Query params:**\n\n| Param | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Unique unsubscribe token issued when the subscriber was created |\n\n**Auth:** Public endpoint, no token required.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/newsletter/unsubscribe?token=b7e1c2a4d5f6e7a8b9c0d1e2f3a4b5c6",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "newsletter",
+                    "unsubscribe"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "b7e1c2a4d5f6e7a8b9c0d1e2f3a4b5c6",
+                      "description": "(required) Unsubscribe token from the email link"
+                    }
+                  ]
+                },
+                "description": "Unsubscribes an email address from the newsletter via the unique token sent in marketing emails. GET method so the unsubscribe link works directly from email clients without JavaScript. Public endpoint.\n\n**Query params:**\n\n| Param | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Unique unsubscribe token issued when the subscriber was created |\n\n**Auth:** Public endpoint, no token required.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"You have been unsubscribed from our newsletter.\",\n  \"data\": null\n}"
+            },
+            {
+              "name": "404 Invalid Token",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/newsletter/unsubscribe?token=b7e1c2a4d5f6e7a8b9c0d1e2f3a4b5c6",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "newsletter",
+                    "unsubscribe"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "b7e1c2a4d5f6e7a8b9c0d1e2f3a4b5c6",
+                      "description": "(required) Unsubscribe token from the email link"
+                    }
+                  ]
+                },
+                "description": "Unsubscribes an email address from the newsletter via the unique token sent in marketing emails. GET method so the unsubscribe link works directly from email clients without JavaScript. Public endpoint.\n\n**Query params:**\n\n| Param | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Unique unsubscribe token issued when the subscriber was created |\n\n**Auth:** Public endpoint, no token required.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid or expired unsubscribe token.\",\n  \"data\": []\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Public newsletter subscribe/unsubscribe endpoints (guest + authenticated customers)."
+    },
+    {
       "name": "Misc",
       "description": "",
       "item": [
