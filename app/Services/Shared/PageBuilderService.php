@@ -2,6 +2,7 @@
 
 namespace App\Services\Shared;
 
+use App\Models\AdImageItem;
 use App\Models\Banner;
 use App\Models\Category;
 use App\Models\Country;
@@ -389,6 +390,31 @@ class PageBuilderService
             $data['columns']         = (int) ($cfg['columns'] ?? 2);
             $data['show_view_all']   = (bool) ($cfg['show_view_all'] ?? true);
             $data['tabs']            = $tabs;
+        }
+
+        if ($b->block_type === 'image_slider') {
+            $cfg   = $b->config ?? [];
+            $items = AdImageItem::where('page_block_id', $b->id)
+                ->where('is_active', true)
+                ->orderBy('position')
+                ->get()
+                ->map(fn ($img) => [
+                    'image_url' => $img->file_url,
+                    'link_url'  => $img->link_url,
+                    'title'     => ['ar' => $img->title_ar, 'en' => $img->title_en],
+                    'subtitle'  => ['ar' => $img->subtitle_ar, 'en' => $img->subtitle_en],
+                    'badge'     => ['ar' => $img->badge_label_ar, 'en' => $img->badge_label_en],
+                ])->all();
+
+            $data['title']        = ['ar' => $cfg['title_ar'] ?? null, 'en' => $cfg['title_en'] ?? null];
+            $data['columns']      = (int) ($cfg['columns'] ?? 5);
+            $data['rows']         = (int) ($cfg['rows'] ?? 1);
+            $data['scrollable']   = (bool) ($cfg['scrollable'] ?? true);
+            $data['show_label']   = (bool) ($cfg['show_label'] ?? true);
+            $data['show_badge']   = (bool) ($cfg['show_badge'] ?? false);
+            $data['image_shape']  = $cfg['image_shape']  ?? 'rounded';
+            $data['aspect_ratio'] = $cfg['aspect_ratio'] ?? '1:1';
+            $data['items']        = $items;
         }
 
         if ($b->block_type === 'promo_tiles') {

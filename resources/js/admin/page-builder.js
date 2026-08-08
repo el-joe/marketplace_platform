@@ -1337,7 +1337,11 @@ function loadAdImagesList(blockId) {
                     ${img.file_url
                         ? `<img src="${img.file_url}" alt="" class="w-10 h-8 object-cover rounded border border-gray-200 flex-shrink-0">`
                         : `<div class="w-10 h-8 bg-gray-100 rounded border border-gray-200 flex-shrink-0"></div>`}
-                    <span class="flex-1 truncate text-sm text-gray-700">${escapeHtml(img.title_en || img.link_url || 'Image')}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="truncate text-sm text-gray-700">${escapeHtml(img.title_en || img.link_url || 'Image')}</p>
+                        ${img.subtitle_en ? `<p class="truncate text-xs text-gray-400">${escapeHtml(img.subtitle_en)}</p>` : ''}
+                        ${img.badge_label_en ? `<span class="inline-block text-xs bg-gray-900 text-white px-1.5 py-0.5 rounded">${escapeHtml(img.badge_label_en)}</span>` : ''}
+                    </div>
                     <button type="button" class="text-xs text-gray-500 hover:text-gray-900" data-action="edit-ad-image" data-image-id="${img.id}" data-block-id="${blockId}">${t('admin.page_builder.edit_label')}</button>
                     <button type="button" class="text-xs text-rose-500 hover:text-rose-700" data-action="delete-ad-image" data-image-id="${img.id}">${t('admin.page_builder.delete_label')}</button>
                 </div>

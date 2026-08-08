@@ -215,7 +215,11 @@ class PageBuilderController extends Controller
             'is_visible'      => ['sometimes', 'boolean'],
         ]);
 
-        $data['name'] = $data['name'] ?? 'New Section';
+        $data['name']           = $data['name']           ?? 'New Section';
+        $data['padding_top']    = $data['padding_top']    ?? 0;
+        $data['padding_bottom'] = $data['padding_bottom'] ?? 0;
+        $data['layout']         = $data['layout']         ?? 'stack';
+        $data['is_visible']     = $data['is_visible']     ?? true;
 
         $section = PageSection::create($data);
 

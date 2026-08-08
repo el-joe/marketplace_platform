@@ -24,6 +24,16 @@
             <x-form.input name="title_ar" label="{{ __('admin.page_builder.ad_image_modal.title_ar') }}" dir="rtl" />
         </div>
 
+        <div class="grid grid-cols-2 gap-4">
+            <x-form.input name="subtitle_en" label="{{ __('admin.page_builder.ad_image_modal.subtitle_en') }}" dir="ltr" />
+            <x-form.input name="subtitle_ar" label="{{ __('admin.page_builder.ad_image_modal.subtitle_ar') }}" dir="rtl" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <x-form.input name="badge_label_en" label="{{ __('admin.page_builder.ad_image_modal.badge_label_en') }}" dir="ltr" />
+            <x-form.input name="badge_label_ar" label="{{ __('admin.page_builder.ad_image_modal.badge_label_ar') }}" dir="rtl" />
+        </div>
+
         <x-form.input name="link_url" label="{{ __('admin.page_builder.ad_image_modal.link_url') }}" placeholder="https://…" />
 
         <div class="grid grid-cols-2 gap-4">

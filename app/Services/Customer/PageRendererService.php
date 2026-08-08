@@ -52,7 +52,7 @@ class PageRendererService
         'product_row', 'flash_sale', 'deal_of_day', 'ad_images_2col',
         'ad_images_4col', 'full_banner', 'category_pills',
         'brand_strip', 'search_trends', 'text_block', 'divider', 'newsletter_signup',
-        'mega_deals', 'promo_tiles',
+        'mega_deals', 'promo_tiles', 'image_slider',
     ];
 
     public function __construct(
@@ -288,6 +288,7 @@ class PageRendererService
             'newsletter_signup' => $this->hydrateNewsletterSignup($block),
             'mega_deals' => $this->hydrateMegaDeals($block, $country),
             'promo_tiles' => $this->hydratePromoTiles($block),
+            'image_slider' => $this->hydrateImageSlider($block),
             default => $block->config ?? [],
         };
     }
@@ -1018,6 +1019,40 @@ class PageRendererService
             'title'   => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
             'columns' => (int) ($cfg['columns'] ?? 2),
             'tiles'   => $tiles,
+        ];
+    }
+
+    // ─── 18. image_slider ───────────────────────────────────────────────────
+
+    private function hydrateImageSlider(PageBlock $block): array
+    {
+        $cfg = $block->config ?? [];
+
+        $items = AdImageItem::where('page_block_id', $block->id)
+            ->where('is_active', true)
+            ->orderBy('position')
+            ->get()
+            ->map(fn ($img) => [
+                'image_url'      => $img->file_url,
+                'link_url'       => $img->link_url,
+                'link_new_tab'   => (bool) $img->link_open_new_tab,
+                'title'          => ['ar' => $img->title_ar,    'en' => $img->title_en],
+                'subtitle'       => ['ar' => $img->subtitle_ar, 'en' => $img->subtitle_en],
+                'badge'          => ['ar' => $img->badge_label_ar, 'en' => $img->badge_label_en],
+                'alt'            => ['ar' => $img->alt_text_ar, 'en' => $img->alt_text_en],
+            ])->all();
+
+        return [
+            'title'        => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'columns'      => (int) ($cfg['columns'] ?? 5),
+            'rows'         => (int) ($cfg['rows'] ?? 1),
+            'scrollable'   => (bool) ($cfg['scrollable'] ?? true),
+            'show_label'   => (bool) ($cfg['show_label'] ?? true),
+            'show_badge'   => (bool) ($cfg['show_badge'] ?? false),
+            'image_shape'  => $cfg['image_shape']  ?? 'rounded',
+            'aspect_ratio' => $cfg['aspect_ratio'] ?? '1:1',
+            'items'        => $items,
+            'total_items'  => count($items),
         ];
     }
 
