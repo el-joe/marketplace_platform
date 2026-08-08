@@ -424,7 +424,8 @@ class PageBuilderService
             $data['show_label']   = (bool) ($cfg['show_label'] ?? true);
             $data['show_badge']   = (bool) ($cfg['show_badge'] ?? false);
             $data['image_shape']  = $cfg['image_shape']  ?? 'rounded';
-            $data['aspect_ratio'] = $cfg['aspect_ratio'] ?? '1:1';
+            $data['size_preset']  = $cfg['size_preset']  ?? 'medium';
+            $data['aspect_ratio'] = $cfg['aspect_ratio'] ?? '';
             $data['items']        = $items;
         }
 

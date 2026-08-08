@@ -1054,7 +1054,8 @@ class PageRendererService
             'show_label'   => (bool) ($cfg['show_label'] ?? true),
             'show_badge'   => (bool) ($cfg['show_badge'] ?? false),
             'image_shape'  => $cfg['image_shape']  ?? 'rounded',
-            'aspect_ratio' => $cfg['aspect_ratio'] ?? '1:1',
+            'size_preset'  => $cfg['size_preset']  ?? 'medium',
+            'aspect_ratio' => $cfg['aspect_ratio'] ?? '',
             'items'        => $items,
             'total_items'  => count($items),
         ];

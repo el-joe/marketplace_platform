@@ -93,6 +93,7 @@ class BlockTypeSeeder extends Seeder
                     'show_label',
                     'show_badge',
                     'image_shape',
+                    'size_preset',
                     'aspect_ratio',
                     'background_color',
                 ],
@@ -103,7 +104,8 @@ class BlockTypeSeeder extends Seeder
                     'show_label' => true,
                     'show_badge' => false,
                     'image_shape' => 'rounded',
-                    'aspect_ratio' => '1:1',
+                    'size_preset' => 'medium',
+                    'aspect_ratio' => '',
                 ],
             ],
             [
