@@ -53,15 +53,15 @@ class BrowseService
         $page        = (int) ($request->input('page', 1));
         $categoryIds = $this->categoryService->getDescendantIds($category);
 
-        $paginator   = $this->productQuery->paginate($country, $filters, $perPage, $categoryIds);
-        $facets      = $this->productQuery->facets($country, $filters, $categoryIds);
-        $payload     = $this->productQuery->buildProductsPayload($paginator, $country, $page, 'category_top');
-        $pageBlocks  = $this->categoryService->resolvePageBlocks($category, $country);
+        $paginator    = $this->productQuery->paginate($country, $filters, $perPage, $categoryIds);
+        $facets       = $this->productQuery->facets($country, $filters, $categoryIds);
+        $payload      = $this->productQuery->buildProductsPayload($paginator, $country, $page, 'category_top');
+        $pageBuilder  = $this->categoryService->resolvePageBuilder($category, $country);
 
         return [
-            'category'   => (new BrowseCategoryResource($category, 'product'))->toArray($request),
-            'page_blocks' => $pageBlocks,
-            'items'      => array_merge($payload, ['facets' => $facets]),
+            'category'     => (new BrowseCategoryResource($category, 'product'))->toArray($request),
+            'page_builder' => $pageBuilder,
+            'items'        => array_merge($payload, ['facets' => $facets]),
         ];
     }
 
@@ -75,16 +75,16 @@ class BrowseService
         $perPage     = (int) ($request->input('per_page', 20));
         $categoryIds = $this->classifiedQuery->getDescendantIds($category);
 
-        $paginator   = $this->classifiedQuery->paginate($categoryIds, $filters, $perPage);
-        $facets      = $this->classifiedQuery->facets($categoryIds, $filters);
-        $pageBlocks  = $this->resolveGenericPageBlocks('classified_category', $category, $country);
+        $paginator    = $this->classifiedQuery->paginate($categoryIds, $filters, $perPage);
+        $facets       = $this->classifiedQuery->facets($categoryIds, $filters);
+        $pageBuilder  = $this->resolveGenericPageBuilder('classified_category', $category, $country);
 
         $items = ClassifiedListingPublicResource::collection($paginator)->toArray($request);
 
         return [
-            'category'    => (new BrowseCategoryResource($category, 'classified'))->toArray($request),
-            'page_blocks' => $pageBlocks,
-            'items'       => [
+            'category'     => (new BrowseCategoryResource($category, 'classified'))->toArray($request),
+            'page_builder' => $pageBuilder,
+            'items'        => [
                 'items'  => $items,
                 'meta'   => [
                     'current_page' => $paginator->currentPage(),
@@ -110,16 +110,16 @@ class BrowseService
         $perPage     = (int) ($request->input('per_page', 20));
         $categoryIds = $this->travelQuery->getDescendantIds($category);
 
-        $paginator   = $this->travelQuery->paginate($categoryIds, $filters, $perPage);
-        $facets      = $this->travelQuery->facets($categoryIds, $filters);
-        $pageBlocks  = $this->resolveGenericPageBlocks('travel_category', $category, $country);
+        $paginator    = $this->travelQuery->paginate($categoryIds, $filters, $perPage);
+        $facets       = $this->travelQuery->facets($categoryIds, $filters);
+        $pageBuilder  = $this->resolveGenericPageBuilder('travel_category', $category, $country);
 
         $items = TravelPackagePublicResource::collection($paginator)->toArray($request);
 
         return [
-            'category'    => (new BrowseCategoryResource($category, 'travel'))->toArray($request),
-            'page_blocks' => $pageBlocks,
-            'items'       => [
+            'category'     => (new BrowseCategoryResource($category, 'travel'))->toArray($request),
+            'page_builder' => $pageBuilder,
+            'items'        => [
                 'items'  => $items,
                 'meta'   => [
                     'current_page' => $paginator->currentPage(),
@@ -137,8 +137,10 @@ class BrowseService
     /**
      * Walk the parent_id chain for classified/travel categories and find the
      * nearest ancestor with a published page of the given page_type.
+     *
+     * @return array{blocks: list<array<string,mixed>>, sections: list<array<string,mixed>>, has_sections: bool}
      */
-    private function resolveGenericPageBlocks(string $pageType, mixed $category, Country $country): array
+    private function resolveGenericPageBuilder(string $pageType, mixed $category, Country $country): array
     {
         $chain = $this->buildAncestorChain($category);
 
@@ -154,21 +156,28 @@ class BrowseService
                     ->first();
 
                 if (!$page) {
-                    return ['found' => false, 'blocks' => []];
+                    return ['found' => false, 'blocks' => [], 'sections' => []];
                 }
 
+                $pageData = $this->pageBuilder->getPageWithBlocks($page->id);
+
                 return [
-                    'found'  => true,
-                    'blocks' => $this->pageBuilder->getPageWithBlocks($page->id)['blocks'],
+                    'found'    => true,
+                    'blocks'   => $pageData['blocks'],
+                    'sections' => $pageData['sections'],
                 ];
             });
 
             if ($cached['found']) {
-                return $cached['blocks'];
+                return [
+                    'blocks'       => $cached['blocks'],
+                    'sections'     => $cached['sections'],
+                    'has_sections' => count($cached['sections']) > 0,
+                ];
             }
         }
 
-        return [];
+        return ['blocks' => [], 'sections' => [], 'has_sections' => false];
     }
 
     /** Returns [$category, $parent, $grandparent, ...] via parent_id chain. */

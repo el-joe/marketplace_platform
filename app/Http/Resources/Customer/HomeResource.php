@@ -16,9 +16,14 @@ class HomeResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $pageBuilder = $this->resource['page_builder'] ?? null;
+
         return [
             'nav' => $this->resource['nav'] ?? [],
-            'page_builder' => $this->resource['page_builder'] ?? null,
+            'page_builder' => $pageBuilder,
+            'has_page_builder' => $pageBuilder !== null && (
+                !empty($pageBuilder['sections']) || !empty($pageBuilder['blocks'])
+            ),
             'sections' => $this->resource['sections'] ?? [],
             'meta' => $this->resource['meta'] ?? [],
         ];

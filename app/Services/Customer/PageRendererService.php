@@ -53,6 +53,7 @@ class PageRendererService
         'ad_images_4col', 'full_banner', 'category_pills',
         'brand_strip', 'search_trends', 'text_block', 'divider', 'newsletter_signup',
         'mega_deals', 'promo_tiles', 'image_slider',
+        'ad_images_3col', 'sponsored_grid', 'app_download_banner',
     ];
 
     public function __construct(
@@ -289,6 +290,9 @@ class PageRendererService
             'mega_deals' => $this->hydrateMegaDeals($block, $country),
             'promo_tiles' => $this->hydratePromoTiles($block),
             'image_slider' => $this->hydrateImageSlider($block),
+            'ad_images_3col' => $this->hydrateAdImages($block, 3),
+            'sponsored_grid' => $this->hydrateSponsoredGrid($block, $country),
+            'app_download_banner' => $this->hydrateAppDownloadBanner($block),
             default => $block->config ?? [],
         };
     }
@@ -1053,6 +1057,75 @@ class PageRendererService
             'aspect_ratio' => $cfg['aspect_ratio'] ?? '1:1',
             'items'        => $items,
             'total_items'  => count($items),
+        ];
+    }
+
+    // ─── 19. sponsored_grid ─────────────────────────────────────────────────
+
+    private function hydrateSponsoredGrid(PageBlock $block, Country $country): array
+    {
+        $cfg         = $block->config ?? [];
+        $source      = $cfg['source'] ?? 'sponsored';
+        $maxProducts = (int) ($cfg['max_products'] ?? 20);
+
+        if ($source === 'sponsored') {
+            $adminListings = \App\Models\AdminListing::where('country_id', $country->id)
+                ->where('status', 'active')
+                ->where('search_boost', '>', 0)
+                ->with(['productVariant.product.images', 'primaryShippingMethod'])
+                ->orderByDesc('search_boost')
+                ->limit((int) ceil($maxProducts / 2))
+                ->get();
+
+            $vendorListings = VendorListing::where('country_id', $country->id)
+                ->where('status', VendorListingStatus::Active->value)
+                ->whereHas('vendor', fn ($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
+                ->where('score', '>', 0)
+                ->with(['vendor', 'productVariant.product.images', 'primaryShippingMethod'])
+                ->orderByDesc('score')
+                ->limit((int) ceil($maxProducts / 2))
+                ->get();
+
+            $cards = collect();
+            foreach ($adminListings as $al) {
+                if ($al->productVariant?->product) {
+                    $cards->push($this->listingQuery->toMixedCardShape($al, $al->productVariant->product, $country));
+                }
+            }
+            foreach ($vendorListings as $vl) {
+                if ($vl->productVariant?->product) {
+                    $cards->push($this->listingQuery->toMixedCardShape($vl, $vl->productVariant->product, $country));
+                }
+            }
+            $products = $cards->shuffle()->take($maxProducts)->values()->all();
+        } else {
+            $products = $this->productRowQueried($source, $cfg, $country, $maxProducts);
+        }
+
+        return [
+            'title'                => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'columns'              => (int) ($cfg['columns'] ?? 5),
+            'show_sponsored_badge' => (bool) ($cfg['show_sponsored_badge'] ?? true),
+            'products'             => $products,
+        ];
+    }
+
+    // ─── 20. app_download_banner ────────────────────────────────────────────
+
+    private function hydrateAppDownloadBanner(PageBlock $block): array
+    {
+        $cfg = $block->config ?? [];
+
+        return [
+            'title'                => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'subtitle'             => Bilingual::pairFromKeys($cfg, 'subtitle_ar', 'subtitle_en'),
+            'background_color'     => $cfg['background_color']     ?? '#FEE200',
+            'background_image_url' => $cfg['background_image_url'] ?? null,
+            'app_store_url'        => $cfg['app_store_url']        ?? null,
+            'play_store_url'       => $cfg['play_store_url']       ?? null,
+            'app_store_badge_url'  => $cfg['app_store_badge_url']  ?? null,
+            'play_store_badge_url' => $cfg['play_store_badge_url'] ?? null,
+            'phone_mockup_url'     => $cfg['phone_mockup_url']     ?? null,
         ];
     }
 

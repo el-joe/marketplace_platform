@@ -440,6 +440,39 @@ class PageBuilderService
             ])->all();
         }
 
+        if ($b->block_type === 'ad_images_3col') {
+            $cfg = $b->config ?? [];
+            $data['title']        = ['ar' => $cfg['title_ar'] ?? null, 'en' => $cfg['title_en'] ?? null];
+            $data['columns']      = 3;
+            $data['aspect_ratio'] = $cfg['aspect_ratio'] ?? '4:3';
+            $data['images']       = $b->adImageItems->take(3)->map(fn ($img) => [
+                'image_url' => $img->file_url,
+                'link_url'  => $img->link_url,
+                'title'     => ['ar' => $img->title_ar, 'en' => $img->title_en],
+                'subtitle'  => ['ar' => $img->subtitle_ar, 'en' => $img->subtitle_en],
+            ])->all();
+        }
+
+        if ($b->block_type === 'sponsored_grid') {
+            $cfg      = $b->config ?? [];
+            $maxProd  = (int) ($cfg['max_products'] ?? 20);
+            $products = $this->resolveDynamicProducts($b, $country) ?? [];
+            $data['title']                = ['ar' => $cfg['title_ar'] ?? null, 'en' => $cfg['title_en'] ?? null];
+            $data['columns']              = (int) ($cfg['columns'] ?? 5);
+            $data['show_sponsored_badge'] = (bool) ($cfg['show_sponsored_badge'] ?? true);
+            $data['products']             = array_slice($products, 0, $maxProd);
+        }
+
+        if ($b->block_type === 'app_download_banner') {
+            $cfg = $b->config ?? [];
+            $data['title']            = ['ar' => $cfg['title_ar'] ?? null, 'en' => $cfg['title_en'] ?? null];
+            $data['subtitle']         = ['ar' => $cfg['subtitle_ar'] ?? null, 'en' => $cfg['subtitle_en'] ?? null];
+            $data['background_color'] = $cfg['background_color'] ?? '#FEE200';
+            $data['app_store_url']    = $cfg['app_store_url'] ?? null;
+            $data['play_store_url']   = $cfg['play_store_url'] ?? null;
+            $data['phone_mockup_url'] = $cfg['phone_mockup_url'] ?? null;
+        }
+
         if ($booking !== null) {
             $data['paid_banner'] = [
                 'image_url' => $booking->image_url,

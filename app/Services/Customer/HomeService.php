@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Models\AnnouncementBar;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\CountryCategory;
@@ -43,11 +44,35 @@ class HomeService
             'nav' => $nav,
             'page_builder' => $this->pageBuilder->resolve($country, 'home', null, $deviceTarget, $audience),
             'sections' => $this->buildSections($country, $wishlistListingIds),
+            'announcement_bar' => $this->announcementBar($country),
             'meta' => [
                 'country_code' => strtolower($country->iso_code_2),
                 'currency' => $country->currency_code,
                 'locale' => $country->default_locale ?? app()->getLocale(),
             ],
+        ];
+    }
+
+    /**
+     * Sitewide announcement bar payload for this country, matching the ar/en text-pair
+     * convention used by Bilingual::pair() elsewhere in this service.
+     */
+    private function announcementBar(Country $country): ?array
+    {
+        $bar = AnnouncementBar::getActive($country->id);
+
+        if (! $bar) {
+            return null;
+        }
+
+        return [
+            'id' => $bar->id,
+            'message' => Bilingual::pairFromKeys($bar, 'message_ar', 'message_en'),
+            'cta_label' => Bilingual::pairFromKeys($bar, 'cta_label_ar', 'cta_label_en'),
+            'cta_url' => $bar->cta_url,
+            'bg_color_hex' => $bar->bg_color_hex,
+            'text_color_hex' => $bar->text_color_hex,
+            'is_dismissible' => $bar->is_dismissible,
         ];
     }
 

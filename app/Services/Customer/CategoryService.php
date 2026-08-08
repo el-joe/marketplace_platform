@@ -93,14 +93,15 @@ class CategoryService
     }
 
     /**
-     * Resolve page_blocks for a category page, walking up the ancestor chain
-     * until a published default page is found for this country.
+     * Resolve the page builder data (blocks + sections) for a category page,
+     * walking up the ancestor chain until a published default page is found
+     * for this country.
      * Cached 5 min per (category, country), flushed by PageBuilderService::flushPageCache
      * via the shared 'pages' cache tag.
      *
-     * @return list<array<string,mixed>>
+     * @return array{blocks: list<array<string,mixed>>, sections: list<array<string,mixed>>, has_sections: bool}
      */
-    public function resolvePageBlocks(Category $category, Country $country): array
+    public function resolvePageBuilder(Category $category, Country $country): array
     {
         // Build ancestor chain: [this category, parent, grandparent, ...]
         $chain = collect([$category])
@@ -123,20 +124,27 @@ class CategoryService
                         ->first();
 
                     if (!$page) {
-                        return ['found' => false, 'blocks' => []];
+                        return ['found' => false, 'blocks' => [], 'sections' => []];
                     }
 
+                    $pageData = $this->pageBuilder->getPageWithBlocks($page->id);
+
                     return [
-                        'found'  => true,
-                        'blocks' => $this->pageBuilder->getPageWithBlocks($page->id)['blocks'],
+                        'found'    => true,
+                        'blocks'   => $pageData['blocks'],
+                        'sections' => $pageData['sections'],
                     ];
                 });
 
             if ($cached['found']) {
-                return $cached['blocks'];
+                return [
+                    'blocks'       => $cached['blocks'],
+                    'sections'     => $cached['sections'],
+                    'has_sections' => count($cached['sections']) > 0,
+                ];
             }
         }
 
-        return [];
+        return ['blocks' => [], 'sections' => [], 'has_sections' => false];
     }
 }

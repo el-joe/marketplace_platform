@@ -15,8 +15,9 @@ class AppConfigResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'contexts'        => $this->resource['contexts'],
-            'default_context' => $this->resource['default_context'],
+            'contexts'         => $this->resource['contexts'],
+            'default_context'  => $this->resource['default_context'],
+            'announcement_bar' => $this->resource['announcement_bar'] ?? null,
         ];
     }
 }
