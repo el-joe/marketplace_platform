@@ -83,6 +83,8 @@ class PageBuilderService
                 'blockSellers.seller',
                 'blockCategories' => fn($q) => $q->orderBy('position'),
                 'blockCategories.category',
+                'blockBrands' => fn($q) => $q->orderBy('position'),
+                'blockBrands.brand',
             ])
             ->get();
 
@@ -119,7 +121,9 @@ class PageBuilderService
                     'name'                 => $section->name,
                     'position'             => $section->position,
                     'layout'               => 'columns',
-                    'columns_config'       => $section->columns_config,
+                    'columns_config'       => is_string($section->columns_config)
+                        ? json_decode($section->columns_config, true)
+                        : $section->columns_config,
                     'background_color'     => $section->background_color,
                     'max_width'            => $section->max_width,
                     'padding_top'          => $section->padding_top,
@@ -135,6 +139,9 @@ class PageBuilderService
                 'name'             => $section->name,
                 'position'         => $section->position,
                 'layout'           => 'stack',
+                'columns_config'   => is_string($section->columns_config)
+                    ? json_decode($section->columns_config, true)
+                    : $section->columns_config,
                 'background_color' => $section->background_color,
                 'max_width'        => $section->max_width,
                 'padding_top'      => $section->padding_top,
@@ -158,8 +165,12 @@ class PageBuilderService
             ],
             'sections' => $sectionsData,
             'blocks' => $blocks
-                ->map(fn(PageBlock $b) => $this->hydrateBlock($b, $bookings->get($b->id), $country))
-                ->toArray(),
+                ->filter(fn (PageBlock $b) => is_null($b->section_id))
+                ->map(fn (PageBlock $b) => $this->hydrateBlock($b, $bookings->get($b->id), $country))
+                ->values()
+                ->all(),
+            'has_sections'      => count($sectionsData) > 0,
+            'total_block_count' => $blocks->count(),
         ];
     }
 

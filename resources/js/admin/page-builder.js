@@ -1499,19 +1499,21 @@ function openSectionDrawer(section) {
             const cfg = typeof section.columns_config === 'string'
                 ? JSON.parse(section.columns_config)
                 : section.columns_config;
-            const normalized = JSON.stringify(cfg);
-            if ($('#sd-columns-config').find(`option[value="${normalized}"]`).length) {
-                $('#sd-columns-config').val(normalized);
-            } else {
-                $('#sd-columns-config option').each(function () {
-                    try {
-                        const opt = JSON.parse($(this).val());
-                        if (opt.columns === cfg.columns && opt.widths === cfg.widths) {
-                            $('#sd-columns-config').val($(this).val());
-                            return false;
-                        }
-                    } catch (_) {}
-                });
+
+            // Never use JSON strings in CSS attribute selectors — iterate options directly
+            let matched = false;
+            $('#sd-columns-config option').each(function () {
+                try {
+                    const opt = JSON.parse($(this).val());
+                    if (opt.columns === cfg.columns && opt.widths === cfg.widths) {
+                        $('#sd-columns-config').val($(this).val());
+                        matched = true;
+                        return false; // break
+                    }
+                } catch (_) {}
+            });
+            if (!matched) {
+                $('#sd-columns-config').val('');
             }
         } else {
             $('#sd-columns-config').val('');

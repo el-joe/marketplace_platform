@@ -215,6 +215,13 @@ class PageBuilderController extends Controller
             'is_visible'      => ['sometimes', 'boolean'],
         ]);
 
+        if (!empty($data['columns_config']) && is_string($data['columns_config'])) {
+            $decoded = json_decode($data['columns_config'], true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $data['columns_config'] = $decoded;
+            }
+        }
+
         $data['name']           = $data['name']           ?? 'New Section';
         $data['padding_top']    = $data['padding_top']    ?? 0;
         $data['padding_bottom'] = $data['padding_bottom'] ?? 0;
@@ -241,6 +248,13 @@ class PageBuilderController extends Controller
             'layout'            => ['nullable', 'in:stack,columns'],
             'columns_config'    => ['nullable', 'string', 'max:100'],
         ]);
+
+        if (array_key_exists('columns_config', $data) && is_string($data['columns_config'])) {
+            $decoded = json_decode($data['columns_config'], true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $data['columns_config'] = $decoded;
+            }
+        }
 
         $section->update($data);
 

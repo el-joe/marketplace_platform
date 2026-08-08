@@ -30,7 +30,7 @@ class PageSection extends Model
         'position' => 'integer',
         'padding_top' => 'integer',
         'padding_bottom' => 'integer',
-        'columns_config' => 'array',
+        'columns_config' => 'json',
     ];
 
     public function page(): BelongsTo
