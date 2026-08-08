@@ -167,16 +167,14 @@ function loadPage(pageId) {
     state.selectedBlockId = null;
     closeConfigPanel();
 
-    $('#add-section-btn').prop('disabled', !pageId);
+    $('#toolbar-actions-row').toggleClass('hidden', !state.currentPageId);
 
     if (!pageId) {
         $('#sections-container').empty();
         $('#block-canvas').empty().addClass('hidden');
         $('#ungrouped-title').addClass('hidden');
         $('#canvas-empty').removeClass('hidden');
-        $('#publish-btn, #version-history-btn, #preview-btn').addClass('hidden');
         $('#home-page-banner').addClass('hidden').empty();
-        $('#clear-page-cache-btn').toggleClass('hidden', !state.currentPageId);
         return;
     }
 
@@ -189,9 +187,8 @@ function loadPage(pageId) {
         state.currentPageMeta = res.page;
         renderCanvas(res);
         renderHomeBanner(res.page);
-        $('#publish-btn, #version-history-btn').removeClass('hidden');
-        $('#preview-btn').attr('href', `/preview/page/${res.page.id}`).removeClass('hidden');
-        $('#clear-page-cache-btn').toggleClass('hidden', !state.currentPageId);
+        $('#toolbar-actions-row').toggleClass('hidden', !state.currentPageId);
+        $('#preview-btn').attr('href', `/preview/page/${res.page.id}`);
         setSaveStatus('');
     }).fail(() => {
         setSaveStatus(window.TRANSLATIONS?.loadFailed || 'Load failed', 'error');

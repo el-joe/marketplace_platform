@@ -186,51 +186,89 @@
     {{-- CENTER: Canvas --}}
     <main class="pb-canvas flex flex-col">
 
-        <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white">
-            <label class="text-sm font-medium text-gray-700">{{ __('admin.page_builder.page') }}</label>
-            <select id="page-select" class="w-72 rounded-lg border-gray-300 text-sm">
-                <option value="">{{ __('admin.page_builder.select_page_placeholder') }}</option>
-                @foreach($pages as $p)
-                    <option value="{{ $p->id }}">
-                        {{ $p->name }} ({{ $p->page_type }} · {{ optional($countries->firstWhere('id', $p->country_id))->site_code ?? '—' }})
-                    </option>
-                @endforeach
-            </select>
+        {{-- ── Page Builder Toolbar ─────────────────────────────────────────────── --}}
+        <div class="border-b border-gray-200 bg-white">
 
-            <button type="button" id="create-page-btn"
-                    class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700">
-                <x-heroicon name="plus" class="w-4 h-4" /> {{ __('admin.page_builder.new_page') }}
-            </button>
+            {{-- Row 1: Page selection + page-level actions --}}
+            <div class="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100">
 
-            <button type="button" id="add-section-btn" disabled
-                    class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed">
-                <x-heroicon name="plus" class="w-4 h-4" /> Add Section
-            </button>
+                {{-- Page label + selector --}}
+                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide flex-shrink-0">
+                    {{ __('admin.page_builder.page') }}
+                </label>
+                <select id="page-select"
+                    class="flex-1 max-w-xs rounded-lg border border-gray-300 text-sm py-1.5 px-3 focus:ring-2 focus:ring-primary-300 focus:border-primary-500">
+                    <option value="">{{ __('admin.page_builder.select_page_placeholder') }}</option>
+                    @foreach($pages as $p)
+                        <option value="{{ $p->id }}">
+                            {{ $p->name }} ({{ $p->page_type }} · {{ optional($countries->firstWhere('id', $p->country_id))->site_code ?? '—' }})
+                        </option>
+                    @endforeach
+                </select>
 
-            <span id="save-indicator"></span>
+                {{-- Divider --}}
+                <span class="text-gray-200 text-lg">|</span>
 
-            <div class="flex-1"></div>
+                {{-- New page --}}
+                <button type="button" id="create-page-btn"
+                    class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors">
+                    <x-heroicon name="plus" class="w-4 h-4" />
+                    {{ __('admin.page_builder.new_page') }}
+                </button>
 
-            <button type="button" id="version-history-btn"
-                    class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                <x-heroicon name="clock" class="w-4 h-4" /> {{ __('admin.page_builder.version_history') }}
-            </button>
+                {{-- Add Section --}}
+                <button type="button" id="add-section-btn"
+                    class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors">
+                    <x-heroicon name="plus" class="w-4 h-4" />
+                    Add Section
+                </button>
 
-            <a href="#" id="preview-btn" target="_blank"
-               class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                <x-heroicon name="eye" class="w-4 h-4" /> {{ __('admin.page_builder.preview') }}
-            </a>
+                {{-- Auto-save indicator --}}
+                <span id="save-indicator" class="text-xs text-gray-400 ml-1"></span>
 
-            <button type="button" id="clear-page-cache-btn"
-                    class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg border border-gray-200">
-                <x-heroicon name="arrow-path" class="w-4 h-4" />
-                Clear Cache
-            </button>
+                <div class="flex-1"></div>
 
-            <button type="button" id="publish-btn"
-                    class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg">
-                <x-heroicon name="check-circle" class="w-4 h-4" /> {{ __('admin.page_builder.publish') }}
-            </button>
+                {{-- Page context badge (type + country) --}}
+                <span id="page-context-badge" class="text-xs text-gray-400"></span>
+
+            </div>
+
+            {{-- Row 2: Publishing actions (hidden until a page is loaded) --}}
+            <div id="toolbar-actions-row"
+                 class="hidden flex items-center gap-2 px-4 py-2">
+
+                {{-- Version history --}}
+                <button type="button" id="version-history-btn"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <x-heroicon name="clock" class="w-4 h-4 text-gray-400" />
+                    {{ __('admin.page_builder.version_history') }}
+                </button>
+
+                {{-- Preview --}}
+                <a href="#" id="preview-btn" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <x-heroicon name="eye" class="w-4 h-4 text-gray-400" />
+                    {{ __('admin.page_builder.preview') }}
+                </a>
+
+                {{-- Clear Cache --}}
+                <button type="button" id="clear-page-cache-btn"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors">
+                    <x-heroicon name="arrow-path" class="w-4 h-4 text-gray-400" />
+                    Clear Cache
+                </button>
+
+                <div class="flex-1"></div>
+
+                {{-- Publish --}}
+                <button type="button" id="publish-btn"
+                    class="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm transition-colors">
+                    <x-heroicon name="check-circle" class="w-4 h-4" />
+                    {{ __('admin.page_builder.publish') }}
+                </button>
+
+            </div>
+
         </div>
 
         <div id="home-page-banner" class="hidden mx-4 mt-3 px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800"></div>
