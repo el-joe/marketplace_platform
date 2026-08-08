@@ -414,12 +414,19 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/pages/{page}/revisions', [PageBuilderController::class, 'getPageRevisions'])->name('pages.revisions');
         Route::post('/page-revisions/{revision}/restore', [PageBuilderController::class, 'restorePageRevision'])->name('page-revisions.restore');
 
+        // Sections
+        Route::post('/sections', [PageBuilderController::class, 'addSection'])->name('sections.add');
+        Route::put('/sections/{section}', [PageBuilderController::class, 'updateSection'])->name('sections.update');
+        Route::delete('/sections/{section}', [PageBuilderController::class, 'deleteSection'])->name('sections.delete');
+        Route::post('/sections/reorder', [PageBuilderController::class, 'reorderSections'])->name('sections.reorder');
+
         // Blocks
         Route::post('/blocks', [PageBuilderController::class, 'addBlock'])->name('blocks.add');
         Route::get('/blocks/{block}/config', [PageBuilderController::class, 'getBlockConfig'])->name('blocks.get-config');
         Route::get('/blocks/{block}/analytics', [PageBuilderController::class, 'blockAnalytics'])->name('blocks.analytics');
         Route::post('/blocks/{block}/config', [PageBuilderController::class, 'updateBlockConfig'])->name('blocks.config');
         Route::post('/blocks/{block}/visibility', [PageBuilderController::class, 'updateBlockVisibility'])->name('blocks.visibility');
+        Route::post('/blocks/{block}/assign-column', [PageBuilderController::class, 'assignBlockColumn'])->name('blocks.assign-column');
         Route::delete('/blocks/{block}', [PageBuilderController::class, 'removeBlock'])->name('blocks.remove');
         Route::post('/reorder', [PageBuilderController::class, 'reorderBlocks'])->name('reorder');
 
@@ -448,6 +455,9 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
 
         // Ad image upload
         Route::post('/ad-images/upload-image', [PageBuilderController::class, 'uploadAdImage'])->name('ad-images.upload-image');
+
+        // Section background image upload
+        Route::post('/sections/upload-background-image', [PageBuilderController::class, 'uploadSectionBackgroundImage'])->name('sections.upload-background-image');
 
         // Search (for manual selectors)
         Route::get('/search/products', [PageBuilderController::class, 'searchProducts'])->name('search.products');

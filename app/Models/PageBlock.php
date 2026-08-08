@@ -19,6 +19,7 @@ class PageBlock extends Model
         'block_type',
         'app_context_key',
         'position',
+        'column_index',
         'config',
         'is_visible',
         'visible_from',
@@ -40,6 +41,7 @@ class PageBlock extends Model
         'visible_until' => 'datetime',
         'cache_ttl_seconds' => 'integer',
         'position' => 'integer',
+        'column_index' => 'integer',
     ];
 
     public function page(): BelongsTo

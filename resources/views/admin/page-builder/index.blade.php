@@ -74,6 +74,33 @@
         #save-indicator.saving { color: #2563eb; }
         #save-indicator.saved { color: #059669; }
         #save-indicator.error { color: #dc2626; }
+
+        /* Sections */
+        .section-wrapper {
+            background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px;
+            margin-bottom: 16px; overflow: hidden;
+        }
+        .section-wrapper.sortable-ghost { opacity: 0.4; background: #eef2ff; }
+        .section-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;
+        }
+        .section-header .drag-handle { color: #9ca3af; cursor: grab; padding: 4px; }
+        .section-header .drag-handle:hover { color: #6b7280; }
+        .section-name { font-size: 13px; font-weight: 600; color: #374151; flex: 1; }
+        .section-badge { font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 4px; background: #eef2ff; color: #4338ca; }
+        .section-actions { display: flex; align-items: center; gap: 2px; }
+        .section-actions button { padding: 4px; color: #9ca3af; border-radius: 6px; }
+        .section-actions button:hover { color: #374151; background: #f3f4f6; }
+        .section-body { padding: 12px 14px; min-height: 40px; }
+        .section-body.is-empty { display: flex; align-items: center; justify-content: center; }
+        .section-columns-row { display: flex; gap: 12px; align-items: flex-start; }
+        .section-columns-row .section-column { min-width: 0; }
+        .section-columns-row .section-column .block-card { margin-bottom: 0; }
+        .ungrouped-blocks-title {
+            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+            color: #9ca3af; margin: 20px 0 8px;
+        }
     </style>
 @endpush
 
@@ -175,6 +202,11 @@
                 <x-heroicon name="plus" class="w-4 h-4" /> {{ __('admin.page_builder.new_page') }}
             </button>
 
+            <button type="button" id="add-section-btn" disabled
+                    class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed">
+                <x-heroicon name="plus" class="w-4 h-4" /> Add Section
+            </button>
+
             <span id="save-indicator"></span>
 
             <div class="flex-1"></div>
@@ -208,6 +240,8 @@
                 <x-heroicon name="squares-2x2" class="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p class="text-sm">{!! str_replace(':new_page', '<span class="font-medium">' . __('admin.page_builder.new_page') . '</span>', __('admin.page_builder.canvas_empty_hint')) !!}</p>
             </div>
+            <div id="sections-container"></div>
+            <div id="ungrouped-title" class="ungrouped-blocks-title hidden">{{ __('admin.page_builder.ungrouped_blocks') ?? 'Ungrouped blocks' }}</div>
             <div id="block-canvas" class="hidden"></div>
         </div>
     </main>
@@ -254,6 +288,7 @@
 @include('admin.page-builder.partials.slide-modal')
 @include('admin.page-builder.partials.ad-image-modal')
 @include('admin.page-builder.partials.version-drawer')
+@include('admin.page-builder.partials.section-drawer')
 
 @endsection
 

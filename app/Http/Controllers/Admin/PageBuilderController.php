@@ -19,6 +19,7 @@ use App\Models\PageBlockBrand;
 use App\Models\PageBlockProduct;
 use App\Models\PageBlockRevision;
 use App\Models\PageRevision;
+use App\Models\PageSection;
 use App\Models\ProductVariant;
 use App\Models\SliderSlide;
 use App\Models\Vendor;
@@ -193,8 +194,110 @@ class PageBuilderController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    // Sections
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function addSection(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'page_id'         => ['required', 'uuid', 'exists:pages,id'],
+            'name'            => ['nullable', 'string', 'max:150'],
+            'position'        => ['required', 'integer', 'min:0'],
+            'layout'          => ['nullable', 'in:stack,columns'],
+            'columns_config'  => ['nullable', 'string', 'max:100'],
+            'background_image_url' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $section = PageSection::create($data);
+
+        return response()->json(['success' => true, 'data' => ['section' => $section]]);
+    }
+
+    public function updateSection(Request $request, PageSection $section): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'name'              => ['sometimes', 'string', 'max:150'],
+            'is_visible'        => ['sometimes', 'boolean'],
+            'background_color'  => ['nullable', 'string', 'max:20'],
+            'background_image_url' => ['nullable', 'string', 'max:500'],
+            'padding_top'       => ['nullable', 'integer', 'min:0'],
+            'padding_bottom'    => ['nullable', 'integer', 'min:0'],
+            'max_width'         => ['nullable', 'string', 'max:20'],
+            'layout'            => ['nullable', 'in:stack,columns'],
+            'columns_config'    => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $section->update($data);
+
+        $page = $section->page;
+        if ($page) {
+            $this->pageCache->bustPage($page);
+        }
+
+        return response()->json(['success' => true, 'data' => ['section' => $section]]);
+    }
+
+    public function deleteSection(PageSection $section): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+
+        $page = $section->page;
+
+        // Don't cascade-delete the blocks — just detach them so they fall back
+        // to the "ungrouped" area instead of being lost.
+        PageBlock::where('section_id', $section->id)->update(['section_id' => null]);
+
+        $section->delete();
+
+        if ($page) {
+            $this->pageCache->bustPage($page);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderSections(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'page_id' => 'nullable|uuid',
+            'sections' => 'required|array|min:1',
+            'sections.*.id' => 'required|uuid',
+            'sections.*.position' => 'required|integer|min:0',
+        ]);
+
+        $this->service->reorderSections($data['sections']);
+
+        $page = isset($data['page_id']) ? Page::find($data['page_id']) : null;
+        if ($page) {
+            $this->pageCache->bustPage($page);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     // Blocks
     // ─────────────────────────────────────────────────────────────────────
+
+    public function assignBlockColumn(Request $request, PageBlock $block): \Illuminate\Http\JsonResponse
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'column_index' => ['required', 'integer', 'min:0', 'max:10'],
+        ]);
+
+        $block->update(['column_index' => $data['column_index']]);
+        $this->pageCache->bustBlock($block);
+
+        return response()->json(['success' => true]);
+    }
 
     public function addBlock(Request $request)
     {
@@ -380,6 +483,7 @@ class PageBuilderController extends Controller
             'blocks' => 'required|array|min:1',
             'blocks.*.id' => 'required|uuid',
             'blocks.*.position' => 'required|integer|min:0',
+            'blocks.*.section_id' => 'nullable|uuid|exists:page_sections,id',
         ]);
 
         $this->service->reorderBlocks($data['blocks']);
@@ -1055,6 +1159,38 @@ class PageBuilderController extends Controller
             'path' => $path,
             'storage_type' => 'public',
             'file_type' => 'slide_' . $slot,
+            'mime_type' => $uploaded->getMimeType(),
+            'extension' => $ext,
+            'size' => $uploaded->getSize(),
+        ]);
+
+        return response()->json([
+            'file_id' => $file->id,
+            'url' => Storage::disk('public')->url($path),
+        ]);
+    }
+
+    public function uploadSectionBackgroundImage(Request $request)
+    {
+        $this->authorizeManage();
+
+        $request->validate([
+            'image' => ['required', 'image', 'max:8192'],
+        ]);
+
+        $uploaded = $request->file('image');
+        $ext = $uploaded->getClientOriginalExtension() ?: $uploaded->guessExtension();
+        $path = $uploaded->storeAs(
+            'page-builder/section-backgrounds',
+            Str::random(16) . '.' . $ext,
+            'public'
+        );
+
+        $file = File::create([
+            'key' => 'page-builder/section-backgrounds/' . basename($path),
+            'path' => $path,
+            'storage_type' => 'public',
+            'file_type' => 'section_background',
             'mime_type' => $uploaded->getMimeType(),
             'extension' => $ext,
             'size' => $uploaded->getSize(),

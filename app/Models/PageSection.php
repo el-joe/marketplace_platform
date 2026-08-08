@@ -21,6 +21,8 @@ class PageSection extends Model
         'padding_top',
         'padding_bottom',
         'max_width',
+        'layout',
+        'columns_config',
     ];
 
     protected $casts = [
@@ -28,6 +30,7 @@ class PageSection extends Model
         'position' => 'integer',
         'padding_top' => 'integer',
         'padding_bottom' => 'integer',
+        'columns_config' => 'array',
     ];
 
     public function page(): BelongsTo

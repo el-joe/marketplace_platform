@@ -58,6 +58,13 @@ class BlockTypeSeeder extends Seeder
                 'config_schema' => ['title_en', 'title_ar', 'vendor_listing_id', 'ends_at'],
                 'default_config' => [],
             ],
+            [
+                'code' => 'mega_deals', 'group' => 'products',
+                'label_en' => 'Mega Deals', 'label_ar' => 'عروض ميجا',
+                'icon' => 'fire', 'max_per_page' => 2,
+                'config_schema' => ['title_en', 'title_ar', 'ends_at', 'show_countdown', 'tabs', 'show_view_all', 'columns'],
+                'default_config' => ['show_countdown' => true, 'columns' => 2, 'show_view_all' => true, 'tabs' => []],
+            ],
 
             // ── Ads & Banners ───────────────────────────────────────────────
             [
@@ -80,6 +87,13 @@ class BlockTypeSeeder extends Seeder
                 'icon' => 'photo', 'max_per_page' => null,
                 'config_schema' => ['link_url', 'link_type', 'aspect_ratio', 'mobile_aspect_ratio'],
                 'default_config' => ['aspect_ratio' => '4:1', 'mobile_aspect_ratio' => '2:1'],
+            ],
+            [
+                'code' => 'promo_tiles', 'group' => 'ads_banners',
+                'label_en' => 'Promo Tiles', 'label_ar' => 'بلاطات ترويجية',
+                'icon' => 'squares-2x2', 'max_per_page' => null,
+                'config_schema' => ['title_en', 'title_ar', 'columns', 'tiles'],
+                'default_config' => ['columns' => 2, 'tiles' => []],
             ],
             // ── Discovery ───────────────────────────────────────────────────
             [

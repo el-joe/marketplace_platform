@@ -18,6 +18,10 @@ const state = {
     selectedBlockId: null,
     autoSaveTimer: null,
     sortable: null,
+    sections: [],
+    sectionSortable: null,
+    blockSortables: [],
+    editingSectionId: null,
 };
 
 const ROUTES = {
@@ -38,6 +42,12 @@ const ROUTES = {
     reorder: '/page-builder/reorder',
     configForm: '/page-builder/config-form',
 
+    sections: '/page-builder/sections',
+    sectionUpdate: (id) => `/page-builder/sections/${id}`,
+    sectionDelete: (id) => `/page-builder/sections/${id}`,
+    sectionsReorder: '/page-builder/sections/reorder',
+    blockAssignColumn: (id) => `/page-builder/blocks/${id}/assign-column`,
+
     slides: (id) => `/page-builder/blocks/${id}/slides`,
     slideSave: (id) => `/page-builder/blocks/${id}/slides`,
     slideDelete: (id) => `/page-builder/slides/${id}`,
@@ -50,6 +60,8 @@ const ROUTES = {
     adImageDelete: (id) => `/page-builder/ad-images/${id}`,
     adImageReorder: (id) => `/page-builder/blocks/${id}/ad-images/reorder`,
     adImageUploadImage: '/page-builder/ad-images/upload-image',
+
+    sectionBackgroundUploadImage: '/page-builder/sections/upload-background-image',
 
     pageUpdate: (id) => `/page-builder/pages/${id}`,
     pageDelete: (id) => `/page-builder/pages/${id}`,
@@ -155,8 +167,12 @@ function loadPage(pageId) {
     state.selectedBlockId = null;
     closeConfigPanel();
 
+    $('#add-section-btn').prop('disabled', !pageId);
+
     if (!pageId) {
+        $('#sections-container').empty();
         $('#block-canvas').empty().addClass('hidden');
+        $('#ungrouped-title').addClass('hidden');
         $('#canvas-empty').removeClass('hidden');
         $('#publish-btn, #version-history-btn, #preview-btn').addClass('hidden');
         $('#home-page-banner').addClass('hidden').empty();
@@ -171,7 +187,7 @@ function loadPage(pageId) {
         data: { page_id: pageId },
     }).done((res) => {
         state.currentPageMeta = res.page;
-        renderCanvas(res.blocks || []);
+        renderCanvas(res);
         renderHomeBanner(res.page);
         $('#publish-btn, #version-history-btn').removeClass('hidden');
         $('#preview-btn').attr('href', `/preview/page/${res.page.id}`).removeClass('hidden');
@@ -196,44 +212,199 @@ function renderHomeBanner(page) {
     );
 }
 
-function renderCanvas(blocks) {
-    const $canvas = $('#block-canvas');
+/* ─── Sections ──────────────────────────────────────────────────────────── */
+const COLUMN_WIDTH_CLASSES = {
+    '1/2': 'flex-basis:50%;', '1/3': 'flex-basis:33.3333%;', '2/3': 'flex-basis:66.6667%;', '1/4': 'flex-basis:25%;',
+};
+
+function widthToStyle(w) {
+    return `flex:0 0 auto;${COLUMN_WIDTH_CLASSES[w] || 'flex:1;'}min-width:0;`;
+}
+
+function renderSectionWrapper(section, blocks) {
+    const isColumns = section.layout === 'columns';
+    const cfg = section.columns_config || null;
+    const widths = cfg && cfg.widths ? String(cfg.widths).trim().split(/\s+/) : [];
+
+    let bodyHtml;
     if (!blocks.length) {
-        $canvas.empty().addClass('hidden');
+        bodyHtml = `<div class="section-body is-empty text-xs text-gray-400 section-blocks" data-section-id="${section.id}">No blocks in this section yet — drag one here or add from the left.</div>`;
+    } else if (isColumns && widths.length) {
+        const columns = widths.length;
+        const byCol = [];
+        for (let i = 0; i < columns; i++) byCol.push([]);
+        blocks.forEach((b) => {
+            const idx = Math.min(Math.max(b.column_index || 0, 0), columns - 1);
+            byCol[idx].push(b);
+        });
+        const colsHtml = byCol.map((colBlocks, i) => `
+            <div class="section-column" style="${widthToStyle(widths[i])}">
+                <div class="section-column-blocks" data-section-id="${section.id}" data-col-index="${i}" style="min-height: 40px;">
+                    ${colBlocks.map(renderBlockCard).join('')}
+                </div>
+            </div>
+        `).join('');
+        bodyHtml = `<div class="section-body"><div class="section-columns-row">${colsHtml}</div></div>`;
+    } else {
+        bodyHtml = `<div class="section-body"><div class="section-blocks" data-section-id="${section.id}">${blocks.map(renderBlockCard).join('')}</div></div>`;
+    }
+
+    return `
+        <div class="section-wrapper" data-section-id="${section.id}">
+            <div class="section-header">
+                <div class="drag-handle" title="${window.TRANSLATIONS?.dragToReorder || 'Drag to reorder'}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </div>
+                <span class="section-name">${escapeHtml(section.name || 'Untitled section')}</span>
+                ${isColumns ? '<span class="section-badge">columns</span>' : ''}
+                ${!section.is_visible ? `<span class="section-badge" style="background:#f3f4f6;color:#6b7280;">${window.TRANSLATIONS?.hidden || 'Hidden'}</span>` : ''}
+                <div class="section-actions">
+                    <button type="button" data-action="edit-section" data-section-id="${section.id}" title="${window.TRANSLATIONS?.edit || 'Edit'}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h-6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6m-6-9 6 6m-6-6L21 3l-4 4"/></svg>
+                    </button>
+                    <button type="button" data-action="delete-section" data-section-id="${section.id}" title="${window.TRANSLATIONS?.delete || 'Delete'}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166M5.84 19.673a2.25 2.25 0 0 0 2.244 2.077h7.832a2.25 2.25 0 0 0 2.244-2.077L19.228 5.79m-14.456 0a48.108 48.108 0 0 1 3.478-.397m11.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                    </button>
+                </div>
+            </div>
+            ${bodyHtml}
+        </div>
+    `;
+}
+
+function renderCanvas(data) {
+    const sections = (data.sections || []).slice().sort((a, b) => a.position - b.position);
+    const blocks = data.blocks || [];
+    state.sections = sections;
+
+    const bySection = {};
+    const ungrouped = [];
+    blocks.forEach((b) => {
+        if (b.section_id) {
+            (bySection[b.section_id] = bySection[b.section_id] || []).push(b);
+        } else {
+            ungrouped.push(b);
+        }
+    });
+
+    if (!sections.length && !ungrouped.length) {
+        $('#sections-container').empty();
+        $('#block-canvas').empty().addClass('hidden');
+        $('#ungrouped-title').addClass('hidden');
         $('#canvas-empty').removeClass('hidden').find('p').text(window.TRANSLATIONS?.noBlocksYet || 'This page has no blocks yet. Pick one from the left.');
         return;
     }
 
     $('#canvas-empty').addClass('hidden');
-    $canvas.removeClass('hidden').html(blocks.map(renderBlockCard).join(''));
+    $('#sections-container').html(sections.map((s) => renderSectionWrapper(s, bySection[s.id] || [])).join(''));
+
+    if (ungrouped.length) {
+        $('#ungrouped-title').toggleClass('hidden', !sections.length);
+        $('#block-canvas').removeClass('hidden').html(ungrouped.map(renderBlockCard).join(''));
+    } else {
+        $('#ungrouped-title').addClass('hidden');
+        $('#block-canvas').empty().addClass('hidden');
+    }
+
     initSortable();
 }
 
 function initSortable() {
-    if (state.sortable) state.sortable.destroy();
+    // Destroy previous instances
+    if (state.sortable) { state.sortable.destroy(); state.sortable = null; }
+    if (state.sectionSortable) { state.sectionSortable.destroy(); state.sectionSortable = null; }
+    state.blockSortables.forEach((s) => s.destroy());
+    state.blockSortables = [];
+
+    // Section-level reordering
+    const sectionsContainer = document.getElementById('sections-container');
+    if (sectionsContainer) {
+        state.sectionSortable = Sortable.create(sectionsContainer, {
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            draggable: '.section-wrapper',
+            onEnd: () => { persistSectionOrder(); persistOrder(); },
+        });
+    }
+
+    // Block-level reordering: one Sortable per block container (section stack/column bodies + ungrouped canvas)
+    document.querySelectorAll('.section-blocks, .section-column-blocks').forEach((el) => {
+        state.blockSortables.push(Sortable.create(el, {
+            group: 'pb-blocks',
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: persistOrder,
+        }));
+    });
+
     const canvas = document.getElementById('block-canvas');
-    if (!canvas) return;
-    state.sortable = Sortable.create(canvas, {
-        handle: '.drag-handle',
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        onEnd: persistOrder,
+    if (canvas) {
+        state.sortable = Sortable.create(canvas, {
+            group: 'pb-blocks',
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: persistOrder,
+        });
+    }
+}
+
+function persistSectionOrder() {
+    const sections = $('#sections-container .section-wrapper').map(function (i) {
+        return { id: $(this).data('section-id'), position: i };
+    }).get();
+    if (!sections.length) return;
+
+    ajax({
+        url: ROUTES.sectionsReorder,
+        method: 'POST',
+        data: JSON.stringify({ page_id: state.currentPageId, sections }),
+        contentType: 'application/json',
     });
 }
 
 function persistOrder() {
-    const blocks = $('#block-canvas .block-card').map(function (i) {
-        return { id: $(this).data('block-id'), position: i };
-    }).get();
+    const blocks = [];
+    let pos = 0;
+
+    $('#sections-container .section-wrapper').each(function () {
+        const sectionId = $(this).data('section-id');
+        $(this).find('.section-blocks, .section-column-blocks').each(function () {
+            const colIndex = $(this).data('col-index');
+            $(this).children('.block-card').each(function () {
+                blocks.push({
+                    id: $(this).data('block-id'),
+                    position: pos++,
+                    section_id: sectionId,
+                    ...(colIndex !== undefined ? { column_index: colIndex } : {}),
+                });
+            });
+        });
+    });
+
+    $('#block-canvas > .block-card').each(function () {
+        blocks.push({ id: $(this).data('block-id'), position: pos++, section_id: null });
+    });
+
+    if (!blocks.length) return;
 
     setSaveStatus(window.TRANSLATIONS?.savingOrder || 'Saving order…', 'saving');
     ajax({
         url: ROUTES.reorder,
         method: 'POST',
-        data: JSON.stringify({ blocks }),
+        data: JSON.stringify({ page_id: state.currentPageId, blocks: blocks.map(({ column_index, ...b }) => b) }),
         contentType: 'application/json',
     }).done(() => setSaveStatus(window.TRANSLATIONS?.orderSaved || 'Order saved', 'saved'))
         .fail(() => { setSaveStatus(window.TRANSLATIONS?.orderSaveFailed || 'Order save failed', 'error'); Toast.error(window.TRANSLATIONS?.couldNotSaveOrder || 'Could not save order.'); });
+
+    // Persist column assignment for any block dropped into a column container.
+    blocks.filter((b) => b.column_index !== undefined).forEach((b) => {
+        ajax({ url: ROUTES.blockAssignColumn(b.id), method: 'POST', data: { column_index: b.column_index } });
+    });
 }
 
 /* ─── Add block ─────────────────────────────────────────────────────────── */
@@ -245,7 +416,7 @@ $(document).on('click', '.palette-btn', function () {
 
     const $btn = $(this);
     const code = $btn.data('block-type');
-    const position = $('#block-canvas .block-card').length;
+    const position = $('.block-card').length;
 
     withLoading($btn, ajax({
         url: ROUTES.blocks,
@@ -258,6 +429,7 @@ $(document).on('click', '.palette-btn', function () {
         };
         $('#canvas-empty').addClass('hidden');
         $('#block-canvas').removeClass('hidden').append(renderBlockCard(block));
+        if (state.sections.length) $('#ungrouped-title').removeClass('hidden');
         initSortable();
         selectBlock(res.block_id);
         Toast.success(`${res.label_en || res.block_type} added.`);
@@ -295,6 +467,9 @@ $(document).on('click', '[data-action="delete-block"]', async function () {
             if (state.selectedBlockId === blockId) closeConfigPanel();
             if (!$('#block-canvas .block-card').length) {
                 $('#block-canvas').addClass('hidden');
+                $('#ungrouped-title').addClass('hidden');
+            }
+            if (!$('.block-card').length && !state.sections.length) {
                 $('#canvas-empty').removeClass('hidden');
             }
             Toast.success(window.TRANSLATIONS?.blockRemoved || 'Block removed.');
@@ -919,6 +1094,51 @@ $(document).on('click', '[data-clear-image]', function (e) {
     setSlideImagePreview(slot, '', '');
 });
 
+function setSectionBackgroundImagePreview(url) {
+    $('#sd-background-image-url').val(url || '');
+    if (url) {
+        $('#sd-background-image-img').attr('src', url);
+        $('#sd-background-image-preview').removeClass('hidden');
+    } else {
+        $('#sd-background-image-preview').addClass('hidden');
+        $('#sd-background-image-img').attr('src', '');
+    }
+}
+
+$(document).on('change', '[data-section-bg-upload]', function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('_token', csrfToken());
+
+    const $label = $(this).closest('label');
+    $label.addClass('opacity-50 pointer-events-none');
+
+    $.ajax({
+        url: ROUTES.sectionBackgroundUploadImage,
+        method: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        headers: { 'X-CSRF-TOKEN': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+    }).done((res) => {
+        setSectionBackgroundImagePreview(res.url);
+        Toast.success(window.TRANSLATIONS?.imageUploaded || 'Image uploaded.');
+    }).fail((xhr) => {
+        Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.uploadFailed || 'Upload failed.');
+    }).always(() => {
+        $label.removeClass('opacity-50 pointer-events-none');
+        this.value = '';
+    });
+});
+
+$(document).on('click', '[data-clear-section-bg-image]', function (e) {
+    e.preventDefault();
+    setSectionBackgroundImagePreview('');
+});
+
 $('#slide-form').on('submit', function (e) {
     e.preventDefault();
     const $form = $(this);
@@ -1098,6 +1318,138 @@ $('#ad-image-form').on('submit', function (e) {
             $(`.block-card[data-block-id="${blockId}"] [data-preview]`).text('Ad images — updated');
         })
         .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not save image.'));
+});
+
+/* ─── Section drawer ────────────────────────────────────────────────────── */
+$('#sd-layout').on('change', function () {
+    $('#sd-columns-config-row').toggleClass('hidden', $(this).val() !== 'columns');
+});
+
+function resetSectionForm() {
+    $('#sd-section-id').val('');
+    $('#sd-name').val('');
+    $('#sd-layout').val('stack').trigger('change');
+    $('#sd-columns-config').val('');
+    $('#sd-is-visible').prop('checked', true);
+    $('#sd-background-color').val('');
+    setSectionBackgroundImagePreview('');
+    $('#sd-padding-top').val('');
+    $('#sd-padding-bottom').val('');
+    $('#sd-max-width').val('');
+    $('#sd-delete').addClass('hidden');
+}
+
+function openSectionDrawer(section) {
+    resetSectionForm();
+    state.editingSectionId = section ? section.id : null;
+
+    if (section) {
+        $('#sd-title').text('Edit section');
+        $('#sd-section-id').val(section.id);
+        $('#sd-name').val(section.name || '');
+        $('#sd-layout').val(section.layout || 'stack').trigger('change');
+        $('#sd-columns-config').val(section.columns_config ? JSON.stringify(section.columns_config) : '');
+        $('#sd-is-visible').prop('checked', section.is_visible !== false);
+        $('#sd-background-color').val(section.background_color || '');
+        setSectionBackgroundImagePreview(section.background_image_url || '');
+        $('#sd-padding-top').val(section.padding_top ?? '');
+        $('#sd-padding-bottom').val(section.padding_bottom ?? '');
+        $('#sd-max-width').val(section.max_width || '');
+        $('#sd-delete').removeClass('hidden');
+    } else {
+        $('#sd-title').text('Add section');
+    }
+
+    window.dispatchEvent(new CustomEvent('open-section-drawer'));
+}
+
+$('#add-section-btn').on('click', function () {
+    if (!state.currentPageId) {
+        Toast.warning(window.TRANSLATIONS?.selectOrCreatePageFirst || 'Select or create a page first.');
+        return;
+    }
+    openSectionDrawer(null);
+});
+
+$(document).on('click', '[data-action="edit-section"]', function () {
+    const sectionId = $(this).data('section-id');
+    const section = state.sections.find((s) => s.id === sectionId);
+    if (section) openSectionDrawer(section);
+});
+
+$(document).on('click', '[data-action="delete-section"]', async function () {
+    const sectionId = $(this).data('section-id');
+    const ok = await window.confirmDialog({
+        title: 'Delete section?',
+        message: 'The section will be removed. Its blocks will not be deleted — they will become ungrouped.',
+        confirmLabel: 'Delete',
+        danger: true,
+    });
+    if (!ok) return;
+
+    ajax({ url: ROUTES.sectionDelete(sectionId), method: 'DELETE' })
+        .done(() => {
+            Toast.success('Section deleted.');
+            loadPage(state.currentPageId);
+        })
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not delete section.'));
+});
+
+$('#sd-delete').on('click', async function () {
+    const sectionId = $('#sd-section-id').val();
+    if (!sectionId) return;
+    const ok = await window.confirmDialog({
+        title: 'Delete section?',
+        message: 'The section will be removed. Its blocks will not be deleted — they will become ungrouped.',
+        confirmLabel: 'Delete',
+        danger: true,
+    });
+    if (!ok) return;
+
+    ajax({ url: ROUTES.sectionDelete(sectionId), method: 'DELETE' })
+        .done(() => {
+            Toast.success('Section deleted.');
+            window.dispatchEvent(new CustomEvent('close-section-drawer'));
+            loadPage(state.currentPageId);
+        })
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not delete section.'));
+});
+
+$('#sd-save').on('click', function () {
+    if (!state.currentPageId) return;
+
+    const sectionId = $('#sd-section-id').val();
+    const payload = {
+        name: $('#sd-name').val() || null,
+        is_visible: $('#sd-is-visible').is(':checked') ? 1 : 0,
+        background_color: $('#sd-background-color').val() || null,
+        background_image_url: $('#sd-background-image-url').val() || null,
+        padding_top: $('#sd-padding-top').val() || null,
+        padding_bottom: $('#sd-padding-bottom').val() || null,
+        max_width: $('#sd-max-width').val() || null,
+        layout: $('#sd-layout').val(),
+        columns_config: $('#sd-layout').val() === 'columns' ? $('#sd-columns-config').val() : null,
+    };
+
+    const $btn = $(this);
+    let request;
+    if (sectionId) {
+        request = ajax({ url: ROUTES.sectionUpdate(sectionId), method: 'PUT', data: payload });
+    } else {
+        payload.page_id = state.currentPageId;
+        payload.position = state.sections.length;
+        request = ajax({ url: ROUTES.sections, method: 'POST', data: payload });
+    }
+
+    withLoading($btn, request).done(() => {
+        Toast.success(sectionId ? 'Section updated.' : 'Section added.');
+        window.dispatchEvent(new CustomEvent('close-section-drawer'));
+        loadPage(state.currentPageId);
+    }).fail((xhr) => {
+        const errs = xhr.responseJSON?.errors || {};
+        const first = Object.values(errs)[0]?.[0] || xhr.responseJSON?.message || 'Could not save section.';
+        Toast.error(first);
+    });
 });
 
 /* ─── Page creation ─────────────────────────────────────────────────────── */

@@ -16,6 +16,7 @@ use App\Models\PageBlockProduct;
 use App\Models\PageBlockRevision;
 use App\Models\PageBlockSeller;
 use App\Models\PageRevision;
+use App\Models\PageSection;
 use App\Models\SliderSlide;
 use App\Models\Vendor;
 use Illuminate\Support\Facades\Cache;
@@ -43,6 +44,24 @@ class PageBuilderService
             ->map(fn(PageBlock $b) => $this->serializeBlock($b))
             ->all();
 
+        $sections = PageSection::where('page_id', $pageId)
+            ->orderBy('position')
+            ->get()
+            ->map(fn(PageSection $s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'position' => (int) $s->position,
+                'is_visible' => (bool) $s->is_visible,
+                'background_color' => $s->background_color,
+                'background_image_url' => $s->background_image_url,
+                'padding_top' => $s->padding_top !== null ? (int) $s->padding_top : null,
+                'padding_bottom' => $s->padding_bottom !== null ? (int) $s->padding_bottom : null,
+                'max_width' => $s->max_width,
+                'layout' => $s->layout,
+                'columns_config' => $s->columns_config,
+            ])
+            ->all();
+
         return [
             'page' => [
                 'id' => $page->id,
@@ -64,6 +83,7 @@ class PageBuilderService
                 ])->values(),
             ],
             'blocks' => $blocks,
+            'sections' => $sections,
         ];
     }
 
@@ -198,7 +218,23 @@ class PageBuilderService
                 if (!isset($item['id'], $item['position'])) {
                     continue;
                 }
-                PageBlock::whereKey($item['id'])->update(['position' => (int) $item['position']]);
+                $update = ['position' => (int) $item['position']];
+                if (array_key_exists('section_id', $item)) {
+                    $update['section_id'] = $item['section_id'] ?: null;
+                }
+                PageBlock::whereKey($item['id'])->update($update);
+            }
+        });
+    }
+
+    public function reorderSections(array $orderedSections): void
+    {
+        DB::transaction(function () use ($orderedSections) {
+            foreach ($orderedSections as $item) {
+                if (!isset($item['id'], $item['position'])) {
+                    continue;
+                }
+                PageSection::whereKey($item['id'])->update(['position' => (int) $item['position']]);
             }
         });
     }
@@ -235,10 +271,13 @@ class PageBuilderService
             $page->is_default = true;
             $page->save();
 
+            $sections = PageSection::where('page_id', $page->id)->orderBy('position')->get();
+
             PageRevision::create([
                 'page_id' => $page->id,
                 'version' => $page->version,
                 'blocks_snapshot' => $blocks->map(fn(PageBlock $b) => $this->serializeBlock($b, true))->all(),
+                'sections_snapshot' => $sections->map(fn(PageSection $s) => $this->serializeSection($s))->all(),
                 'published_by_admin_id' => $admin->id,
                 'publish_reason' => $reason !== '' ? $reason : null,
             ]);
@@ -252,13 +291,39 @@ class PageBuilderService
         DB::transaction(function () use ($revision, $admin) {
             $page = $revision->page()->firstOrFail();
 
-            // Soft-delete current blocks.
+            // Soft-delete current sections and blocks.
+            PageSection::where('page_id', $page->id)->delete();
             PageBlock::where('page_id', $page->id)->delete();
+
+            $sectionsSnapshot = is_array($revision->sections_snapshot) ? $revision->sections_snapshot : [];
+            $sectionIdMap = [];
+            foreach ($sectionsSnapshot as $sectionData) {
+                $newSection = PageSection::create([
+                    'page_id' => $page->id,
+                    'name' => $sectionData['name'] ?? null,
+                    'position' => $sectionData['position'] ?? 0,
+                    'is_visible' => $sectionData['is_visible'] ?? true,
+                    'background_color' => $sectionData['background_color'] ?? null,
+                    'background_image_url' => $sectionData['background_image_url'] ?? null,
+                    'padding_top' => $sectionData['padding_top'] ?? 0,
+                    'padding_bottom' => $sectionData['padding_bottom'] ?? 0,
+                    'max_width' => $sectionData['max_width'] ?? null,
+                    'layout' => $sectionData['layout'] ?? null,
+                    'columns_config' => $sectionData['columns_config'] ?? null,
+                ]);
+
+                if (isset($sectionData['id'])) {
+                    $sectionIdMap[$sectionData['id']] = $newSection->id;
+                }
+            }
 
             $snapshot = is_array($revision->blocks_snapshot) ? $revision->blocks_snapshot : [];
             foreach ($snapshot as $idx => $blockData) {
+                $oldSectionId = $blockData['section_id'] ?? null;
+
                 PageBlock::create([
                     'page_id' => $page->id,
+                    'section_id' => $oldSectionId !== null ? ($sectionIdMap[$oldSectionId] ?? null) : null,
                     'block_type' => $blockData['block_type'] ?? 'text_block',
                     'position' => $blockData['position'] ?? $idx,
                     'config' => $blockData['config'] ?? [],
@@ -280,6 +345,7 @@ class PageBuilderService
                 'page_id' => $page->id,
                 'version' => $page->version,
                 'blocks_snapshot' => $snapshot,
+                'sections_snapshot' => $sectionsSnapshot,
                 'published_by_admin_id' => $admin->id,
                 'publish_reason' => 'Restored from version ' . $revision->version,
             ]);
@@ -337,6 +403,8 @@ class PageBuilderService
         $base = [
             'id' => $block->id,
             'block_type' => $block->block_type,
+            'section_id' => $block->section_id,
+            'column_index' => $block->column_index !== null ? (int) $block->column_index : null,
             'position' => (int) $block->position,
             'config' => $block->config ?? [],
             'is_visible' => (bool) $block->is_visible,
@@ -354,6 +422,23 @@ class PageBuilderService
         }
 
         return $base;
+    }
+
+    private function serializeSection(PageSection $section): array
+    {
+        return [
+            'id' => $section->id,
+            'name' => $section->name,
+            'position' => (int) $section->position,
+            'is_visible' => (bool) $section->is_visible,
+            'background_color' => $section->background_color,
+            'background_image_url' => $section->background_image_url,
+            'padding_top' => (int) $section->padding_top,
+            'padding_bottom' => (int) $section->padding_bottom,
+            'max_width' => $section->max_width,
+            'layout' => $section->layout,
+            'columns_config' => $section->columns_config,
+        ];
     }
 
     private function flushPageCache(Page $page): void
@@ -545,9 +630,18 @@ class PageBuilderService
             $newPage->published_at = null;
             $newPage->save();
 
+            $sectionIdMap = [];
+            foreach (PageSection::where('page_id', $page->id)->orderBy('position')->get() as $section) {
+                $newSection = $section->replicate();
+                $newSection->page_id = $newPage->id;
+                $newSection->save();
+                $sectionIdMap[$section->id] = $newSection->id;
+            }
+
             foreach ($page->blocks as $block) {
                 $newBlock = $block->replicate();
                 $newBlock->page_id = $newPage->id;
+                $newBlock->section_id = $block->section_id !== null ? ($sectionIdMap[$block->section_id] ?? null) : null;
                 $newBlock->save();
 
                 // Duplicate slides

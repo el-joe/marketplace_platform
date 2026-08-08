@@ -52,6 +52,7 @@ class PageRendererService
         'product_row', 'flash_sale', 'deal_of_day', 'ad_images_2col',
         'ad_images_4col', 'full_banner', 'category_pills',
         'brand_strip', 'search_trends', 'text_block', 'divider', 'newsletter_signup',
+        'mega_deals', 'promo_tiles',
     ];
 
     public function __construct(
@@ -285,6 +286,8 @@ class PageRendererService
             'text_block' => $this->hydrateTextBlock($block),
             'divider' => $this->hydrateDivider($block),
             'newsletter_signup' => $this->hydrateNewsletterSignup($block),
+            'mega_deals' => $this->hydrateMegaDeals($block, $country),
+            'promo_tiles' => $this->hydratePromoTiles($block),
             default => $block->config ?? [],
         };
     }
@@ -956,6 +959,91 @@ class PageRendererService
             'placeholder_email' => ['ar' => 'بريدك الإلكتروني', 'en' => 'Your email address'],
             'button_label' => ['ar' => 'اشترك الآن', 'en' => 'Subscribe Now'],
         ];
+    }
+
+    // ─── 16. mega_deals ─────────────────────────────────────────────────────
+
+    private function hydrateMegaDeals(PageBlock $block, Country $country): array
+    {
+        $cfg  = $block->config ?? [];
+        $endsAt = isset($cfg['ends_at']) ? \Carbon\Carbon::parse($cfg['ends_at']) : null;
+        $tabs = $cfg['tabs'] ?? [];
+
+        $resolvedTabs = collect($tabs)->map(function ($tab) use ($country) {
+            if (empty($tab['category_id'])) return null;
+
+            $categoryIds = [];
+            $rootCat = \App\Models\Category::find($tab['category_id']);
+            if ($rootCat) {
+                $categoryIds = app(\App\Services\Customer\CategoryService::class)
+                    ->getDescendantIds($rootCat);
+            }
+
+            $maxProducts = (int) ($tab['max_products'] ?? 4);
+
+            $listings = $this->getBuyBoxProducts($country, $categoryIds, $maxProducts);
+
+            return [
+                'label'       => ['ar' => $tab['label_ar'] ?? null, 'en' => $tab['label_en'] ?? null],
+                'category_id' => $tab['category_id'],
+                'browse_url'  => "/browse/product/{$tab['category_id']}",
+                'products'    => $listings,
+            ];
+        })->filter()->values()->all();
+
+        return [
+            'title'          => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'show_countdown' => (bool) ($cfg['show_countdown'] ?? true),
+            'seconds_remaining' => $endsAt ? max(0, now()->diffInSeconds($endsAt, false)) : null,
+            'ends_at'        => $endsAt?->toIso8601String(),
+            'columns'        => (int) ($cfg['columns'] ?? 2),
+            'show_view_all'  => (bool) ($cfg['show_view_all'] ?? true),
+            'tabs'           => $resolvedTabs,
+        ];
+    }
+
+    // ─── 17. promo_tiles ────────────────────────────────────────────────────
+
+    private function hydratePromoTiles(PageBlock $block): array
+    {
+        $cfg   = $block->config ?? [];
+        $tiles = collect($cfg['tiles'] ?? [])->map(fn ($tile) => [
+            'label'          => ['ar' => $tile['label_ar'] ?? null,      'en' => $tile['label_en'] ?? null],
+            'badge'          => ['ar' => $tile['badge_label_ar'] ?? null, 'en' => $tile['badge_label_en'] ?? null],
+            'image_url'      => $tile['image_url'] ?? null,
+            'link_url'       => $tile['link_url'] ?? null,
+        ])->all();
+
+        return [
+            'title'   => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'columns' => (int) ($cfg['columns'] ?? 2),
+            'tiles'   => $tiles,
+        ];
+    }
+
+    /**
+     * Helper: get buy-box product cards for a set of category IDs.
+     */
+    private function getBuyBoxProducts(Country $country, array $categoryIds, int $limit): array
+    {
+        $products = \App\Models\Product::whereIn('category_id', $categoryIds)
+            ->where('status', 'active')
+            ->whereHas('productCountrySettings', fn ($q) =>
+                $q->where('country_id', $country->id)->where('is_available', true)
+            )
+            ->with(['variants', 'images'])
+            ->orderByDesc('rating_avg')
+            ->limit($limit)
+            ->get();
+
+        $buyBox = $this->listingQuery->getBuyBoxForProducts($products, $country);
+
+        return $products
+            ->map(fn ($p) => [$p, $buyBox[$p->id] ?? null])
+            ->filter(fn ($pair) => $pair[1] !== null)
+            ->map(fn ($pair) => $this->listingQuery->toMixedCardShape($pair[1], $pair[0], $country))
+            ->values()
+            ->all();
     }
 
     // ─── Cache helper ───────────────────────────────────────────────────────

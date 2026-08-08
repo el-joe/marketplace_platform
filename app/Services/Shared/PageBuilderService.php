@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\FlashSale;
 use App\Models\Page;
 use App\Models\PageBlock;
+use App\Models\PageSection;
 use App\Models\PaidBannerBooking;
 use App\Models\Product;
 use App\Models\ProductCountrySetting;
@@ -91,6 +92,60 @@ class PageBuilderService
             ->get()
             ->keyBy('page_block_id');
 
+        $sections = PageSection::where('page_id', $page->id)
+            ->where('is_visible', true)
+            ->orderBy('position')
+            ->get();
+
+        $blocksBySection = $blocks->groupBy('section_id');
+
+        $sectionsData = $sections->map(function ($section) use ($blocksBySection, $bookings, $country) {
+            $sectionBlocks = $blocksBySection->get($section->id, collect());
+
+            // For column-layout sections, group blocks by column_index
+            if ($section->layout === 'columns') {
+                $columns = collect($sectionBlocks)
+                    ->groupBy('column_index')
+                    ->sortKeys()
+                    ->map(fn ($colBlocks) =>
+                        $colBlocks->map(fn (PageBlock $b) =>
+                            $this->hydrateBlock($b, $bookings->get($b->id), $country)
+                        )->values()->all()
+                    )->values()->all();
+
+                return [
+                    'id'                   => $section->id,
+                    'name'                 => $section->name,
+                    'position'             => $section->position,
+                    'layout'               => 'columns',
+                    'columns_config'       => $section->columns_config,
+                    'background_color'     => $section->background_color,
+                    'max_width'            => $section->max_width,
+                    'padding_top'          => $section->padding_top,
+                    'padding_bottom'       => $section->padding_bottom,
+                    'columns'              => $columns,   // array of column arrays
+                    'blocks'               => [],         // empty for column-layout sections
+                ];
+            }
+
+            // Default: stack layout
+            return [
+                'id'               => $section->id,
+                'name'             => $section->name,
+                'position'         => $section->position,
+                'layout'           => 'stack',
+                'background_color' => $section->background_color,
+                'max_width'        => $section->max_width,
+                'padding_top'      => $section->padding_top,
+                'padding_bottom'   => $section->padding_bottom,
+                'columns'          => [],
+                'blocks'           => $sectionBlocks
+                    ->map(fn (PageBlock $b) => $this->hydrateBlock($b, $bookings->get($b->id), $country))
+                    ->values()
+                    ->all(),
+            ];
+        })->values()->all();
+
         return [
             'page_id' => $page->id,
             'page_type' => $page->page_type,
@@ -100,6 +155,7 @@ class PageBuilderService
                 'description' => $page->seo_description,
                 'og_image_url' => $page->og_image_url,
             ],
+            'sections' => $sectionsData,
             'blocks' => $blocks
                 ->map(fn(PageBlock $b) => $this->hydrateBlock($b, $bookings->get($b->id), $country))
                 ->toArray(),
@@ -291,6 +347,60 @@ class PageBuilderService
             $data['subscribe_url']      = '/api/customer/v1/{country}/newsletter/subscribe';
             $data['placeholder_email']  = ['ar' => 'بريدك الإلكتروني', 'en' => 'Your email address'];
             $data['button_label']       = ['ar' => 'اشترك الآن', 'en' => 'Subscribe Now'];
+        }
+
+        if ($b->block_type === 'mega_deals') {
+            $cfg  = $b->config ?? [];
+            $tabs = collect($cfg['tabs'] ?? [])->map(function ($tab) use ($country) {
+                if (empty($tab['category_id'])) return null;
+
+                $maxProducts = (int) ($tab['max_products'] ?? 4);
+                $categoryIds = [];
+                $rootCat = Category::find($tab['category_id']);
+                if ($rootCat) {
+                    $categoryIds = app(\App\Services\Customer\CategoryService::class)
+                        ->getDescendantIds($rootCat);
+                }
+
+                $products = Product::query()
+                    ->where('status', 'active')
+                    ->whereIn('category_id', $categoryIds)
+                    ->whereNotIn('id', ProductCountrySetting::where('country_id', $country->id)
+                        ->where('is_available', false)
+                        ->pluck('product_id'))
+                    ->with(['variants', 'images'])
+                    ->orderByDesc('total_sold')
+                    ->limit($maxProducts)
+                    ->get();
+
+                return [
+                    'label'       => ['ar' => $tab['label_ar'] ?? null, 'en' => $tab['label_en'] ?? null],
+                    'category_id' => $tab['category_id'],
+                    'browse_url'  => "/browse/product/{$tab['category_id']}",
+                    'products'    => $this->productsToCards($products, $country),
+                ];
+            })->filter()->values()->all();
+
+            $endsAt = isset($cfg['ends_at']) ? \Carbon\Carbon::parse($cfg['ends_at']) : null;
+            $data['title']           = ['ar' => $cfg['title_ar'] ?? null, 'en' => $cfg['title_en'] ?? null];
+            $data['show_countdown']  = (bool) ($cfg['show_countdown'] ?? true);
+            $data['seconds_remaining'] = $endsAt ? max(0, now()->diffInSeconds($endsAt, false)) : null;
+            $data['ends_at']         = $endsAt?->toIso8601String();
+            $data['columns']         = (int) ($cfg['columns'] ?? 2);
+            $data['show_view_all']   = (bool) ($cfg['show_view_all'] ?? true);
+            $data['tabs']            = $tabs;
+        }
+
+        if ($b->block_type === 'promo_tiles') {
+            $cfg = $b->config ?? [];
+            $data['title']   = ['ar' => $cfg['title_ar'] ?? null, 'en' => $cfg['title_en'] ?? null];
+            $data['columns'] = (int) ($cfg['columns'] ?? 2);
+            $data['tiles']   = collect($cfg['tiles'] ?? [])->map(fn ($tile) => [
+                'label'     => ['ar' => $tile['label_ar'] ?? null,      'en' => $tile['label_en'] ?? null],
+                'badge'     => ['ar' => $tile['badge_label_ar'] ?? null, 'en' => $tile['badge_label_en'] ?? null],
+                'image_url' => $tile['image_url'] ?? null,
+                'link_url'  => $tile['link_url'] ?? null,
+            ])->all();
         }
 
         if ($booking !== null) {
