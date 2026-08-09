@@ -1019,10 +1019,14 @@ class PageRendererService
             'link_url'       => $tile['link_url'] ?? null,
         ])->all();
 
+        $gridCols = max(1, min(8, (int) ($cfg['grid_cols'] ?? $cfg['columns'] ?? 2)));
+        $gridRows = max(1, min(8, (int) ($cfg['grid_rows'] ?? 2)));
+
         return [
-            'title'   => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
-            'columns' => (int) ($cfg['columns'] ?? 2),
-            'tiles'   => $tiles,
+            'title'     => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'grid_cols' => $gridCols,
+            'grid_rows' => $gridRows,
+            'tiles'     => $tiles,
         ];
     }
 

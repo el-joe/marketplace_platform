@@ -11,8 +11,40 @@
         <x-form.input name="title_ar" label="Title (AR)" :value="$config['title_ar'] ?? ''" dir="rtl" />
     </div>
 
-    <x-form.select name="columns" label="Grid columns" :value="$config['columns'] ?? 2"
-        :options="['2' => '2 columns', '3' => '3 columns', '4' => '4 columns']" class="mt-3" />
+    {{-- Grid layout controls --}}
+    <div class="grid grid-cols-2 gap-3 mt-3">
+
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">
+                Grid Columns <span class="text-gray-400">(across)</span>
+            </label>
+            <select name="grid_cols"
+                    class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500">
+                @for ($c = 1; $c <= 8; $c++)
+                    <option value="{{ $c }}"
+                        {{ ($config['grid_cols'] ?? 2) == $c ? 'selected' : '' }}>
+                        {{ $c }} {{ $c === 1 ? 'column' : 'columns' }}
+                    </option>
+                @endfor
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">
+                Grid Rows <span class="text-gray-400">(down)</span>
+            </label>
+            <select name="grid_rows"
+                    class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500">
+                @for ($r = 1; $r <= 8; $r++)
+                    <option value="{{ $r }}"
+                        {{ ($config['grid_rows'] ?? 2) == $r ? 'selected' : '' }}>
+                        {{ $r }} {{ $r === 1 ? 'row' : 'rows' }}
+                    </option>
+                @endfor
+            </select>
+        </div>
+
+    </div>
 
     <div class="mt-4">
         <div class="flex items-center justify-between mb-2">

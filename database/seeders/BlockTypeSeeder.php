@@ -119,8 +119,8 @@ class BlockTypeSeeder extends Seeder
                 'code' => 'promo_tiles', 'group' => 'ads_banners',
                 'label_en' => 'Promo Tiles', 'label_ar' => 'بلاطات ترويجية',
                 'icon' => 'squares-2x2', 'max_per_page' => null,
-                'config_schema' => ['title_en', 'title_ar', 'columns', 'tiles'],
-                'default_config' => ['columns' => 2, 'tiles' => []],
+                'config_schema' => ['title_en', 'title_ar', 'grid_cols', 'grid_rows', 'tiles'],
+                'default_config' => ['grid_cols' => 2, 'grid_rows' => 2, 'tiles' => []],
             ],
             // ── Discovery ───────────────────────────────────────────────────
             [
