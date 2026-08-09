@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Services\Customer\ListingIdentifierService;
 use App\Support\Bilingual;
 use Illuminate\Http\Request;
@@ -24,8 +26,7 @@ class CartItemResource extends JsonResource
             'sku'                => $variant?->sku,
             'vendor_sku'         => $isAdmin ? null : $listing?->vendor_sku,
             'name'               => $product ? Bilingual::pair($product, 'name') : ['ar' => null, 'en' => null],
-            'thumbnail'          => $product?->images?->firstWhere('is_primary', true)?->url
-                                        ?? $product?->images?->first()?->url,
+            'thumbnail'          => $this->resolveThumbnail($product, $variant),
             'unit_price'   => $this->unit_price,
             'quantity'           => $this->quantity,
             'line_total'   => $this->unit_price * $this->quantity,
@@ -52,5 +53,27 @@ class CartItemResource extends JsonResource
                 'badge_color_hex' => $this->selectedShippingMethod->badge_color_hex,
             ] : null,
         ];
+    }
+
+    /**
+     * Mirrors ProductDetailController::buildImages() scoping so the cart thumbnail
+     * matches the primary image shown on the product detail page: the variant's own
+     * first-position image, falling back to a generic (variant-less) product image.
+     */
+    private function resolveThumbnail(?Product $product, ?ProductVariant $variant): ?string
+    {
+        $images = $product?->images;
+
+        if (!$images) {
+            return null;
+        }
+
+        $variantImage = $variant
+            ? $images->where('product_variant_id', $variant->id)->sortBy('position')->first()
+            : null;
+
+        $genericImage = $images->whereNull('product_variant_id')->sortBy('position')->first();
+
+        return ($variantImage ?? $genericImage)?->url;
     }
 }
