@@ -13,11 +13,17 @@ use App\Models\ShippingRate;
 use App\Models\ShippingZone;
 use App\Models\VendorListing;
 use App\Models\Wallet;
+use App\Services\ShippingMethodResolverService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ProductDetailEnrichmentService
 {
+    public function __construct(
+        private readonly ShippingMethodResolverService $shippingMethodResolver,
+    ) {
+    }
+
     // ── Section 1: best_seller_badge ────────────────────────────────────────
 
     public function getBestSellerBadge(Product $product, Country $country): ?array
@@ -75,19 +81,32 @@ class ProductDetailEnrichmentService
             return [];
         }
 
-        $zoneId = $this->resolveDestinationZoneId($country, $customerAddressId);
+        // Method availability (category + country + fulfillment) never depends
+        // on an address — resolve it the same way the listing page does.
+        $availableMethodIds = $this->shippingMethodResolver
+            ->getAvailableForListing($buyBoxListing->id, 'vendor_listing', $country->id)
+            ->pluck('id')
+            ->all();
+
+        if (empty($availableMethodIds)) {
+            return [];
+        }
+
+        [$zoneId, $addressResolved] = $this->resolveDestinationZoneId($country, $customerAddressId);
 
         if (!$zoneId) {
             return [];
         }
 
-        $cacheKey = "product_delivery_options:{$product->id}:{$country->id}:{$zoneId}:{$buyBoxListing->id}";
+        $cacheKey = "product_delivery_options:{$product->id}:{$country->id}:{$zoneId}:{$buyBoxListing->id}:"
+            . ($addressResolved ? 'addr' : 'base');
 
-        return Cache::remember($cacheKey, 300, function () use ($buyBoxListing, $zoneId) {
+        return Cache::remember($cacheKey, 300, function () use ($buyBoxListing, $zoneId, $availableMethodIds) {
             $variant = $buyBoxListing->productVariant;
             $weightGrams = (int) ceil((($variant?->weight_grams ?? 0) / 100)) * 100;
 
             $rates = ShippingRate::query()
+                ->whereIn('shipping_method_id', $availableMethodIds)
                 ->where('destination_zone_id', $zoneId)
                 ->where('is_active', true)
                 ->with(['shippingMethod' => fn($q) => $q->where('is_active', true)])
@@ -124,21 +143,33 @@ class ProductDetailEnrichmentService
         });
     }
 
-    private function resolveDestinationZoneId(Country $country, ?string $customerAddressId): ?string
+    /**
+     * @return array{0: ?string, 1: bool} [zoneId, addressWasResolved]
+     */
+    private function resolveDestinationZoneId(Country $country, ?string $customerAddressId): array
     {
-        if ($customerAddressId) {
-            $address = Address::with('city')->find($customerAddressId);
+        $customer = auth('customer')->user();
+
+        if ($customerAddressId && $customer) {
+            $address = Address::with('city')
+                ->where('id', $customerAddressId)
+                ->where('addressable_type', Customer::class)
+                ->where('addressable_id', $customer->id)
+                ->first();
+
             if ($address?->city?->shipping_zone_id) {
-                return $address->city->shipping_zone_id;
+                return [$address->city->shipping_zone_id, true];
             }
         }
 
         // No explicit "default zone" flag exists in the schema; fall back to the
         // country's first active shipping zone for guests/addressless requests.
-        return ShippingZone::where('country_id', $country->id)
+        $fallbackZoneId = ShippingZone::where('country_id', $country->id)
             ->where('is_active', true)
             ->orderBy('created_at')
             ->value('id');
+
+        return [$fallbackZoneId, false];
     }
 
     private function estimatedDeliveryDate(\App\Models\ShippingMethod $method): \Carbon\Carbon
