@@ -135,8 +135,8 @@ class ListingDetailController extends Controller
 
         $isWishlisted = false;
         if ($customerId = auth('customer')->id()) {
-            $isWishlisted = Wishlist::where('customer_id', $customerId)
-                ->where('vendor_listing_id', $listing->id)
+            $isWishlisted = \App\Models\WishlistItem::where('customer_id', $customerId)
+                ->where($listing instanceof AdminListing ? 'admin_listing_id' : 'vendor_listing_id', $listing->id)
                 ->exists();
         }
 

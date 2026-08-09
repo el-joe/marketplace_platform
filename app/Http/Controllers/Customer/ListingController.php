@@ -23,6 +23,7 @@ use App\Services\Customer\ProductDetailEnrichmentService;
 use App\Services\Customer\ReviewService;
 use App\Models\Product;
 use App\Models\Wishlist;
+use App\Models\WishlistItem;
 use App\Http\Resources\Customer\ProductDetailResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -199,7 +200,7 @@ class ListingController extends Controller
 
         $isWishlisted = false;
         if (($customerId = auth('customer')->id()) && ($buyBoxListing = $listings->first())) {
-            $isWishlisted = Wishlist::where('customer_id', $customerId)
+            $isWishlisted = WishlistItem::where('customer_id', $customerId)
                 ->where('vendor_listing_id', $buyBoxListing->id)
                 ->exists();
         }

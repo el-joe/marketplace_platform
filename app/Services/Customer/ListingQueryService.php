@@ -17,6 +17,7 @@ use App\Models\TravelPackage;
 use App\Models\Vendor;
 use App\Models\VendorListing;
 use App\Models\Wishlist;
+use App\Models\WishlistItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -458,7 +459,14 @@ class ListingQueryService
             return [];
         }
 
-        return Wishlist::where('customer_id', $customerId)->pluck('vendor_listing_id')->toArray();
+        $items = WishlistItem::where('customer_id', $customerId)->get(['vendor_listing_id', 'admin_listing_id']);
+
+        return $items->pluck('vendor_listing_id')
+            ->merge($items->pluck('admin_listing_id'))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

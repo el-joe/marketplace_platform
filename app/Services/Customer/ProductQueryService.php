@@ -8,6 +8,7 @@ use App\Models\Attribute;
 use App\Models\Country;
 use App\Models\Product;
 use App\Models\Wishlist;
+use App\Models\WishlistItem;
 use App\Support\Bilingual;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -343,8 +344,8 @@ class ProductQueryService
             return [];
         }
 
-        return Wishlist::where('wishlists.customer_id', $customerId)
-            ->join('vendor_listings', 'vendor_listings.id', '=', 'wishlists.vendor_listing_id')
+        return WishlistItem::where('wishlist_items.customer_id', $customerId)
+            ->join('vendor_listings', 'vendor_listings.id', '=', 'wishlist_items.vendor_listing_id')
             ->join('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
             ->pluck('product_variants.product_id')
             ->unique()
