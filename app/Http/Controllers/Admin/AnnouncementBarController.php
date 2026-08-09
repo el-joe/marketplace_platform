@@ -172,10 +172,14 @@ class AnnouncementBarController extends Controller
     {
         if ($countryId !== null) {
             Cache::forget("app_config_{$countryId}");
+            Cache::forget("announcement_bar_active_{$countryId}");
 
             return;
         }
 
-        Country::pluck('id')->each(fn ($id) => Cache::forget("app_config_{$id}"));
+        Country::pluck('id')->each(function ($id) {
+            Cache::forget("app_config_{$id}");
+            Cache::forget("announcement_bar_active_{$id}");
+        });
     }
 }

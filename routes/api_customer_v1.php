@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\Customer\OrderController as ApiOrderController;
 use App\Http\Controllers\Api\Customer\GiftCardController as ApiGiftCardController;
 use App\Http\Controllers\Api\Customer\CustomerWalletController;
 use App\Http\Controllers\Api\Customer\NewsletterController;
+use App\Http\Controllers\Api\Customer\AnnouncementBarController;
 
 // ── Home composite (public) ───────────────────────────────────────────
 
@@ -186,6 +187,11 @@ use Illuminate\Support\Facades\Route;
                 ->name('unsubscribe');
         });
 
+        // ── Announcement bars (public — guest safe) ────────────────────────────
+        Route::prefix('announcement-bars')->name('customer.announcement-bars.')->group(function (): void {
+            Route::get('/', [AnnouncementBarController::class, 'index'])->name('index');
+        });
+
         // ── Public auth endpoints ─────────────────────────────────────────────
         Route::prefix('auth')->name('customer.auth.')->group(function (): void {
             Route::post('register', [AuthController::class, 'register'])
@@ -251,6 +257,11 @@ use Illuminate\Support\Facades\Route;
                 Route::post('resend-verification', [AuthController::class, 'resendVerification'])
                     ->middleware('throttle:3,1')
                     ->name('resend-verification');
+            });
+
+            // Announcement bars
+            Route::prefix('announcement-bars')->name('customer.announcement-bars.')->group(function (): void {
+                Route::post('{id}/dismiss', [AnnouncementBarController::class, 'dismiss'])->name('dismiss');
             });
 
             // Profile
