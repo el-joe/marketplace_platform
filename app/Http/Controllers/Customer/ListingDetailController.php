@@ -239,7 +239,13 @@ class ListingDetailController extends Controller
 
         $type = $this->identifiers->detectType($identifier);
 
-        return $this->identifiers->resolve($identifier, $type, $country);
+        $listing = $this->identifiers->resolve($identifier, $type, $country);
+
+        if ($listing) {
+            return $listing;
+        }
+
+        return $this->identifiers->resolveAdminListing($identifier, $country->id);
     }
 
     private function listingShape(VendorListing|AdminListing $listing, $country, bool $isWishlisted): array
