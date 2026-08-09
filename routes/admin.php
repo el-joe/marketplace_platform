@@ -632,6 +632,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/search/customers', [CouponController::class, 'searchCustomers'])->name('search-customers');
         Route::post('/datatable', [CouponController::class, 'datatable'])->name('datatable');
         Route::post('/bulk', [CouponController::class, 'bulkAction'])->name('bulk');
+        Route::post('/clear-cache', [CouponController::class, 'clearCache'])->name('clear-cache');
         Route::get('/', [CouponController::class, 'index'])->name('index');
         Route::post('/', [CouponController::class, 'store'])->name('store');
         Route::get('/{coupon}/usages', [CouponController::class, 'usages'])->name('usages');

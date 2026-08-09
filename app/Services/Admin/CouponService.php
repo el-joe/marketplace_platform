@@ -42,8 +42,6 @@ class CouponService
             $data
         )));
 
-        $this->bustProductCouponsCache();
-
         return $coupon;
     }
 
@@ -68,8 +66,6 @@ class CouponService
 
         DB::transaction(fn () => $coupon->update($data));
 
-        $this->bustProductCouponsCache();
-
         return $coupon->refresh();
     }
 
@@ -83,14 +79,10 @@ class CouponService
         if ($coupon->times_used > 0) {
             $coupon->update(['is_active' => false, 'valid_until' => now()]);
 
-            $this->bustProductCouponsCache();
-
             return ['deleted' => false, 'deactivated' => true];
         }
 
         $coupon->delete();
-
-        $this->bustProductCouponsCache();
 
         return ['deleted' => true, 'deactivated' => false];
     }

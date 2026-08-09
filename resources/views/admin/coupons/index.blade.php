@@ -152,6 +152,16 @@
         </div>
     </div>
 
+    <div class="flex justify-end mb-3">
+        <button type="button" id="clear-coupons-cache-btn" class="btn btn-ghost gap-2 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            {{ __('admin.coupons_section.clear_cache') }}
+        </button>
+    </div>
+
     <x-table.datatable id="coupons-table" url="{{ route('admin.coupons.datatable') }}" :columns="$columns"
         :filters="$filters" :bulk-actions="$bulkActions" bulk-url="{{ route('admin.coupons.bulk') }}"
         :create-action="['url' => route('admin.coupons.create'), 'label' => __('admin.coupons_section.add_coupon')]" :page-length="25" :order="[[7, 'desc']]" />
@@ -165,6 +175,28 @@
             couponDeleted: @json(__('admin.coupons_section.coupon_deleted')),
             deleteFailed: @json(__('admin.coupons_section.delete_failed')),
             defaultCouponLabel: @json(__('admin.coupons_section.title')),
+            clearCacheConfirm: @json(__('admin.coupons_section.clear_cache_confirm')),
+            cacheCleared: @json(__('admin.coupons_section.cache_cleared')),
+            clearCacheFailed: @json(__('admin.coupons_section.clear_cache_failed')),
+        });
+
+        document.getElementById('clear-coupons-cache-btn')?.addEventListener('click', async function () {
+            const confirmed = window.confirmDelete
+                ? await window.confirmDelete(window.TRANSLATIONS.clearCacheConfirm, { title: window.TRANSLATIONS.clearCacheConfirm })
+                : confirm(window.TRANSLATIONS.clearCacheConfirm);
+            if (!confirmed) return;
+
+            $.ajax({
+                url: '{{ route('admin.coupons.clear-cache') }}',
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            })
+                .done(function (res) {
+                    window.Toast && window.Toast.success(res.message || window.TRANSLATIONS.cacheCleared);
+                })
+                .fail(function (xhr) {
+                    window.Toast && window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.clearCacheFailed);
+                });
         });
 
         window.tableActions = window.tableActions || {};

@@ -65,6 +65,8 @@ use App\Models\AdminListing;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Observers\AdminListingObserver;
+use App\Observers\CouponObserver;
+use App\Models\Coupon;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -140,6 +142,7 @@ class AppServiceProvider extends ServiceProvider
         AdminListing::observe(AdminListingObserver::class);
         WarrantyPurchase::observe(WarrantyPurchaseObserver::class);
         SubOrder::observe(SubOrderObserver::class);
+        Coupon::observe(CouponObserver::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
 

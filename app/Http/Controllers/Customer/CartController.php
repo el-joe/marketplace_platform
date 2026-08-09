@@ -231,6 +231,7 @@ class CartController extends Controller
                         'product_url' => "/products/{$variant?->id}/" . ($isVendor ? $item->vendor_listing_id : $item->admin_listing_id),
                         'product_name_en' => $product?->name_en,
                         'product_name_ar' => $product?->name_ar,
+                        'max_order_quantity' => $listing?->max_order_quantity,
                         'variant_name' => $variant?->variant_name,
                         'primary_image' => $primaryImage?->path,
                         'listing_id' => $isVendor ? $item->vendor_listing_id : $item->admin_listing_id,

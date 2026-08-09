@@ -284,8 +284,6 @@ class CouponController extends Controller
 
         $coupon->update(['is_active' => !$coupon->is_active]);
 
-        $this->coupons->bustProductCouponsCache();
-
         return response()->json(['success' => true, 'is_active' => $coupon->is_active]);
     }
 
@@ -310,6 +308,19 @@ class CouponController extends Controller
         }
 
         return response()->json(['success' => true, 'deactivated' => false]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Clear Cache
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function clearCache(): JsonResponse
+    {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('viewAny', Coupon::class);
+
+        $this->coupons->bustProductCouponsCache();
+
+        return response()->json(['success' => true, 'message' => __('admin.coupons_section.cache_cleared')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
