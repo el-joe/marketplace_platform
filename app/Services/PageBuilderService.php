@@ -139,17 +139,6 @@ class PageBuilderService
             throw ValidationException::withMessages(['block_type_code' => 'You do not have permission to add this block type.']);
         }
 
-        if ($type->max_per_page !== null) {
-            $current = PageBlock::where('page_id', $page->id)
-                ->where('block_type', $type->code)
-                ->count();
-            if ($current >= $type->max_per_page) {
-                throw ValidationException::withMessages([
-                    'block_type_code' => sprintf('Maximum of %d %s block(s) reached on this page.', $type->max_per_page, $type->label_en),
-                ]);
-            }
-        }
-
         $block = DB::transaction(function () use ($page, $type, $position, $admin, $sectionId, $columnIndex) {
             $block = PageBlock::create([
                 'page_id' => $page->id,

@@ -17,7 +17,7 @@ class BlockTypeSeeder extends Seeder
             [
                 'code' => 'hero_slider', 'group' => 'hero',
                 'label_en' => 'Hero Slider', 'label_ar' => 'عارض الشرائح',
-                'icon' => 'squares-2x2', 'max_per_page' => 1,
+                'icon' => 'squares-2x2', 'max_per_page' => null,
                 'config_schema' => ['height_desktop', 'autoplay_seconds', 'show_dots', 'show_arrows', 'loop', 'transition'],
                 'default_config' => ['height_desktop' => '480px', 'autoplay_seconds' => 4, 'show_dots' => true, 'show_arrows' => true, 'loop' => true],
             ],
