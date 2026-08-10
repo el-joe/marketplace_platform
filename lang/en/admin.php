@@ -9906,6 +9906,7 @@ return [
         'col_unit_cost'         => 'Unit Cost',
         'col_stock'             => 'Stock',
         'col_active'            => 'Active',
+        'col_countries'         => 'Countries',
         'filter_type'           => 'Type',
         'filter_active'         => 'Active',
         'type_box'              => 'Box',
@@ -9941,6 +9942,12 @@ return [
         'deleted'               => 'Deleted.',
         'could_not_delete'      => 'Could not delete item.',
         'something_wrong'       => 'Something went wrong.',
+        'country_pricing'       => 'Country Pricing',
+        'add_country'           => 'Add Country',
+        'col_country'           => 'Country',
+        'col_currency'          => 'Currency',
+        'col_active_short'      => 'Active',
+        'no_countries_yet'      => 'Add at least one country with pricing.',
     ],
 
     // ─── Shipping Weight Slabs ────────────────────────────────────────────

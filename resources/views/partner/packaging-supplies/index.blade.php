@@ -59,12 +59,13 @@
                             @if($supply->size)
                                 <p class="text-xs text-gray-500 mt-1">{{ $supply->size }}</p>
                             @endif
+                            @php($pricing = $supply->countryPricing->first())
                             <div class="mt-2 flex items-center justify-between">
-                                <span class="text-sm font-bold {{ $supply->isFree() ? 'text-green-600' : 'text-gray-900' }}">
-                                    {{ $supply->unit_cost_formatted }}
+                                <span class="text-sm font-bold {{ ($pricing && $pricing->isFree()) ? 'text-green-600' : 'text-gray-900' }}">
+                                    {{ $pricing?->unit_cost_formatted }}
                                 </span>
-                                @if($supply->stock_available !== null)
-                                    <span class="text-xs text-gray-400">{{ __('partner.packaging_supplies.in_stock', ['count' => number_format($supply->stock_available)]) }}</span>
+                                @if($pricing && $pricing->stock_available !== null)
+                                    <span class="text-xs text-gray-400">{{ __('partner.packaging_supplies.in_stock', ['count' => number_format($pricing->stock_available)]) }}</span>
                                 @endif
                             </div>
                         </div>

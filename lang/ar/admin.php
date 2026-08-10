@@ -9864,6 +9864,7 @@ return [
         'col_unit_cost'         => 'تكلفة الوحدة',
         'col_stock'             => 'المخزون',
         'col_active'            => 'مفعّل',
+        'col_countries'         => 'الدول',
         'filter_type'           => 'النوع',
         'filter_active'         => 'مفعّل',
         'type_box'              => 'صندوق',
@@ -9899,6 +9900,12 @@ return [
         'deleted'               => 'تم الحذف.',
         'could_not_delete'      => 'تعذر حذف العنصر.',
         'something_wrong'       => 'حدث خطأ ما.',
+        'country_pricing'       => 'تسعير حسب الدولة',
+        'add_country'           => 'إضافة دولة',
+        'col_country'           => 'الدولة',
+        'col_currency'          => 'العملة',
+        'col_active_short'      => 'مفعّل',
+        'no_countries_yet'      => 'أضف دولة واحدة على الأقل مع التسعير.',
     ],
 
     // ─── Shipping Weight Slabs ────────────────────────────────────────────

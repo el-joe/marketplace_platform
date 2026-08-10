@@ -1531,6 +1531,7 @@ return [
         'messages' => [
             'currency_mismatch' => 'All items in a single order must use the same currency.',
             'submitted_with_number' => 'Request #:number submitted successfully.',
+            'insufficient_stock' => 'Not enough stock available for :name.',
         ],
     ],
 

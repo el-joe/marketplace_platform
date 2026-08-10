@@ -1566,6 +1566,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/catalog', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'catalog'])->name('catalog');
         Route::post('/catalog/datatable', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'datatableCatalog'])->name('catalog.datatable');
         Route::post('/catalog', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'storeCatalogItem'])->name('catalog.store');
+        Route::get('/catalog/{supply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'getCatalogItem'])->name('catalog.show');
         Route::put('/catalog/{supply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'updateCatalogItem'])->name('catalog.update');
         Route::delete('/catalog/{supply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'destroyCatalogItem'])->name('catalog.destroy');
         Route::patch('/catalog/{supply}/toggle', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'toggleActive'])->name('catalog.toggle');

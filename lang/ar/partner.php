@@ -1530,6 +1530,7 @@ return [
         'confirm_and_submit' => 'تأكيد وإرسال',
         'messages' => [
             'currency_mismatch' => 'يجب أن تستخدم جميع الأصناف في الطلب الواحد نفس العملة.',
+            'insufficient_stock' => 'لا يوجد مخزون كافٍ لـ :name.',
             'submitted_with_number' => 'تم إرسال الطلب رقم :number بنجاح.',
         ],
     ],

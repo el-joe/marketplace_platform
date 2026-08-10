@@ -6,6 +6,7 @@ use App\Enums\PackagingSupplyRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\PackagingSupply;
+use App\Models\PackagingSupplyCountry;
 use App\Models\PackagingSupplyRequest;
 use App\Models\PackagingSupplyRequestItem;
 use App\Models\Setting;
@@ -25,9 +26,24 @@ class PackagingSupplyController extends Controller
     use HasDataTable;
     use HasExport;
 
+    private function vendorCountryId(): ?string
+    {
+        $vendor = auth('vendor')->user();
+
+        return $vendor?->vendor?->country_id;
+    }
+
     public function index(): View
     {
+        $countryId = $this->vendorCountryId();
+
         $supplies = PackagingSupply::where('is_active', true)
+            ->whereHas('countryPricing', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId)->where('is_active', true);
+            })
+            ->with(['countryPricing' => function ($q) use ($countryId) {
+                $q->where('country_id', $countryId)->where('is_active', true);
+            }])
             ->orderBy('type')
             ->orderBy('name_en')
             ->get();
@@ -38,8 +54,15 @@ class PackagingSupplyController extends Controller
     public function request(): View
     {
         $vendor = auth('vendor')->user();
+        $countryId = $this->vendorCountryId();
 
         $supplies = PackagingSupply::where('is_active', true)
+            ->whereHas('countryPricing', function ($q) use ($countryId) {
+                $q->where('country_id', $countryId)->where('is_active', true);
+            })
+            ->with(['countryPricing' => function ($q) use ($countryId) {
+                $q->where('country_id', $countryId)->where('is_active', true);
+            }])
             ->orderBy('type')
             ->orderBy('name_en')
             ->get();
@@ -52,6 +75,7 @@ class PackagingSupplyController extends Controller
     public function submitRequest(Request $request): RedirectResponse
     {
         $vendor = auth('vendor')->user();
+        $countryId = $this->vendorCountryId();
 
         $data = $request->validate([
             'warehouse_id'          => ['nullable', 'uuid', 'exists:warehouses,id'],
@@ -61,49 +85,56 @@ class PackagingSupplyController extends Controller
             'items.*.quantity'      => ['required', 'integer', 'min:1', 'max:1000'],
         ]);
 
-        // Load requested supplies to compute costs
+        // Load requested supplies and their pricing for the vendor's country
         $supplyIds = collect($data['items'])->pluck('supply_id')->unique();
         $supplies  = PackagingSupply::whereIn('id', $supplyIds)
             ->where('is_active', true)
             ->get()
             ->keyBy('id');
 
-        // Reject if any supply is unavailable
+        $countryPricing = PackagingSupplyCountry::whereIn('packaging_supply_id', $supplyIds)
+            ->where('country_id', $countryId)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('packaging_supply_id');
+
+        // Reject if any supply is unavailable in the vendor's country
         foreach ($data['items'] as $item) {
             abort_unless($supplies->has($item['supply_id']), 422, 'One or more selected supplies are unavailable.');
+            abort_unless($countryPricing->has($item['supply_id']), 422, 'One or more selected supplies are unavailable in your country.');
         }
 
-        $totalCents = 0;
-        $lineItems  = [];
-        $currency   = null;
+        $totalCost = 0;
+        $lineItems = [];
+        $currency  = auth('vendor')->user()?->vendor?->country?->currency_code;
 
         foreach ($data['items'] as $item) {
             $supply = $supplies[$item['supply_id']];
+            $pricing = $countryPricing[$item['supply_id']];
 
-            if ($currency && $currency !== $supply->currency) {
-                abort(422, __('partner.packaging_supplies.messages.currency_mismatch'));
+            if ($pricing->stock_available !== null) {
+                abort_if($pricing->stock_available < $item['quantity'], 422, __('partner.packaging_supplies.messages.insufficient_stock', ['name' => $supply->name_en]));
             }
-            $currency = $supply->currency;
 
-            $lineCents = $supply->unit_cost * $item['quantity'];
-            $totalCents += $lineCents;
+            $lineTotal = $pricing->unit_cost * $item['quantity'];
+            $totalCost += $lineTotal;
 
             $lineItems[] = [
                 'packaging_supply_id' => $supply->id,
                 'quantity'            => $item['quantity'],
-                'unit_cost'     => $supply->unit_cost,
-                'line_total'    => $lineCents,
+                'unit_cost'           => $pricing->unit_cost,
+                'line_total'          => $lineTotal,
                 'created_at'          => now(),
             ];
         }
 
-        $supplyRequest = DB::transaction(function () use ($vendor, $data, $lineItems, $totalCents, $currency) {
+        $supplyRequest = DB::transaction(function () use ($vendor, $data, $lineItems, $totalCost, $currency) {
             $supplyRequest = PackagingSupplyRequest::create([
                 'request_number'     => PackagingSupplyRequest::generateRequestNumber(),
                 'vendor_id'          => $vendor->vendor_id,
                 'warehouse_id'       => $data['warehouse_id'] ?? null,
                 'status'             => PackagingSupplyRequestStatus::Pending,
-                'total_cost'   => $totalCents,
+                'total_cost'   => $totalCost,
                 'delivery_fee' => $this->resolveDeliveryFeeCents($vendor->vendor),
                 'currency'           => $currency,
                 'notes'              => $data['notes'] ?? null,
@@ -111,6 +142,11 @@ class PackagingSupplyController extends Controller
 
             foreach ($lineItems as $line) {
                 $supplyRequest->items()->create($line);
+
+                PackagingSupplyCountry::where('packaging_supply_id', $line['packaging_supply_id'])
+                    ->where('country_id', $supplyRequest->vendor->country_id)
+                    ->whereNotNull('stock_available')
+                    ->decrement('stock_available', $line['quantity']);
             }
 
             return $supplyRequest;
@@ -171,7 +207,7 @@ class PackagingSupplyController extends Controller
         $rows = $requests->map(fn($row) => [
             $row->request_number,
             $row->items_count,
-            number_format($row->total_cost / 100, 2),
+            number_format($row->total_cost),
             $row->currency,
             $row->status instanceof PackagingSupplyRequestStatus ? $row->status->value : $row->status,
             $row->created_at->format('Y-m-d H:i'),

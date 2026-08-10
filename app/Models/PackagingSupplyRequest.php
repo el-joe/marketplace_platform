@@ -67,14 +67,14 @@ class PackagingSupplyRequest extends Model
     {
         return $this->total_cost === 0
             ? 'Free'
-            : number_format($this->total_cost / 100, 2) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
+            : number_format($this->total_cost) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
     }
 
     public function getDeliveryFeeFormattedAttribute(): string
     {
         return $this->delivery_fee === 0
             ? 'Free'
-            : number_format($this->delivery_fee / 100, 2) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
+            : number_format($this->delivery_fee) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
     }
 
     public function getGrandTotalAttribute(): int
@@ -84,7 +84,7 @@ class PackagingSupplyRequest extends Model
 
     public function getGrandTotalFormattedAttribute(): string
     {
-        return number_format($this->grand_total / 100, 2) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
+        return number_format($this->grand_total) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
     }
 
     public function isPending(): bool

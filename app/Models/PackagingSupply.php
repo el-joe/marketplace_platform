@@ -53,13 +53,39 @@ class PackagingSupply extends Model
         return $this->hasMany(PackagingSupplyRequestItem::class);
     }
 
+    /**
+     * Per-country pricing/stock/availability overrides. This is the
+     * authoritative source of pricing for partners; unit_cost/currency/
+     * stock_available on this model remain as legacy fallback columns.
+     */
+    public function countryPricing(): HasMany
+    {
+        return $this->hasMany(PackagingSupplyCountry::class, 'packaging_supply_id');
+    }
+
+    public function pricingForCountry(string $countryId): ?PackagingSupplyCountry
+    {
+        if ($this->relationLoaded('countryPricing')) {
+            return $this->countryPricing->firstWhere('country_id', $countryId);
+        }
+
+        return $this->countryPricing()->where('country_id', $countryId)->first();
+    }
+
+    public function isAvailableInCountry(string $countryId): bool
+    {
+        $pricing = $this->pricingForCountry($countryId);
+
+        return $pricing !== null && $pricing->is_active;
+    }
+
     public function getUnitCostFormattedAttribute(): string
     {
         if ($this->unit_cost === 0) {
             return 'Free';
         }
 
-        return number_format($this->unit_cost / 100, 2) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
+        return number_format($this->unit_cost) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
     }
 
     public function isFree(): bool

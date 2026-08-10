@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Country;
 use App\Models\PackagingSupply;
+use App\Models\PackagingSupplyCountry;
 use App\Models\PackagingSupplyRequest;
 use App\Models\Vendor;
 use App\Notifications\Vendor\PackagingOrderApproved;
@@ -33,13 +35,14 @@ class PackagingSupplyController extends Controller
     public function catalog(): View
     {
         $supplies = PackagingSupply::orderBy('sort_order')->orderBy('name_en')->get();
+        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_ar', 'currency_code']);
 
-        return view('admin.packaging.catalog', compact('supplies'));
+        return view('admin.packaging.catalog', compact('supplies', 'countries'));
     }
 
     public function datatableCatalog(Request $request): JsonResponse
     {
-        $query = PackagingSupply::query();
+        $query = PackagingSupply::withCount('countryPricing as country_count');
 
         $query = $this->applyFilters($query, $request, [
             'type' => fn ($q, $v) => $q->where('type', $v),
@@ -54,6 +57,7 @@ class PackagingSupplyController extends Controller
             ['searchable_columns' => [], 'orderable_column' => 'unit_cost'],
             ['searchable_columns' => [], 'orderable_column' => 'stock_available'],
             ['searchable_columns' => [], 'orderable_column' => 'is_active'],
+            ['searchable_columns' => [], 'orderable_column' => null], // countries
             ['searchable_columns' => [], 'orderable_column' => null], // actions
         ];
 
@@ -85,6 +89,9 @@ class PackagingSupplyController extends Controller
                 . '<button type="button" class="js-delete-item text-red-500 hover:underline text-xs font-medium" data-id="' . $row->id . '" data-name="' . e($row->name_en) . '">Delete</button>'
                 . '</div>';
 
+            $countriesHtml = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">'
+                . (int) $row->country_count . '</span>';
+
             return [
                 'image' => $imgHtml,
                 'name' => $nameHtml,
@@ -93,9 +100,25 @@ class PackagingSupplyController extends Controller
                 'unit_cost' => $row->unit_cost_formatted,
                 'stock' => $stockHtml,
                 'status' => $statusToggle,
+                'countries' => $countriesHtml,
                 'actions' => $actionsHtml,
             ];
         });
+    }
+
+    public function getCatalogItem(PackagingSupply $supply): JsonResponse
+    {
+        $supply->load('countryPricing');
+
+        $data = $supply->toArray();
+        $data['country_pricing'] = $supply->countryPricing->map(fn (PackagingSupplyCountry $row) => [
+            'country_id' => $row->country_id,
+            'unit_cost' => $row->unit_cost,
+            'stock_available' => $row->stock_available,
+            'is_active' => $row->is_active,
+        ])->values();
+
+        return response()->json(['success' => true, 'data' => $data]);
     }
 
     private function validateCatalogItem(Request $request): array
@@ -107,18 +130,23 @@ class PackagingSupplyController extends Controller
             'size' => ['nullable', 'string', 'max:100'],
             'description_en' => ['nullable', 'string'],
             'description_ar' => ['nullable', 'string'],
-            'unit_cost' => ['required', 'integer', 'min:1'],
-            'currency' => ['required', 'in:' . implode(',', self::CURRENCIES)],
-            'stock_available' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
             'sort_order' => ['integer', 'min:0'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'country_pricing' => ['required', 'array', 'min:1'],
+            'country_pricing.*.country_id' => ['required', 'uuid', 'exists:countries,id'],
+            'country_pricing.*.unit_cost' => ['required', 'integer', 'min:0'],
+            'country_pricing.*.stock_available' => ['nullable', 'integer', 'min:0'],
+            'country_pricing.*.is_active' => ['boolean'],
         ]);
     }
 
     public function storeCatalogItem(Request $request): JsonResponse
     {
         $data = $this->validateCatalogItem($request);
+        $countryPricing = $data['country_pricing'];
+        unset($data['country_pricing']);
+
         $data['is_active'] = $request->boolean('is_active');
         $data['sort_order'] = $data['sort_order'] ?? 0;
 
@@ -126,7 +154,12 @@ class PackagingSupplyController extends Controller
             $data['image_path'] = $this->storeImage($request->file('image'));
         }
 
-        $supply = PackagingSupply::create($data);
+        $supply = DB::transaction(function () use ($data, $countryPricing) {
+            $supply = PackagingSupply::create($data);
+            $this->syncCountryPricing($supply, $countryPricing);
+
+            return $supply;
+        });
 
         return response()->json([
             'success' => true,
@@ -138,6 +171,9 @@ class PackagingSupplyController extends Controller
     public function updateCatalogItem(Request $request, PackagingSupply $supply): JsonResponse
     {
         $data = $this->validateCatalogItem($request);
+        $countryPricing = $data['country_pricing'];
+        unset($data['country_pricing']);
+
         $data['is_active'] = $request->boolean('is_active');
         $data['sort_order'] = $data['sort_order'] ?? 0;
 
@@ -148,13 +184,45 @@ class PackagingSupplyController extends Controller
             $data['image_path'] = $this->storeImage($request->file('image'));
         }
 
-        $supply->update($data);
+        DB::transaction(function () use ($supply, $data, $countryPricing) {
+            $supply->update($data);
+            $this->syncCountryPricing($supply, $countryPricing);
+        });
 
         return response()->json([
             'success' => true,
             'message' => "Supply \"{$supply->name_en}\" updated.",
             'data' => $supply,
         ]);
+    }
+
+    /**
+     * Upsert the per-country pricing rows for a supply and remove any rows
+     * for countries that are no longer present in the incoming set.
+     */
+    private function syncCountryPricing(PackagingSupply $supply, array $rows): void
+    {
+        $countryIds = [];
+
+        foreach ($rows as $row) {
+            $countryIds[] = $row['country_id'];
+
+            PackagingSupplyCountry::updateOrCreate(
+                [
+                    'packaging_supply_id' => $supply->id,
+                    'country_id' => $row['country_id'],
+                ],
+                [
+                    'unit_cost' => $row['unit_cost'],
+                    'stock_available' => $row['stock_available'] ?? null,
+                    'is_active' => $row['is_active'] ?? true,
+                ]
+            );
+        }
+
+        $supply->countryPricing()
+            ->whereNotIn('country_id', $countryIds)
+            ->delete();
     }
 
     private function storeImage($file): string
@@ -264,9 +332,9 @@ class PackagingSupplyController extends Controller
                 'vendor' => e($row->vendor->store_name ?? '—'),
                 'status' => $statusBadge,
                 'items_count' => $row->items()->count(),
-                'total_cost' => number_format($row->total_cost / 100, 2),
-                'delivery_fee' => number_format($row->delivery_fee / 100, 2),
-                'grand_total' => number_format($row->grand_total / 100, 2),
+                'total_cost' => number_format($row->total_cost),
+                'delivery_fee' => number_format($row->delivery_fee),
+                'grand_total' => number_format($row->grand_total),
                 'currency' => $row->currency,
                 'created_at' => $row->created_at->format('d M Y'),
                 'actions' => $actionsHtml,
@@ -302,7 +370,7 @@ class PackagingSupplyController extends Controller
             $req->request_number,
             $req->vendor?->store_name,
             $req->items->count(),
-            number_format($req->grand_total / 100, 2),
+            number_format($req->grand_total),
             $req->currency,
             $req->status?->value,
             optional($req->created_at)->format('d M Y H:i'),

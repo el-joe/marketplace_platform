@@ -45,6 +45,6 @@ class PackagingSupplyRequestItem extends Model
     {
         return $this->line_total === 0
             ? 'Free'
-            : number_format($this->line_total / 100, 2);
+            : number_format($this->line_total);
     }
 }

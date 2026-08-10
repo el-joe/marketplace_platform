@@ -32,6 +32,7 @@
                     <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 font-medium text-sm text-gray-700">{{ __('partner.packaging_supplies.select_items') }}</div>
                     <div class="divide-y divide-gray-100">
                         @foreach($supplies as $supply)
+                            @php($pricing = $supply->countryPricing->first())
                             <div class="px-5 py-4 flex items-center gap-4" x-data="{ qty: 0 }">
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2">
@@ -43,8 +44,8 @@
                                         @if($supply->size) · {{ $supply->size }} @endif
                                     </div>
                                 </div>
-                                <div class="text-sm font-semibold {{ $supply->isFree() ? 'text-green-600' : 'text-gray-700' }} w-20 text-right">
-                                    {{ $supply->unit_cost_formatted }}
+                                <div class="text-sm font-semibold {{ ($pricing && $pricing->isFree()) ? 'text-green-600' : 'text-gray-700' }} w-20 text-right">
+                                    {{ $pricing?->unit_cost_formatted }}
                                 </div>
                                 <div class="flex items-center gap-2 w-36">
                                     <button type="button" onclick="adjustQty('qty_{{ $supply->id }}', -1)"
@@ -54,7 +55,7 @@
                                            value="{{ old('items.'.$loop->index.'.quantity', 0) }}"
                                            min="0" max="1000"
                                            data-name="{{ $supply->name_en }}"
-                                           data-unit-cost-cents="{{ $supply->unit_cost }}"
+                                           data-unit-cost="{{ $pricing->unit_cost ?? 0 }}"
                                            class="w-14 text-center border border-gray-200 rounded-lg text-sm py-1 focus:outline-none focus:ring-2 focus:ring-primary-400/40"
                                            onchange="syncItem(this, '{{ $supply->id }}')">
                                     <button type="button" onclick="adjustQty('qty_{{ $supply->id }}', 1)"
@@ -155,12 +156,12 @@
                 .map(q => ({
                     name: q.dataset.name,
                     qty: parseInt(q.value),
-                    unitCostCents: parseInt(q.dataset.unitCostCents),
+                    unitCost: parseInt(q.dataset.unitCost),
                 }));
         }
 
-        function money(cents) {
-            return (cents / 100).toFixed(2);
+        function money(amount) {
+            return Number(amount).toFixed(2);
         }
 
         function openConfirmModal() {
@@ -172,21 +173,21 @@
 
             const tbody = document.getElementById('confirmItemsBody');
             tbody.innerHTML = '';
-            let subtotalCents = 0;
+            let subtotal = 0;
             items.forEach(item => {
-                const lineCents = item.unitCostCents * item.qty;
-                subtotalCents += lineCents;
+                const lineTotal = item.unitCost * item.qty;
+                subtotal += lineTotal;
                 const row = document.createElement('tr');
                 row.innerHTML = `<td class="py-1">${item.name}</td>
                     <td class="text-center py-1">${item.qty}</td>
-                    <td class="text-end py-1">${money(item.unitCostCents)}</td>
-                    <td class="text-end py-1">${money(lineCents)}</td>`;
+                    <td class="text-end py-1">${money(item.unitCost)}</td>
+                    <td class="text-end py-1">${money(lineTotal)}</td>`;
                 tbody.appendChild(row);
             });
 
-            document.getElementById('confirmSubtotal').textContent = money(subtotalCents);
+            document.getElementById('confirmSubtotal').textContent = money(subtotal);
             document.getElementById('confirmDeliveryFee').textContent = '…';
-            document.getElementById('confirmGrandTotal').textContent = money(subtotalCents);
+            document.getElementById('confirmGrandTotal').textContent = money(subtotal);
             document.getElementById('confirmModal').classList.remove('hidden');
             document.getElementById('confirmModal').classList.add('flex');
 
@@ -194,7 +195,7 @@
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('confirmDeliveryFee').textContent = money(data.fee);
-                    document.getElementById('confirmGrandTotal').textContent = money(subtotalCents + data.fee);
+                    document.getElementById('confirmGrandTotal').textContent = money(subtotal + data.fee);
                 })
                 .catch(() => {
                     document.getElementById('confirmDeliveryFee').textContent = money(0);
