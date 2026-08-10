@@ -129,7 +129,7 @@ function initTransferCreate() {
             resultsEl.innerHTML = `<p class="text-xs text-gray-400 p-2">${t('shared.searching')}</p>`;
             try {
                 const sourceWarehouseId = document.getElementById('source-warehouse-select')?.value || '';
-                const res = await fetch(`/partner/warehouses/transfers/item-search?search=${encodeURIComponent(q)}&source_warehouse_id=${encodeURIComponent(sourceWarehouseId)}`, {
+                const res = await fetch(`/warehouses/transfers/item-search?search=${encodeURIComponent(q)}&source_warehouse_id=${encodeURIComponent(sourceWarehouseId)}`, {
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
                 });
                 const json = await res.json();
