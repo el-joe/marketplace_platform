@@ -247,7 +247,22 @@ let wizSelectedParentId = null;
 let wizImageFiles    = [];
 let wizSketchFile    = null;
 let wizAttachmentFiles = [];
+let wizAttachmentsByType = {};
 let wizAttributes    = {};
+
+// Friendly labels for known attachment type keys
+const ATTACHMENT_TYPE_LABELS = {
+    ownership_deed:       { en: 'Ownership Deed',        ar: 'سند الملكية',        icon: '📄' },
+    id_copy:              { en: 'ID Copy',                ar: 'نسخة من الهوية',     icon: '🪪' },
+    floor_plan:           { en: 'Floor Plan',             ar: 'مخطط الطابق',        icon: '📐' },
+    title_deed:           { en: 'Title Deed',             ar: 'صك الملكية',         icon: '📋' },
+    passport_copy:        { en: 'Passport Copy',          ar: 'نسخة من جواز السفر', icon: '🛂' },
+    utility_bill:         { en: 'Utility Bill',           ar: 'فاتورة خدمات',       icon: '🧾' },
+    trade_license:        { en: 'Trade License',          ar: 'رخصة تجارية',        icon: '🏢' },
+    tax_certificate:      { en: 'Tax Certificate',        ar: 'شهادة ضريبية',       icon: '📊' },
+    bank_statement:       { en: 'Bank Statement',         ar: 'كشف حساب بنكي',      icon: '🏦' },
+    vehicle_registration: { en: 'Vehicle Registration',   ar: 'تسجيل المركبة',      icon: '🚗' },
+};
 let wizContractLoaded = false;
 
 // Step labels are injected by the Blade view via CLASSIFIEDS_CFG so they
@@ -498,18 +513,106 @@ window.wizRemoveAttrRow = function (idx) {
 // ─── Step 4: Conditional file sections ───────────────────────────────────────
 function wizRenderConditionalFileFields() {
     const sketchSection = el('cl-sketch-section');
-    const attSection    = el('cl-attachments-section');
-    const hint          = el('cl-attachments-hint');
 
     if (wizNeedsSketch()) sketchSection?.classList.remove('hidden');
     else                  sketchSection?.classList.add('hidden');
 
-    if (wizNeedsAttachments()) {
-        attSection?.classList.remove('hidden');
-        if (hint) hint.textContent = 'مطلوب: ' + wizSelectedCategory.required_attachment_types.join('، ');
+    const requiredTypes = wizSelectedCategory?.required_attachment_types ?? [];
+    if (requiredTypes.length > 0) {
+        renderTypedAttachmentSlots(requiredTypes);
     } else {
-        attSection?.classList.add('hidden');
+        renderGenericAttachmentSection();
     }
+}
+
+function renderGenericAttachmentSection() {
+    const attSection = el('cl-attachments-section');
+    if (!attSection) return;
+    const i18n = cfg().attachmentsI18n ?? {};
+
+    attSection.innerHTML = `
+        <label class="block text-sm font-semibold text-gray-800">${i18n.title ?? 'Additional Attachments'}
+            <span class="text-gray-400 text-xs font-normal">${i18n.optional ?? 'optional'}</span>
+        </label>
+        <p class="text-xs text-gray-500">${i18n.genericDesc ?? ''}</p>
+        <div class="relative border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-primary-400 transition-colors">
+            <input type="file" id="cl-attachments-input" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+            <p class="text-sm text-gray-500">${i18n.uploadHint ?? ''}</p>
+        </div>
+        <div id="cl-attachments-list" class="space-y-1"></div>
+    `;
+
+    initAttachmentUpload();
+    renderAttachmentList();
+}
+
+function renderTypedAttachmentSlots(types) {
+    const attSection = el('cl-attachments-section');
+    if (!attSection) return;
+    const i18n = cfg().attachmentsI18n ?? {};
+
+    attSection.innerHTML = `
+        <div class="space-y-1 mb-1">
+            <p class="text-sm font-semibold text-gray-800">${i18n.title ?? 'Additional Attachments'}
+                <span class="text-xs font-normal text-gray-400 ml-1">${i18n.optional ?? 'optional'}</span>
+            </p>
+            <p class="text-xs text-gray-500">${i18n.typedDesc ?? ''}</p>
+        </div>
+        <div id="cl-typed-attachment-slots" class="space-y-2"></div>
+    `;
+
+    const slotsEl = document.getElementById('cl-typed-attachment-slots');
+    if (!slotsEl) return;
+
+    slotsEl.innerHTML = types.map(type => {
+        const info     = ATTACHMENT_TYPE_LABELS[type] ?? { en: type, ar: type, icon: '📎' };
+        const label    = info.ar + ' / ' + info.en;
+        const file     = wizAttachmentsByType[type];
+        const fileName = file ? file.name : null;
+
+        return `<div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"
+                     id="att-slot-${type}">
+            <span class="text-xl shrink-0">${info.icon}</span>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800">${label}</p>
+                ${fileName
+                    ? `<p class="text-xs text-emerald-600 mt-0.5 truncate">✓ ${fileName}</p>`
+                    : `<p class="text-xs text-gray-400 mt-0.5">${i18n.noFileChosen ?? 'No file chosen'}</p>`
+                }
+            </div>
+            <label class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                          rounded-lg border border-gray-300 bg-white text-gray-700
+                          hover:bg-gray-100 cursor-pointer transition-colors">
+                ${fileName ? (i18n.replaceFile ?? 'Replace') : (i18n.chooseFile ?? 'Choose file')}
+                <input type="file" class="sr-only att-type-input" data-type="${type}"
+                       accept=".pdf,.jpg,.jpeg,.png,.webp">
+            </label>
+            ${fileName
+                ? `<button type="button" class="shrink-0 text-red-400 hover:text-red-600 text-xs att-remove-btn"
+                          data-type="${type}" title="Remove">✕</button>`
+                : ''
+            }
+        </div>`;
+    }).join('');
+
+    slotsEl.querySelectorAll('.att-type-input').forEach(input => {
+        input.addEventListener('change', () => {
+            const type = input.dataset.type;
+            const file = input.files[0];
+            if (file) {
+                wizAttachmentsByType[type] = file;
+                renderTypedAttachmentSlots(types);
+            }
+            input.value = '';
+        });
+    });
+
+    slotsEl.querySelectorAll('.att-remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            delete wizAttachmentsByType[btn.dataset.type];
+            renderTypedAttachmentSlots(types);
+        });
+    });
 }
 
 // ─── Step 5: Contract (wizard) ────────────────────────────────────────────────
@@ -546,6 +649,10 @@ function wizRenderReview() {
         ['الفئة',              wizSelectedCategory ? (wizSelectedCategory.name_ar || wizSelectedCategory.name_en) : '—'],
         ['العنوان (عربي)',     el('cl-title-ar')?.value  || '—'],
         ['العنوان (إنجليزي)', el('cl-title-en')?.value  || '—'],
+        ['الدولة',              (() => {
+            const sel = el('cl-country-id');
+            return sel?.options[sel.selectedIndex]?.text || '—';
+        })()],
         ['الغرض',              el('cl-purpose')?.value === 'sale' ? 'بيع' : 'إيجار'],
         ['السعر',              `${el('cl-price')?.value || 0} ${el('cl-currency')?.value || 'SAR'}`],
         ['قابل للتفاوض',      el('cl-negotiable')?.checked ? 'نعم' : 'لا'],
@@ -553,7 +660,9 @@ function wizRenderReview() {
         ['عدد الصور',         wizImageFiles.length],
         wizNeedsSketch()      ? ['مخطط',          wizSketchFile ? wizSketchFile.name : 'لم يُرفع']                      : null,
         wizNeedsLocation()    ? ['إحداثيات',      `${el('cl-latitude')?.value  || '—'} / ${el('cl-longitude')?.value || '—'}`] : null,
-        wizNeedsAttachments() ? ['مرفقات',        wizAttachmentFiles.length + ' ملف/ملفات']                            : null,
+        wizNeedsAttachments()
+            ? ['مرفقات', `${Object.keys(wizAttachmentsByType).length} من ${wizSelectedCategory.required_attachment_types.length} مستندات`]
+            : (wizAttachmentFiles.length > 0 ? ['مرفقات', wizAttachmentFiles.length + ' ملف/ملفات'] : null),
         wizHasContract()      ? ['العقد',          el('cl-contract-agree')?.checked ? 'تمت الموافقة' : 'لم توافق بعد'] : null,
     ].filter(Boolean);
 
@@ -569,12 +678,12 @@ function wizRenderReview() {
 function wizValidate(domStep) {
     if (domStep === 1 && !wizSelectedCategory) return 'يرجى اختيار فئة للإعلان.';
     if (domStep === 2) {
+        if (!el('cl-country-id')?.value) return 'يرجى اختيار الدولة.';
+        if (!el('cl-currency')?.value) return 'يرجى اختيار الدولة للحصول على العملة.';
         if (!el('cl-title-ar')?.value.trim()) return 'العنوان بالعربية مطلوب.';
         if (!el('cl-title-en')?.value.trim()) return 'العنوان بالإنجليزية مطلوب.';
         if (!el('cl-price')?.value || Number(el('cl-price').value) < 0) return 'يرجى إدخال سعر صحيح.';
-        if (!el('cl-currency')?.value) return 'يرجى اختيار العملة.';
     }
-    if (domStep === 3 && !el('cl-country-id')?.value) return 'يرجى اختيار الدولة.';
     if (domStep === 4 && wizImageFiles.length === 0) return 'يرجى رفع صورة واحدة على الأقل.';
     if (domStep === 5 && wizHasContract()) {
         if (!el('cl-signature-name')?.value.trim()) return 'يرجى إدخال الاسم للتوقيع.';
@@ -624,6 +733,7 @@ async function wizSubmit() {
     wizImageFiles.forEach((f, i) => fd.append(`images[${i}]`, f));
     if (wizSketchFile) fd.append('sketch_file', wizSketchFile);
     wizAttachmentFiles.forEach((f, i) => fd.append(`attachments[${i}]`, f));
+    Object.entries(wizAttachmentsByType).forEach(([type, file]) => fd.append(`attachments[${type}]`, file));
 
     if (wizHasContract()) {
         const sig = el('cl-signature-name')?.value.trim();
@@ -664,6 +774,7 @@ function wizOpen() {
     wizImageFiles       = [];
     wizSketchFile       = null;
     wizAttachmentFiles  = [];
+    wizAttachmentsByType = {};
     wizAttributes       = {};
     wizContractLoaded   = false;
     wizSetError(null);
@@ -676,7 +787,8 @@ function wizOpen() {
     const mktPromo = el('cl-marketer-promo'); if (mktPromo) mktPromo.checked = false;
     const agree   = el('cl-contract-agree'); if (agree)   agree.checked = false;
     const purpose  = el('cl-purpose');        if (purpose)  purpose.value = 'sale';
-    const currency = el('cl-currency');       if (currency) currency.value = 'SAR';
+    const currency = el('cl-currency');       if (currency) currency.value = '';
+    updateCurrencyFromCountry('');
 
     const imgPrev = el('cl-images-preview');   if (imgPrev) imgPrev.innerHTML = '';
     const sketch  = el('cl-sketch-name');      if (sketch)  sketch.classList.add('hidden');
@@ -775,6 +887,24 @@ window.wizRemoveAttachment = function (i) {
 };
 
 // ─── Country / City ───────────────────────────────────────────────────────────
+function updateCurrencyFromCountry(countryId) {
+    const currencyMap = cfg().countryCurrencyMap ?? {};
+    const currency    = countryId ? (currencyMap[countryId] ?? '') : '';
+
+    const hiddenInput = el('cl-currency');
+    const display     = el('cl-currency-display');
+
+    if (hiddenInput) hiddenInput.value = currency;
+    if (display) {
+        display.textContent = currency
+            ? currency
+            : (cfg().selectCountryFirstLabel ?? 'Select a country first');
+        display.classList.toggle('text-gray-800', !!currency);
+        display.classList.toggle('font-bold',     !!currency);
+        display.classList.toggle('text-gray-400', !currency);
+    }
+}
+
 function resetCitySelect() {
     const cityEl = el('cl-city-id');
     if (!cityEl) return;
@@ -805,7 +935,11 @@ function wizInit() {
     el('btn-open-wizard')?.addEventListener('click', wizOpen);
     el('btn-open-wizard-empty')?.addEventListener('click', wizOpen);
     el('cl-wiz-close')?.addEventListener('click', wizClose);
-    el('cl-country-id')?.addEventListener('change', e => loadCities(e.target.value));
+    el('cl-country-id')?.addEventListener('change', e => {
+        const countryId = e.target.value;
+        loadCities(countryId);
+        updateCurrencyFromCountry(countryId);
+    });
     el('cl-wiz-cancel')?.addEventListener('click', wizClose);
     el('cl-wizard-backdrop')?.addEventListener('click', wizClose);
 

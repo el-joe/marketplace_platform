@@ -47,7 +47,9 @@ class ClassifiedListingController extends Controller
             return $this->exportClassifieds($request);
         }
 
-        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_ar']);
+        $countries = Country::where('is_active', true)
+            ->orderBy('name_en')
+            ->get(['id', 'name_en', 'name_ar', 'currency_code']);
         return view('partner.classifieds.index', compact('countries'));
     }
 
@@ -194,10 +196,12 @@ class ClassifiedListingController extends Controller
             'marketer_promotion_enabled'  => 'boolean',
         ]);
 
-        // Convert price → price for the service
-        $data['price'] = (int) round($data['price'] * 100);
-        unset($data['price']);
+        // Derive currency from the selected country server-side, regardless of what was submitted
+        $country = Country::find($data['country_id']);
+        $data['currency'] = $country?->currency_code ?? $data['currency'];
 
+        // Convert price → price for the service
+        $data['price'] = (int) $data['price'];
         // Include uploaded files in the data array for the shared service
         $data['images']      = $request->file('images', []);
         $data['sketch_file'] = $request->file('sketch_file');

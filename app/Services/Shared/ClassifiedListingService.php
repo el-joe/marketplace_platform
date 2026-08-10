@@ -22,7 +22,7 @@ class ClassifiedListingService
         /** @var ClassifiedCategory $category */
         $category = ClassifiedCategory::findOrFail($data['classified_category_id']);
 
-        $this->validateCategoryRequirements($category, $data);
+        $this->validateCategoryRequirements($category, $data, partial: true);
 
         $status = $category->contract_template_id
             ? ClassifiedListingStatus::PendingContract

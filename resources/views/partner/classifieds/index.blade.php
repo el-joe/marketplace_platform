@@ -4,6 +4,16 @@
 
 @push('scripts')
     @vite('resources/js/partner/classifieds.js')
+    @php $json = [
+                'title'        => __('partner.classifieds_extra.wizard.attachments_title'),
+                'optional'     => __('partner.classifieds_extra.wizard.attachments_optional'),
+                'genericDesc'  => __('partner.classifieds_extra.wizard.attachments_generic_desc'),
+                'typedDesc'    => __('partner.classifieds_extra.wizard.attachments_typed_desc'),
+                'uploadHint'   => __('partner.classifieds_extra.wizard.attachments_upload_hint'),
+                'noFileChosen' => __('partner.classifieds_extra.wizard.no_file_chosen'),
+                'chooseFile'   => __('partner.classifieds_extra.wizard.choose_file'),
+                'replaceFile'  => __('partner.classifieds_extra.wizard.replace_file'),
+            ]; @endphp
     <script>
         window.CLASSIFIEDS_CFG = {
             datatableUrl:       "{{ route('partner.classifieds.datatable') }}",
@@ -11,6 +21,9 @@
             storeUrl:           "{{ route('partner.classifieds.store') }}",
             stepLabelsFull:     @json(__('partner.classifieds_extra.wizard.step_labels_full')),
             stepLabelsNoContract: @json(__('partner.classifieds_extra.wizard.step_labels_no_contract')),
+            countryCurrencyMap: @json($countries->pluck('currency_code', 'id')),
+            selectCountryFirstLabel: '{{ __('partner.classifieds_extra.wizard.select_country_first') }}',
+            attachmentsI18n: @json($json),
         };
     </script>
 @endpush
@@ -160,6 +173,21 @@
                             class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                             placeholder="{{ __('partner.classifieds_extra.wizard.description_placeholder_en') }}"></textarea>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ __('partner.classifieds_extra.wizard.country') }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <select id="cl-country-id"
+                            class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                            <option value="">{{ __('partner.classifieds_extra.wizard.select_country') }}</option>
+                            @foreach($countries as $country)
+                                <option value="{{ $country->id }}" data-currency="{{ $country->currency_code }}">
+                                    {{ $country->name_ar ?: $country->name_en }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.purpose') }} <span class="text-red-500">*</span></label>
@@ -175,14 +203,13 @@
                                 placeholder="0">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.currency') }} <span class="text-red-500">*</span></label>
-                            <select id="cl-currency" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                                @foreach(\App\Models\Currency::where('is_active', true)->orderBy('code')->get() as $cur)
-                                    <option value="{{ $cur->code }}" {{ (auth()->user()?->country?->currency_code === $cur->code) ? 'selected' : '' }}>
-                                        {{ $cur->code }}{{ $cur->name ? ' — ' . $cur->name : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.currency') }}</label>
+                            <div class="flex items-center gap-2 h-[42px] px-3 rounded-lg border border-gray-200 bg-gray-50">
+                                <span id="cl-currency-display" class="text-sm font-mono font-semibold text-gray-400">
+                                    {{ __('partner.classifieds_extra.wizard.select_country_first') }}
+                                </span>
+                            </div>
+                            <input type="hidden" id="cl-currency" name="currency" value="">
                         </div>
                     </div>
                     <label class="flex items-center gap-2 cursor-pointer">
@@ -202,17 +229,8 @@
 
                 {{-- Step 3: Location & Attributes (conditional) --}}
                 <div id="cl-wiz-step-3" class="hidden space-y-4">
-                    {{-- Country & City --}}
+                    {{-- City (country already chosen in Step 2) --}}
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.country') }} <span class="text-red-500">*</span></label>
-                            <select id="cl-country-id" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                                <option value="">{{ __('partner.classifieds_extra.wizard.select_country') }}</option>
-                                @foreach($countries as $country)
-                                    <option value="{{ $country->id }}">{{ $country->name_ar ?: $country->name_en }}</option>
-                                @endforeach
-                            </select>
-                        </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.city') }}</label>
                             <select id="cl-city-id" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500" disabled>
@@ -279,15 +297,9 @@
                         <div id="cl-sketch-name" class="hidden text-xs text-gray-500 flex items-center gap-2"></div>
                     </div>
 
-                    {{-- Additional attachments (conditional) --}}
-                    <div id="cl-attachments-section" class="hidden space-y-3">
-                        <label class="block text-sm font-semibold text-gray-800">{{ __('partner.classifieds_extra.wizard.attachments_title') }} <span class="text-gray-400 text-xs font-normal">{{ __('partner.classifieds_extra.wizard.attachments_optional') }}</span></label>
-                        <p class="text-xs text-gray-500" id="cl-attachments-hint">{{ __('partner.classifieds_extra.wizard.attachments_default_hint') }}</p>
-                        <div class="relative border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-primary-400 transition-colors">
-                            <input type="file" id="cl-attachments-input" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                            <p class="text-sm text-gray-500">{{ __('partner.classifieds_extra.wizard.attachments_upload_hint') }}</p>
-                        </div>
-                        <div id="cl-attachments-list" class="space-y-1"></div>
+                    {{-- Additional Attachments (always shown; per-type or generic based on category) --}}
+                    <div id="cl-attachments-section" class="space-y-3">
+                        {{-- Inner content is (re)rendered by wizRenderConditionalFileFields() in classifieds.js --}}
                     </div>
                 </div>
 
