@@ -43,13 +43,6 @@ class WarehouseController extends Controller
         return $this->vendorAdmin()->vendor;
     }
 
-    private function assertWarehouseOwnership(Warehouse $warehouse): void
-    {
-        if ($warehouse->owner_vendor_id !== $this->vendorAdmin()->vendor_id) {
-            abort(403);
-        }
-    }
-
     // ─── Index ────────────────────────────────────────────────────────────────
 
     public function index(): View
@@ -68,6 +61,109 @@ class WarehouseController extends Controller
         $countries = Country::where('is_active', 1)->get();
 
         return view('partner.warehouses.index', compact('myWarehouses', 'platformWarehouses', 'countries'));
+    }
+
+    // ─── Seller-owned Warehouses Datatable ─────────────────────────────────────
+
+    public function sellerDt(Request $request): JsonResponse
+    {
+        $vendorId = $this->vendor()->id;
+
+        $base = Warehouse::query()
+            ->leftJoin('warehouse_inventories', 'warehouse_inventories.warehouse_id', '=', 'warehouses.id')
+            ->where('warehouses.owner_vendor_id', $vendorId)
+            ->where('warehouses.type', WarehouseType::SellerOwned->value)
+            ->groupBy('warehouses.id')
+            ->selectRaw('warehouses.*, '
+                . 'COALESCE(SUM(warehouse_inventories.quantity_on_hand), 0) as total_units, '
+                . 'COUNT(DISTINCT warehouse_inventories.vendor_listing_id) as sku_count');
+
+        if ($search = $request->input('search.value')) {
+            $base->where(function ($q) use ($search) {
+                $q->where('warehouses.name', 'like', "%{$search}%")
+                    ->orWhere('warehouses.code', 'like', "%{$search}%");
+            });
+        }
+
+        $total = Warehouse::where('owner_vendor_id', $vendorId)
+            ->where('type', WarehouseType::SellerOwned->value)
+            ->count();
+
+        $filtered = (clone $base)->get()->count();
+
+        $warehouses = $base->with('country')
+            ->orderBy('warehouses.name')
+            ->skip($request->input('start', 0))
+            ->take($request->input('length', 15))
+            ->get();
+
+        $rows = $warehouses->map(fn(Warehouse $w) => [
+            'DT_RowId' => 'wh-' . $w->id,
+            'code' => '<span class="text-xs font-bold font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded">' . e($w->code) . '</span>',
+            'name' => e($w->name),
+            'country' => e($w->country?->name_en ?? '—'),
+            'total_units' => number_format((int) $w->total_units),
+            'sku_count' => (int) $w->sku_count,
+            'status' => $w->is_active
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">' . __('partner.warehouses.active') . '</span>'
+                : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">' . __('partner.warehouses.inactive') . '</span>',
+            'actions' => '<a href="' . route('partner.warehouses.show', $w->id) . '" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors">'
+                . __('partner.warehouses.manage') . '</a>',
+        ]);
+
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'recordsTotal' => $total,
+            'recordsFiltered' => $filtered,
+            'data' => $rows,
+        ]);
+    }
+
+    // ─── Platform FBN Warehouses Datatable (scoped to this vendor's stock) ─────
+
+    public function fbnDt(Request $request): JsonResponse
+    {
+        $vendorId = $this->vendor()->id;
+
+        $base = Warehouse::query()
+            ->join('warehouse_inventories', 'warehouse_inventories.warehouse_id', '=', 'warehouses.id')
+            ->join('vendor_listings', 'vendor_listings.id', '=', 'warehouse_inventories.vendor_listing_id')
+            ->where('warehouses.type', WarehouseType::PlatformFbn->value)
+            ->where('vendor_listings.vendor_id', $vendorId)
+            ->groupBy('warehouses.id')
+            ->selectRaw('warehouses.*, '
+                . 'COALESCE(SUM(warehouse_inventories.quantity_on_hand), 0) as my_units, '
+                . 'COUNT(DISTINCT warehouse_inventories.vendor_listing_id) as my_sku_count');
+
+        if ($search = $request->input('search.value')) {
+            $base->where('warehouses.name', 'like', "%{$search}%");
+        }
+
+        $total = (clone $base)->get()->count();
+        $filtered = $total;
+
+        $warehouses = $base->with('country')
+            ->orderBy('warehouses.name')
+            ->skip($request->input('start', 0))
+            ->take($request->input('length', 15))
+            ->get();
+
+        $rows = $warehouses->map(fn(Warehouse $w) => [
+            'DT_RowId' => 'wh-' . $w->id,
+            'name' => e($w->name),
+            'country' => e($w->country?->name_en ?? '—'),
+            'my_units' => number_format((int) $w->my_units),
+            'my_sku_count' => (int) $w->my_sku_count,
+            'actions' => '<a href="' . route('partner.warehouses.show', $w->id) . '" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors">'
+                . __('partner.warehouses.view_inventory_here') . '</a>',
+        ]);
+
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'recordsTotal' => $total,
+            'recordsFiltered' => $filtered,
+            'data' => $rows,
+        ]);
     }
 
     // ─── Create ───────────────────────────────────────────────────────────────
@@ -237,9 +333,21 @@ class WarehouseController extends Controller
 
     public function getInventory(Request $request, Warehouse $warehouse): JsonResponse
     {
-        $this->assertWarehouseOwnership($warehouse);
-
         $vendorId = $this->vendorAdmin()->vendor_id;
+        $isOwned = $warehouse->owner_vendor_id === $vendorId;
+
+        if (!$isOwned) {
+            // Platform FBN warehouses aren't owned by the vendor, but the vendor
+            // may still view (read-only) the slice of inventory that is theirs.
+            $hasFbnInventory = $warehouse->type === WarehouseType::PlatformFbn
+                && $warehouse->warehouseInventories()
+                    ->whereHas('vendorListing', fn($q) => $q->where('vendor_id', $vendorId))
+                    ->exists();
+
+            if (!$hasFbnInventory) {
+                abort(403);
+            }
+        }
 
         $query = WarehouseInventory::where('warehouse_id', $warehouse->id)
             ->whereHas('vendorListing', fn($q) => $q->where('vendor_id', $vendorId))

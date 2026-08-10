@@ -356,6 +356,10 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/inventory/{inventory}/count', [WarehouseController::class, 'stockCount'])->name('inventory.count');
         Route::get('/inventory/{inventory}/movements', [WarehouseController::class, 'getMovements'])->name('inventory.movements');
 
+        // datatable endpoints must come before /{warehouse} wildcard to avoid shadowing
+        Route::get('/dt/seller', [WarehouseController::class, 'sellerDt'])->name('dt.seller');
+        Route::get('/dt/fbn', [WarehouseController::class, 'fbnDt'])->name('dt.fbn');
+
         Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
         Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
         Route::post('/{warehouse}/deactivate', [WarehouseController::class, 'deactivate'])->name('deactivate');

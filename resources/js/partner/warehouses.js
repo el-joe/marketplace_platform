@@ -6,6 +6,57 @@
 import './app.js';
 import { createPartnerTable, postJson, showModal, hideModal, toast } from './datatable.js';
 
+// ─── Warehouses Index DataTables ────────────────────────────────────────────
+
+function initWarehousesIndexDatatables() {
+    const cfg = window.WAREHOUSES_INDEX_CFG;
+    if (!cfg) return;
+
+    if (document.getElementById('seller-warehouses-table')) {
+        createPartnerTable('seller-warehouses-table', {
+            url: cfg.sellerDtUrl,
+            ajaxData: (d) => {
+                const searchEl = document.getElementById('seller-warehouses-search');
+                d.search = { value: searchEl ? searchEl.value : '' };
+            },
+            searchInputId: 'seller-warehouses-search',
+            order: [[1, 'asc']],
+            columns: [
+                { data: null, orderable: false, searchable: false, render: (d, t, r, meta) => meta.row + meta.settings._iDisplayStart + 1 },
+                { data: 'code', orderable: false, searchable: false },
+                { data: 'name', orderable: false, searchable: false },
+                { data: 'country', orderable: false, searchable: false },
+                { data: 'total_units', orderable: false, searchable: false, className: 'text-right' },
+                { data: 'sku_count', orderable: false, searchable: false, className: 'text-right' },
+                { data: 'status', orderable: false, searchable: false, className: 'text-center' },
+                { data: 'actions', orderable: false, searchable: false, className: 'text-right' },
+            ],
+            language: { emptyTable: t('partner.warehouses.no_warehouse_yet') },
+        });
+    }
+
+    if (document.getElementById('fbn-warehouses-table')) {
+        createPartnerTable('fbn-warehouses-table', {
+            url: cfg.fbnDtUrl,
+            ajaxData: (d) => {
+                const searchEl = document.getElementById('fbn-warehouses-search');
+                d.search = { value: searchEl ? searchEl.value : '' };
+            },
+            searchInputId: 'fbn-warehouses-search',
+            order: [[1, 'asc']],
+            columns: [
+                { data: null, orderable: false, searchable: false, render: (d, t, r, meta) => meta.row + meta.settings._iDisplayStart + 1 },
+                { data: 'name', orderable: false, searchable: false },
+                { data: 'country', orderable: false, searchable: false },
+                { data: 'my_units', orderable: false, searchable: false, className: 'text-right' },
+                { data: 'my_sku_count', orderable: false, searchable: false, className: 'text-right' },
+                { data: 'actions', orderable: false, searchable: false, className: 'text-right' },
+            ],
+            language: { emptyTable: t('partner.warehouses.no_platform_stock') },
+        });
+    }
+}
+
 // ─── Transfers DataTable ──────────────────────────────────────────────────────
 
 function initTransfersDatatable() {
@@ -90,6 +141,7 @@ function initTransferShow() {
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+    initWarehousesIndexDatatables();
     initTransfersDatatable();
     initTransferShow();
 });
