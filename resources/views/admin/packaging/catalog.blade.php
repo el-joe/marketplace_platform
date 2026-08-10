@@ -185,7 +185,7 @@
 (function () {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const storeUrl = '{{ route('admin.packaging.catalog.store') }}';
-    const catalogBaseUrl = '{{ url('admin/packaging/catalog') }}';
+    const catalogBaseUrl = '{{ url('packaging/catalog') }}';
 
     const i18n = @json(__('admin.packaging_catalog'));
     const countryMeta = @json($countries->mapWithKeys(fn ($c) => [$c->id => ['name' => $c->name_en, 'currency' => $c->currency_code]]));
@@ -320,7 +320,7 @@
         const toggleBtn = e.target.closest('.js-toggle-active');
         if (toggleBtn) {
             const id = toggleBtn.dataset.id;
-            fetch(`{{ url('admin/packaging/catalog') }}/${id}/toggle`, {
+            fetch(`{{ url('packaging/catalog') }}/${id}/toggle`, {
                 method: 'PATCH',
                 headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
             }).then(r => r.json()).then(data => {
@@ -370,7 +370,7 @@
         let url = storeUrl;
         if (id) {
             fd.append('_method', 'PUT');
-            url = `{{ url('admin/packaging/catalog') }}/${id}`;
+            url = `{{ url('packaging/catalog') }}/${id}`;
         }
 
         try {
@@ -397,7 +397,7 @@
     document.getElementById('btn-confirm-delete-item').addEventListener('click', async () => {
         const id = document.getElementById('delete-item-id').value;
         try {
-            const res = await fetch(`{{ url('admin/packaging/catalog') }}/${id}`, {
+            const res = await fetch(`{{ url('packaging/catalog') }}/${id}`, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
             });

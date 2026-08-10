@@ -164,7 +164,7 @@
     };
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const requestId = '{{ $req->id }}';
-    const base = '{{ url('admin/packaging/requests') }}/' + requestId;
+    const base = '{{ url('packaging/requests') }}/' + requestId;
     const errEl = document.getElementById('action-error');
 
     function openModal(id) { window.jQuery ? window.jQuery('#' + id).modal('open') : document.getElementById(id)?.classList.remove('hidden'); }
