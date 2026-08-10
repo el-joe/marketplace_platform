@@ -404,12 +404,7 @@ class PackagingSupplyController extends Controller
                 'approved_at' => now(),
             ]);
 
-            foreach ($request->items as $item) {
-                if ($item->supply && $item->supply->stock_available !== null) {
-                    $item->supply->decrement('stock_available', $item->quantity);
-                }
-            }
-
+            // Stock was already decremented in packaging_supply_countries at submit time.
             Notification::send($request->vendor->vendorAdmins, new PackagingOrderApproved($request));
         });
 

@@ -236,10 +236,11 @@ class PackagingSupplyController extends Controller
     {
         $vendor = auth('vendor')->user();
         $feeCents = $this->resolveDeliveryFeeCents($vendor->vendor);
+        $currency = $vendor?->vendor?->country?->currency_code ?? config('app.currency', 'SAR');
 
         return response()->json([
             'fee'      => $feeCents,
-            'currency' => 'USD',
+            'currency' => $currency,
         ]);
     }
 

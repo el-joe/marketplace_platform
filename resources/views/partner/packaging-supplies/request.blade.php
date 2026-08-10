@@ -160,8 +160,11 @@
                 }));
         }
 
-        function money(amount) {
-            return Number(amount).toFixed(2);
+        let _currency = '';
+
+        function money(amount, cur) {
+            const c = cur ?? _currency;
+            return Number(amount).toLocaleString() + (c ? ' ' + c : '');
         }
 
         function openConfirmModal() {
@@ -194,8 +197,16 @@
             fetch(@json(route('partner.packaging-supplies.delivery-fee')))
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('confirmDeliveryFee').textContent = money(data.fee);
-                    document.getElementById('confirmGrandTotal').textContent = money(subtotal + data.fee);
+                    _currency = data.currency ?? '';
+                    const fee = data.fee ?? 0;
+                    document.getElementById('confirmSubtotal').textContent = money(subtotal);
+                    document.getElementById('confirmDeliveryFee').textContent = money(fee);
+                    document.getElementById('confirmGrandTotal').textContent = money(subtotal + fee);
+                    tbody.querySelectorAll('td:nth-child(3), td:nth-child(4)').forEach(td => {
+                        if (!td.textContent.includes(_currency)) {
+                            td.textContent = td.textContent + ' ' + _currency;
+                        }
+                    });
                 })
                 .catch(() => {
                     document.getElementById('confirmDeliveryFee').textContent = money(0);
