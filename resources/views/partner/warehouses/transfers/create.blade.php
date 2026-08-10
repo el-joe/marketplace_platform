@@ -6,10 +6,10 @@
     @vite('resources/js/partner/warehouse-create.js')
     <script>
         window.TRANSFER_CREATE_CFG = {
-            storeUrl:          '{{ route('partner.warehouses.transfers.store') }}',
-            indexUrl:          '{{ route('partner.warehouses.transfers.index') }}',
-            defaultSourceId:   '{{ $sourceWarehouseId ?? '' }}',
-            listingsSearchUrl: '{{ url('/partner/listings/search') }}',
+            storeUrl:        '{{ route('partner.warehouses.transfers.store') }}',
+            indexUrl:        '{{ route('partner.warehouses.transfers.index') }}',
+            defaultSourceId: '{{ $sourceWarehouseId ?? '' }}',
+            itemSearchUrl:   '{{ route('partner.warehouses.transfers.item-search') }}',
         };
     </script>
 @endpush
@@ -121,7 +121,7 @@
                     </div>
                     <div id="item-qty-wrap" class="hidden">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.warehouses.quantity_label') }} <span class="text-red-500">*</span></label>
-                        <input type="number" id="item-qty" min="1" value="1"
+                        <input type="number" id="item-qty" min="1" max="" value="1"
                             class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                     </div>
                     <div class="flex justify-end gap-3">

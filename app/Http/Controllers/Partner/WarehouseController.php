@@ -576,6 +576,11 @@ class WarehouseController extends Controller
 
     public function transferItemSearch(Request $request): JsonResponse
     {
+        $request->validate([
+            'source_warehouse_id' => ['required', 'exists:warehouses,id'],
+            'search'              => ['nullable', 'string', 'max:100'],
+        ]);
+
         $vendor = $this->vendor();
         $search = trim((string) $request->query('search', ''));
         $warehouseId = $request->query('source_warehouse_id');
@@ -586,19 +591,17 @@ class WarehouseController extends Controller
             ->join('products as p', 'p.id', '=', 'pv.product_id')
             ->where('vendor_listings.vendor_id', $vendor->id)
             ->whereRaw('warehouse_inventories.quantity_on_hand - warehouse_inventories.quantity_reserved > 0')
-            ->select([
-                'vendor_listings.id',
-                'vendor_listings.vendor_sku',
-                'p.name_en',
-                'p.name_ar',
-                'pv.sku',
-                'warehouse_inventories.quantity_on_hand',
-                'warehouse_inventories.quantity_reserved',
-            ]);
-
-        if ($warehouseId) {
-            $query->where('warehouse_inventories.warehouse_id', $warehouseId);
-        }
+            ->where('warehouse_inventories.warehouse_id', $warehouseId)
+            ->selectRaw(
+                'vendor_listings.id, '
+                . 'vendor_listings.vendor_sku, '
+                . 'p.name_en, '
+                . 'p.name_ar, '
+                . 'pv.sku, '
+                . 'warehouse_inventories.quantity_on_hand, '
+                . 'warehouse_inventories.quantity_reserved, '
+                . '(warehouse_inventories.quantity_on_hand - warehouse_inventories.quantity_reserved) as available_stock'
+            );
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -614,6 +617,7 @@ class WarehouseController extends Controller
             'name_en' => $row->name_en,
             'name_ar' => $row->name_ar,
             'vendor_sku' => $row->vendor_sku ?: $row->sku,
+            'available_stock' => max(0, (int) $row->available_stock),
         ]);
 
         return response()->json(['data' => $items]);

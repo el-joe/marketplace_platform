@@ -72,8 +72,9 @@ function renderTransferItems() {
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-800 truncate">${item.name}</p>
                 <p class="text-xs text-gray-500">${item.sku}</p>
+                <p class="text-xs text-gray-400">${t('partner.warehouse.available_stock')}: ${item.max_qty ?? '?'}</p>
             </div>
-            <input type="number" min="1" value="${item.quantity}"
+            <input type="number" min="1" max="${item.max_qty ?? ''}" value="${item.quantity}"
                 class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-500"
                 data-idx="${idx}" />
             <button type="button" class="text-red-400 hover:text-red-600 remove-item-btn" data-idx="${idx}">
@@ -82,7 +83,11 @@ function renderTransferItems() {
         list.appendChild(row);
 
         row.querySelector('input[type=number]').addEventListener('input', (e) => {
-            transferItems[idx].quantity = parseInt(e.target.value, 10) || 1;
+            const max = parseInt(e.target.max, 10) || Infinity;
+            let val   = parseInt(e.target.value, 10) || 1;
+            val       = Math.max(1, Math.min(val, max));
+            e.target.value = val;
+            transferItems[idx].quantity = val;
         });
 
         row.querySelector('.remove-item-btn').addEventListener('click', () => {
@@ -109,6 +114,11 @@ function initTransferCreate() {
     const confirmBtn = document.getElementById('confirm-add-item-btn');
 
     addItemBtn?.addEventListener('click', () => {
+        const sourceId = document.getElementById('source-warehouse-select')?.value;
+        if (!sourceId) {
+            toast(t('partner.warehouse.select_source_first'), 'error');
+            return;
+        }
         if (searchInput) searchInput.value = '';
         if (resultsEl)  resultsEl.innerHTML = '';
         if (selectedInfoEl) selectedInfoEl.classList.add('hidden');
@@ -129,7 +139,8 @@ function initTransferCreate() {
             resultsEl.innerHTML = `<p class="text-xs text-gray-400 p-2">${t('shared.searching')}</p>`;
             try {
                 const sourceWarehouseId = document.getElementById('source-warehouse-select')?.value || '';
-                const res = await fetch(`/warehouses/transfers/item-search?search=${encodeURIComponent(q)}&source_warehouse_id=${encodeURIComponent(sourceWarehouseId)}`, {
+                const url = `${cfg.itemSearchUrl}?search=${encodeURIComponent(q)}&source_warehouse_id=${encodeURIComponent(sourceWarehouseId)}`;
+                const res = await fetch(url, {
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
                 });
                 const json = await res.json();
@@ -152,9 +163,26 @@ function initTransferCreate() {
                         selectedSkuEl.textContent  = item.vendor_sku ?? '';
                         selectedInfoEl.classList.remove('hidden');
                         qtyWrap.classList.remove('hidden');
-                        confirmBtn.disabled = false;
                         resultsEl.innerHTML = '';
                         searchInput.value = '';
+
+                        const qtyInput = document.getElementById('item-qty');
+                        const avail    = item.available_stock ?? 0;
+                        qtyInput.max   = avail;
+                        qtyInput.value = Math.min(1, avail);
+
+                        let hintEl = document.getElementById('item-stock-hint');
+                        if (!hintEl) {
+                            hintEl = document.createElement('p');
+                            hintEl.id = 'item-stock-hint';
+                            hintEl.className = 'text-xs text-gray-500 mt-1';
+                            qtyWrap.appendChild(hintEl);
+                        }
+                        hintEl.textContent = avail > 0
+                            ? `${t('partner.warehouse.available_stock')}: ${avail}`
+                            : t('partner.warehouse.no_stock_available');
+
+                        confirmBtn.disabled = avail === 0;
                     });
                     resultsEl.appendChild(div);
                 });
@@ -166,8 +194,15 @@ function initTransferCreate() {
 
     confirmBtn?.addEventListener('click', () => {
         const listingId = selectedIdInput?.value;
-        const qty       = parseInt(document.getElementById('item-qty')?.value, 10) || 1;
+        const qtyInput  = document.getElementById('item-qty');
+        const maxQty    = parseInt(qtyInput?.max, 10) || Infinity;
+        const qty       = Math.max(1, Math.min(parseInt(qtyInput?.value, 10) || 1, maxQty));
         if (!listingId) return;
+
+        if (qty > maxQty) {
+            toast(`${t('partner.warehouse.qty_exceeds_stock')} (max: ${maxQty})`, 'error');
+            return;
+        }
 
         // Prevent duplicates
         if (transferItems.some(i => i.vendor_listing_id === listingId)) {
@@ -180,6 +215,7 @@ function initTransferCreate() {
             quantity:          qty,
             name:              selectedNameEl.textContent,
             sku:               selectedSkuEl.textContent,
+            max_qty:           maxQty,
         });
 
         renderTransferItems();
