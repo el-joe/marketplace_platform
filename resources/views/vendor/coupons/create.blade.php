@@ -67,56 +67,6 @@
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? $coupon['description'] : '' }}</textarea>
             </div>
 
-            {{-- Bank offer (optional) --}}
-            <div class="border border-gray-200 rounded-lg p-4 space-y-4">
-                <div>
-                    <p class="text-sm font-medium text-gray-700">{{ __('partner.coupons.create.bank_offer') }}</p>
-                    <p class="text-xs text-gray-400">{{ __('partner.coupons.create.bank_offer_hint') }}</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.bank_name') }}</label>
-                    <input type="text" name="bank_name" maxlength="100" placeholder="{{ __('partner.coupons.create.bank_name_placeholder') }}"
-                           value="{{ $isEdit ? $coupon['bank_name'] : '' }}"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.promo_title_en') }}</label>
-                        <input type="text" name="title_en" maxlength="255" placeholder="{{ __('partner.coupons.create.promo_title_en_placeholder') }}"
-                               value="{{ $isEdit ? $coupon['title_en'] : '' }}"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.promo_title_ar') }}</label>
-                        <input type="text" name="title_ar" dir="rtl" maxlength="255"
-                               value="{{ $isEdit ? $coupon['title_ar'] : '' }}"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.terms_en') }} <span class="text-gray-400 font-normal">{{ __('partner.coupons.create.one_per_line') }}</span></label>
-                        <textarea name="terms_en" rows="4"
-                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? implode("\n", $coupon['terms_en'] ?? []) : '' }}</textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.terms_ar') }} <span class="text-gray-400 font-normal">{{ __('partner.coupons.create.one_per_line') }}</span></label>
-                        <textarea name="terms_ar" dir="rtl" rows="4"
-                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? implode("\n", $coupon['terms_ar'] ?? []) : '' }}</textarea>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.max_orders_per_customer') }} <span class="text-gray-400 font-normal">{{ __('partner.coupons.create.blank_unlimited') }}</span></label>
-                    <input type="number" min="1" name="max_orders_per_customer_per_month"
-                           value="{{ $isEdit ? $coupon['max_orders_per_customer_per_month'] : '' }}"
-                           class="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                </div>
-            </div>
-
             <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.type') }}</label>
@@ -130,8 +80,15 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.value') }}</label>
                     <input type="number" step="0.01" min="0" name="value" required
+                           x-bind:placeholder="type === 'bogo' ? '0' : ''"
                            value="{{ $isEdit ? $coupon['value'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <p x-show="type === 'bogo'" class="text-xs text-gray-400 mt-1">
+                        {{ __('partner.coupons.create.bogo_hint') }}
+                    </p>
+                    <p x-show="type === 'free_shipping'" class="text-xs text-gray-400 mt-1">
+                        {{ __('partner.coupons.create.free_shipping_hint') }}
+                    </p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.currency') }}</label>
@@ -249,5 +206,113 @@
                 </button>
             </div>
         </form>
+
+        {{-- Analytics section (only shown when editing an existing coupon) --}}
+        @if($isEdit)
+        <div class="mt-6 bg-white rounded-2xl border border-gray-200 p-6" x-data="couponAnalytics('{{ $coupon['id'] }}', '{{ route('partner.coupons.analytics', $coupon['id']) }}')">
+
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base font-semibold text-gray-800">{{ __('partner.coupons.analytics.title') }}</h2>
+                <button type="button" @click="load()" x-show="!loaded && !loading"
+                    class="text-sm text-primary-600 hover:underline">
+                    {{ __('partner.coupons.analytics.load') }}
+                </button>
+                <span x-show="loading" class="text-sm text-gray-400">{{ __('partner.coupons.analytics.loading') }}</span>
+            </div>
+
+            {{-- Summary cards --}}
+            <div x-show="loaded" class="grid grid-cols-3 gap-4 mb-6">
+                <div class="rounded-xl bg-gray-50 border border-gray-200 p-4 text-center">
+                    <p class="text-2xl font-bold text-gray-900" x-text="data.total_uses ?? 0"></p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ __('partner.coupons.analytics.total_uses') }}</p>
+                </div>
+                <div class="rounded-xl bg-gray-50 border border-gray-200 p-4 text-center">
+                    <p class="text-2xl font-bold text-gray-900" x-text="data.unique_customers ?? 0"></p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ __('partner.coupons.analytics.unique_customers') }}</p>
+                </div>
+                <div class="rounded-xl bg-gray-50 border border-gray-200 p-4 text-center">
+                    <p class="text-2xl font-bold text-gray-900" x-text="(data.total_discount ?? 0).toLocaleString()"></p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ __('partner.coupons.analytics.total_discount_given') }}</p>
+                </div>
+            </div>
+
+            {{-- Daily usage chart --}}
+            <div x-show="loaded" class="mb-6">
+                <p class="text-xs font-medium text-gray-500 mb-2">{{ __('partner.coupons.analytics.last_30_days') }}</p>
+                <canvas id="coupon-usage-chart" height="80"></canvas>
+            </div>
+
+            {{-- Recent usages --}}
+            <div x-show="loaded && data.recent_usages && data.recent_usages.length > 0">
+                <p class="text-xs font-medium text-gray-500 mb-2">{{ __('partner.coupons.analytics.recent_redemptions') }}</p>
+                <div class="divide-y divide-gray-100 rounded-xl border border-gray-200 overflow-hidden">
+                    <template x-for="usage in (data.recent_usages ?? [])" :key="usage.order_number">
+                        <div class="flex items-center justify-between px-4 py-2.5 text-sm">
+                            <span class="font-mono text-gray-600" x-text="usage.order_number"></span>
+                            <span class="text-gray-500 text-xs" x-text="new Date(usage.used_at).toLocaleDateString()"></span>
+                            <span class="font-medium text-gray-900" x-text="usage.discount_amount.toLocaleString()"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <p x-show="loaded && (!data.total_uses || data.total_uses === 0)"
+               class="text-sm text-gray-400 text-center py-4">
+                {{ __('partner.coupons.analytics.no_data') }}
+            </p>
+        </div>
+
+        @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+        function couponAnalytics(couponId, url) {
+            return {
+                loaded: false,
+                loading: false,
+                data: {},
+                chart: null,
+                async load() {
+                    this.loading = true;
+                    try {
+                        const res  = await fetch(url, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content } });
+                        this.data  = await res.json();
+                        this.loaded = true;
+                        this.$nextTick(() => this.renderChart());
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                renderChart() {
+                    const canvas = document.getElementById('coupon-usage-chart');
+                    if (!canvas || !this.data.daily_usage) return;
+                    if (this.chart) this.chart.destroy();
+                    this.chart = new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: this.data.daily_usage.map(d => d.date.slice(5)),
+                            datasets: [{
+                                label: '{{ __('partner.coupons.analytics.uses') }}',
+                                data: this.data.daily_usage.map(d => d.uses),
+                                backgroundColor: '#FBBF24',
+                                borderRadius: 3,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { precision: 0 } },
+                                x: { grid: { display: false } },
+                            },
+                        },
+                    });
+                },
+            };
+        }
+        </script>
+        @endpush
+        @endif
     </div>
 @endsection

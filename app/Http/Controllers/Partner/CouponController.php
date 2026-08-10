@@ -7,6 +7,7 @@ use App\Http\Requests\Vendor\StoreCouponRequest;
 use App\Http\Requests\Vendor\UpdateCouponRequest;
 use App\Http\Resources\Vendor\VendorCouponResource;
 use App\Models\Coupon;
+use App\Models\CouponUsage;
 use App\Policies\VendorCouponPolicy;
 use App\Services\Vendor\CouponService;
 use App\Traits\HasDataTable;
@@ -159,6 +160,56 @@ class CouponController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function analytics(string $id): JsonResponse
+    {
+        $coupon = Coupon::findOrFail($id);
+
+        abort_unless($this->policy->view(Auth::guard('vendor')->user(), $coupon), 403);
+
+        $dailyUsage = CouponUsage::where('coupon_id', $coupon->id)
+            ->where('used_at', '>=', now()->subDays(29)->startOfDay())
+            ->selectRaw('DATE(used_at) as date, COUNT(*) as uses, SUM(discount_amount) as total_discount')
+            ->groupByRaw('DATE(used_at)')
+            ->orderBy('date')
+            ->get();
+
+        $filled = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $row = $dailyUsage->firstWhere('date', $date);
+            $filled[] = [
+                'date' => $date,
+                'uses' => $row ? (int) $row->uses : 0,
+                'total_discount' => $row ? (int) $row->total_discount : 0,
+            ];
+        }
+
+        $totals = CouponUsage::where('coupon_id', $coupon->id)
+            ->selectRaw('COUNT(*) as total_uses, SUM(discount_amount) as total_discount_given, COUNT(DISTINCT customer_id) as unique_customers')
+            ->first();
+
+        $recentUsages = CouponUsage::where('coupon_id', $coupon->id)
+            ->with('order:id,order_number,total')
+            ->latest('used_at')
+            ->limit(5)
+            ->get()
+            ->map(fn ($u) => [
+                'order_number' => $u->order?->order_number ?? '—',
+                'discount_amount' => (int) $u->discount_amount,
+                'used_at' => $u->used_at?->toIso8601String(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'coupon_id' => $coupon->id,
+            'daily_usage' => $filled,
+            'total_uses' => (int) ($totals->total_uses ?? 0),
+            'total_discount' => (int) ($totals->total_discount_given ?? 0),
+            'unique_customers' => (int) ($totals->unique_customers ?? 0),
+            'recent_usages' => $recentUsages,
+        ]);
     }
 
     public function toggleStatus(string $id): JsonResponse
