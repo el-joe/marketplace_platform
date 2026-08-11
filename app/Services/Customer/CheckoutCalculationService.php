@@ -254,8 +254,11 @@ class CheckoutCalculationService
             }),
             \App\Enums\CouponScope::Product => $this->sumItems($cartItems, function ($item) use ($coupon) {
                 $productId = $item->vendorListing?->productVariant?->product_id;
+                $vendorId = $item->vendorListing?->vendor_id;
 
-                return $productId !== null && $coupon->products()->where('products.id', $productId)->exists();
+                return $productId !== null
+                    && $vendorId === $coupon->vendor_id
+                    && $coupon->products()->where('products.id', $productId)->exists();
             }),
             default => $subtotalCents,
         };
@@ -303,6 +306,7 @@ class CheckoutCalculationService
                 \App\Enums\CouponScope::Category => ($categoryId = $item->vendorListing?->productVariant?->product?->category_id) !== null
                     && $this->categoryMatches($categoryId, $coupon->category_id),
                 \App\Enums\CouponScope::Product => ($productId = $item->vendorListing?->productVariant?->product_id) !== null
+                    && $item->vendorListing?->vendor_id === $coupon->vendor_id
                     && $coupon->products()->where('products.id', $productId)->exists(),
                 default => true,
             };

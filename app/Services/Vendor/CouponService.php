@@ -117,10 +117,9 @@ class CouponService
         $ownedProductIds = VendorListing::query()
             ->where('vendor_id', $vendor->id)
             ->where('status', 'active')
-            ->whereHas('productVariant', fn ($q) => $q->whereIn('product_id', $productIds))
-            ->with('productVariant:id,product_id')
-            ->get()
-            ->pluck('productVariant.product_id')
+            ->join('product_variants', 'vendor_listings.product_variant_id', '=', 'product_variants.id')
+            ->whereIn('product_variants.product_id', $productIds)
+            ->pluck('product_variants.product_id')
             ->unique()
             ->values()
             ->all();

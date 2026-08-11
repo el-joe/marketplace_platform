@@ -8,12 +8,16 @@ use App\Http\Requests\Vendor\UpdateCouponRequest;
 use App\Http\Resources\Vendor\VendorCouponResource;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
+use App\Models\Product;
+use App\Models\ProductImage;
+use App\Models\VendorListing;
 use App\Policies\VendorCouponPolicy;
 use App\Services\Vendor\CouponService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -103,9 +107,78 @@ class CouponController extends Controller
 
     public function create(): View
     {
+        $vendor = Auth::guard('vendor')->user()->vendor()->with('country')->first();
+        $vendorCurrency = $vendor->country?->currency_code ?? 'SAR';
+
         return view('vendor.coupons.create', [
             'coupon' => null,
+            'vendor_currency' => $vendorCurrency,
         ]);
+    }
+
+    public function productSearch(Request $request): JsonResponse
+    {
+        $q = trim($request->input('q', ''));
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $vendorId = $this->vendorId();
+
+        $vendorProductIds = VendorListing::query()
+            ->where('vendor_id', $vendorId)
+            ->whereNotIn('status', ['archived'])
+            ->with('productVariant:id,product_id')
+            ->get()
+            ->pluck('productVariant.product_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($vendorProductIds->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $products = Product::query()
+            ->whereIn('id', $vendorProductIds)
+            ->where('status', 'active')
+            ->where(function ($query) use ($q) {
+                $query->where('name_en', 'like', '%' . $q . '%')
+                    ->orWhere('name_ar', 'like', '%' . $q . '%')
+                    ->orWhere('model_number', 'like', '%' . $q . '%')
+                    ->orWhere('gtin', 'like', $q . '%');
+            })
+            ->addSelect([
+                'primary_image' => ProductImage::select('path')
+                    ->whereColumn('product_id', 'products.id')
+                    ->where('is_primary', true)
+                    ->orderBy('position')
+                    ->limit(1),
+                'primary_image_disk' => ProductImage::select('disk')
+                    ->whereColumn('product_id', 'products.id')
+                    ->where('is_primary', true)
+                    ->orderBy('position')
+                    ->limit(1),
+            ])
+            ->limit(20)
+            ->get(['id', 'name_en', 'name_ar', 'model_number']);
+
+        return response()->json($products->map(function ($product) {
+            $imageUrl = null;
+            if ($product->primary_image) {
+                $imageUrl = Storage::disk($product->primary_image_disk ?? 'public')
+                    ->url($product->primary_image);
+            }
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name_ar ?: $product->name_en,
+                'name_en' => $product->name_en,
+                'name_ar' => $product->name_ar,
+                'model' => $product->model_number,
+                'image_url' => $imageUrl,
+            ];
+        }));
     }
 
     public function store(StoreCouponRequest $request): JsonResponse
@@ -133,11 +206,18 @@ class CouponController extends Controller
     public function show(string $id): View
     {
         $coupon = Coupon::with('products:id,name_en,name_ar')->findOrFail($id);
+        $actor = Auth::guard('vendor')->user();
 
-        abort_unless($this->policy->view(Auth::guard('vendor')->user(), $coupon), 403);
+        abort_unless($this->policy->view($actor, $coupon), 403);
+
+        $couponData = VendorCouponResource::make($coupon)->resolve();
+
+        $vendor = $actor->vendor()->with('country')->first();
+        $vendorCurrency = $vendor->country?->currency_code ?? $couponData['currency'] ?? 'SAR';
 
         return view('vendor.coupons.create', [
-            'coupon' => VendorCouponResource::make($coupon)->resolve(),
+            'coupon' => $couponData,
+            'vendor_currency' => $vendorCurrency,
         ]);
     }
 

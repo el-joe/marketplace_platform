@@ -26,7 +26,7 @@
             productResults: [],
             async searchProducts() {
                 if (this.productQuery.length < 2) { this.productResults = []; return; }
-                const res = await fetch('{{ route('partner.listings.product-search') }}?q=' + encodeURIComponent(this.productQuery));
+                const res = await fetch('{{ route('partner.coupons.product-search') }}?q=' + encodeURIComponent(this.productQuery));
                 this.productResults = await res.json();
             },
             toggleProduct(id) {
@@ -67,7 +67,7 @@
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? $coupon['description'] : '' }}</textarea>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.type') }}</label>
                     <select name="type" x-model="type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -78,7 +78,10 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.value') }}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ __('partner.coupons.create.value') }}
+                        <span x-show="type === 'fixed_amount'" class="text-gray-400 font-normal text-xs ml-1">({{ $vendor_currency }})</span>
+                    </label>
                     <input type="number" step="0.01" min="0" name="value" required
                            x-bind:placeholder="type === 'bogo' ? '0' : ''"
                            value="{{ $isEdit ? $coupon['value'] : '' }}"
@@ -90,13 +93,10 @@
                         {{ __('partner.coupons.create.free_shipping_hint') }}
                     </p>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.currency') }}</label>
-                    <input type="text" name="currency" maxlength="3" placeholder="SAR"
-                           value="{{ $isEdit ? $coupon['currency'] : '' }}"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase">
-                </div>
             </div>
+
+            {{-- Currency is always the vendor's country currency, not user input --}}
+            <input type="hidden" name="currency" value="{{ $vendor_currency }}">
 
             {{-- Scope --}}
             <div>

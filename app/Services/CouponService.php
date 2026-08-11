@@ -163,7 +163,17 @@ class CouponService
         if ($coupon->scope === CouponScope::Product) {
             $couponProductIds = $coupon->products()->pluck('product_id');
 
-            if ($productIds->intersect($couponProductIds)->isEmpty()) {
+            $matchingItems = $items->filter(function ($item) use ($couponProductIds, $coupon) {
+                $productId = $item->vendorListing?->productVariant?->product_id
+                    ?? $item->adminListing?->productVariant?->product_id;
+                $vendorId = $item->vendorListing?->vendor_id;
+
+                return $productId !== null
+                    && $couponProductIds->contains($productId)
+                    && $vendorId === $coupon->vendor_id;
+            });
+
+            if ($matchingItems->isEmpty()) {
                 throw ValidationException::withMessages([
                     'coupon' => __('This coupon is not valid for items in your cart'),
                 ]);
@@ -208,7 +218,8 @@ class CouponService
                 $i->vendorListing?->vendor_id === $coupon->vendor_id),
             CouponScope::Category => $this->sumItems($items, fn ($i) => $this->itemMatchesCategory($i, $coupon->category_id)),
             CouponScope::Product => $this->sumItems($items, fn ($i) =>
-                $coupon->products()->where('products.id', $i->vendorListing?->productVariant?->product_id)->exists()),
+                $i->vendorListing?->vendor_id === $coupon->vendor_id
+                && $coupon->products()->where('products.id', $i->vendorListing?->productVariant?->product_id)->exists()),
             default => $cartSubtotal,
         };
     }
@@ -232,7 +243,8 @@ class CouponService
         $qualifying = array_filter($items, fn ($i) => match ($coupon->scope) {
             CouponScope::Vendor => $i->vendorListing?->vendor_id === $coupon->vendor_id,
             CouponScope::Category => $this->itemMatchesCategory($i, $coupon->category_id),
-            CouponScope::Product => $coupon->products()
+            CouponScope::Product => $i->vendorListing?->vendor_id === $coupon->vendor_id
+                && $coupon->products()
                 ->where('products.id', $i->vendorListing?->productVariant?->product_id)
                 ->exists(),
             default => true,

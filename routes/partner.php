@@ -157,6 +157,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/',                    'index')->name('index');
         Route::get('/datatable',           'datatable')->name('datatable');
         Route::get('/create',              'create')->name('create');
+        Route::get('/product-search',      'productSearch')->name('product-search');
         Route::post('/',                   'store')->name('store');
         Route::get('/{id}/analytics',      'analytics')->name('analytics');
         Route::get('/{id}',                'show')->name('show');
