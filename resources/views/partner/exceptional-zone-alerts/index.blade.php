@@ -137,11 +137,11 @@
                     <div class="flex gap-2 mt-1">
                         <input type="number" name="reported_carrier_fee" required min="1"
                                class="flex-1 border rounded-lg px-3 py-2 text-sm" placeholder="{{ __('partner.exceptional_zone_alerts.carrier_fee_placeholder') }}">
-                        <select name="currency" required class="w-28 border rounded-lg px-3 py-2 text-sm">
-                            @foreach(['SAR','AED','OMR','KWD','QAR','BHD','EGP','JOD'] as $c)
-                                <option value="{{ $c }}">{{ $c }}</option>
-                            @endforeach
-                        </select>
+                        <input type="hidden" name="currency" id="alertCurrency" value="">
+                        <div id="alertCurrencyDisplay"
+                             class="w-28 border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500 text-center select-none">
+                            —
+                        </div>
                     </div>
                     <p class="text-xs text-gray-400 mt-1">
                         {{ __('partner.exceptional_zone_alerts.carrier_fee_hint') }}
@@ -193,16 +193,24 @@
             const modal = document.getElementById('alertModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            document.getElementById('alertCurrency').value = '';
+            document.getElementById('alertCurrencyDisplay').textContent = '—';
+            document.getElementById('alertCitiesList').innerHTML = i18n.selectWarehouseFirst;
+            document.getElementById('alertWarehouseId').value = '';
         };
 
         let citiesRequestId = 0;
 
         window.loadCitiesForWarehouse = async function (warehouseId) {
             const list = document.getElementById('alertCitiesList');
+            const currencyHidden = document.getElementById('alertCurrency');
+            const currencyDisplay = document.getElementById('alertCurrencyDisplay');
             const requestId = ++citiesRequestId;
 
             if (!warehouseId) {
                 list.innerHTML = i18n.selectWarehouseFirst;
+                currencyHidden.value = '';
+                currencyDisplay.textContent = '—';
                 return;
             }
 
@@ -216,6 +224,11 @@
             // Discard the response if a newer warehouse selection has been made since this request started.
             if (requestId !== citiesRequestId) {
                 return;
+            }
+
+            if (data.currency) {
+                currencyHidden.value = data.currency;
+                currencyDisplay.textContent = data.currency;
             }
 
             if (!data.cities || data.cities.length === 0) {

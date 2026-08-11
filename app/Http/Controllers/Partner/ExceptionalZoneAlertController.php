@@ -74,11 +74,16 @@ class ExceptionalZoneAlertController extends Controller
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_ar', 'shipping_zone_id']);
 
+        // Load the country's currency code
+        $currency = \App\Models\Country::where('id', $warehouse->country_id)
+            ->value('currency_code') ?? 'SAR';
+
         return response()->json([
-            'cities' => $cities->map(fn (City $c) => [
-                'id' => $c->id,
-                'name_en' => $c->name_en,
-                'name_ar' => $c->name_ar,
+            'currency' => $currency,
+            'cities'   => $cities->map(fn (City $c) => [
+                'id'       => $c->id,
+                'name_en'  => $c->name_en,
+                'name_ar'  => $c->name_ar,
                 'has_zone' => !is_null($c->shipping_zone_id),
             ]),
         ]);
