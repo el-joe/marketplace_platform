@@ -185,6 +185,7 @@ class CheckoutController extends Controller
                         'shipping' => $groupShipping['customer_pays'],
                         'carrier_shipping_cost' => $groupShipping['carrier_cost'] ?? 0,
                         'shipping_gap' => $groupShipping['gap'] ?? 0,
+                        'exceptional_zone_subsidy_id' => $groupShipping['exceptional_zone_subsidy_id'] ?? null,
                         'admin_subsidy_amount' => $groupShipping['admin_subsidy'],
                         'vendor_contribution_amount' => $groupShipping['vendor_contribution'],
                         'billable_weight_grams' => $groupShipping['billable_weight_grams'],

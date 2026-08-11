@@ -26,6 +26,7 @@ class CheckoutCalculationService
 {
     public function __construct(
         private readonly ShippingCalculationService $shippingCalculationService,
+        private readonly ExceptionalZoneService $exceptionalZoneService,
     ) {}
 
     /**
@@ -293,12 +294,26 @@ class CheckoutCalculationService
                 billableWeightGrams: $totalWeightGrams,
             );
 
+            // Exceptional zone check: completely separate from the normal
+            // shipping zone rate. If the customer's city has an accepted
+            // exceptional zone alert for this vendor+warehouse and the
+            // reported carrier fee exceeds what the customer pays, split
+            // the gap between vendor and admin.
+            $exceptionalResult = $city
+                ? $this->exceptionalZoneService->resolve(
+                    listing: $listing,
+                    city: $city,
+                    normalShippingFee: $result->customerPays,
+                )
+                : null;
+
             $breakdown[$key] = [
                 'customer_pays' => $result->customerPays,
-                'carrier_cost' => $result->carrierCost,
-                'gap' => $result->gap,
-                'vendor_contribution' => $result->vendorContribution,
-                'admin_subsidy' => $result->adminSubsidy,
+                'carrier_cost' => $exceptionalResult['reported_carrier_fee'] ?? $result->customerPays,
+                'gap' => $exceptionalResult['gap'] ?? 0,
+                'vendor_contribution' => $exceptionalResult['vendor_contribution'] ?? 0,
+                'admin_subsidy' => $exceptionalResult['admin_subsidy'] ?? 0,
+                'exceptional_zone_subsidy_id' => $exceptionalResult['subsidy_rule_id'] ?? null,
                 'billable_weight_grams' => $result->billableWeightGrams,
                 'vendor_id' => $key,
                 'is_admin' => false,
