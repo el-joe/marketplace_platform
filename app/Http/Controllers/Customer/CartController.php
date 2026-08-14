@@ -74,6 +74,20 @@ class CartController extends Controller
     {
         $cart = $this->resolveCart($request);
 
+        $cart->load([
+            'items.vendorListing.vendor',
+            'items.vendorListing.productVariant.product.category',
+            'items.vendorListing.productVariant.product.images',
+            'items.vendorListing.warehouseInventories',
+            'items.vendorListing.primaryShippingMethod',
+            'items.adminListing.productVariant.product.category',
+            'items.adminListing.productVariant.product.images',
+            'items.adminListing.warehouseInventories',
+            'items.adminListing.primaryShippingMethod',
+            'items.selectedShippingMethod',
+            'coupon',
+        ]);
+
         $country = $request->attributes->get('country');
 
         return $this->cartResponse($cart, [

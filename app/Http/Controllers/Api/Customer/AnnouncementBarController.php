@@ -26,15 +26,24 @@ class AnnouncementBarController extends Controller
         /** @var Country $country */
         $country = $request->attributes->get('country');
 
-        $bar = Cache::remember("announcement_bar_active_{$country->id}", 300, function () use ($country) {
-            return AnnouncementBar::getActive($country->id);
+        $shaped = Cache::remember("announcement_bar_active_{$country->id}", 300, function () use ($country) {
+            $bar = AnnouncementBar::getActive($country->id);
+
+            if (!$bar) {
+                return null;
+            }
+
+            // Shaped inside the closure so only a plain array is cached, never an
+            // Eloquent model (which deserializes as __PHP_Incomplete_Class on the
+            // database cache driver and crashes on the second request).
+            return $this->shape($bar);
         });
 
-        if (!$bar) {
+        if (!$shaped) {
             return ApiResponse::success(['data' => []]);
         }
 
-        return ApiResponse::success(['data' => [$this->shape($bar)]]);
+        return ApiResponse::success(['data' => [$shaped]]);
     }
 
     public function dismiss(Request $request, string $id): JsonResponse

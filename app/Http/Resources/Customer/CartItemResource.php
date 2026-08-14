@@ -5,6 +5,7 @@ namespace App\Http\Resources\Customer;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\Customer\ListingIdentifierService;
+use App\Services\Customer\ProductDetailEnrichmentService;
 use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -18,6 +19,20 @@ class CartItemResource extends JsonResource
         $variant = $listing?->productVariant;
         $product = $variant?->product;
         $available = $listing?->warehouseInventories->sum('quantity_available') ?? 0;
+
+        $applicableCoupons = [];
+        $country = $request->attributes->get('country');
+        if ($product && $country) {
+            $customer = auth('customer')->user();
+            /** @var ProductDetailEnrichmentService $enrichment */
+            $enrichment = app(ProductDetailEnrichmentService::class);
+            $applicableCoupons = $enrichment->getApplicableCoupons(
+                $product,
+                $country,
+                $customer,
+                (!$isAdmin && $listing) ? $listing : null,
+            );
+        }
 
         return [
             'cart_item_id'       => $this->id,
@@ -52,6 +67,7 @@ class CartItemResource extends JsonResource
                 'badge_label_en'  => $this->selectedShippingMethod->badge_label_en,
                 'badge_color_hex' => $this->selectedShippingMethod->badge_color_hex,
             ] : null,
+            'applicable_coupons' => $applicableCoupons,
         ];
     }
 

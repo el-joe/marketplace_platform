@@ -125,6 +125,7 @@ class PageBuilderService
                         ? json_decode($section->columns_config, true)
                         : $section->columns_config,
                     'background_color'     => $section->background_color,
+                    'background_image_url' => $section->background_image_url,
                     'max_width'            => $section->max_width,
                     'padding_top'          => $section->padding_top,
                     'padding_bottom'       => $section->padding_bottom,
@@ -142,7 +143,8 @@ class PageBuilderService
                 'columns_config'   => is_string($section->columns_config)
                     ? json_decode($section->columns_config, true)
                     : $section->columns_config,
-                'background_color' => $section->background_color,
+                'background_color'     => $section->background_color,
+                'background_image_url' => $section->background_image_url,
                 'max_width'        => $section->max_width,
                 'padding_top'      => $section->padding_top,
                 'padding_bottom'   => $section->padding_bottom,
@@ -181,11 +183,12 @@ class PageBuilderService
     private function hydrateBlock(PageBlock $b, ?PaidBannerBooking $booking, Country $country): array
     {
         $data = [
-            'id' => $b->id,
-            'block_type' => $b->block_type,
-            'position' => $b->position,
-            'device_target' => $b->device_target,
-            'config' => $b->config,
+            'id'               => $b->id,
+            'block_type'       => $b->block_type,
+            'position'         => $b->position,
+            'device_target'    => $b->device_target,
+            'background_color' => ($b->config['background_color'] ?? null),
+            'config'           => $b->config,
         ];
 
         if ($b->block_type === 'full_banner' && !empty($b->config['banner_id'])) {

@@ -140,9 +140,19 @@ class PageRendererService
 
             if ($hydrated->isNotEmpty()) {
                 $sectionsData[] = [
-                    'id' => $section->id,
-                    'position' => $section->position,
-                    'blocks' => $hydrated->all(),
+                    'id'                   => $section->id,
+                    'name'                 => $section->name,
+                    'position'             => $section->position,
+                    'layout'               => $section->layout ?? 'stack',
+                    'columns_config'       => is_string($section->columns_config)
+                        ? json_decode($section->columns_config, true)
+                        : $section->columns_config,
+                    'background_color'     => $section->background_color,
+                    'background_image_url' => $section->background_image_url,
+                    'padding_top'          => (int) $section->padding_top,
+                    'padding_bottom'       => (int) $section->padding_bottom,
+                    'max_width'            => $section->max_width,
+                    'blocks'               => $hydrated->all(),
                 ];
             }
         }
@@ -153,9 +163,17 @@ class PageRendererService
             $hydrated = $this->hydrateBlocks($unsectioned, $page, $country, $customer);
             if ($hydrated->isNotEmpty()) {
                 $sectionsData[] = [
-                    'id' => null,
-                    'position' => 0,
-                    'blocks' => $hydrated->all(),
+                    'id'                   => null,
+                    'name'                 => null,
+                    'position'             => 0,
+                    'layout'               => 'stack',
+                    'columns_config'       => null,
+                    'background_color'     => null,
+                    'background_image_url' => null,
+                    'padding_top'          => 0,
+                    'padding_bottom'       => 0,
+                    'max_width'            => null,
+                    'blocks'               => $hydrated->all(),
                 ];
             }
         }
@@ -230,13 +248,14 @@ class PageRendererService
                 dispatch(new FlushBlockImpressionJob($block->id, $page->id, $country->id));
 
                 return [
-                    'id' => $block->id,
-                    'type' => $block->block_type,
-                    'position' => $block->position,
-                    'device_target' => $block->device_target,
-                    'audience' => $block->audience,
+                    'id'                => $block->id,
+                    'type'              => $block->block_type,
+                    'position'          => $block->position,
+                    'device_target'     => $block->device_target,
+                    'audience'          => $block->audience,
                     'cache_ttl_seconds' => $block->cache_ttl_seconds,
-                    'data' => $cached,
+                    'background_color'  => ($block->config['background_color'] ?? null),
+                    'data'              => $cached,
                 ];
             })
             ->filter()
