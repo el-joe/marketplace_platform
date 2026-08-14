@@ -156,11 +156,17 @@ function renderCredentialFields(code) {
     const $testBtn = $('#btn-test-connection');
     $fields.empty();
 
+    if (!code) {
+        $fields.html('<p class="text-xs text-gray-400 italic">Select a Gateway Driver above to configure API credentials.</p>');
+        $testBtn.prop('disabled', true);
+        return;
+    }
+
     const fields = GATEWAY_FIELDS[code] || [];
 
     if (fields.length === 0) {
         $fields.html(`<p class="text-xs text-gray-400 italic">${t('admin.payment_methods.no_credential_fields')}</p>`);
-        $testBtn.prop('disabled', true);
+        $testBtn.prop('disabled', false);
         return;
     }
 
