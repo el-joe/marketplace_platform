@@ -50,6 +50,11 @@
       "key": "announcement_bar_id",
       "value": "",
       "description": "UUID of an announcement bar returned by List Active Announcement Bars, used for the dismiss call"
+    },
+    {
+      "key": "order_number",
+      "value": "",
+      "description": "Set manually or after Place Order — used by payment callback endpoints"
     }
   ],
   "item": [
@@ -7657,6 +7662,83 @@
           ]
         },
         {
+          "name": "Get Checkout Payment Options",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/checkout/payment-options?order_total=150000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "checkout",
+                "payment-options"
+              ],
+              "query": [
+                {
+                  "key": "order_total",
+                  "value": "150000"
+                }
+              ]
+            },
+            "description": "**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login.\n\nReturns available payment methods for the country (redirect gateways, COD, wallet, etc.) shaped with fees and availability based on `order_total`."
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/checkout/payment-options?order_total=150000",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "checkout",
+                    "payment-options"
+                  ],
+                  "query": [
+                    {
+                      "key": "order_total",
+                      "value": "150000"
+                    }
+                  ]
+                },
+                "description": "**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login.\n\nReturns available payment methods for the country (redirect gateways, COD, wallet, etc.) shaped with fees and availability based on `order_total`."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Success\",\n  \"data\": {\n    \"payment_options\": [\n      {\n        \"id\": \"f1e2d3c4-0000-4a1b-8c2d-1a2b3c4d5e6f\",\n        \"method_type\": \"cod\",\n        \"gateway_code\": \"cod\",\n        \"display_name\": {\n          \"en\": \"Cash on Delivery\",\n          \"ar\": \"الدفع عند الاستلام\"\n        },\n        \"provider_logo_url\": null,\n        \"fee_pct\": 0,\n        \"fee_fixed\": 0,\n        \"gateway_fee\": 0,\n        \"is_redirect\": false,\n        \"requires_token\": false,\n        \"is_available\": true,\n        \"unavailable_reason\": null,\n        \"installments_count\": null,\n        \"installment_label\": {\n          \"en\": null,\n          \"ar\": null\n        },\n        \"learn_more_url\": null,\n        \"sort_order\": 1\n      },\n      {\n        \"id\": \"a2b3c4d5-0000-4a1b-8c2d-1a2b3c4d5e6f\",\n        \"method_type\": \"gateway\",\n        \"gateway_code\": \"stripe\",\n        \"display_name\": {\n          \"en\": \"Credit/Debit Card\",\n          \"ar\": \"بطاقة ائتمان\"\n        },\n        \"provider_logo_url\": \"https://cdn.example.com/logos/stripe.png\",\n        \"fee_pct\": 2.5,\n        \"fee_fixed\": 100,\n        \"gateway_fee\": 3850,\n        \"is_redirect\": true,\n        \"requires_token\": true,\n        \"is_available\": true,\n        \"unavailable_reason\": null,\n        \"installments_count\": null,\n        \"installment_label\": {\n          \"en\": null,\n          \"ar\": null\n        },\n        \"learn_more_url\": null,\n        \"sort_order\": 2\n      }\n    ],\n    \"wallet\": {\n      \"balance\": 5000,\n      \"currency_code\": \"EGP\",\n      \"applicable\": true,\n      \"max_usable\": 5000\n    },\n    \"currency\": \"EGP\"\n  }\n}"
+            }
+          ]
+        },
+        {
           "name": "Prepare Checkout",
           "request": {
             "method": "POST",
@@ -8177,6 +8259,144 @@
                 }
               ],
               "body": "{\n  \"success\": true,\n  \"message\": \"Order placed successfully\",\n  \"data\": {\n    \"order_number\": \"ORD-20260805-XY45ZQ\",\n    \"status\": \"placed\",\n    \"payment_status\": \"pending\",\n    \"total\": 134900,\n    \"currency\": \"EGP\",\n    \"placed_at\": \"2026-08-05T14:30:00+00:00\",\n    \"sub_orders\": [\n      {\n        \"sub_order_number\": \"ORD-20260805-XY45ZQ-01\",\n        \"status\": \"placed\",\n        \"shipping\": 5000,\n        \"items\": [\n          {\n            \"sku\": \"SKU-ANK-BLK-42\",\n            \"quantity\": 1,\n            \"unit_price\": 129900,\n            \"line_total\": 129900\n          }\n        ]\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Payment Callback - Success",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/checkout/payment/success/{{order_number}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "checkout",
+                "payment",
+                "success",
+                "{{order_number}}"
+              ]
+            },
+            "description": "**Auth:** None (unauthenticated) — the payment gateway redirects the customer's browser here after a successful redirect-based payment (Thawani, Stripe, PayPal). The order is looked up by its unguessable `order_number` and the pending transaction is verified/captured against the gateway."
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/checkout/payment/success/{{order_number}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "checkout",
+                    "payment",
+                    "success",
+                    "{{order_number}}"
+                  ]
+                },
+                "description": "**Auth:** None (unauthenticated) — the payment gateway redirects the customer's browser here after a successful redirect-based payment (Thawani, Stripe, PayPal). The order is looked up by its unguessable `order_number` and the pending transaction is verified/captured against the gateway."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment verified.\",\n  \"data\": {\n    \"order_number\": \"ORD-2026-000123\",\n    \"payment_status\": \"captured\",\n    \"status\": \"processing\",\n    \"verified\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Payment Callback - Cancel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/checkout/payment/cancel/{{order_number}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "checkout",
+                "payment",
+                "cancel",
+                "{{order_number}}"
+              ]
+            },
+            "description": "**Auth:** None (unauthenticated) — the payment gateway redirects the customer's browser here when the payment is cancelled or fails. If the order is still pending, it is marked failed/cancelled and reserved inventory is released."
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/checkout/payment/cancel/{{order_number}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "checkout",
+                    "payment",
+                    "cancel",
+                    "{{order_number}}"
+                  ]
+                },
+                "description": "**Auth:** None (unauthenticated) — the payment gateway redirects the customer's browser here when the payment is cancelled or fails. If the order is still pending, it is marked failed/cancelled and reserved inventory is released."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment cancelled.\",\n  \"data\": {\n    \"order_number\": \"ORD-2026-000123\",\n    \"payment_status\": \"failed\",\n    \"status\": \"cancelled\"\n  }\n}"
             }
           ]
         }
