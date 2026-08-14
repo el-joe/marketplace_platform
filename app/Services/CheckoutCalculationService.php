@@ -31,7 +31,7 @@ class CheckoutCalculationService
 
     /**
      * @param  array<int, array{listing_id: string, listing_type: string, quantity: int}>  $cartItems
-     * @param  array{address_id: string, shipping_method_id: string, payment_method: string, coupon_code?: string, wallet_use?: bool, gift_card_code?: string, warranty_selections?: array}  $options
+     * @param  array{address_id: string, payment_method: string, coupon_code?: string, wallet_use?: bool, gift_card_code?: string, warranty_selections?: array}  $options
      */
     public function calculate(Customer $customer, array $cartItems, array $options): array
     {
@@ -54,17 +54,13 @@ class CheckoutCalculationService
             throw ValidationException::withMessages(['cart_items' => 'Cart is empty.']);
         }
 
-        $shippingMethod = ShippingMethod::find($options['shipping_method_id']);
-        if (! $shippingMethod) {
-            throw ValidationException::withMessages(['shipping_method_id' => 'Shipping method not found.']);
-        }
-
         $subtotal = 0;
         foreach ($items as $item) {
             $subtotal += $item['unit_price'] * $item['quantity'];
         }
 
-        $shippingBreakdown = $this->calculateShippingByVendor($items, $address, $country, $shippingMethod);
+        // Shipping methods are embedded per resolved cart item; group and calculate per method
+        $shippingBreakdown = $this->calculateShippingByVendor($items, $address, $country);
         $shippingTotal = (int) collect($shippingBreakdown)->sum('customer_pays');
 
         $isCod = ($options['payment_method'] ?? null) === 'cod';
@@ -73,7 +69,9 @@ class CheckoutCalculationService
             if (! $this->codAvailable($address, $country)) {
                 throw ValidationException::withMessages(['payment_method' => 'Cash on delivery is not available for this address.']);
             }
-            $codFee = $this->resolveCodFee($address, $shippingMethod);
+            $methodIds = collect($items)->pluck('selected_shipping_method_id')->filter()->unique();
+            $codFee = (int) ShippingMethod::whereIn('id', $methodIds)->get()
+                ->sum(fn (ShippingMethod $method) => $this->resolveCodFee($address, $method));
         }
 
         $couponResponse = null;
@@ -203,6 +201,7 @@ class CheckoutCalculationService
                     'weight_grams' => (int) ($listing->productVariant?->weight_grams ?? 0),
                     'listing' => $listing,
                     'is_admin' => true,
+                    'selected_shipping_method_id' => $cartItem['selected_shipping_method_id'] ?? null,
                 ];
 
                 continue;
@@ -223,6 +222,9 @@ class CheckoutCalculationService
                 'weight_grams' => (int) ($listing->productVariant?->weight_grams ?? 0),
                 'listing' => $listing,
                 'is_admin' => false,
+                'selected_shipping_method_id' => $cartItem['selected_shipping_method_id']
+                    ?? $listing->primary_shipping_method_id
+                    ?? null,
             ];
         }
 
@@ -233,7 +235,7 @@ class CheckoutCalculationService
      * @param  array  $items  resolved cart items (see resolveCartItems)
      * @return array<string, array{customer_pays: int, carrier_cost: int, gap: int, vendor_contribution: int, admin_subsidy: int, billable_weight_grams: int, vendor_id: ?string, is_admin: bool}>
      */
-    public function calculateShippingByVendor(array $items, Address $address, Country $country, ShippingMethod $shippingMethod): array
+    public function calculateShippingByVendor(array $items, Address $address, Country $country): array
     {
         $city = City::find($address->city_id);
         $zoneId = $city?->shipping_zone_id;
@@ -285,12 +287,32 @@ class CheckoutCalculationService
             $vendor = $listing->vendor;
             $totalWeightGrams = (int) collect($groupItems)->sum(fn ($i) => $i['weight_grams'] * $i['quantity']);
 
+            $selectedMethodId = $firstItem['selected_shipping_method_id']
+                ?? $listing->primary_shipping_method_id
+                ?? null;
+            $method = $selectedMethodId ? ShippingMethod::find($selectedMethodId) : null;
+
+            if (! $method) {
+                $breakdown[$key] = [
+                    'customer_pays' => 0,
+                    'carrier_cost' => 0,
+                    'gap' => 0,
+                    'vendor_contribution' => 0,
+                    'admin_subsidy' => 0,
+                    'billable_weight_grams' => $totalWeightGrams,
+                    'vendor_id' => $key,
+                    'is_admin' => false,
+                ];
+
+                continue;
+            }
+
             $result = $this->shippingCalculationService->calculate(
                 vendor: $vendor,
                 listing: $listing,
                 quantity: (int) collect($groupItems)->sum('quantity'),
                 destinationZone: $zone,
-                method: $shippingMethod,
+                method: $method,
                 billableWeightGrams: $totalWeightGrams,
             );
 

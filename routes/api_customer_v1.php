@@ -43,6 +43,7 @@ use App\Http\Controllers\Api\Customer\GiftCardController as ApiGiftCardControlle
 use App\Http\Controllers\Api\Customer\CustomerWalletController;
 use App\Http\Controllers\Api\Customer\NewsletterController;
 use App\Http\Controllers\Api\Customer\AnnouncementBarController;
+use App\Http\Controllers\Api\Customer\PaymentCallbackController;
 
 // ── Home composite (public) ───────────────────────────────────────────
 
@@ -346,6 +347,8 @@ use Illuminate\Support\Facades\Route;
 
             // Checkout
             Route::prefix('checkout')->name('customer.checkout.')->group(function (): void {
+                Route::get('payment-options', [ApiCheckoutController::class, 'paymentOptions'])
+                    ->name('payment-options');
                 Route::get('shipping-methods', [CheckoutController::class, 'shippingMethods'])->name('shipping-methods');
                 Route::post('prepare', [CheckoutController::class, 'prepare'])->name('prepare');
                 Route::post('place-order', [CheckoutController::class, 'placeOrder'])
@@ -359,6 +362,15 @@ use Illuminate\Support\Facades\Route;
                     ->middleware('throttle:5,1')
                     ->name('place');
             });
+
+            // Payment gateway redirect-back callbacks (no auth — gateway redirects browser here)
+            Route::get('checkout/payment/success/{orderNumber}', [PaymentCallbackController::class, 'success'])
+                ->name('checkout.success')
+                ->withoutMiddleware(['auth:customer']);
+
+            Route::get('checkout/payment/cancel/{orderNumber}', [PaymentCallbackController::class, 'cancel'])
+                ->name('checkout.cancel')
+                ->withoutMiddleware(['auth:customer']);
 
             // Orders
             Route::prefix('orders')->name('customer.orders.')->group(function (): void {

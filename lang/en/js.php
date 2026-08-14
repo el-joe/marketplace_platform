@@ -652,6 +652,9 @@ return [
             'active_label'             => 'Active',
             'inactive_label'           => 'Inactive',
             'remove_confirm'           => 'Remove "{name}"? This action cannot be undone.',
+            'no_credential_fields'     => 'No credential fields for this gateway.',
+            'leave_blank_to_keep'      => 'Leave blank to keep existing',
+            'save_first_to_test'       => 'Save the method first, then test connection.',
         ],
 
         'payouts' => [

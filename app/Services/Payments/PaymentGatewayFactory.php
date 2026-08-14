@@ -14,12 +14,14 @@ class PaymentGatewayFactory
 {
     /** @var array<string, class-string<AbstractPaymentGateway>> */
     private static array $map = [
-        'thawani' => ThawaniGateway::class,
-        // 'paytabs'       => PaytabsGateway::class,
-        // 'tabby'         => TabbyGateway::class,
-        // 'noon_pay'      => NoonPayGateway::class,
-        // 'cod'           => CodGateway::class,
-        // 'bank_transfer' => BankTransferGateway::class,
+        'thawani'       => ThawaniGateway::class,
+        'stripe'        => StripeGateway::class,
+        'bank_transfer' => BankTransferGateway::class,
+        // 'paytabs'    => PaytabsGateway::class,
+        // 'tabby'      => TabbyGateway::class,
+        // 'noon_pay'   => NoonPayGateway::class,
+        // 'cod'        => CodGateway::class,
+        // 'paypal'     => PaypalGateway::class,  // add when implemented
     ];
 
     public static function make(CountryPaymentMethod $config): PaymentGatewayInterface

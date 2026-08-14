@@ -78,10 +78,18 @@ class CheckoutController extends Controller
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
         $cart->load('items.vendorListing.productVariant');
 
-        $address = $customer->addresses()
-            ->where('is_default', 1)
-            ->whereIn('address_type', ['shipping', 'both'])
-            ->first();
+        $addressId = $request->query('address_id');
+
+        if ($addressId) {
+            $address = $customer->addresses()
+                ->where('id', $addressId)
+                ->first();
+        } else {
+            $address = $customer->addresses()
+                ->where('is_default', 1)
+                ->whereIn('address_type', ['shipping', 'both'])
+                ->first();
+        }
 
         if (! $address) {
             $methods = ShippingMethod::where('is_active', 1)
@@ -162,20 +170,37 @@ class CheckoutController extends Controller
 
         $cartItems = $cart->items->all();
 
-        $shippingResult = $this->calculationService->calculateShipping(
-            $address,
-            $country,
-            $validated['shipping_method_id'],
-            $cartItems,
-            $isCod
-        );
+        // Build shipping per cart-item group using each item's selected_shipping_method_id
+        $shippingMethodIds = collect($cartItems)
+            ->pluck('selected_shipping_method_id')
+            ->filter()
+            ->unique()
+            ->values();
 
-        $shippingMethod = ShippingMethod::find($validated['shipping_method_id']);
+        $shippingMethods = ShippingMethod::whereIn('id', $shippingMethodIds)->get()->keyBy('id');
+
+        $groupedForShipping = collect($cartItems)->groupBy('selected_shipping_method_id');
+
+        $totalShippingFee = 0;
+        $codExtraFee = 0;
+        $shippingGroups = [];
+
+        foreach ($groupedForShipping as $methodId => $groupItems) {
+            $method = $shippingMethods[$methodId] ?? null;
+            $calc = $method
+                ? $this->calculationService->calculateShipping($address, $country, $methodId, $groupItems->all(), $isCod)
+                : ['fee' => 0, 'cod_extra_fee' => 0, 'is_free' => true, 'cod_available' => false];
+
+            $totalShippingFee += $calc['fee'];
+            $codExtraFee += $calc['cod_extra_fee'];
+            $shippingGroups[$methodId] = array_merge($calc, ['method' => $method]);
+        }
+
         $shippingZone = $address->city?->shippingZone;
 
-        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee'], $shippingZone, $shippingMethod);
+        $vendorShipping = $this->resolveVendorShipping($cartItems, $totalShippingFee, $shippingZone, null);
 
-        $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
+        $codFeeCents = $isCod ? $codExtraFee : 0;
 
         $warrantyResult = $this->calculationService->resolveWarrantySelections(
             $cartItems,
@@ -253,12 +278,16 @@ class CheckoutController extends Controller
         return ApiResponse::success([
             'order_summary' => $summary,
             'shipping' => [
-                'method_id' => $validated['shipping_method_id'],
-                'method_name' => $shippingMethod?->name,
-                'fee' => $vendorShipping['total'],
-                'is_free' => $vendorShipping['total'] === 0,
-                'estimated_delivery_days_min' => $shippingMethod?->min_delivery_days,
-                'estimated_delivery_days_max' => $shippingMethod?->max_delivery_days,
+                'total_fee'     => $vendorShipping['total'],
+                'is_free'       => $vendorShipping['total'] === 0,
+                'groups'        => collect($shippingGroups)->map(fn ($g, $id) => [
+                    'shipping_method_id'            => $id,
+                    'method_name'                   => $g['method']?->name,
+                    'fee'                           => $g['fee'],
+                    'is_free'                       => $g['is_free'],
+                    'estimated_delivery_days_min'   => $g['method']?->min_delivery_days,
+                    'estimated_delivery_days_max'   => $g['method']?->max_delivery_days,
+                ])->values(),
                 'delivery_fee' => $vendorShipping['total'],
                 'is_free_delivery' => $vendorShipping['total'] === 0,
                 'vendor_delivery' => $vendorDeliveryResponse,
@@ -357,18 +386,34 @@ class CheckoutController extends Controller
 
         $cartItems = $cart->items->all();
 
-        $shippingResult = $this->calculationService->calculateShipping(
-            $address,
-            $country,
-            $validated['shipping_method_id'],
-            $cartItems,
-            $isCod
-        );
-        $shippingZone = $address->city?->shippingZone;
-        $shippingMethodForOrder = ShippingMethod::find($validated['shipping_method_id']);
-        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee'], $shippingZone, $shippingMethodForOrder);
+        // Derive shipping per group from each item's selected_shipping_method_id
+        $shippingMethodIds = collect($cartItems)
+            ->pluck('selected_shipping_method_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $shippingMethods = ShippingMethod::whereIn('id', $shippingMethodIds)->get()->keyBy('id');
+
+        $groupedForShipping = collect($cartItems)->groupBy('selected_shipping_method_id');
+        $totalShippingFee   = 0;
+        $codExtraFee        = 0;
+
+        foreach ($groupedForShipping as $methodId => $groupItems) {
+            $method = $shippingMethods[$methodId] ?? null;
+            if ($method) {
+                $calc = $this->calculationService->calculateShipping(
+                    $address, $country, $methodId, $groupItems->all(), $isCod
+                );
+                $totalShippingFee += $calc['fee'];
+                $codExtraFee      += $calc['cod_extra_fee'];
+            }
+        }
+
+        $shippingZone   = $address->city?->shippingZone;
+        $vendorShipping = $this->resolveVendorShipping($cartItems, $totalShippingFee, $shippingZone, null);
         $shippingFeeCents = $vendorShipping['total'];
-        $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
+        $codFeeCents      = $isCod ? $codExtraFee : 0;
 
         $warrantyResult = $this->calculationService->resolveWarrantySelections(
             $cartItems,
@@ -479,14 +524,14 @@ class CheckoutController extends Controller
                     return $shippingMethodCache[$shippingMethodId];
                 };
 
-                $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id.'|'.($item->selected_shipping_method_id ?? $validated['shipping_method_id']));
+                $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id.'|'.($item->selected_shipping_method_id ?? ''));
                 $subOrders = [];
                 $idx = 0;
 
                 foreach ($grouped as $groupKey => $items) {
                     $idx++;
                     $vendorId = $items->first()->vendorListing->vendor_id;
-                    $subOrderShippingMethodId = $items->first()->selected_shipping_method_id ?? $validated['shipping_method_id'];
+                    $subOrderShippingMethodId = $items->first()->selected_shipping_method_id;
                     $subOrderShippingMethod = $resolveShippingMethod($subOrderShippingMethodId);
                     $vendorSubtotal = (int) $items->sum(fn ($i) => $i->unit_price * $i->quantity);
                     $firstListing = $items->first()->vendorListing;
@@ -700,6 +745,9 @@ class CheckoutController extends Controller
         $subOrders = $result['sub_orders'];
         $order = $result['order'];
 
+        $paymentRedirectUrl = null;
+        $bankTransferDetails = null;
+
         if ($result['wallet_fully_paid']) {
             // Wallet covered the full order total inside the transaction above — no COD
             // collection and no external payment gateway call needed.
@@ -721,10 +769,15 @@ class CheckoutController extends Controller
                 'processed_at' => null,
             ]);
         } else {
-            $methodConfig = CountryPaymentMethod::where('method_type', $validated['payment_method'])
-                ->where('country_id', $country->id)
+            $methodConfigQuery = CountryPaymentMethod::where('country_id', $country->id)
                 ->where('is_active', true)
-                ->first();
+                ->where('method_type', $validated['payment_method']);
+
+            if (! empty($validated['gateway_code'])) {
+                $methodConfigQuery->where('gateway_code', $validated['gateway_code']);
+            }
+
+            $methodConfig = $methodConfigQuery->orderBy('sort_order')->first();
 
             if (! $methodConfig) {
                 $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);
@@ -735,6 +788,11 @@ class CheckoutController extends Controller
                     if (! $paymentResult->success) {
                         $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);
                         $this->releaseReservedInventory($order);
+                    } else {
+                        $paymentRedirectUrl = $paymentResult->redirectUrl;
+                        if ($validated['payment_method'] === 'bank_transfer') {
+                            $bankTransferDetails = $paymentResult->rawResponse;
+                        }
                     }
                 } catch (\Throwable $e) {
                     $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);
@@ -756,7 +814,12 @@ class CheckoutController extends Controller
         $order = $order->fresh();
         $order->load('subOrders.items.vendorListing');
 
-        return ApiResponse::success(new PlaceOrderResultResource($order), __('common.exceptions.checkout.order_placed'), 201);
+        $responseData = (new PlaceOrderResultResource($order))->toArray($request);
+        $responseData['payment_redirect_url'] = $paymentRedirectUrl ?: null;
+        $responseData['requires_redirect'] = ! empty($paymentRedirectUrl);
+        $responseData['bank_transfer_details'] = $bankTransferDetails;
+
+        return ApiResponse::success($responseData, __('common.exceptions.checkout.order_placed'), 201);
     }
 
     public function confirmation(Request $request,$country, string $orderNumber): JsonResponse

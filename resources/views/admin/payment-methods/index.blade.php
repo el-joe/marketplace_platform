@@ -91,6 +91,17 @@
                                     @if($method->provider)
                                         <span class="ml-1 text-xs text-gray-400">({{ $method->provider }})</span>
                                     @endif
+                                    @if($method->gateway_code)
+                                        @if($method->is_configured)
+                                            <span class="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-medium bg-success-50 text-success-700 border border-success-200">
+                                                <x-heroicon name="check-circle" class="w-3 h-3" /> {{ __('admin.payment_section.configured') }}
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                                <x-heroicon name="exclamation-triangle" class="w-3 h-3" /> {{ __('admin.payment_section.no_credentials') }}
+                                            </span>
+                                        @endif
+                                    @endif
                                 </span>
                                 {{-- Fee --}}
                                 <span class="text-xs text-gray-500">
@@ -196,9 +207,62 @@
                         class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
                     <input type="hidden" name="max_order" id="max_order" />
                 </div>
-                <div class="sm:col-span-2 flex items-center gap-6">
-                    <x-form-toggle name="is_active" label="{{ __('common.active') }}" :checked="true" />
+            </div>
+
+            {{-- ─── Gateway Configuration ──────────────────────────────────────── --}}
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1">
+                    <x-heroicon name="key" class="w-4 h-4 text-gray-400" />
+                    {{ __('admin.payment_section.gateway_configuration') }}
+                </h4>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <x-form-select name="gateway_code" label="{{ __('admin.payment_section.gateway_driver') }}">
+                            <option value="">{{ __('admin.payment_section.none_manual') }}</option>
+                            @foreach($availableGateways as $code)
+                                <option value="{{ $code }}">{{ ucwords(str_replace('_', ' ', $code)) }}</option>
+                            @endforeach
+                        </x-form-select>
+                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.payment_section.gateway_driver_hint') }}</p>
+                    </div>
+                    <div>
+                        <x-form-select name="environment" label="{{ __('admin.payment_section.environment') }}">
+                            <option value="sandbox">{{ __('admin.payment_section.sandbox') }}</option>
+                            <option value="production">{{ __('admin.payment_section.production') }}</option>
+                        </x-form-select>
+                    </div>
                 </div>
+
+                {{-- ─── Credentials (key-value, per gateway) ──────────────────── --}}
+                <div class="mt-4" id="credentials-section">
+                    <label class="block text-xs font-medium text-gray-600 mb-2">{{ __('admin.payment_section.api_credentials') }}</label>
+                    <div id="credentials-fields" class="space-y-2"></div>
+                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.payment_section.credentials_hint') }}</p>
+                </div>
+
+                {{-- ─── Webhook Secret ─────────────────────────────────────────── --}}
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.webhook_secret') }}</label>
+                    <input type="password" name="webhook_secret" id="webhook_secret" autocomplete="off"
+                        placeholder="{{ __('admin.payment_section.leave_blank_to_keep') }}"
+                        class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500">
+                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.payment_section.webhook_secret_hint') }}</p>
+                </div>
+
+                {{-- ─── Test Connection ────────────────────────────────────────── --}}
+                <div class="mt-4 flex items-center gap-3">
+                    <button type="button" id="btn-test-connection"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        disabled>
+                        <x-heroicon name="signal" class="w-3.5 h-3.5" />
+                        {{ __('admin.payment_section.test_connection') }}
+                    </button>
+                    <span id="test-connection-result" class="text-xs text-gray-500"></span>
+                </div>
+            </div>
+
+            <div class="mt-4 flex items-center gap-6">
+                <x-form-toggle name="is_active" label="{{ __('common.active') }}" :checked="true" />
             </div>
 
             {{-- ─── Installment & Display Settings (BNPL / bank_transfer only) ──── --}}

@@ -637,6 +637,9 @@ return [
             'active_label'             => 'نشط',
             'inactive_label'           => 'غير نشط',
             'remove_confirm'           => 'إزالة "{name}"؟ لا يمكن التراجع عن هذا الإجراء.',
+            'no_credential_fields'     => 'لا توجد حقول بيانات اعتماد لهذه البوابة.',
+            'leave_blank_to_keep'      => 'اتركه فارغًا للاحتفاظ بالقيمة الحالية',
+            'save_first_to_test'       => 'احفظ الطريقة أولاً، ثم اختبر الاتصال.',
         ],
 
         'payouts' => [

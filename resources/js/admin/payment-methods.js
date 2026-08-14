@@ -110,6 +110,96 @@ function initToggleMethod() {
     });
 }
 
+// ─── Gateway Credential Fields ─────────────────────────────────────────────────
+
+const GATEWAY_FIELDS = {
+    thawani: [
+        { name: 'secret_key', label: 'Secret Key', type: 'password' },
+        { name: 'publishable_key', label: 'Publishable Key', type: 'text' },
+    ],
+    stripe: [
+        { name: 'secret_key', label: 'Secret Key (sk_...)', type: 'password' },
+        { name: 'publishable_key', label: 'Publishable Key (pk_...)', type: 'text' },
+    ],
+    bank_transfer: [
+        { name: 'bank_name', label: 'Bank Name', type: 'text' },
+        { name: 'account_name', label: 'Account Name', type: 'text' },
+        { name: 'account_number', label: 'Account Number', type: 'text' },
+        { name: 'iban', label: 'IBAN', type: 'text' },
+        { name: 'swift', label: 'SWIFT / BIC', type: 'text' },
+        { name: 'reference_instructions', label: 'Reference Instructions', type: 'text' },
+    ],
+    paypal: [
+        { name: 'client_id', label: 'Client ID', type: 'text' },
+        { name: 'client_secret', label: 'Client Secret', type: 'password' },
+    ],
+};
+
+function renderCredentialFields(code) {
+    const $fields = $('#credentials-fields');
+    const $testBtn = $('#btn-test-connection');
+    $fields.empty();
+
+    const fields = GATEWAY_FIELDS[code] || [];
+
+    if (fields.length === 0) {
+        $fields.html(`<p class="text-xs text-gray-400 italic">${t('admin.payment_methods.no_credential_fields')}</p>`);
+        $testBtn.prop('disabled', true);
+        return;
+    }
+
+    fields.forEach((field) => {
+        $fields.append(`
+            <div class="grid grid-cols-3 gap-2 items-center">
+                <label class="text-xs font-medium text-gray-600 col-span-1">${field.label}</label>
+                <input type="${field.type}" name="credentials[${field.name}]" autocomplete="off"
+                    placeholder="${t('admin.payment_methods.leave_blank_to_keep')}"
+                    class="col-span-2 block w-full rounded-lg border border-gray-300 py-1.5 px-2.5 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500">
+            </div>
+        `);
+    });
+
+    $testBtn.prop('disabled', false);
+}
+
+function initGatewayCredentials() {
+    $(document).on('change', '#gateway_code', function () {
+        renderCredentialFields($(this).val());
+        $('#test-connection-result').text('');
+    });
+}
+
+// ─── Test Connection (per-method modal) ────────────────────────────────────────
+
+function initTestConnection() {
+    $('#btn-test-connection').on('click', async function () {
+        const $btn = $(this);
+        const $result = $('#test-connection-result');
+        const id = $('#method-id').val();
+
+        if (!id) {
+            $result.removeClass('text-green-600 text-red-600').addClass('text-gray-500')
+                .text(t('admin.payment_methods.save_first_to_test'));
+            return;
+        }
+
+        $btn.prop('disabled', true);
+        $result.removeClass('text-green-600 text-red-600').addClass('text-gray-500').text(t('admin.payment_methods.testing_label'));
+
+        try {
+            const res = await sendJson(`/payment-methods/${id}/test-connection`, 'POST');
+            $result.removeClass('text-gray-500 text-green-600 text-red-600')
+                .addClass(res.success ? 'text-green-600' : 'text-red-600')
+                .text((res.success ? '✅ ' : '❌ ') + (res.message ?? (res.success ? t('admin.payment_methods.connected_label') : t('admin.payment_methods.failed_label'))));
+        } catch (err) {
+            $result.removeClass('text-gray-500 text-green-600').addClass('text-red-600')
+                .text('❌ ' + (err.message ?? t('admin.payment_methods.request_failed_label')));
+        } finally {
+            $btn.prop('disabled', false);
+        }
+    });
+}
+
 // ─── Add / Edit Modal ─────────────────────────────────────────────────────────
 
 function initMethodModal() {
@@ -126,6 +216,8 @@ function initMethodModal() {
         $('#method-http').val('POST');
         $('#method-country-id').val(countryId);
         if (window.Alpine) window.Alpine.$data(document.getElementById('method-form')).methodType = '';
+        renderCredentialFields('');
+        $('#test-connection-result').text('');
         $modal.find('[id$="-title"]').text(`${t('admin.payment_methods.add_payment_method_label')} \u2014 ${countryName}`);
         $modal.modal('open');
     });
@@ -137,6 +229,8 @@ function initMethodModal() {
         $('#method-http').val('POST');
         $('#method-country-id').val('');
         if (window.Alpine) window.Alpine.$data(document.getElementById('method-form')).methodType = '';
+        renderCredentialFields('');
+        $('#test-connection-result').text('');
         $modal.find('[id$="-title"]').text(t('admin.payment_methods.add_payment_method_label'));
         $modal.modal('open');
     });
@@ -160,6 +254,10 @@ function initMethodModal() {
         $form.find('[name="installment_label_ar"]').val(row.installment_label_ar ?? '');
         $form.find('[name="provider_logo_path"]').val(row.provider_logo_path ?? '');
         $form.find('[name="learn_more_url"]').val(row.learn_more_url ?? '');
+        $form.find('[name="gateway_code"]').val(row.gateway_code ?? '');
+        $form.find('[name="environment"]').val(row.environment ?? 'sandbox');
+        renderCredentialFields(row.gateway_code ?? '');
+        $('#test-connection-result').text('');
         if (window.Alpine) window.Alpine.$data(document.getElementById('method-form')).methodType = row.method_type ?? '';
 
         // Cents → display
@@ -190,6 +288,16 @@ function initMethodModal() {
         const method = $('#method-http').val();
         const url = id ? `/payment-methods/${id}` : '/payment-methods';
 
+        // Collect non-empty credential fields
+        const credentials = {};
+        $form.find('[name^="credentials["]').each(function () {
+            const val = $(this).val();
+            if (val) {
+                const match = /^credentials\[(.+)\]$/.exec($(this).attr('name'));
+                if (match) credentials[match[1]] = val;
+            }
+        });
+
         // Build payload
         const payload = {
             country_id: $('#method-country-id').val(),
@@ -207,6 +315,10 @@ function initMethodModal() {
             installment_label_ar: $form.find('[name="installment_label_ar"]').val() || null,
             provider_logo_path: $form.find('[name="provider_logo_path"]').val() || null,
             learn_more_url: $form.find('[name="learn_more_url"]').val() || null,
+            gateway_code: $form.find('[name="gateway_code"]').val() || null,
+            environment: $form.find('[name="environment"]').val() || null,
+            credentials,
+            webhook_secret: $form.find('[name="webhook_secret"]').val() || null,
         };
 
         try {
@@ -266,6 +378,8 @@ $(function () {
     initGatewayTest();
     initToggleMethod();
     initMethodModal();
+    initGatewayCredentials();
+    initTestConnection();
     initDeleteMethod();
     initCentsSync();
 });

@@ -16,7 +16,6 @@ class CheckoutPrepareRequest extends FormRequest
     {
         return [
             'address_id'         => ['required', 'integer', 'exists:addresses,id'],
-            'shipping_method_id' => ['required', 'uuid', 'exists:shipping_methods,id'],
             'payment_method'     => ['required', Rule::in(['card', 'wallet', 'cod', 'bnpl', 'bank_transfer'])],
             'coupon_code'        => ['nullable', 'string', 'max:50'],
             'warranty_selections' => ['nullable', 'array'],

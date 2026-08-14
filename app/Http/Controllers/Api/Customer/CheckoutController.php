@@ -14,7 +14,6 @@ use App\Models\GiftCard;
 use App\Models\GiftCardTransaction;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\ShippingMethod;
 use App\Models\SubOrder;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
@@ -51,6 +50,88 @@ class CheckoutController extends Controller
         }
 
         return ApiResponse::success($preview, __('customer_api.checkout.preview_calculated'));
+    }
+
+    /**
+     * GET /checkout/payment-options
+     * Returns active payment gateways for this country with fees and display metadata.
+     * Called by Flutter on checkout load, before the customer picks a payment method.
+     */
+    public function paymentOptions(Request $request): JsonResponse
+    {
+        $country = $request->attributes->get('country');
+
+        /** @var Customer $customer */
+        $customer = auth('customer')->user();
+
+        $methods = \App\Models\CountryPaymentMethod::where('country_id', $country->id)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $orderTotal = (int) $request->query('order_total', 0);
+        $currency = $country->currency_code;
+
+        $shaped = $methods->map(function (\App\Models\CountryPaymentMethod $m) use ($orderTotal) {
+            $isRedirect = in_array($m->gateway_code, ['thawani', 'stripe', 'paypal'], true);
+
+            $feePct = (float) $m->fee_pct;
+            $feeFixed = (int) $m->fee_fixed;
+            $gatewayFee = $orderTotal > 0
+                ? (int) round($orderTotal * ($feePct / 100)) + $feeFixed
+                : 0;
+
+            $available = true;
+            $unavailableReason = null;
+
+            if ($m->min_order > 0 && $orderTotal > 0 && $orderTotal < $m->min_order) {
+                $available = false;
+                $unavailableReason = 'Order total below minimum for this payment method.';
+            }
+            if ($m->max_order !== null && $orderTotal > 0 && $orderTotal > $m->max_order) {
+                $available = false;
+                $unavailableReason = 'Order total exceeds maximum for this payment method.';
+            }
+
+            return [
+                'id' => $m->id,
+                'method_type' => $m->method_type,
+                'gateway_code' => $m->gateway_code,
+                'display_name' => [
+                    'en' => $m->display_name_en,
+                    'ar' => $m->display_name_ar,
+                ],
+                'provider_logo_url' => $m->provider_logo_path,
+                'fee_pct' => $feePct,
+                'fee_fixed' => $feeFixed,
+                'gateway_fee' => $gatewayFee,
+                'is_redirect' => $isRedirect,
+                'requires_token' => in_array($m->gateway_code, ['stripe'], true),
+                'is_available' => $available,
+                'unavailable_reason' => $unavailableReason,
+                'installments_count' => $m->installments_count,
+                'installment_label' => [
+                    'en' => $m->installment_label_en,
+                    'ar' => $m->installment_label_ar,
+                ],
+                'learn_more_url' => $m->learn_more_url,
+                'sort_order' => $m->sort_order,
+            ];
+        });
+
+        $wallet = \App\Models\CustomerWallet::where('customer_id', $customer->id)->first();
+        $walletApplicable = $wallet && $wallet->currency_code === $currency && $wallet->balance > 0;
+
+        return ApiResponse::success([
+            'payment_options' => $shaped->values(),
+            'wallet' => [
+                'balance' => $wallet?->balance ?? 0,
+                'currency_code' => $wallet?->currency_code ?? $currency,
+                'applicable' => $walletApplicable,
+                'max_usable' => $walletApplicable ? $wallet->balance : 0,
+            ],
+            'currency' => $currency,
+        ]);
     }
 
     public function validateCoupon(Request $request): JsonResponse
@@ -123,7 +204,6 @@ class CheckoutController extends Controller
         }
 
         $address = Address::find($validated['address_id']);
-        $shippingMethod = ShippingMethod::find($validated['shipping_method_id']);
         $items = $this->calculationService->resolveCartItems($validated['cart_items']);
         $warrantySelections = $this->calculationService->resolveWarrantySelections(
             $items,
@@ -137,7 +217,7 @@ class CheckoutController extends Controller
 
         try {
             $result = DB::transaction(function () use (
-                $customer, $country, $address, $shippingMethod, $validated,
+                $customer, $country, $address, $validated,
                 $preview, $items, $warrantySelections, $coupon, $giftCard,
             ) {
                 $order = Order::create([
@@ -194,7 +274,7 @@ class CheckoutController extends Controller
                         'gateway_fee' => 0,
                         'gateway_fee_rate' => 0,
                         'vendor_payout' => $vendorSubtotal - $groupShipping['vendor_contribution'],
-                        'shipping_method_id' => $shippingMethod->id,
+                        'shipping_method_id' => $groupItems->first()['selected_shipping_method_id'],
                         'sla_ship_deadline' => now()->addHours(24),
                     ]);
 
@@ -375,7 +455,6 @@ class CheckoutController extends Controller
             'cart_items.*.listing_type' => ['required', 'in:vendor,admin'],
             'cart_items.*.quantity' => ['required', 'integer', 'min:1'],
             'address_id' => ['required', 'uuid'],
-            'shipping_method_id' => ['required', 'uuid'],
             'payment_method' => ['required', 'string'],
             'coupon_code' => ['nullable', 'string'],
             'wallet_use' => ['nullable', 'boolean'],
