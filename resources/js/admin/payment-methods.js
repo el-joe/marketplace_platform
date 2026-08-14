@@ -278,9 +278,23 @@ function initMethodModal() {
         $form.find('[name="learn_more_url"]').val(row.learn_more_url ?? '');
         $form.find('[name="gateway_code"]').val(row.gateway_code ?? '');
         $form.find('[name="environment"]').val(row.environment ?? 'sandbox');
-        renderCredentialFields(row.gateway_code ?? '');
         $('#test-connection-result').text('');
-        if (window.Alpine) window.Alpine.$data(document.getElementById('method-form')).methodType = row.method_type ?? '';
+
+        // Set Alpine methodType FIRST — Alpine re-renders its scope when mutated,
+        // which wipes any dynamically injected HTML inside the x-data element.
+        // renderCredentialFields must run AFTER Alpine is done to survive the re-render.
+        if (window.Alpine) {
+            window.Alpine.$data(document.getElementById('method-form')).methodType = row.method_type ?? '';
+        }
+
+        // Use nextTick so Alpine finishes its re-render before we inject credential fields.
+        // Without this, Alpine's DOM reconciliation wipes #credentials-fields immediately after.
+        const gatewayCode = row.gateway_code ?? '';
+        if (window.Alpine) {
+            window.Alpine.nextTick(() => renderCredentialFields(gatewayCode));
+        } else {
+            renderCredentialFields(gatewayCode);
+        }
 
         // Cents → display
         const feeFixed = row.fee_fixed ? (row.fee_fixed / 100).toFixed(2) : '';
