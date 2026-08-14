@@ -123,6 +123,10 @@ class PaymentMethodController extends Controller
             'webhook_secret'      => ['nullable', 'string'],
         ]);
 
+        if (array_key_exists('min_order', $data)) {
+            $data['min_order'] = $data['min_order'] ?? 0;
+        }
+
         $method->update(
             array_filter($data, fn($k) => !in_array($k, ['credentials', 'webhook_secret']), ARRAY_FILTER_USE_KEY)
         );
