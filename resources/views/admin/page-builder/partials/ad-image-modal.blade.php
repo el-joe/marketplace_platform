@@ -44,6 +44,7 @@
         <x-form.toggle name="link_open_new_tab" label="{{ __('admin.page_builder.ad_image_modal.open_new_tab') }}" />
         <x-form.toggle name="show_title_overlay" label="{{ __('admin.page_builder.ad_image_modal.show_title_overlay') }}" />
         <x-form.toggle name="is_active" label="{{ __('admin.page_builder.ad_image_modal.active') }}" :value="true" />
+        <x-form.toggle name="is_paid" label="{{ __('admin.page_builder.ad_image_modal.is_paid') }}" />
     </form>
 
     <div class="px-6 py-3 border-t border-gray-200 flex justify-end gap-2 bg-gray-50 rounded-b-lg">

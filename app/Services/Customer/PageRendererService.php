@@ -355,6 +355,7 @@ class PageRendererService
                 'overlay_opacity' => (float) $s->overlay_opacity,
                 'link_type' => $s->link_type,
                 'link_reference_id' => $s->link_reference_id,
+                'is_paid' => (bool) $s->is_paid,
             ])->all(),
         ];
     }
@@ -749,6 +750,7 @@ class PageRendererService
                 'link_open_new_tab' => (bool) $i->link_open_new_tab,
                 'alt_text' => Bilingual::pair($i, 'alt_text'),
                 'show_title_overlay' => (bool) $i->show_title_overlay,
+                'is_paid' => (bool) $i->is_paid,
             ])->all(),
         ];
     }
@@ -1036,6 +1038,7 @@ class PageRendererService
             'badge'          => ['ar' => $tile['badge_label_ar'] ?? null, 'en' => $tile['badge_label_en'] ?? null],
             'image_url'      => $tile['image_url'] ?? null,
             'link_url'       => $tile['link_url'] ?? null,
+            'is_paid'        => (bool) ($tile['is_paid'] ?? false),
         ])->all();
 
         $gridCols = max(1, min(8, (int) ($cfg['grid_cols'] ?? $cfg['columns'] ?? 2)));
@@ -1067,6 +1070,7 @@ class PageRendererService
                 'subtitle'       => ['ar' => $img->subtitle_ar, 'en' => $img->subtitle_en],
                 'badge'          => ['ar' => $img->badge_label_ar, 'en' => $img->badge_label_en],
                 'alt'            => ['ar' => $img->alt_text_ar, 'en' => $img->alt_text_en],
+                'is_paid'        => (bool) $img->is_paid,
             ])->all();
 
         return [

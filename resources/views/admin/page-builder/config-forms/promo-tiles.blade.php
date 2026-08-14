@@ -78,6 +78,12 @@
                     <input type="text" name="tiles[{{ $i }}][link_url]"
                         value="{{ $tile['link_url'] ?? '' }}" placeholder="Link URL (e.g. /browse/product/cat-id)"
                         class="w-full text-sm border border-gray-300 rounded px-2 py-1">
+                    <label class="flex items-center gap-2 text-sm text-gray-700 mt-1">
+                        <input type="checkbox" name="tiles[{{ $i }}][is_paid]" value="1"
+                            {{ !empty($tile['is_paid']) ? 'checked' : '' }}
+                            class="rounded border-gray-300 text-primary-600">
+                        <span>Paid / <span dir="rtl">مدفوع</span></span>
+                    </label>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" name="tiles[{{ $i }}][badge_label_en]"
                             value="{{ $tile['badge_label_en'] ?? '' }}" placeholder="Badge (EN)"
@@ -117,6 +123,10 @@
                     </label>
                 </div>
                 <input type="text" name="tiles[${idx}][link_url]" placeholder="Link URL" class="w-full text-sm border border-gray-300 rounded px-2 py-1">
+                <label class="flex items-center gap-2 text-sm text-gray-700 mt-1">
+                    <input type="checkbox" name="tiles[${idx}][is_paid]" value="1" class="rounded border-gray-300 text-primary-600">
+                    <span>Paid / <span dir="rtl">مدفوع</span></span>
+                </label>
                 <div class="grid grid-cols-2 gap-2">
                     <input type="text" name="tiles[${idx}][badge_label_en]" placeholder="Badge (EN)" class="text-sm border border-gray-300 rounded px-2 py-1">
                     <input type="text" name="tiles[${idx}][badge_label_ar]" placeholder="الشارة" class="text-sm border border-gray-300 rounded px-2 py-1">

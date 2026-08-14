@@ -680,6 +680,7 @@ class PageBuilderController extends Controller
             'link_type' => 'nullable|string|max:20',
             'link_reference_id' => 'nullable|uuid',
             'is_active' => 'nullable|boolean',
+            'is_paid' => 'nullable|boolean',
             'visible_from' => 'nullable|date',
             'visible_until' => 'nullable|date',
         ]);
@@ -746,6 +747,7 @@ class PageBuilderController extends Controller
             'show_title_overlay' => 'nullable|boolean',
             'aspect_ratio' => 'nullable|string|max:10',
             'is_active' => 'nullable|boolean',
+            'is_paid' => 'nullable|boolean',
         ]);
 
         $item = $this->service->saveAdImage($block, $data['id'] ?? null, $data);

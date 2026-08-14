@@ -468,6 +468,7 @@ class PageBuilderService
             'link_type' => $data['link_type'] ?? null,
             'link_reference_id' => $data['link_reference_id'] ?? null,
             'is_active' => (bool) ($data['is_active'] ?? true),
+            'is_paid' => (bool) ($data['is_paid'] ?? false),
             'visible_from' => $data['visible_from'] ?? null,
             'visible_until' => $data['visible_until'] ?? null,
         ];
@@ -509,6 +510,7 @@ class PageBuilderService
             'show_title_overlay' => (bool) ($data['show_title_overlay'] ?? true),
             'aspect_ratio' => $data['aspect_ratio'] ?? '4:3',
             'is_active' => (bool) ($data['is_active'] ?? true),
+            'is_paid' => (bool) ($data['is_paid'] ?? false),
         ];
 
         if ($itemId) {

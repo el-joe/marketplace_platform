@@ -69,6 +69,7 @@
         </div>
 
         <x-form.toggle name="is_active" label="{{ __('admin.page_builder.slide_modal.active') }}" :value="true" />
+        <x-form.toggle name="is_paid" label="{{ __('admin.page_builder.slide_modal.is_paid') }}" />
         <x-form.toggle name="cta_open_new_tab" label="{{ __('admin.page_builder.slide_modal.open_new_tab') }}" />
     </form>
 

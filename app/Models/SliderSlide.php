@@ -30,6 +30,7 @@ class SliderSlide extends Model
         'link_type',
         'link_reference_id',
         'is_active',
+        'is_paid',
         'visible_from',
         'visible_until',
     ];
@@ -37,6 +38,7 @@ class SliderSlide extends Model
     protected $casts = [
         'cta_open_new_tab' => 'boolean',
         'is_active' => 'boolean',
+        'is_paid' => 'boolean',
         'overlay_opacity' => 'decimal:2',
         'position' => 'integer',
         'visible_from' => 'datetime',

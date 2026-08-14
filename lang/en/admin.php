@@ -8918,6 +8918,7 @@ return [
             'upload_mobile'        => 'Upload mobile',
             'remove'               => 'Remove',
             'active'               => 'Active',
+            'is_paid'              => 'Paid ad (مدفوع)',
             'open_new_tab'         => 'Open CTA in new tab',
             'save_slide'           => 'Save slide',
         ],
@@ -8939,6 +8940,7 @@ return [
             'open_new_tab'        => 'Open link in new tab',
             'show_title_overlay'  => 'Show title overlay',
             'active'              => 'Active',
+            'is_paid'             => 'Paid ad (مدفوع)',
             'save_image'          => 'Save image',
         ],
 

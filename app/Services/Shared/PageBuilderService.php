@@ -267,6 +267,7 @@ class PageBuilderService
                 'overlay_opacity' => (float) $s->overlay_opacity,
                 'link_type' => $s->link_type,
                 'link_reference_id' => $s->link_reference_id,
+                'is_paid' => (bool) $s->is_paid,
             ])->values()->all();
         }
 
@@ -281,6 +282,7 @@ class PageBuilderService
                 'alt_text' => Bilingual::pair($i, 'alt_text'),
                 'show_title_overlay' => $i->show_title_overlay,
                 'aspect_ratio' => $i->aspect_ratio,
+                'is_paid' => (bool) $i->is_paid,
             ])->values()->all();
         }
 
@@ -441,6 +443,7 @@ class PageBuilderService
                 'badge'     => ['ar' => $tile['badge_label_ar'] ?? null, 'en' => $tile['badge_label_en'] ?? null],
                 'image_url' => $tile['image_url'] ?? null,
                 'link_url'  => $tile['link_url'] ?? null,
+                'is_paid'   => (bool) ($tile['is_paid'] ?? false),
             ])->all();
         }
 
@@ -454,6 +457,7 @@ class PageBuilderService
                 'link_url'  => $img->link_url,
                 'title'     => ['ar' => $img->title_ar, 'en' => $img->title_en],
                 'subtitle'  => ['ar' => $img->subtitle_ar, 'en' => $img->subtitle_en],
+                'is_paid'   => (bool) $img->is_paid,
             ])->all();
         }
 

@@ -28,12 +28,14 @@ class AdImageItem extends Model
         'show_title_overlay',
         'aspect_ratio',
         'is_active',
+        'is_paid',
     ];
 
     protected $casts = [
         'link_open_new_tab' => 'boolean',
         'show_title_overlay' => 'boolean',
         'is_active' => 'boolean',
+        'is_paid' => 'boolean',
         'position' => 'integer',
     ];
 
