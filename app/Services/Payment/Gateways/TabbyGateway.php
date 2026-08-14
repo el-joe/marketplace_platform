@@ -169,22 +169,10 @@ class TabbyGateway implements PaymentGatewayInterface
 
     public function testConnection(): array
     {
-        try {
-            $start = microtime(true);
-            $response = Http::timeout(5)
-                ->withHeaders(['Authorization' => 'Bearer ' . $this->secretKey])
-                ->get($this->baseUrl . '/api/v2/merchants');
-            $latency = round((microtime(true) - $start) * 1000);
-
-            return [
-                'success' => $response->successful(),
-                'latency_ms' => $latency,
-                'message' => $response->successful()
-                    ? 'Connected (' . $latency . 'ms)'
-                    : 'Authentication failed (HTTP ' . $response->status() . ')',
-            ];
-        } catch (\Exception $e) {
-            return ['success' => false, 'latency_ms' => 0, 'message' => $e->getMessage()];
-        }
+        return [
+            'success' => false,
+            'latency_ms' => 0,
+            'message' => 'Tabby DB-backed gateway not yet implemented. Configure credentials in country_payment_methods when ready.',
+        ];
     }
 }

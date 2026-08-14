@@ -9,6 +9,7 @@ use App\Services\Payment\Gateways\NoonPayGateway;
 use App\Services\Payment\Gateways\PaytabsGateway;
 use App\Services\Payment\Gateways\StripeGateway;
 use App\Services\Payment\Gateways\TabbyGateway;
+use App\Services\Payment\Gateways\ThawaniGateway;
 use InvalidArgumentException;
 
 class PaymentGatewayFactory
@@ -24,6 +25,7 @@ class PaymentGatewayFactory
         $this->register(new CodGateway());
         $this->register(new BankTransferGateway());
         $this->register(new StripeGateway());
+        $this->register(new ThawaniGateway());
     }
 
     public function register(PaymentGatewayInterface $gateway): void

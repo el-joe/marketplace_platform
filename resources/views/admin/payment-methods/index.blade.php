@@ -168,14 +168,6 @@
                     </x-form-select>
                 </div>
                 <div>
-                    <x-form-select name="provider" label="{{ __('admin.payment_section.provider_gateway') }}">
-                        <option value="">{{ __('admin.payment_section.none_manual') }}</option>
-                        @foreach($gateways as $code => $gateway)
-                            <option value="{{ $code }}">{{ $gateway->getName() }}</option>
-                        @endforeach
-                    </x-form-select>
-                </div>
-                <div>
                     <x-form-input name="display_name_en" label="{{ __('admin.payment_section.display_name_en') }}" placeholder="{{ __('admin.payment_section.display_name_en_placeholder') }}"
                         required />
                 </div>
@@ -219,8 +211,8 @@
                     <div>
                         <x-form-select name="gateway_code" label="{{ __('admin.payment_section.gateway_driver') }}">
                             <option value="">{{ __('admin.payment_section.none_manual') }}</option>
-                            @foreach($availableGateways as $code)
-                                <option value="{{ $code }}">{{ ucwords(str_replace('_', ' ', $code)) }}</option>
+                            @foreach($gateways as $code => $gateway)
+                                <option value="{{ $code }}">{{ $gateway->getName() }}</option>
                             @endforeach
                         </x-form-select>
                         <p class="text-xs text-gray-400 mt-1">{{ __('admin.payment_section.gateway_driver_hint') }}</p>

@@ -86,10 +86,17 @@ class BankTransferGateway implements PaymentGatewayInterface
 
     public function testConnection(): array
     {
-        return [
-            'success' => true,
-            'latency_ms' => 0,
-            'message' => 'Bank Transfer requires no external connection.',
-        ];
+        try {
+            $config = \App\Models\CountryPaymentMethod::byGateway('bank_transfer')->active()->first();
+            if (!$config) {
+                return ['success' => false, 'latency_ms' => 0, 'message' => 'No active Bank Transfer config in country_payment_methods. Add one first.'];
+            }
+
+            $result = (new \App\Services\Payments\BankTransferGateway($config))->testConnection();
+
+            return ['success' => $result->success, 'latency_ms' => 0, 'message' => $result->message];
+        } catch (\Throwable $e) {
+            return ['success' => false, 'latency_ms' => 0, 'message' => $e->getMessage()];
+        }
     }
 }

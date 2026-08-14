@@ -121,6 +121,21 @@ const GATEWAY_FIELDS = {
         { name: 'secret_key', label: 'Secret Key (sk_...)', type: 'password' },
         { name: 'publishable_key', label: 'Publishable Key (pk_...)', type: 'text' },
     ],
+    paytabs: [
+        { name: 'profile_id', label: 'Profile ID', type: 'text' },
+        { name: 'server_key', label: 'Server Key', type: 'password' },
+        { name: 'base_url', label: 'Base URL', type: 'text' },
+    ],
+    tabby: [
+        { name: 'public_key', label: 'Public Key', type: 'text' },
+        { name: 'secret_key', label: 'Secret Key', type: 'password' },
+        { name: 'base_url', label: 'Base URL', type: 'text' },
+    ],
+    noon_pay: [
+        { name: 'app_key', label: 'App Key', type: 'text' },
+        { name: 'app_secret', label: 'App Secret', type: 'password' },
+        { name: 'base_url', label: 'Base URL', type: 'text' },
+    ],
     bank_transfer: [
         { name: 'bank_name', label: 'Bank Name', type: 'text' },
         { name: 'account_name', label: 'Account Name', type: 'text' },
@@ -133,6 +148,7 @@ const GATEWAY_FIELDS = {
         { name: 'client_id', label: 'Client ID', type: 'text' },
         { name: 'client_secret', label: 'Client Secret', type: 'password' },
     ],
+    cod: [],
 };
 
 function renderCredentialFields(code) {

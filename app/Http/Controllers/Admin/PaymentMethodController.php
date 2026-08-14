@@ -54,7 +54,7 @@ class PaymentMethodController extends Controller
             'country_id'           => ['required', 'exists:countries,id'],
             'method_type'          => ['required', Rule::in(['card', 'cod', 'wallet', 'bank_transfer', 'bnpl'])],
             'provider'             => ['nullable', 'string', 'max:50'],
-            'gateway_code'         => ['nullable', 'string', 'max:50', Rule::in(array_merge(PaymentGatewayFactory::availableCodes(), ['']))],
+            'gateway_code'         => ['nullable', 'string', 'max:50', Rule::in(array_merge(app(LegacyPaymentGatewayFactory::class)->allCodes(), ['']))],
             'display_name_en'      => ['required', 'string', 'max:100'],
             'display_name_ar'      => ['nullable', 'string', 'max:100'],
             'is_active'            => ['boolean'],
@@ -77,6 +77,14 @@ class PaymentMethodController extends Controller
 
         $insertData = array_filter($data, fn($k) => !in_array($k, ['credentials', 'webhook_secret']), ARRAY_FILTER_USE_KEY);
         $insertData['min_order'] = $insertData['min_order'] ?? 0;
+
+        if (empty($insertData['provider']) && !empty($insertData['gateway_code'])) {
+            try {
+                $gw = app(LegacyPaymentGatewayFactory::class)->make($insertData['gateway_code']);
+                $insertData['provider'] = $gw->getName();
+            } catch (\InvalidArgumentException) {
+            }
+        }
 
         $method = CountryPaymentMethod::create($insertData);
 
@@ -125,6 +133,14 @@ class PaymentMethodController extends Controller
 
         if (array_key_exists('min_order', $data)) {
             $data['min_order'] = $data['min_order'] ?? 0;
+        }
+
+        if (empty($data['provider']) && !empty($data['gateway_code'])) {
+            try {
+                $gw = app(LegacyPaymentGatewayFactory::class)->make($data['gateway_code']);
+                $data['provider'] = $gw->getName();
+            } catch (\InvalidArgumentException) {
+            }
         }
 
         $method->update(

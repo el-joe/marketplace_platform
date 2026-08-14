@@ -197,22 +197,10 @@ class NoonPayGateway implements PaymentGatewayInterface
 
     public function testConnection(): array
     {
-        try {
-            $start = microtime(true);
-            $response = Http::timeout(5)
-                ->withHeaders(['Authorization' => $this->authHeader()])
-                ->get($this->baseUrl . '/payment/v1/health');
-            $latency = round((microtime(true) - $start) * 1000);
-
-            return [
-                'success' => $response->status() < 500,
-                'latency_ms' => $latency,
-                'message' => $response->status() < 500
-                    ? 'Connected (' . $latency . 'ms)'
-                    : 'Service unavailable',
-            ];
-        } catch (\Exception $e) {
-            return ['success' => false, 'latency_ms' => 0, 'message' => $e->getMessage()];
-        }
+        return [
+            'success' => false,
+            'latency_ms' => 0,
+            'message' => 'Noon Pay DB-backed gateway not yet implemented. Configure credentials in country_payment_methods when ready.',
+        ];
     }
 }

@@ -221,27 +221,10 @@ class PaytabsGateway implements PaymentGatewayInterface
 
     public function testConnection(): array
     {
-        try {
-            $start = microtime(true);
-            $response = Http::timeout(5)
-                ->withHeaders(['Authorization' => $this->serverKey])
-                ->get($this->baseUrl . '/payment/query', [
-                    'profile_id' => $this->profileId,
-                    'tran_ref' => 'TEST',
-                ]);
-            $latency = round((microtime(true) - $start) * 1000);
-            // 404/400 = credentials valid, TX not found = success
-            return [
-                'success' => in_array($response->status(), [200, 400, 404]),
-                'latency_ms' => $latency,
-                'message' => 'Connection established (' . $latency . 'ms)',
-            ];
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'latency_ms' => 0,
-                'message' => 'Connection failed: ' . $e->getMessage(),
-            ];
-        }
+        return [
+            'success' => false,
+            'latency_ms' => 0,
+            'message' => 'Paytabs DB-backed gateway not yet implemented. Configure credentials in country_payment_methods when ready.',
+        ];
     }
 }
