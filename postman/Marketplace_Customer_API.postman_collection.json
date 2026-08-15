@@ -2301,8 +2301,8 @@
                 },
                 {
                   "key": "address_type",
-                  "value": "home",
-                  "description": "Required. home (type: string enum)",
+                  "value": "shipping",
+                  "description": "Required. One of: shipping, billing, both (type: string enum)",
                   "type": "text"
                 },
                 {
@@ -2313,7 +2313,7 @@
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `label` | string | No | Free-text label, max 100 chars, e.g. 'Home', 'Work' |\n| `recipient_name` | string | Yes | Max 255 chars |\n| `recipient_phone` | string | Yes | Max 20 chars |\n| `city_id` | uuid | Yes | Must exist in cities table |\n| `area` | string | No | Max 255 chars |\n| `street_address` | string | Yes | Max 500 chars |\n| `building` | string | No | Max 100 chars |\n| `floor` | string | No | Max 20 chars |\n| `apartment` | string | No | Max 50 chars |\n| `landmark` | string | No | Max 255 chars, nearby landmark |\n| `latitude` | numeric | No | -90 to 90 |\n| `longitude` | numeric | No | -180 to 180 |\n| `address_type` | string enum | Yes | home | work | other |\n| `is_default` | boolean | No | Set as default shipping address |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `label` | string | No | Free-text label, max 100 chars, e.g. 'Home', 'Work' |\n| `recipient_name` | string | Yes | Max 255 chars |\n| `recipient_phone` | string | Yes | Max 20 chars |\n| `city_id` | uuid | Yes | Must exist in cities table |\n| `area` | string | No | Max 255 chars |\n| `street_address` | string | Yes | Max 500 chars |\n| `building` | string | No | Max 100 chars |\n| `floor` | string | No | Max 20 chars |\n| `apartment` | string | No | Max 50 chars |\n| `landmark` | string | No | Max 255 chars, nearby landmark |\n| `latitude` | numeric | No | -90 to 90 |\n| `longitude` | numeric | No | -180 to 180 |\n| `address_type` | string enum | Yes | One of: shipping, billing, both |\n| `is_default` | boolean | No | Set as default shipping address |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -2543,8 +2543,8 @@
                 },
                 {
                   "key": "address_type",
-                  "value": "home",
-                  "description": "Required. home (type: string enum)",
+                  "value": "shipping",
+                  "description": "Required. One of: shipping, billing, both (type: string enum)",
                   "type": "text"
                 },
                 {
@@ -2555,7 +2555,7 @@
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `label` | string | No | Free-text label, max 100 chars, e.g. 'Home', 'Work' |\n| `recipient_name` | string | Yes | Max 255 chars |\n| `recipient_phone` | string | Yes | Max 20 chars |\n| `city_id` | uuid | Yes | Must exist in cities table |\n| `area` | string | No | Max 255 chars |\n| `street_address` | string | Yes | Max 500 chars |\n| `building` | string | No | Max 100 chars |\n| `floor` | string | No | Max 20 chars |\n| `apartment` | string | No | Max 50 chars |\n| `landmark` | string | No | Max 255 chars, nearby landmark |\n| `latitude` | numeric | No | -90 to 90 |\n| `longitude` | numeric | No | -180 to 180 |\n| `address_type` | string enum | Yes | home | work | other |\n| `is_default` | boolean | No | Set as default shipping address |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `label` | string | No | Free-text label, max 100 chars, e.g. 'Home', 'Work' |\n| `recipient_name` | string | Yes | Max 255 chars |\n| `recipient_phone` | string | Yes | Max 20 chars |\n| `city_id` | uuid | Yes | Must exist in cities table |\n| `area` | string | No | Max 255 chars |\n| `street_address` | string | Yes | Max 500 chars |\n| `building` | string | No | Max 100 chars |\n| `floor` | string | No | Max 20 chars |\n| `apartment` | string | No | Max 50 chars |\n| `landmark` | string | No | Max 255 chars, nearby landmark |\n| `latitude` | numeric | No | -90 to 90 |\n| `longitude` | numeric | No | -180 to 180 |\n| `address_type` | string enum | Yes | One of: shipping, billing, both |\n| `is_default` | boolean | No | Set as default shipping address |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -4018,9 +4018,9 @@
                   "type": "text"
                 },
                 {
-                  "key": "payment_method",
-                  "value": "wallet",
-                  "description": "Required. e.g. wallet, card (type: string)",
+                  "key": "country_payment_gateway_id",
+                  "value": "b4c5d6e7-8f9a-4b0c-9d1e-2f3a4b5c6d7e",
+                  "description": "Required. Must exist in country_payment_gateways (type: uuid)",
                   "type": "text"
                 },
                 {
@@ -4043,7 +4043,7 @@
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `gift_card_batch_id` | uuid | Yes | Must exist in gift_card_batches |\n| `quantity` | integer | No | Min 1, default 1 |\n| `payment_method` | string | Yes | e.g. wallet, card |\n| `recipient_email` | email | No | For gifting to someone else |\n| `recipient_name` | string | No | Max 255 chars |\n| `gift_message` | string | No | Max 500 chars |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `gift_card_batch_id` | uuid | Yes | Must exist in gift_card_batches |\n| `quantity` | integer | No | Min 1, default 1 |\n| `country_payment_gateway_id` | uuid | Yes | Must exist in country_payment_gateways |\n| `recipient_email` | email | No | For gifting to someone else |\n| `recipient_name` | string | No | Max 255 chars |\n| `gift_message` | string | No | Max 500 chars |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -4086,9 +4086,9 @@
                       "type": "text"
                     },
                     {
-                      "key": "payment_method",
-                      "value": "wallet",
-                      "description": "Required. e.g. wallet, card (type: string)",
+                      "key": "country_payment_gateway_id",
+                      "value": "b4c5d6e7-8f9a-4b0c-9d1e-2f3a4b5c6d7e",
+                      "description": "Required. Must exist in country_payment_gateways (type: uuid)",
                       "type": "text"
                     },
                     {
@@ -4111,7 +4111,7 @@
                     }
                   ]
                 },
-                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `gift_card_batch_id` | uuid | Yes | Must exist in gift_card_batches |\n| `quantity` | integer | No | Min 1, default 1 |\n| `payment_method` | string | Yes | e.g. wallet, card |\n| `recipient_email` | email | No | For gifting to someone else |\n| `recipient_name` | string | No | Max 255 chars |\n| `gift_message` | string | No | Max 500 chars |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `gift_card_batch_id` | uuid | Yes | Must exist in gift_card_batches |\n| `quantity` | integer | No | Min 1, default 1 |\n| `country_payment_gateway_id` | uuid | Yes | Must exist in country_payment_gateways |\n| `recipient_email` | email | No | For gifting to someone else |\n| `recipient_name` | string | No | Max 255 chars |\n| `gift_message` | string | No | Max 500 chars |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
               },
               "status": "Created",
               "code": 201,
@@ -4921,7 +4921,7 @@
                 {
                   "key": "issue_type",
                   "value": "not_working",
-                  "description": "Required. defective (type: string enum)",
+                  "description": "Required. One of: defective, not_working, physical_damage, missing_parts, software_issue, other (type: string enum)",
                   "type": "text"
                 },
                 {
@@ -4932,7 +4932,7 @@
                 }
               ]
             },
-            "description": "Use multipart/form-data if attaching evidence_files.\n\n**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_id` | uuid | Yes | Must belong to customer, have an active non-expired warranty, and no open claim |\n| `issue_type` | string enum | Yes | defective | not_working | physical_damage | missing_parts | software_issue | other |\n| `issue_description` | string | Yes | 10-2000 chars |\n| `evidence_files` | array<file> | No | Max 5 files, jpg/jpeg/png/pdf/mp4, 10MB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "Use multipart/form-data if attaching evidence_files.\n\n**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_id` | uuid | Yes | Must belong to customer, have an active non-expired warranty, and no open claim |\n| `issue_type` | string enum | Yes | One of: defective, not_working, physical_damage, missing_parts, software_issue, other |\n| `issue_description` | string | Yes | 10-2000 chars |\n| `evidence_files` | array<file> | No | Max 5 files, jpg/jpeg/png/pdf/mp4, 10MB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -4971,7 +4971,7 @@
                     {
                       "key": "issue_type",
                       "value": "not_working",
-                      "description": "Required. defective (type: string enum)",
+                      "description": "Required. One of: defective, not_working, physical_damage, missing_parts, software_issue, other (type: string enum)",
                       "type": "text"
                     },
                     {
@@ -4982,7 +4982,7 @@
                     }
                   ]
                 },
-                "description": "Use multipart/form-data if attaching evidence_files.\n\n**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_id` | uuid | Yes | Must belong to customer, have an active non-expired warranty, and no open claim |\n| `issue_type` | string enum | Yes | defective | not_working | physical_damage | missing_parts | software_issue | other |\n| `issue_description` | string | Yes | 10-2000 chars |\n| `evidence_files` | array<file> | No | Max 5 files, jpg/jpeg/png/pdf/mp4, 10MB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+                "description": "Use multipart/form-data if attaching evidence_files.\n\n**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_id` | uuid | Yes | Must belong to customer, have an active non-expired warranty, and no open claim |\n| `issue_type` | string enum | Yes | One of: defective, not_working, physical_damage, missing_parts, software_issue, other |\n| `issue_description` | string | Yes | 10-2000 chars |\n| `evidence_files` | array<file> | No | Max 5 files, jpg/jpeg/png/pdf/mp4, 10MB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
               },
               "status": "Created",
               "code": 201,
@@ -5258,7 +5258,7 @@
                 {
                   "key": "issue_type",
                   "value": "not_working",
-                  "description": "Required. defective (type: string enum)",
+                  "description": "Required. One of: defective, not_working, physical_damage, missing_parts, software_issue, other (type: string enum)",
                   "type": "text"
                 },
                 {
@@ -5269,7 +5269,7 @@
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_id` | uuid | Yes | Item claim relates to; order must belong to customer and be delivered |\n| `issue_type` | string enum | Yes | defective | not_working | physical_damage | missing_parts | software_issue | other |\n| `issue_description` | string | Yes | 20-2000 chars |\n| `warranty_expires_at` | date | No | Required only if the item has no active platform warranty purchase |\n| `evidence_files` | array<file> | No | Max 5 files, jpg/jpeg/png/pdf/mp4, 10MB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_id` | uuid | Yes | Item claim relates to; order must belong to customer and be delivered |\n| `issue_type` | string enum | Yes | One of: defective, not_working, physical_damage, missing_parts, software_issue, other |\n| `issue_description` | string | Yes | 20-2000 chars |\n| `warranty_expires_at` | date | No | Required only if the item has no active platform warranty purchase |\n| `evidence_files` | array<file> | No | Max 5 files, jpg/jpeg/png/pdf/mp4, 10MB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -5307,7 +5307,7 @@
                     {
                       "key": "issue_type",
                       "value": "not_working",
-                      "description": "Required. defective (type: string enum)",
+                      "description": "Required. One of: defective, not_working, physical_damage, missing_parts, software_issue, other (type: string enum)",
                       "type": "text"
                     },
                     {
@@ -5318,7 +5318,7 @@
                     }
                   ]
                 },
-                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_id` | uuid | Yes | Item claim relates to; order must belong to customer and be delivered |\n| `issue_type` | string enum | Yes | defective | not_working | physical_damage | missing_parts | software_issue | other |\n| `issue_description` | string | Yes | 20-2000 chars |\n| `warranty_expires_at` | date | No | Required only if the item has no active platform warranty purchase |\n| `evidence_files` | array<file> | No | Max 5 files, jpg/jpeg/png/pdf/mp4, 10MB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_id` | uuid | Yes | Item claim relates to; order must belong to customer and be delivered |\n| `issue_type` | string enum | Yes | One of: defective, not_working, physical_damage, missing_parts, software_issue, other |\n| `issue_description` | string | Yes | 20-2000 chars |\n| `warranty_expires_at` | date | No | Required only if the item has no active platform warranty purchase |\n| `evidence_files` | array<file> | No | Max 5 files, jpg/jpeg/png/pdf/mp4, 10MB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
               },
               "status": "Created",
               "code": 201,
@@ -6679,12 +6679,12 @@
                 {
                   "key": "platform",
                   "value": "android",
-                  "description": "Required. ios (type: string enum)",
+                  "description": "Required. One of: ios, android (type: string enum)",
                   "type": "text"
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Max 255 chars, push notification device token |\n| `platform` | string enum | Yes | ios | android |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Max 255 chars, push notification device token |\n| `platform` | string enum | Yes | One of: ios, android |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -6723,12 +6723,12 @@
                     {
                       "key": "platform",
                       "value": "android",
-                      "description": "Required. ios (type: string enum)",
+                      "description": "Required. One of: ios, android (type: string enum)",
                       "type": "text"
                     }
                   ]
                 },
-                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Max 255 chars, push notification device token |\n| `platform` | string enum | Yes | ios | android |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Max 255 chars, push notification device token |\n| `platform` | string enum | Yes | One of: ios, android |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
               },
               "status": "OK",
               "code": 200,
@@ -6924,7 +6924,7 @@
                 {
                   "key": "locale",
                   "value": "ar",
-                  "description": "Optional. ar (type: string enum)",
+                  "description": "Optional. One of: ar, en (type: string enum)",
                   "type": "text"
                 },
                 {
@@ -6947,7 +6947,7 @@
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `locale` | string enum | No | ar | en |\n| `marketing_preferences` | object | No | Container for channel toggles |\n| `marketing_preferences.email` | boolean | No |  |\n| `marketing_preferences.sms` | boolean | No |  |\n| `marketing_preferences.whatsapp` | boolean | No |  |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `locale` | string enum | No | One of: ar, en |\n| `marketing_preferences` | object | No | Container for channel toggles |\n| `marketing_preferences.email` | boolean | No |  |\n| `marketing_preferences.sms` | boolean | No |  |\n| `marketing_preferences.whatsapp` | boolean | No |  |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -6980,7 +6980,7 @@
                     {
                       "key": "locale",
                       "value": "ar",
-                      "description": "Optional. ar (type: string enum)",
+                      "description": "Optional. One of: ar, en (type: string enum)",
                       "type": "text"
                     },
                     {
@@ -7003,7 +7003,7 @@
                     }
                   ]
                 },
-                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `locale` | string enum | No | ar | en |\n| `marketing_preferences` | object | No | Container for channel toggles |\n| `marketing_preferences.email` | boolean | No |  |\n| `marketing_preferences.sms` | boolean | No |  |\n| `marketing_preferences.whatsapp` | boolean | No |  |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `locale` | string enum | No | One of: ar, en |\n| `marketing_preferences` | object | No | Container for channel toggles |\n| `marketing_preferences.email` | boolean | No |  |\n| `marketing_preferences.sms` | boolean | No |  |\n| `marketing_preferences.whatsapp` | boolean | No |  |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
               },
               "status": "OK",
               "code": 200,
@@ -7057,12 +7057,12 @@
                 {
                   "key": "platform",
                   "value": "ios",
-                  "description": "Required. ios (type: string enum)",
+                  "description": "Required. One of: ios, android (type: string enum)",
                   "type": "text"
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Max 255 chars, push notification device token |\n| `platform` | string enum | Yes | ios | android |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Max 255 chars, push notification device token |\n| `platform` | string enum | Yes | One of: ios, android |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -7099,12 +7099,12 @@
                     {
                       "key": "platform",
                       "value": "ios",
-                      "description": "Required. ios (type: string enum)",
+                      "description": "Required. One of: ios, android (type: string enum)",
                       "type": "text"
                     }
                   ]
                 },
-                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Max 255 chars, push notification device token |\n| `platform` | string enum | Yes | ios | android |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `token` | string | Yes | Max 255 chars, push notification device token |\n| `platform` | string enum | Yes | One of: ios, android |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
               },
               "status": "OK",
               "code": 200,
@@ -7253,7 +7253,7 @@
                 {
                   "key": "listing_type",
                   "value": "vendor",
-                  "description": "Optional. vendor (default)",
+                  "description": "Optional. One of: vendor, admin (default: vendor) (type: string enum)",
                   "type": "text"
                 },
                 {
@@ -7267,10 +7267,22 @@
                   "value": "1",
                   "description": "Required. 1-999 (type: integer)",
                   "type": "text"
+                },
+                {
+                  "key": "admin_listing_id",
+                  "value": "",
+                  "description": "Optional. Required if listing_type=admin (type: uuid)",
+                  "type": "text"
+                },
+                {
+                  "key": "shipping_method_id",
+                  "value": "d4c3b2a1-0000-4a1b-8c2d-1a2b3c4d5e6f",
+                  "description": "Required. Preferred shipping method (type: uuid)",
+                  "type": "text"
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `listing_type` | string | No | vendor (default) | admin |\n| `vendor_listing_id` | uuid | No | Required unless listing_type=admin |\n| `admin_listing_id` | uuid | No | Required if listing_type=admin |\n| `quantity` | integer | Yes | 1-999 |\n| `shipping_method_id` | uuid | No | Preferred shipping method |\n\n**Auth:** Public endpoint, no token required.",
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `listing_type` | string enum | No | One of: vendor, admin (default: vendor) |\n| `vendor_listing_id` | uuid | No | Required unless listing_type=admin |\n| `admin_listing_id` | uuid | No | Required if listing_type=admin |\n| `quantity` | integer | Yes | 1-999 |\n| `shipping_method_id` | uuid | No | Preferred shipping method |\n\n**Auth:** Public endpoint, no token required.",
             "auth": {
               "type": "noauth"
             }
@@ -7311,7 +7323,7 @@
                     {
                       "key": "listing_type",
                       "value": "vendor",
-                      "description": "Optional. vendor (default)",
+                      "description": "Optional. One of: vendor, admin (default: vendor) (type: string enum)",
                       "type": "text"
                     },
                     {
@@ -7328,7 +7340,7 @@
                     }
                   ]
                 },
-                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `listing_type` | string | No | vendor (default) | admin |\n| `vendor_listing_id` | uuid | No | Required unless listing_type=admin |\n| `admin_listing_id` | uuid | No | Required if listing_type=admin |\n| `quantity` | integer | Yes | 1-999 |\n| `shipping_method_id` | uuid | No | Preferred shipping method |\n\n**Auth:** Public endpoint, no token required.",
+                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `listing_type` | string enum | No | One of: vendor, admin (default: vendor) |\n| `vendor_listing_id` | uuid | No | Required unless listing_type=admin |\n| `admin_listing_id` | uuid | No | Required if listing_type=admin |\n| `quantity` | integer | Yes | 1-999 |\n| `shipping_method_id` | uuid | No | Preferred shipping method |\n\n**Auth:** Public endpoint, no token required.",
                 "auth": {
                   "type": "noauth"
                 }
@@ -7412,6 +7424,18 @@
                   "key": "items[1][quantity]",
                   "value": "2",
                   "description": "Required. 1-50 items (type: array)",
+                  "type": "text"
+                },
+                {
+                  "key": "items[0][admin_listing_id]",
+                  "value": "",
+                  "description": "Optional. Required if items[0][listing_type]=admin (type: uuid)",
+                  "type": "text"
+                },
+                {
+                  "key": "items[0][shipping_method_id]",
+                  "value": "d4c3b2a1-0000-4a1b-8c2d-1a2b3c4d5e6f",
+                  "description": "Optional. Preferred shipping method for this item (type: uuid)",
                   "type": "text"
                 }
               ]
@@ -8672,10 +8696,22 @@
                   "value": "SUMMER25",
                   "description": "Optional. Max 50 chars (type: string)",
                   "type": "text"
+                },
+                {
+                  "key": "warranty_selections[0][listing_id]",
+                  "value": "c2d3e4f5-6a7b-4c8d-9e0f-1a2b3c4d5e6f",
+                  "description": "Optional. Required if warranty_selections provided (type: uuid)",
+                  "type": "text"
+                },
+                {
+                  "key": "warranty_selections[0][warranty_plan_id]",
+                  "value": "9f8e7d6c-5b4a-3928-1706-f5e4d3c2b1a0",
+                  "description": "Optional. Required if warranty_selections provided (type: uuid)",
+                  "type": "text"
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `address_id` | integer | Yes | Existing address id |\n| `shipping_method_id` | uuid | Yes | Chosen shipping method |\n| `payment_method` | string enum | Yes | card | wallet | cod | bnpl | bank_transfer |\n| `coupon_code` | string | No | Max 50 chars |\n| `warranty_selections` | array | No | List of {listing_id, warranty_plan_id} |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `address_id` | integer | Yes | Existing address id |\n| `shipping_method_id` | uuid | Yes | Chosen shipping method |\n| `payment_method` | string enum | Yes | card | wallet | cod | bnpl | bank_transfer |\n| `coupon_code` | string | No | Max 50 chars |\n| `warranty_selections` | array | No | List of {listing_id, warranty_plan_id} |\n| `warranty_selections[].listing_id` | uuid | No | Required if warranty_selections provided |\n| `warranty_selections[].warranty_plan_id` | uuid | No | Required if warranty_selections provided |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -8837,10 +8873,22 @@
                   "value": "100",
                   "description": "Optional. Min 1 (type: numeric)",
                   "type": "text"
+                },
+                {
+                  "key": "warranty_selections[0][listing_id]",
+                  "value": "c2d3e4f5-6a7b-4c8d-9e0f-1a2b3c4d5e6f",
+                  "description": "Optional. Required if warranty_selections provided (type: uuid)",
+                  "type": "text"
+                },
+                {
+                  "key": "warranty_selections[0][warranty_plan_id]",
+                  "value": "9f8e7d6c-5b4a-3928-1706-f5e4d3c2b1a0",
+                  "description": "Optional. Required if warranty_selections provided (type: uuid)",
+                  "type": "text"
                 }
               ]
             },
-            "description": "Rate-limited to 5/minute. Idempotent — retrying with the same `idempotency_key` returns HTTP 409 with the original `order_number` rather than double-charging.\n\n**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `address_id` | integer | Yes |  |\n| `shipping_method_id` | uuid | Yes |  |\n| `payment_method` | string enum | Yes | card | wallet | cod | bnpl | bank_transfer |\n| `coupon_code` | string | No |  |\n| `wallet_amount_to_use` | integer | No | Min 1 |\n| `customer_notes` | string | No | Max 500 |\n| `idempotency_key` | string | Yes | Max 100 — unique per attempt, used to dedupe retried submissions |\n| `gateway_token` | string | No | Required if payment_method=card |\n| `gateway` | string | No | Required if payment_method=card. thawani | stripe | tap |\n| `warranty_selections` | array | No | {listing_id, warranty_plan_id} |\n| `loyalty_points_to_use` | numeric | No | Min 1 |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "Rate-limited to 5/minute. Idempotent — retrying with the same `idempotency_key` returns HTTP 409 with the original `order_number` rather than double-charging.\n\n**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `address_id` | integer | Yes |  |\n| `shipping_method_id` | uuid | Yes |  |\n| `payment_method` | string enum | Yes | card | wallet | cod | bnpl | bank_transfer |\n| `coupon_code` | string | No |  |\n| `wallet_amount_to_use` | integer | No | Min 1 |\n| `customer_notes` | string | No | Max 500 |\n| `idempotency_key` | string | Yes | Max 100 — unique per attempt, used to dedupe retried submissions |\n| `gateway_token` | string | No | Required if payment_method=card |\n| `gateway` | string | No | Required if payment_method=card. thawani | stripe | tap |\n| `warranty_selections` | array | No | {listing_id, warranty_plan_id} |\n| `warranty_selections[].listing_id` | uuid | No | Required if warranty_selections provided |\n| `warranty_selections[].warranty_plan_id` | uuid | No | Required if warranty_selections provided |\n| `loyalty_points_to_use` | numeric | No | Min 1 |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -9849,7 +9897,7 @@
                 {
                   "key": "status",
                   "value": "delivered",
-                  "description": "(optional) Filter by order status (enum)"
+                  "description": "(optional) Filter by order status. One of: placed, confirmed, partially_shipped, shipped, partially_delivered, delivered, completed, cancelled, refunded, disputed"
                 },
                 {
                   "key": "date_from",
@@ -10193,14 +10241,14 @@
                 },
                 {
                   "key": "reason",
-                  "value": "defective_item",
-                  "description": "Required. ReturnRequestReason, e.g. defective_item, wrong_item, changed_mind (type: string enum)",
+                  "value": "defective",
+                  "description": "Required. One of: changed_mind, wrong_item, defective, damaged, not_as_described, size_issue, quality_issue, arrived_late, other (type: string enum)",
                   "type": "text"
                 },
                 {
                   "key": "return_type",
                   "value": "refund",
-                  "description": "Required. ReturnRequestType, e.g. refund, exchange (type: string enum)",
+                  "description": "Required. One of: refund, exchange, store_credit (type: string enum)",
                   "type": "text"
                 },
                 {
@@ -10211,7 +10259,7 @@
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_ids` | array<uuid> | Yes | Min 1; items being returned, must belong to the order |\n| `reason` | string enum | Yes | ReturnRequestReason, e.g. defective_item, wrong_item, changed_mind |\n| `return_type` | string enum | Yes | ReturnRequestType, e.g. refund, exchange |\n| `comments` | string | No | Max 2000 chars |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_ids` | array<uuid> | Yes | Min 1; items being returned, must belong to the order |\n| `reason` | string enum | Yes | One of: changed_mind, wrong_item, defective, damaged, not_as_described, size_issue, quality_issue, arrived_late, other |\n| `return_type` | string enum | Yes | One of: refund, exchange, store_credit |\n| `comments` | string | No | Max 2000 chars |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -10510,8 +10558,8 @@
                 },
                 {
                   "key": "reason",
-                  "value": "defective_item",
-                  "description": "Required. ReturnRequestReason (type: string enum)",
+                  "value": "defective",
+                  "description": "Required. One of: changed_mind, wrong_item, defective, damaged, not_as_described, size_issue, quality_issue, arrived_late, other (type: string enum)",
                   "type": "text"
                 },
                 {
@@ -10523,12 +10571,12 @@
                 {
                   "key": "return_type",
                   "value": "refund",
-                  "description": "Required. ReturnRequestType (type: string enum)",
+                  "description": "Required. One of: refund, exchange, store_credit (type: string enum)",
                   "type": "text"
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_ids` | array<uuid> | Yes | Min 1; must be delivered, within return window, same sub-order |\n| `reason` | string enum | Yes | ReturnRequestReason |\n| `reason_description` | string | No | Max 2000 chars |\n| `return_type` | string enum | Yes | ReturnRequestType |\n| `pickup_address_id` | uuid | No | Existing address id |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_ids` | array<uuid> | Yes | Min 1; must be delivered, within return window, same sub-order |\n| `reason` | string enum | Yes | One of: changed_mind, wrong_item, defective, damaged, not_as_described, size_issue, quality_issue, arrived_late, other |\n| `reason_description` | string | No | Max 2000 chars |\n| `return_type` | string enum | Yes | One of: refund, exchange, store_credit |\n| `pickup_address_id` | uuid | No | Existing address id |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -10564,8 +10612,8 @@
                     },
                     {
                       "key": "reason",
-                      "value": "defective_item",
-                      "description": "Required. ReturnRequestReason (type: string enum)",
+                      "value": "defective",
+                      "description": "Required. One of: changed_mind, wrong_item, defective, damaged, not_as_described, size_issue, quality_issue, arrived_late, other (type: string enum)",
                       "type": "text"
                     },
                     {
@@ -10577,12 +10625,12 @@
                     {
                       "key": "return_type",
                       "value": "refund",
-                      "description": "Required. ReturnRequestType (type: string enum)",
+                      "description": "Required. One of: refund, exchange, store_credit (type: string enum)",
                       "type": "text"
                     }
                   ]
                 },
-                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_ids` | array<uuid> | Yes | Min 1; must be delivered, within return window, same sub-order |\n| `reason` | string enum | Yes | ReturnRequestReason |\n| `reason_description` | string | No | Max 2000 chars |\n| `return_type` | string enum | Yes | ReturnRequestType |\n| `pickup_address_id` | uuid | No | Existing address id |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `order_item_ids` | array<uuid> | Yes | Min 1; must be delivered, within return window, same sub-order |\n| `reason` | string enum | Yes | One of: changed_mind, wrong_item, defective, damaged, not_as_described, size_issue, quality_issue, arrived_late, other |\n| `reason_description` | string | No | Max 2000 chars |\n| `return_type` | string enum | Yes | One of: refund, exchange, store_credit |\n| `pickup_address_id` | uuid | No | Existing address id |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
               },
               "status": "Created",
               "code": 201,
@@ -10794,7 +10842,7 @@
                 }
               ]
             },
-            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `reason` | string enum | Yes | DisputeReason |\n| `description` | string | Yes | Max 5000 chars |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `reason` | string enum | Yes | One of: item_not_received, item_damaged, item_not_as_described, counterfeit, wrong_item, quality_issue, seller_unresponsive, refund_not_received, other |\n| `description` | string | Yes | Max 5000 chars |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
@@ -13148,10 +13196,70 @@
                   "value": "false",
                   "description": "Optional.  (type: boolean)",
                   "type": "text"
+                },
+                {
+                  "key": "classified_category_id",
+                  "value": "cat-mobile-01",
+                  "description": "Optional. Must exist (type: uuid)",
+                  "type": "text"
+                },
+                {
+                  "key": "country_id",
+                  "value": "1",
+                  "description": "Optional. Must exist (type: integer)",
+                  "type": "text"
+                },
+                {
+                  "key": "city_id",
+                  "value": "c1a2b3c4-0001-4d5e-8f6a-1b2c3d4e5f60",
+                  "description": "Optional. Must exist (type: uuid)",
+                  "type": "text"
+                },
+                {
+                  "key": "listing_purpose",
+                  "value": "sale",
+                  "description": "Optional. One of: sale, rent (type: string enum)",
+                  "type": "text"
+                },
+                {
+                  "key": "description_en",
+                  "value": "Excellent condition, box included.",
+                  "description": "Optional.  (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "description_ar",
+                  "value": "حالة ممتازة",
+                  "description": "Optional.  (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "currency",
+                  "value": "EGP",
+                  "description": "Optional. 3-letter ISO code (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "attributes[storage]",
+                  "value": "256GB",
+                  "description": "Optional. Category-specific attributes (type: object)",
+                  "type": "text"
+                },
+                {
+                  "key": "latitude",
+                  "value": "30.0626",
+                  "description": "Optional. -90 to 90 (type: numeric)",
+                  "type": "text"
+                },
+                {
+                  "key": "longitude",
+                  "value": "31.3459",
+                  "description": "Optional. -180 to 180 (type: numeric)",
+                  "type": "text"
                 }
               ]
             },
-            "description": "multipart/form-data. Editing is only allowed for certain statuses (draft/rejected/active).\n\n**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `title_en` | string | No | Partial update — all fields optional |\n| `title_ar` | string | No |  |\n| `price` | integer | No | Min 0 |\n| `price_negotiable` | boolean | No |  |\n| `images` | array<file> | No | Replace/add images, max 10240KB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+            "description": "multipart/form-data. Editing is only allowed for certain statuses (draft/rejected/active). All fields are optional (partial update).\n\n**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `classified_category_id` | uuid | No | Must exist |\n| `country_id` | integer | No | Must exist |\n| `city_id` | uuid | No | Must exist |\n| `listing_purpose` | string enum | No | sale | rent |\n| `title_en` | string | No | Max 255 chars |\n| `title_ar` | string | No | Max 255 chars |\n| `description_en` | string | No |  |\n| `description_ar` | string | No |  |\n| `price` | integer | No | Min 0 |\n| `currency` | string | No | 3-letter ISO code |\n| `price_negotiable` | boolean | No |  |\n| `attributes` | object | No | Category-specific attributes |\n| `latitude` | numeric | No | -90 to 90 |\n| `longitude` | numeric | No | -180 to 180 |\n| `images` | array<file> | No | Replace/add images, max 10240KB each |\n| `sketch_file` | file | No | Max 20480KB |\n| `attachments` | array<file> | No | Max 20480KB each |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
           },
           "response": [
             {
