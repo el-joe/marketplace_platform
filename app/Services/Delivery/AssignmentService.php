@@ -228,7 +228,7 @@ class AssignmentService
                 'delivery_assignment_id'  => $assignment->id,
                 'order_id'                => $order->id,
                 'earning_type'            => 'base_fee',
-                'amount'            => $agent->per_delivery_fee,
+                'amount'            => $agent->per_delivery_fee ?? 0,
                 'currency'                => $currency,
                 'status'                  => DeliveryAgentEarningStatus::Pending,
             ]);
@@ -263,7 +263,7 @@ class AssignmentService
                 $todayShift->increment('total_deliveries');
                 $todayShift->increment(
                     'total_earnings',
-                    $agent->per_delivery_fee + ($isCod ? ($agent->zone?->cod_fee ?? 0) : 0)
+                    ($agent->per_delivery_fee ?? 0) + ($isCod ? ($agent->zone?->cod_fee ?? 0) : 0)
                 );
             }
         });
