@@ -124,6 +124,8 @@ return [
         'status_failed'             => 'Failed',
         'no_assignments'            => 'No assignments found.',
         'no_unassigned'             => 'No unassigned shipments.',
+        'no_carriers_linked_title'  => 'No carriers linked to your company',
+        'no_carriers_linked_body'   => 'Ask the platform admin to link your company to a shipping carrier in Settings → Shipping → Carriers. Once linked, shipments assigned to that carrier will appear here.',
         'order_number'              => 'Order Number',
         'tracking_number'           => 'Tracking Number',
         'agent'                     => 'Agent',

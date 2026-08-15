@@ -28,6 +28,13 @@ class ShipmentController extends Controller
 
         $carrierIds = ShippingCarrier::where('shipping_company_id', $supervisor->shipping_company_id)->pluck('id');
 
+        if ($carrierIds->isEmpty()) {
+            return ApiResponse::success([
+                'shipments'          => [],
+                'no_carriers_linked' => true,
+            ], __('carrier.assignments.no_carriers_linked_body'));
+        }
+
         $shipments = Shipment::whereDoesntHave('deliveryAssignment')
             ->where('status', '!=', ShipmentStatus::Delivered)
             ->whereIn('carrier_id', $carrierIds)

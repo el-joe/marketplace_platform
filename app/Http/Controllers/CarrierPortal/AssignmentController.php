@@ -171,18 +171,22 @@ class AssignmentController extends Controller
         // the carriers linked to this supervisor's company.
         $carrierIds = ShippingCarrier::where('shipping_company_id', $supervisor->shipping_company_id)->pluck('id');
 
-        $shipments = Shipment::whereDoesntHave('deliveryAssignment')
-            ->where('status', '!=', ShipmentStatus::Delivered)
-            ->whereIn('carrier_id', $carrierIds)
-            ->with('subOrder.order')
-            ->latest()
-            ->paginate(20);
+        $noCarriersLinked = $carrierIds->isEmpty();
+
+        $shipments = $noCarriersLinked
+            ? Shipment::where('id', null)->paginate(20)
+            : Shipment::whereDoesntHave('deliveryAssignment')
+                ->where('status', '!=', ShipmentStatus::Delivered)
+                ->whereIn('carrier_id', $carrierIds)
+                ->with('subOrder.order')
+                ->latest()
+                ->paginate(20);
 
         $agents = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
             ->where('status', 'active')
             ->get(['id', 'name', 'vehicle_type', 'is_available', 'rating_avg']);
 
-        return view('carrier.assignments.unassigned', compact('shipments', 'agents'));
+        return view('carrier.assignments.unassigned', compact('shipments', 'agents', 'noCarriersLinked'));
     }
 
     public function assign(Request $request, string $shipmentId): JsonResponse

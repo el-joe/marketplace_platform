@@ -9,6 +9,17 @@
         <p class="text-sm text-gray-500 mt-0.5">{{ __('carrier.assignments.unassigned_subtitle') }}</p>
     </div>
 
+    @if($noCarriersLinked)
+        <div class="rounded-xl bg-amber-50 border border-amber-200 p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <div>
+                    <p class="text-sm font-semibold text-amber-800">{{ __('carrier.assignments.no_carriers_linked_title') }}</p>
+                    <p class="text-xs text-amber-700 mt-1">{{ __('carrier.assignments.no_carriers_linked_body') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         @if($shipments->isEmpty())
             <div class="py-16 text-center text-gray-400 text-sm">{{ __('carrier.assignments.no_unassigned') }}</div>
