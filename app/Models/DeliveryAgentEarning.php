@@ -48,11 +48,4 @@ class DeliveryAgentEarning extends Model
     {
         return $this->belongsTo(Order::class);
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
-
-    public function getAmountAttribute(): float
-    {
-        return $this->amount / 100;
-    }
 }
