@@ -7,7 +7,7 @@ use App\Http\Requests\Customer\PaymentMethod\StorePaymentMethodRequest;
 use App\Http\Resources\Customer\PaymentMethodResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
-use App\Models\CountryPaymentMethod;
+use App\Models\CountryPaymentGateway;
 use App\Models\Customer;
 use App\Models\PaymentMethod;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -43,13 +43,12 @@ class PaymentMethodController extends Controller
         /** @var Country|null $resolvedCountry */
         $resolvedCountry = $request->attributes->get('country');
 
-        $methodConfig = CountryPaymentMethod::where('country_id', $resolvedCountry?->id)
-            ->where('method_type', $data['type'])
-            ->where('provider', $data['gateway'])
+        $gatewayConfig = CountryPaymentGateway::whereHas('gateway', fn($q) => $q->where('code', $data['gateway']))
+            ->where('country_id', $resolvedCountry?->id)
             ->where('is_active', true)
             ->first();
 
-        if (!$methodConfig) {
+        if (!$gatewayConfig) {
             return ApiResponse::error(__('common.exceptions.payment_method.gateway_unavailable'), [], 422);
         }
 

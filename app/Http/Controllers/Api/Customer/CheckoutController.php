@@ -112,6 +112,40 @@ class CheckoutController extends Controller
         ]);
     }
 
+    /**
+     * GET /payment-gateways
+     * Public endpoint: returns all active payment gateways for this country.
+     * Used on product detail pages, help screens, etc.
+     * No auth required — same data regardless of who is asking.
+     */
+    public function availableGateways(Request $request): JsonResponse
+    {
+        $country = $request->attributes->get('country');
+
+        $gateways = \App\Models\CountryPaymentGateway::where('country_id', $country->id)
+            ->where('is_active', true)
+            ->with('gateway')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn ($cpg) => [
+                'id'           => $cpg->id,
+                'gateway_code' => $cpg->gateway?->code,
+                'type'         => $cpg->gateway?->type,
+                'display_name' => [
+                    'en' => $cpg->display_name_en,
+                    'ar' => $cpg->display_name_ar,
+                ],
+                'image'        => $cpg->gateway?->image,
+                'is_redirect'  => in_array($cpg->gateway?->code, ['thawani', 'paytabs']),
+                'supports_cod' => $cpg->gateway?->code === 'cod',
+                'fee_pct'      => (float) $cpg->fee_pct,
+                'fee_fixed'    => (int) $cpg->fee_fixed,
+            ])
+            ->values();
+
+        return ApiResponse::success(['gateways' => $gateways]);
+    }
+
     public function validateCoupon(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
