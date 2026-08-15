@@ -57,7 +57,10 @@ function renderCredentialFields(requiredFields) {
 
 $(document).on('change', '#gw-gateway-id', function () {
     const $opt = $(this).find(':selected');
-    const fields = JSON.parse($opt.data('fields') || '[]');
+    let fields = $opt.data('fields') || [];
+    if (typeof fields === 'string') {
+        fields = JSON.parse(fields || '[]');
+    }
     const nameEn = $opt.data('name-en') ?? '';
     const nameAr = $opt.data('name-ar') ?? '';
 

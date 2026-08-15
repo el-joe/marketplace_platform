@@ -233,7 +233,7 @@ use Illuminate\Support\Facades\Route;
         });
 
         // Cart — guest + auth (session resolved via X-Cart-Token header)
-        Route::prefix('cart')->name('customer.cart.')->middleware('guest.cart.token')->group(function (): void {
+        Route::prefix('cart')->name('customer.cart.')->middleware(['guest.cart.token', 'auth.optional'])->group(function (): void {
             Route::get('/', [CartController::class, 'show'])->name('show');
             Route::get('recommendations', [CartRecommendationsController::class, 'index'])->name('recommendations');
             Route::post('items', [CartController::class, 'addItem'])->name('items.add');

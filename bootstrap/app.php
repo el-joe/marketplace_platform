@@ -59,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'auth.admin' => \App\Http\Middleware\AdminAuth::class,
+            'auth.optional' => \App\Http\Middleware\OptionalCustomerAuth::class,
             'admin.permission' => \App\Http\Middleware\CheckAdminPermission::class,
             'admin.vendor.scope' => \App\Http\Middleware\ScopeAdminToAssignedVendor::class,
             'vendor.auth' => \App\Http\Middleware\VendorAuth::class,
