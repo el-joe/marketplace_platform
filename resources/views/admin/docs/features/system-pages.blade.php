@@ -51,7 +51,7 @@
 
         {{-- Payment Methods --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/system-pages.payment_methods.heading') }}</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/system-pages.payment_gateways.heading') }}</h2>
             <p class="text-gray-600"><a href="{{ route('admin.payment-gateways.index') }}" class="text-primary-600 hover:underline">admin/payment-gateways</a>: {{ __('docs/features/system-pages.payment_gateways.body') }}</p>
         </section>
 

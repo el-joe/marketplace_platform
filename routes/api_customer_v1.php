@@ -27,7 +27,6 @@ use App\Http\Controllers\Api\Customer\CheckoutController as ApiCheckoutControlle
 use App\Http\Controllers\Customer\CouponController;
 use App\Http\Controllers\Customer\DisputeController;
 use App\Http\Controllers\Customer\OrderController;
-use App\Http\Controllers\Customer\PaymentMethodController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\RefundController;
 use App\Http\Controllers\Customer\ReturnController;
@@ -330,14 +329,6 @@ use Illuminate\Support\Facades\Route;
                 Route::put('{address}', [AddressController::class, 'update'])->name('update');
                 Route::delete('{address}', [AddressController::class, 'destroy'])->name('destroy');
                 Route::put('{address}/set-default', [AddressController::class, 'setDefault'])->name('set-default');
-            });
-
-            // Payment methods
-            Route::prefix('payment-methods')->name('customer.payment-methods.')->group(function (): void {
-                Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
-                Route::post('/', [PaymentMethodController::class, 'store'])->name('store');
-                Route::patch('{paymentMethod}/default', [PaymentMethodController::class, 'setDefault'])->name('set-default');
-                Route::delete('{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
             });
 
             // Cart merge (auth only)

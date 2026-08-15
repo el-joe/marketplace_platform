@@ -99,7 +99,7 @@ class TransactionController extends Controller
 
         $rows = $transactions->map(fn($tx) => [
             $tx->gateway_transaction_id,
-            $tx->payment_method_type?->value ?? $tx->payment_method_type,
+            $tx->payment_method_type,
             number_format($tx->amount / 100, 2),
             strtoupper($tx->currency),
             $tx->status?->value,
