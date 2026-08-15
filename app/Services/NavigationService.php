@@ -743,13 +743,6 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
-                        'label' => __('admin.nav.payment_methods') . ($this->hasInstallmentPaymentMethods() ? ' (' . __('admin.nav.installments') . ')' : ''),
-                        'route' => 'admin.payment-methods.index',
-                        'icon' => 'credit-card',
-                        'permission' => 'settings.view',
-                        'badge' => null,
-                    ],
-                    [
                         'label' => __('admin.nav.payment_gateways'),
                         'route' => 'admin.payment-gateways.index',
                         'icon' => 'credit-card',
@@ -1115,16 +1108,9 @@ class NavigationService
 
     protected function hasInstallmentPaymentMethods(): bool
     {
-        if (!class_exists(\App\Models\CountryPaymentMethod::class)) {
-            return false;
-        }
-        try {
-            return Cache::remember('nav.badge.installment_payment_methods', self::BADGE_CACHE_TTL, function () {
-                return \App\Models\CountryPaymentMethod::query()->where('installments_count', '>', 1)->exists();
-            });
-        } catch (\Throwable) {
-            return false;
-        }
+        // BNPL installment badge removed — country_payment_methods table no longer exists.
+        // Re-enable when BNPL gateways are added to the payment_gateways table.
+        return false;
     }
 
     protected function countPendingTravelPackages(): int

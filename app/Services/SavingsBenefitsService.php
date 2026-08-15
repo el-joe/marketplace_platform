@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\CartCardOffer;
-use App\Models\CountryPaymentMethod;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -32,91 +31,15 @@ class SavingsBenefitsService
 
     private function bnplInstallments(int $orderTotal, string $countryId, string $currency): Collection
     {
-        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
-        $methods = Cache::remember("benefits:bnpl_v{$version}:{$countryId}", 300, fn () =>
-            CountryPaymentMethod::where('country_id', $countryId)
-                ->where('method_type', 'bnpl')
-                ->active()
-                ->orderBy('sort_order')
-                ->get([
-                    'id', 'provider', 'display_name_en', 'display_name_ar',
-                    'installments_count', 'installment_label_en', 'installment_label_ar',
-                    'provider_logo_path', 'learn_more_url', 'sort_order',
-                    'min_order', 'max_order',
-                ])
-                ->toArray()
-        );
-
-        return collect($methods)
-            ->filter(fn (array $m) =>
-                (!$m['min_order'] || $m['min_order'] <= $orderTotal)
-                && (!$m['max_order'] || $m['max_order'] >= $orderTotal))
-            ->map(function (array $m) use ($orderTotal, $currency) {
-                $n              = max(1, $m['installments_count']);
-                $installmentAmt = intdiv($orderTotal, $n);
-                $remainder      = $orderTotal - ($installmentAmt * $n);
-
-                $labelEn = $this->resolveInstallmentLabel(
-                    $m['installment_label_en'] ?? 'Pay in {n} interest-free installments of {amount}',
-                    $n,
-                    $installmentAmt,
-                );
-                $labelAr = $m['installment_label_ar']
-                    ? $this->resolveInstallmentLabel($m['installment_label_ar'], $n, $installmentAmt)
-                    : null;
-
-                return [
-                    'type'               => 'bnpl',
-                    'provider'           => $m['provider'],
-                    'display_name_en'    => $m['display_name_en'],
-                    'display_name_ar'    => $m['display_name_ar'],
-                    'logo_url'           => $this->resolveLogoUrl($m['provider_logo_path']),
-                    'installments_count' => $n,
-                    'installment_amount' => $installmentAmt,
-                    'remainder'          => $remainder,
-                    'currency'           => $currency,
-                    'label_en'           => $labelEn,
-                    'label_ar'           => $labelAr,
-                    'learn_more_url'     => $m['learn_more_url'],
-                    'sort_order'         => $m['sort_order'],
-                ];
-            })
-            ->values();
+        // BNPL gateways not yet configured in the new payment_gateways schema.
+        // Return empty until a BNPL gateway (e.g. Tabby) is added to payment_gateways seeder.
+        return collect();
     }
 
     private function bankInstallments(string $countryId): Collection
     {
-        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
-        $methods = Cache::remember("benefits:bank_v{$version}:{$countryId}", 300, fn () =>
-            CountryPaymentMethod::where('country_id', $countryId)
-                ->where('method_type', 'bank_transfer')
-                ->active()
-                ->where('installments_count', '>', 1)
-                ->orderBy('sort_order')
-                ->get([
-                    'id', 'provider', 'display_name_en', 'display_name_ar',
-                    'installments_count', 'installment_label_en', 'installment_label_ar',
-                    'provider_logo_path', 'learn_more_url', 'sort_order',
-                ])
-                ->toArray()
-        );
-
-        return collect($methods)->map(fn (array $m) => [
-            'type'               => 'bank_installment',
-            'provider'           => $m['provider'] ?? 'bank',
-            'display_name_en'    => $m['display_name_en'],
-            'display_name_ar'    => $m['display_name_ar'],
-            'logo_url'           => $this->resolveLogoUrl($m['provider_logo_path']),
-            'installments_count' => $m['installments_count'],
-            'installment_amount' => null,
-            'currency'           => null,
-            'label_en'           => $m['installment_label_en']
-                ?? 'Pay in equal monthly installments with your bank',
-            'label_ar'           => $m['installment_label_ar']
-                ?? 'ادفع على أقساط شهرية متساوية مع بنكك',
-            'learn_more_url'     => $m['learn_more_url'],
-            'sort_order'         => $m['sort_order'],
-        ])->values();
+        // Bank installment plans not yet configured in the new payment_gateways schema.
+        return collect();
     }
 
     private function cardOffers(int $orderTotal, string $countryId): Collection

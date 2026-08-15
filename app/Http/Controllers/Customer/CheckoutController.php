@@ -163,7 +163,14 @@ class CheckoutController extends Controller
         }
         $address->load('city.shippingZone');
 
-        $isCod = $validated['payment_method'] === 'cod';
+        // Resolve gateway to determine type (cod, wallet, redirect, etc.)
+        $selectedGateway = CountryPaymentGateway::where('id', $validated['country_payment_gateway_id'] ?? null)
+            ->where('country_id', $country->id)
+            ->with('gateway')
+            ->first();
+
+        $gatewayCode = $selectedGateway?->gateway?->code;
+        $isCod       = $gatewayCode === 'cod';
         if ($isCod && ! $this->codAvailable($address, $country)) {
             return ApiResponse::error(__('common.exceptions.checkout.cod_unavailable'), [], 422);
         }
@@ -301,7 +308,8 @@ class CheckoutController extends Controller
                 'vendor_delivery' => $vendorDeliveryResponse,
             ],
             'address' => new CheckoutAddressResource($address, $country),
-            'payment_method' => $validated['payment_method'],
+            'gateway_code' => $gatewayCode,
+            'gateway_type' => $selectedGateway?->gateway?->type,
             'available_payment_gateways' => $availableGateways,
             'coupon' => $couponResponse,
             'wallet_balance' => $walletBalance,
@@ -387,7 +395,21 @@ class CheckoutController extends Controller
         }
         $address->load('city.shippingZone');
 
-        $isCod = $validated['payment_method'] === 'cod';
+        // Single gateway resolution — all payment logic derives from this
+        $methodConfig = CountryPaymentGateway::where('id', $validated['country_payment_gateway_id'])
+            ->where('country_id', $country->id)
+            ->where('is_active', true)
+            ->with('gateway')
+            ->first();
+
+        if (! $methodConfig) {
+            return ApiResponse::error('Selected payment gateway is not available.', [], 422);
+        }
+
+        $gatewayCode = $methodConfig->gateway?->code;
+        $gatewayType = $methodConfig->gateway?->type;
+        $isCod       = $gatewayCode === 'cod';
+        $isWallet    = $gatewayCode === 'wallet';
         if ($isCod && ! $this->codAvailable($address, $country)) {
             return ApiResponse::error(__('common.exceptions.checkout.cod_unavailable'), [], 422);
         }
@@ -508,7 +530,7 @@ class CheckoutController extends Controller
                     'loyalty_points_used' => $loyaltyPointsToUse,
                     'coupon_id' => $coupon?->id,
                     'coupon_code_used' => $coupon?->code,
-                    'payment_method' => $validated['payment_method'],
+                    'payment_method' => $gatewayCode,
                     'payment_status' => 'pending',
                     'shipping_address_snapshot' => $this->buildAddressSnapshot($address),
                     'customer_notes' => $validated['customer_notes'] ?? null,
@@ -701,7 +723,7 @@ class CheckoutController extends Controller
                         throw new \InvalidArgumentException(__('common.exceptions.checkout.wallet_exceeds_total'));
                     }
 
-                    if ($validated['payment_method'] === 'cod' && $walletAmountToUse < $order->total) {
+                    if ($isCod && $walletAmountToUse < $order->total) {
                         throw new \InvalidArgumentException(
                             __('common.exceptions.checkout.cod_wallet_rule')
                         );
@@ -777,31 +799,20 @@ class CheckoutController extends Controller
                 'processed_at' => null,
             ]);
         } else {
-            $methodConfig = CountryPaymentGateway::where('country_id', $country->id)
-                ->where('is_active', true)
-                ->where('id', $validated['country_payment_gateway_id'])
-                ->with('gateway')
-                ->first();
-
-            if (! $methodConfig) {
-                $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);
-                $this->releaseReservedInventory($order);
-            } else {
-                try {
-                    $paymentResult = $this->paymentService->initiatePayment($order, $methodConfig, $validated['idempotency_key']);
-                    if (! $paymentResult->success) {
-                        $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);
-                        $this->releaseReservedInventory($order);
-                    } else {
-                        $paymentRedirectUrl = $paymentResult->redirectUrl;
-                        if ($validated['payment_method'] === 'bank_transfer') {
-                            $bankTransferDetails = $paymentResult->rawResponse;
-                        }
-                    }
-                } catch (\Throwable $e) {
+            try {
+                $paymentResult = $this->paymentService->initiatePayment($order, $methodConfig, $validated['idempotency_key']);
+                if (! $paymentResult->success) {
                     $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);
                     $this->releaseReservedInventory($order);
+                } else {
+                    $paymentRedirectUrl = $paymentResult->redirectUrl;
+                    if ($gatewayCode === 'bank_transfer') {
+                        $bankTransferDetails = $paymentResult->rawResponse;
+                    }
                 }
+            } catch (\Throwable $e) {
+                $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);
+                $this->releaseReservedInventory($order);
             }
         }
 

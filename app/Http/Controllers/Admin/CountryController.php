@@ -7,7 +7,6 @@ use App\Models\Category;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\CountryCategory;
-use App\Models\CountryPaymentMethod;
 use App\Models\CountryShippingSetting;
 use App\Models\Currency;
 use App\Models\ShippingMethod;
@@ -68,7 +67,7 @@ class CountryController extends Controller
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('country_id', 'countries.id')
                     ->whereNull('deleted_at'),
-                'active_payment_methods' => CountryPaymentMethod::query()
+                'active_payment_gateways' => \App\Models\CountryPaymentGateway::query()
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('country_id', 'countries.id')
                     ->where('is_active', true),
@@ -88,7 +87,7 @@ class CountryController extends Controller
                 'timezone' => $row->timezone,
                 'vat_rate' => $row->vat_rate . '%',
                 'cities_count' => (int) $row->cities_count,
-                'active_payment_methods' => (int) $row->active_payment_methods,
+                'active_payment_gateways' => (int) $row->active_payment_gateways,
                 'is_launched' => (bool) $row->is_launched,
                 'is_active' => (bool) $row->is_active,
                 'cod_available' => (bool) $row->cod_available,
@@ -150,7 +149,6 @@ class CountryController extends Controller
     public function edit(string $id): View
     {
         $country = Country::with([
-            'countryPaymentMethods',
             'countryShippingSettings.shippingMethod',
             'currency',
         ])->findOrFail($id);
@@ -257,69 +255,6 @@ class CountryController extends Controller
         $country->delete();
 
         return response()->json(['success' => true, 'message' => "{$country->name_en} deleted."]);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Payment Methods sub-resource
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function storePaymentMethod(Request $request, string $id): JsonResponse
-    {
-        $country = Country::findOrFail($id);
-
-        $data = $request->validate([
-            'method_type' => ['required', 'in:card,wallet,cod,bnpl,bank_transfer'],
-            'provider' => ['nullable', 'string', 'max:50'],
-            'display_name_en' => ['required', 'string', 'max:100'],
-            'display_name_ar' => ['nullable', 'string', 'max:100'],
-            'is_active' => ['boolean'],
-            'fee_pct' => ['required', 'numeric', 'min:0', 'max:100'],
-            'fee_fixed' => ['required', 'integer', 'min:0'],
-            'min_order' => ['required', 'integer', 'min:0'],
-            'max_order' => ['nullable', 'integer', 'min:0'],
-            'sort_order' => ['integer', 'min:0'],
-        ]);
-
-        $pm = CountryPaymentMethod::create(array_merge(
-            ['id' => (string) Str::uuid(), 'country_id' => $country->id],
-            $data
-        ));
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment method added.',
-            'data' => $pm,
-        ]);
-    }
-
-    public function updatePaymentMethod(Request $request, string $id, string $pmId): JsonResponse
-    {
-        $pm = CountryPaymentMethod::where('country_id', $id)->findOrFail($pmId);
-
-        $data = $request->validate([
-            'method_type' => ['required', 'in:card,wallet,cod,bnpl,bank_transfer'],
-            'provider' => ['nullable', 'string', 'max:50'],
-            'display_name_en' => ['required', 'string', 'max:100'],
-            'display_name_ar' => ['nullable', 'string', 'max:100'],
-            'is_active' => ['boolean'],
-            'fee_pct' => ['required', 'numeric', 'min:0', 'max:100'],
-            'fee_fixed' => ['required', 'integer', 'min:0'],
-            'min_order' => ['required', 'integer', 'min:0'],
-            'max_order' => ['nullable', 'integer', 'min:0'],
-            'sort_order' => ['integer', 'min:0'],
-        ]);
-
-        $pm->update($data);
-
-        return response()->json(['success' => true, 'message' => 'Payment method updated.', 'data' => $pm->fresh()]);
-    }
-
-    public function destroyPaymentMethod(string $id, string $pmId): JsonResponse
-    {
-        $pm = CountryPaymentMethod::where('country_id', $id)->findOrFail($pmId);
-        $pm->delete();
-
-        return response()->json(['success' => true, 'message' => 'Payment method removed.']);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -564,8 +499,8 @@ class CountryController extends Controller
             ],
             [
                 'title' => 'Payment',
-                'data' => 'active_payment_methods',
-                'name' => 'active_payment_methods',
+                'data' => 'active_payment_gateways',
+                'name' => 'active_payment_gateways',
                 'orderable' => false,
                 'searchable' => false,
                 'className' => 'text-center',

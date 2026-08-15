@@ -60,7 +60,6 @@ use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\WarehouseShippingSurchargeController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\FinancialReportController;
-use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ShippingMethodController;
 use App\Http\Controllers\Admin\ShippingSettingController;
 use App\Http\Controllers\Admin\ShippingWeightSlabController;
@@ -591,10 +590,6 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{id}/launch', [CountryController::class, 'launch'])->name('launch');
         Route::post('/{id}/deactivate', [CountryController::class, 'deactivate'])->name('deactivate');
         Route::post('/{id}/reactivate', [CountryController::class, 'reactivate'])->name('reactivate');
-        // Payment Methods sub-resource
-        Route::post('/{id}/payment-methods', [CountryController::class, 'storePaymentMethod'])->name('payment-methods.store');
-        Route::put('/{id}/payment-methods/{pmId}', [CountryController::class, 'updatePaymentMethod'])->name('payment-methods.update');
-        Route::delete('/{id}/payment-methods/{pmId}', [CountryController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
         // Shipping Settings
         Route::post('/{id}/shipping-settings', [CountryController::class, 'updateShippingSettings'])->name('shipping-settings.update');
         // Category Overrides
@@ -1166,20 +1161,6 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             Route::get('/{countryGateway}/webhook-logs', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'webhookLogs'])->name('webhook-logs');
             Route::post('/sort-order', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'updateSortOrder'])->name('sort-order')->middleware('admin.permission:settings.edit');
         });
-
-    // ─── Payment Methods ──────────────────────────────────────────────────────
-    Route::prefix('payment-methods')->name('payment-methods.')->middleware('admin.permission:settings.view')->group(function () {
-        Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
-        Route::get('/gateway-config', [PaymentMethodController::class, 'gatewayConfig'])->name('gateway-config');
-        Route::post('/test-gateway', [PaymentMethodController::class, 'testGateway'])->name('test-gateway')->middleware('admin.permission:settings.edit');
-        Route::post('/sort-order', [PaymentMethodController::class, 'updateSortOrder'])->name('sort-order')->middleware('admin.permission:settings.edit');
-        Route::post('/', [PaymentMethodController::class, 'store'])->name('store')->middleware('admin.permission:settings.edit');
-        Route::put('/{method}', [PaymentMethodController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
-        Route::delete('/{method}', [PaymentMethodController::class, 'destroy'])->name('destroy')->middleware('admin.permission:settings.edit');
-        Route::post('/{method}/toggle', [PaymentMethodController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:settings.edit');
-        Route::post('/{method}/test-connection', [PaymentMethodController::class, 'testConnection'])->name('test-connection')->middleware('admin.permission:settings.edit');
-        Route::get('/{method}/webhook-logs', [PaymentMethodController::class, 'webhookLogs'])->name('webhook-logs');
-    });
 
     // ─── Vendor Document Types ────────────────────────────────────────────────
     Route::prefix('vendor-document-types')->name('vendor-document-types.')->middleware('admin.permission:settings.view')->group(function () {
