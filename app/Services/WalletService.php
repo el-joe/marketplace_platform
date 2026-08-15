@@ -202,7 +202,9 @@ class WalletService
                 'status'                     => DeliveryAgentCodSettlementStatus::Pending,
             ]);
 
-            $wallet = $this->getOrCreateWallet('delivery_agent', $agent->id, 'EGP');
+            $agent->loadMissing('country');
+            $agentCurrency = $agent->country?->currency_code ?? 'AED';
+            $wallet = $this->getOrCreateWallet('delivery_agent', $agent->id, $agentCurrency);
 
             if ($net > 0) {
                 // Agent collected more COD cash than owed — owes platform; debit wallet

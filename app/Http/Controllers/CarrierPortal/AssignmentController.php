@@ -178,6 +178,9 @@ class AssignmentController extends Controller
             : Shipment::whereDoesntHave('deliveryAssignment')
                 ->where('status', '!=', ShipmentStatus::Delivered)
                 ->whereIn('carrier_id', $carrierIds)
+                ->whereHas('subOrder.order', fn ($q) =>
+                    $q->where('country_id', $supervisor->company?->country_id)
+                )
                 ->with('subOrder.order')
                 ->latest()
                 ->paginate(20);
@@ -201,12 +204,23 @@ class AssignmentController extends Controller
 
         $shipment = Shipment::whereDoesntHave('deliveryAssignment')
             ->whereIn('carrier_id', $carrierIds)
+            ->with('subOrder.order')
             ->findOrFail($shipmentId);
 
         $agent = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
             ->where('id', $request->agent_id)
             ->where('status', 'active')
             ->firstOrFail();
+
+        $orderCountryId = $shipment->subOrder?->order?->country_id;
+        $agentCountryId = $agent->country_id;
+
+        if ($orderCountryId && $agentCountryId && $orderCountryId !== $agentCountryId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Agent does not operate in the order\'s country.',
+            ], 422);
+        }
 
         $assignment = null;
 

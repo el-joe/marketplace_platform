@@ -130,12 +130,15 @@ class DeliveryAssignmentController extends Controller
             return response()->json(['success' => false, 'message' => 'An active assignment already exists for this order.'], 422);
         }
 
+        $subOrder = SubOrder::with('order')->findOrFail($request->sub_order_id);
+
         // Find nearest available agent using Haversine formula
         $lat = (float) $request->pickup_latitude;
         $lng = (float) $request->pickup_longitude;
 
         $agent = DeliveryAgent::where('status', DeliveryAgentStatus::Active)
             ->where('is_available', true)
+            ->where('country_id', $subOrder->order->country_id)
             ->whereNotNull('current_latitude')
             ->whereNotNull('current_longitude')
             ->selectRaw("*, (6371 * ACOS(
@@ -181,7 +184,11 @@ class DeliveryAssignmentController extends Controller
             'agent_id' => ['required', 'exists:delivery_agents,id'],
         ]);
 
-        $agent = DeliveryAgent::findOrFail($request->agent_id);
+        $subOrder = SubOrder::with('order')->findOrFail($request->sub_order_id);
+
+        $agent = DeliveryAgent::where('id', $request->agent_id)
+            ->where('country_id', $subOrder->order->country_id)
+            ->firstOrFail();
 
         $assignment = DeliveryAssignment::create([
             'sub_order_id' => $request->sub_order_id,

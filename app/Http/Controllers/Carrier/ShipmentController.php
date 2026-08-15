@@ -35,9 +35,16 @@ class ShipmentController extends Controller
             ], __('carrier.assignments.no_carriers_linked_body'));
         }
 
+        $companyCountryId = $supervisor->company?->country_id;
+
         $shipments = Shipment::whereDoesntHave('deliveryAssignment')
             ->where('status', '!=', ShipmentStatus::Delivered)
             ->whereIn('carrier_id', $carrierIds)
+            ->when($companyCountryId, fn ($q) =>
+                $q->whereHas('subOrder.order', fn ($q2) =>
+                    $q2->where('country_id', $companyCountryId)
+                )
+            )
             ->with([
                 'subOrder:id,sub_order_number,status',
                 'subOrder.order:id,order_number,customer_id',
@@ -106,6 +113,7 @@ class ShipmentController extends Controller
         $request->validate(['agent_id' => ['required', 'string', 'exists:delivery_agents,id']]);
 
         $carrierIds = ShippingCarrier::where('shipping_company_id', $supervisor->shipping_company_id)->pluck('id');
+        $companyCountryId = $supervisor->company?->country_id;
 
         $shipment = Shipment::whereDoesntHave('deliveryAssignment')
             ->whereIn('carrier_id', $carrierIds)
@@ -115,6 +123,10 @@ class ShipmentController extends Controller
             ->where('id', $request->agent_id)
             ->where('status', 'active')
             ->firstOrFail();
+
+        if ($companyCountryId && $agent->country_id !== $companyCountryId) {
+            return ApiResponse::error('Agent does not operate in this country.', [], 422);
+        }
 
         $assignment = DB::transaction(function () use ($shipment, $agent) {
             return DeliveryAssignment::create([

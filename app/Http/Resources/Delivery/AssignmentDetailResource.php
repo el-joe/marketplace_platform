@@ -19,6 +19,7 @@ class AssignmentDetailResource extends JsonResource
             'status'            => $this->status?->value,
             'is_cod'            => $isCod,
             'currency'          => $order?->currency,
+            'agent_currency'    => $this->subOrder?->agent?->country?->currency_code,
             'failure_reason' => $this->failure_reason,
             'failure_notes'  => $this->failure_notes,
             'customer_rating' => $this->customer_rating,
