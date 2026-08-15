@@ -7,11 +7,12 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentTransactionStatus;
 use App\Enums\SubOrderStatus;
 use App\Jobs\CustomerDeliveredNotificationJob;
-use App\Jobs\GenerateVendorPayoutsJob;
 use App\Jobs\NotifyCustomerFailedDeliveryJob;
 use App\Jobs\NotifyOperationsTeamJob;
+use App\Enums\DeliveryAgentShiftStatus;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentEarning;
+use App\Models\DeliveryAgentShift;
 use App\Models\DeliveryAssignment;
 use App\Models\PaymentTransaction;
 use App\Models\Setting;
@@ -19,7 +20,6 @@ use App\Models\ShipmentTrackingEvent;
 use App\Notifications\Carrier\DeliveryCompleted as DeliveryCompletedNotification;
 use App\Notifications\Carrier\DeliveryFailed as DeliveryFailedNotification;
 use App\Notifications\Vendor\OrderReturnInTransit;
-use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -246,13 +246,22 @@ class AssignmentService
             $assignment->subOrder->items()
                 ->whereNull('return_eligible_until')
                 ->update(['return_eligible_until' => now()->addDays(14)->toDateString()]);
+
+            $todayShift = DeliveryAgentShift::where('agent_id', $agent->id)
+                ->where('status', DeliveryAgentShiftStatus::Active)
+                ->whereDate('shift_date', today())
+                ->first();
+
+            if ($todayShift) {
+                $todayShift->increment('total_deliveries');
+                $todayShift->increment(
+                    'total_earnings',
+                    $agent->per_delivery_fee + ($isCod ? ($agent->zone?->cod_fee ?? 0) : 0)
+                );
+            }
         });
 
         CustomerDeliveredNotificationJob::dispatch($assignment->sub_order_id);
-        GenerateVendorPayoutsJob::dispatch(
-            Carbon::now()->startOfMonth(),
-            Carbon::now()->endOfMonth()
-        );
 
         $this->notifyCarrierSupervisors($assignment, new DeliveryCompletedNotification($assignment));
     }
