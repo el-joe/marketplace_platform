@@ -287,7 +287,11 @@ class AssignmentController extends Controller
             $assignment->agent?->increment('total_deliveries');
 
             $agent = Auth::guard('delivery')->user();
-            $currency = $order?->currency ?? 'USD';
+            $agent->loadMissing('country', 'zone');
+            $currency = $agent->country?->currency_code
+                ?? $agent->zone?->country?->currency_code
+                ?? $order?->currency
+                ?? 'AED';
 
             DeliveryAgentEarning::create([
                 'agent_id'                => $agent->id,

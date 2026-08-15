@@ -24,6 +24,9 @@ class DeliveryAgentProfileResource extends JsonResource
             'rating_avg'       => $this->rating_avg,
             'total_deliveries' => $this->total_deliveries,
             'per_delivery_fee' => $this->per_delivery_fee,
+            'currency'         => $this->country?->currency_code
+                ?? $this->zone?->country?->currency_code
+                ?? 'AED',
             'shipping_company_id'   => $this->shipping_company_id,
             'shipping_company_name' => $this->whenLoaded('shippingCompany', fn () => $this->shippingCompany?->name),
             'current_location' => $this->current_latitude !== null ? [
@@ -32,10 +35,10 @@ class DeliveryAgentProfileResource extends JsonResource
                 'recorded_at' => $this->last_location_at?->toIso8601String(),
             ] : null,
             'zone'             => $this->whenLoaded('zone', fn () => [
-                'id'                   => $this->zone->id,
-                'name'                 => $this->zone->name,
-                'base_delivery_fee'    => $this->zone->base_delivery_fee / 100,
-                'cod_fee'              => $this->zone->cod_fee / 100,
+                'id'                => $this->zone->id,
+                'name'              => $this->zone->name,
+                'base_delivery_fee' => $this->zone->base_delivery_fee,
+                'cod_fee'           => $this->zone->cod_fee,
             ]),
             'country'          => $this->whenLoaded('country', fn () => [
                 'id'   => $this->country->id,
@@ -43,7 +46,11 @@ class DeliveryAgentProfileResource extends JsonResource
             ]),
             'today_stats'      => $this->when(
                 isset($this->todayStats),
-                fn () => $this->todayStats
+                fn () => array_merge($this->todayStats, [
+                    'currency' => $this->country?->currency_code
+                        ?? $this->zone?->country?->currency_code
+                        ?? 'AED',
+                ])
             ),
             'last_login_at'    => $this->last_login_at?->toIso8601String(),
         ];

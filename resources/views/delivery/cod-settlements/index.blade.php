@@ -6,7 +6,9 @@
 
 @php
     /** @var \App\Models\DeliveryAgent $agent */
-    $currency = 'SAR';
+    $currency = $agent->country?->currency_code
+        ?? $agent->zone?->country?->currency_code
+        ?? 'AED';
 
     $statusChipMap = [
         'pending'  => ['class' => 'chip-cod-pending',  'label' => __('delivery.cod.status_pending')],
