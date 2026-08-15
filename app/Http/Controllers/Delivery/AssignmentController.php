@@ -294,7 +294,7 @@ class AssignmentController extends Controller
                 'delivery_assignment_id'  => $assignment->id,
                 'order_id'                => $assignment->subOrder?->order_id,
                 'earning_type'            => 'base_fee',
-                'amount'            => $agent->per_delivery_fee,
+                'amount'                  => $agent->per_delivery_fee ?? 0,
                 'currency'                => $currency,
                 'status'                  => DeliveryAgentEarningStatus::Pending,
             ]);

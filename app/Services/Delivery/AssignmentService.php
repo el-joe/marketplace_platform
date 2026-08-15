@@ -220,7 +220,13 @@ class AssignmentService
                 'delivered_at' => now(),
             ]);
 
-            $currency = $order->currency ?? 'EGP';
+            // Agent earns in their own country's currency, not the customer's payment currency.
+            // (An agent in Egypt always earns EGP even if the customer paid in AED.)
+            $agent->loadMissing('country');
+            $currency = $agent->country?->currency_code
+                ?? $agent->zone?->country?->currency_code
+                ?? $order->currency
+                ?? 'AED';
 
             // Base delivery fee for the agent.
             DeliveryAgentEarning::create([
