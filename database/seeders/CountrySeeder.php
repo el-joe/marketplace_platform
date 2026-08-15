@@ -200,46 +200,68 @@ class CountrySeeder extends Seeder
         // Store IDs in a cache for downstream seeders
         cache()->put('seeder_country_ids', $countryIds, 600);
 
-        // ── Country Payment Methods ─────────────────────────────────────────
-        if (!\Illuminate\Support\Facades\Schema::hasTable('country_payment_methods')) {
+        // ── Country Payment Gateways ──────────────────────────────────────────────
+        // Seed default gateway configurations per country
+        // Only runs if payment_gateways table exists and has been seeded
+        if (!\Illuminate\Support\Facades\Schema::hasTable('country_payment_gateways')) {
             return;
         }
 
-        $launchedCountries = ['SA', 'AE', 'EG', 'KW'];
-        foreach ($launchedCountries as $iso) {
-            $cid = $countryIds[$iso] ?? null;
-            if (!$cid)
-                continue;
+        $gatewayIds = DB::table('payment_gateways')->pluck('id', 'code');
 
-            $methods = [
-                ['method_type' => 'card', 'provider' => 'paytabs', 'display_name_en' => 'Credit / Debit Card', 'display_name_ar' => 'بطاقة ائتمان / خصم', 'fee_pct' => 1.50, 'sort_order' => 1],
-                ['method_type' => 'wallet', 'provider' => 'noon_pay', 'display_name_en' => 'Noon Pay Wallet', 'display_name_ar' => 'محفظة نون باي', 'fee_pct' => 0.00, 'sort_order' => 2],
-                ['method_type' => 'cod', 'provider' => null, 'display_name_en' => 'Cash on Delivery', 'display_name_ar' => 'الدفع عند الاستلام', 'fee_pct' => 0.00, 'fee_fixed' => 100, 'sort_order' => 3],
-                ['method_type' => 'bank_transfer', 'provider' => null, 'display_name_en' => 'Bank Transfer', 'display_name_ar' => 'تحويل بنكي', 'fee_pct' => 0.00, 'sort_order' => 4],
+        if ($gatewayIds->isEmpty()) {
+            return; // payment_gateways not seeded yet
+        }
+
+        $launchedCountries = ['AE' => 'AED', 'SA' => 'SAR', 'EG' => 'EGP', 'KW' => 'KWD', 'OM' => 'OMR'];
+
+        foreach ($launchedCountries as $iso => $currency) {
+            $cid = $countryIds[$iso] ?? null;
+            if (!$cid) continue;
+
+            // Default gateways for all countries
+            $defaults = [
+                ['code' => 'wallet',       'display_en' => 'Platform Wallet',    'display_ar' => 'المحفظة',              'sort' => 1],
+                ['code' => 'cod',          'display_en' => 'Cash on Delivery',   'display_ar' => 'الدفع عند الاستلام',  'sort' => 2],
+                ['code' => 'bank_transfer','display_en' => 'Bank Transfer',      'display_ar' => 'تحويل بنكي',           'sort' => 3],
             ];
 
-            // BNPL only for SA/AE
-            if (in_array($iso, ['SA', 'AE'])) {
-                $methods[] = ['method_type' => 'bnpl', 'provider' => 'tabby', 'display_name_en' => 'Pay Later (Tabby)', 'display_name_ar' => 'تابي - اشتري الآن وادفع لاحقاً', 'fee_pct' => 0.00, 'sort_order' => 5];
+            // Thawani only for Oman
+            if ($iso === 'OM') {
+                $defaults[] = ['code' => 'thawani', 'display_en' => 'Thawani Payment', 'display_ar' => 'ثواني للدفع', 'sort' => 4];
             }
 
-            foreach ($methods as $m) {
-                $exists = DB::table('country_payment_methods')
+            // Paytabs for UAE, SA, KW, EG
+            if (in_array($iso, ['AE', 'SA', 'KW', 'EG'])) {
+                $defaults[] = ['code' => 'paytabs', 'display_en' => 'Card Payment', 'display_ar' => 'بطاقة ائتمانية', 'sort' => 4];
+            }
+
+            foreach ($defaults as $gw) {
+                $gwId = $gatewayIds[$gw['code']] ?? null;
+                if (!$gwId) continue;
+
+                $exists = DB::table('country_payment_gateways')
                     ->where('country_id', $cid)
-                    ->where('method_type', $m['method_type'])
-                    ->where('provider', $m['provider'] ?? null)
+                    ->where('gateway_id', $gwId)
                     ->exists();
+
                 if (!$exists) {
-                    DB::table('country_payment_methods')->insert(array_merge([
-                        'id' => Str::uuid(),
-                        'country_id' => $cid,
-                        'fee_pct' => 0.00,
-                        'fee_fixed' => 0,
-                        'min_order' => 0,
-                        'is_active' => true,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ], $m));
+                    DB::table('country_payment_gateways')->insert([
+                        'id'             => Str::uuid(),
+                        'country_id'     => $cid,
+                        'gateway_id'     => $gwId,
+                        'display_name_en'=> $gw['display_en'],
+                        'display_name_ar'=> $gw['display_ar'],
+                        'is_active'      => true,
+                        'environment'    => 'sandbox',
+                        'fee_pct'        => 0.00,
+                        'fee_fixed'      => 0,
+                        'min_order'      => 0,
+                        'max_order'      => null,
+                        'sort_order'     => $gw['sort'],
+                        'created_at'     => now(),
+                        'updated_at'     => now(),
+                    ]);
                 }
             }
         }

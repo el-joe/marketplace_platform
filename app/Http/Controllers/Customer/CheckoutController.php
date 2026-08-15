@@ -510,7 +510,8 @@ class CheckoutController extends Controller
                 $customer, $country, $address, $validated, $coupon,
                 $cartItems, $summary, $attribution, $vendorShipping,
                 $warrantySelections, $cart, $couponDiscountCents,
-                $loyaltyDiscount, $loyaltyPointsToUse
+                $loyaltyDiscount, $loyaltyPointsToUse,
+                $gatewayCode, $isCod, $isWallet, $methodConfig
             ) {
                 $vendorShippingMap = $vendorShipping['per_vendor'];
                 $order = Order::create([
