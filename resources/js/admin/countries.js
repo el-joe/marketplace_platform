@@ -4,8 +4,6 @@
  * Handles:
  *  - Launch / Deactivate / Reactivate country actions
  *  - Delete country confirmation
- *  - Payment method add/edit modal via AJAX
- *  - Delete payment method
  *  - Shipping settings AJAX save
  *  - Category override modal
  */
@@ -77,101 +75,6 @@ $(function () {
             .done(function (res) {
                 window.Toast && window.Toast.success(res.message);
                 setTimeout(() => window.location.href = '/countries/', 900);
-            })
-            .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.delete_failed'));
-            });
-    });
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Payment Method Modal
-    // ─────────────────────────────────────────────────────────────────────────
-
-    let pmStoreUrl = null;
-    let pmUpdateBase = null;
-
-    // Infer URLs from page meta if available
-    const countryId = $('[data-country-id]').first().data('country-id');
-
-    function openPmModal(pm = null) {
-        const $form = $('#pm-form');
-        $form[0].reset();
-        $('#pm-id').val('');
-
-        if (pm) {
-            $('#pm-id').val(pm.id);
-            $form.find('[name="method_type"]').val(pm.method_type);
-            $form.find('[name="provider"]').val(pm.provider || '');
-            $form.find('[name="display_name_en"]').val(pm.display_name_en);
-            $form.find('[name="display_name_ar"]').val(pm.display_name_ar || '');
-            $form.find('[name="fee_pct"]').val(pm.fee_pct);
-            $form.find('[name="fee_fixed"]').val(pm.fee_fixed);
-            $form.find('[name="sort_order"]').val(pm.sort_order);
-            $form.find('[name="min_order"]').val(pm.min_order);
-            $form.find('[name="max_order"]').val(pm.max_order || '');
-            $form.find('[name="is_active"][type="checkbox"]').prop('checked', !!pm.is_active).trigger('change');
-        }
-
-        openModal('pm-modal');
-    }
-
-    $(document).on('click', '#btn-add-payment-method', function () {
-        openPmModal(null);
-    });
-
-    $(document).on('click', '.btn-edit-pm', function () {
-        const pm = $(this).data('pm');
-        openPmModal(pm);
-    });
-
-    $('#pm-form').on('submit', function (e) {
-        e.preventDefault();
-
-        const pmId = $('#pm-id').val();
-        const data = $(this).serializeArray().reduce((acc, { name, value }) => { acc[name] = value; return acc; }, {});
-
-        // Determine URL: POST for create, PUT for update
-        const baseUrl = window.countryPaymentMethodsUrl || `/countries/${countryId}/payment-methods`;
-        const url = pmId ? `${baseUrl}/${pmId}` : baseUrl;
-        const method = pmId ? 'PUT' : 'POST';
-
-        $('#pm-submit-btn').prop('disabled', true).text(t('shared.saving'));
-
-        $.ajax({
-            url,
-            method,
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-        })
-            .done(function (res) {
-                window.Toast && window.Toast.success(res.message);
-                closeModal('pm-modal');
-                location.reload();
-            })
-            .fail(function (xhr) {
-                const msg = xhr.responseJSON?.message || xhr.responseJSON?.errors
-                    ? Object.values(xhr.responseJSON.errors || {}).flat().join(' | ')
-                    : (t('admin.countries.save_failed'));
-                window.Toast && window.Toast.error(msg);
-            })
-            .always(function () {
-                $('#pm-submit-btn').prop('disabled', false).text(t('admin.countries.save_btn_label'));
-            });
-    });
-
-    $(document).on('click', '.btn-delete-pm', async function () {
-        const pmId = $(this).data('pm-id');
-        const url = $(this).data('url');
-        const confirmed = window.confirmDelete
-            ? await window.confirmDelete(t('admin.countries.remove_payment_method_confirm'), { title: t('admin.countries.delete_payment_method_title') })
-            : confirm(t('admin.countries.remove_payment_method_confirm'));
-        if (!confirmed) return;
-
-        $.ajax({ url, method: 'DELETE', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
-            .done(function (res) {
-                window.Toast && window.Toast.success(res.message);
-                $(`[data-pm-id="${pmId}"]`).remove();
             })
             .fail(function (xhr) {
                 window.Toast && window.Toast.error(xhr.responseJSON?.message || t('admin.countries.delete_failed'));

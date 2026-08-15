@@ -18,6 +18,10 @@ class EarningsController extends Controller
         /** @var DeliveryAgent $agent */
         $agent = auth('delivery_api')->user();
 
+        $currency = $agent->country?->currency_code
+            ?? $agent->zone?->country?->currency_code
+            ?? 'AED';
+
         $query = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->orderByDesc('created_at');
 
@@ -47,6 +51,7 @@ class EarningsController extends Controller
             ->values();
 
         return ApiResponse::success([
+            'currency'          => $currency,
             'today_total'       => (int) $todayTotal,
             'days'              => $byDay,
             'meta'              => [

@@ -5931,6 +5931,8 @@ return [
         'inactive'          => 'غير نشط',
         'general_tab'       => 'عام',
         'payment_methods_tab' => 'طرق الدفع',
+        'payment_gateways_tab' => 'بوابات الدفع',
+        'payment_gateways_for' => 'بوابات الدفع لـ :name',
         'shipping_tab'      => 'الشحن',
         'category_overrides_tab' => 'استثناءات الفئات',
         'name_en_label'     => 'الاسم (إنجليزي)',

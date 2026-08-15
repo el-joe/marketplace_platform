@@ -33,9 +33,6 @@
         savingEllipsis: @json(__('admin.geography.saving_ellipsis')),
         saveBtn: @json(__('admin.geography.save_btn')),
         saveFailed: @json(__('admin.geography.save_failed')),
-        deletePaymentMethodTitle: @json(__('admin.geography.delete_payment_method_title')),
-        deletePaymentMethodConfirm: @json(__('admin.geography.delete_payment_method_confirm')),
-        paymentMethodDeleteFailed: @json(__('admin.geography.payment_method_delete_failed')),
         saveShippingSettingsBtn: @json(__('admin.geography.save_shipping_settings_btn')),
     });
 </script>
@@ -155,7 +152,7 @@
             @php
                 $tabs = [
                     ['id' => 'general',   'label' => __('admin.geography.general_tab'),           'icon' => 'globe-alt',        'editOnly' => false],
-                    ['id' => 'payment',   'label' => __('admin.geography.payment_methods_tab'),   'icon' => 'credit-card',      'editOnly' => true],
+                    ['id' => 'payment',   'label' => __('admin.geography.payment_gateways_tab'),   'icon' => 'credit-card',      'editOnly' => true],
                     ['id' => 'shipping',  'label' => __('admin.geography.shipping_tab'),          'icon' => 'truck',            'editOnly' => true],
                     ['id' => 'categories','label' => __('admin.geography.category_overrides_tab'),'icon' => 'tag',              'editOnly' => true],
                 ];
@@ -304,48 +301,52 @@
         class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm"
     >
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-700">{{ __('admin.geography.payment_methods_for', ['name' => $country->name_en]) }}</h3>
-            <button
-                type="button"
-                id="btn-add-payment-method"
-                class="btn btn-secondary btn-sm"
-            >
-                <x-heroicon name="plus" class="w-4 h-4" />
-                {{ __('admin.geography.add_method') }}
-            </button>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-700">
+                    {{ __('admin.geography.payment_gateways_for', ['name' => $country->name_en]) }}
+                </h3>
+                <p class="text-xs text-gray-400 mt-0.5">
+                    Configure gateways from
+                    <a href="{{ route('admin.payment-gateways.index') }}" class="text-primary-600 underline hover:text-primary-800">
+                        Payment Gateways
+                    </a>
+                </p>
+            </div>
+            <a href="{{ route('admin.payment-gateways.index') }}" class="btn btn-secondary btn-sm">
+                <x-heroicon name="arrow-top-right-on-square" class="w-4 h-4" />
+                Manage Gateways
+            </a>
         </div>
 
-        <div id="payment-methods-list" class="space-y-2">
-            @forelse ($country->countryPaymentMethods as $pm)
-                <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200" data-pm-id="{{ $pm->id }}">
-                    <span class="w-28 text-xs font-mono bg-gray-200 rounded px-1.5 py-0.5">{{ $pm->method_type }}</span>
-                    <span class="flex-1 text-sm font-medium text-gray-800">{{ $pm->display_name_en }}</span>
-                    <span class="text-xs text-gray-500">{{ $pm->provider }}</span>
-                    <span class="text-xs text-gray-500">{{ __('admin.geography.fee_label', ['pct' => $pm->fee_pct]) }}</span>
-                    @if ($pm->is_active)
+        <div class="space-y-2">
+            @forelse ($country->countryPaymentGateways()->with('gateway')->orderBy('sort_order')->get() as $cpg)
+                <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                    @if($cpg->gateway?->image)
+                        <img src="{{ $cpg->gateway->image }}" class="h-5 w-auto object-contain" alt="">
+                    @endif
+                    <span class="flex-1 text-sm font-medium text-gray-800">{{ $cpg->display_name_en }}</span>
+                    <span class="text-xs text-gray-400">{{ $cpg->gateway?->name }}</span>
+                    <span class="text-xs rounded px-1.5 py-0.5 {{ $cpg->environment === 'production' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">
+                        {{ ucfirst($cpg->environment) }}
+                    </span>
+                    @if($cpg->is_configured)
+                        <x-badge color="success" size="xs">{{ __('common.active') }}</x-badge>
+                    @else
+                        <x-badge color="warning" size="xs">No credentials</x-badge>
+                    @endif
+                    @if($cpg->is_active)
                         <x-badge color="success" size="xs">{{ __('common.active') }}</x-badge>
                     @else
                         <x-badge color="gray" size="xs">{{ __('admin.geography.inactive') }}</x-badge>
                     @endif
-                    <button
-                        type="button"
-                        class="btn-edit-pm btn btn-ghost btn-xs"
-                        data-pm='@json($pm)'
-                    >{{ __('common.edit') }}</button>
-                    <button
-                        type="button"
-                        class="btn-delete-pm btn btn-danger-ghost btn-xs"
-                        data-pm-id="{{ $pm->id }}"
-                        data-url="{{ route('admin.countries.payment-methods.destroy', [$country->id, $pm->id]) }}"
-                    >
-                        <x-heroicon name="trash" class="w-3.5 h-3.5" />
-                    </button>
                 </div>
             @empty
-                <p class="text-sm text-gray-400 py-4 text-center">{{ __('admin.geography.no_payment_methods_configured') }}</p>
+                <p class="text-sm text-gray-400 py-4 text-center">
+                    No gateways configured for this country yet.
+                    <a href="{{ route('admin.payment-gateways.index') }}" class="text-primary-600 underline">Add one →</a>
+                </p>
             @endforelse
         </div>
-
     </div>
     @endif
 
@@ -456,43 +457,6 @@
 
 @if ($isEdit)
 @push('modals')
-    {{-- Add/Edit Payment Method Modal --}}
-    <x-modal id="pm-modal" title="{{ __('admin.geography.payment_method_modal_title') }}">
-        <form id="pm-form" novalidate>
-            @csrf
-            <input type="hidden" id="pm-id" name="pm_id">
-            <div class="space-y-4 p-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <x-form.select
-                        name="method_type"
-                        label="{{ __('admin.geography.type_label') }}"
-                        id="pm-method-type"
-                        :options="['card' => __('admin.geography.method_type_card'), 'wallet' => __('admin.geography.method_type_wallet'), 'cod' => __('admin.geography.method_type_cod'), 'bnpl' => __('admin.geography.method_type_bnpl'), 'bank_transfer' => __('admin.geography.method_type_bank_transfer')]"
-                    />
-                    <x-form.input name="provider" label="{{ __('admin.geography.provider_label') }}" id="pm-provider" placeholder="{{ __('admin.geography.provider_placeholder') }}" />
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <x-form.input name="display_name_en" label="{{ __('admin.geography.display_name_en') }}" id="pm-display-en" required />
-                    <x-form.input name="display_name_ar" label="{{ __('admin.geography.display_name_ar') }}" id="pm-display-ar" dir="rtl" />
-                </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <x-form.input name="fee_pct" label="{{ __('admin.geography.fee_pct') }}" id="pm-fee-pct" type="number" step="0.01" min="0" value="0" />
-                    <x-form.input name="fee_fixed" label="{{ __('admin.geography.fixed_fee') }}" id="pm-fee-fixed" type="number" min="0" value="0" />
-                    <x-form.input name="sort_order" label="{{ __('admin.geography.sort_order') }}" id="pm-sort-order" type="number" min="0" value="0" />
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <x-form.input name="min_order" label="{{ __('admin.geography.min_order') }}" id="pm-min-order" type="number" min="0" value="0" />
-                    <x-form.input name="max_order" label="{{ __('admin.geography.max_order') }}" id="pm-max-order" type="number" min="0" />
-                </div>
-                <x-form.toggle name="is_active" label="{{ __('common.active') }}" id="pm-is-active" :checked="true" />
-            </div>
-            <div class="flex justify-end gap-2 px-4 pb-4">
-                <button type="button" class="btn btn-ghost" data-modal-close="pm-modal">{{ __('common.cancel') }}</button>
-                <button type="submit" id="pm-submit-btn" class="btn btn-primary">{{ __('common.save') }}</button>
-            </div>
-        </form>
-    </x-modal>
-
     {{-- Edit Category Override Modal --}}
     <x-modal id="cat-override-modal" title="{{ __('admin.geography.edit_category_override_title') }}" size="lg">
         <form id="cat-override-form" novalidate>

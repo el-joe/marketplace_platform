@@ -5963,6 +5963,8 @@ return [
         'inactive'          => 'Inactive',
         'general_tab'       => 'General',
         'payment_methods_tab' => 'Payment Methods',
+        'payment_gateways_tab' => 'Payment Gateways',
+        'payment_gateways_for' => 'Payment Gateways for :name',
         'shipping_tab'      => 'Shipping',
         'category_overrides_tab' => 'Category Overrides',
         'name_en_label'     => 'Name (English)',

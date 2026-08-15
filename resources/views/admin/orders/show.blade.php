@@ -552,10 +552,12 @@
                             {{ \Carbon\Carbon::parse($order->placed_at)->format('M j, Y H:i') }}
                         </span>
                     </div>
-                    @if(!empty($addr['country']) || !empty($addr['country_en']))
+                    @if(!empty($addr['city']))
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500">{{ __('common.country') }}</span>
-                            <span class="text-gray-700">{{ $addr['country'] ?? $addr['country_en'] ?? '' }}</span>
+                            <span class="text-gray-700">
+                                {{ is_array($addr['city']) ? ($addr['city']['en'] ?? '') : $addr['city'] }}
+                            </span>
                         </div>
                     @endif
                     <div class="flex items-center justify-between">
@@ -657,21 +659,45 @@
                 @if(!empty($addr))
                     <div class="mt-3 pt-3 border-t border-gray-100">
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{{ __('admin.orders.delivery_address') }}</p>
+                        @php
+                            // Normalise snapshot keys — snapshot uses recipient_name/street_address/etc.
+                            // Blade historically expected name/line1/line2/city/zip/country/phone.
+                            $addrName   = $addr['recipient_name']   ?? $addr['name']   ?? null;
+                            $addrPhone  = $addr['recipient_phone']  ?? $addr['phone']  ?? null;
+                            $addrLine1  = $addr['street_address']   ?? $addr['line1']  ?? null;
+                            $addrLine2  = $addr['area']             ?? $addr['line2']  ?? null;
+                            $addrCity   = $addr['city'] ?? null;
+                            $addrCity   = is_array($addrCity) ? ($addrCity['en'] ?? '') : $addrCity;
+                            $addrZip    = $addr['postal_code']      ?? $addr['zip']    ?? null;
+                            $addrCountry= $addr['country']          ?? $addr['country_en'] ?? null;
+
+                            // Compose building/floor/apartment into line2 if present
+                            $parts = array_filter([
+                                $addr['building']  ?? null,
+                                $addr['floor']     ?? null ? 'Floor ' . ($addr['floor'] ?? '') : null,
+                                $addr['apartment'] ?? null ? 'Apt ' . ($addr['apartment'] ?? '') : null,
+                            ]);
+                            if (!empty($parts)) {
+                                $addrLine2 = implode(', ', $parts) . ($addrLine2 ? ', ' . $addrLine2 : '');
+                            }
+                        @endphp
                         <address class="not-italic text-sm text-gray-700 space-y-0.5">
-                            @if(!empty($addr['name']))
-                            <p class="font-medium">{{ $addr['name'] }}</p>@endif
-                            @if(!empty($addr['line1']))
-                            <p>{{ $addr['line1'] }}</p>@endif
-                            @if(!empty($addr['line2']))
-                            <p>{{ $addr['line2'] }}</p>@endif
-                            @if(!empty($addr['city']))
-                            <p>{{ $addr['city'] }}@if(!empty($addr['state'])), {{ $addr['state'] }}@endif</p>@endif
-                            @if(!empty($addr['zip']))
-                            <p>{{ $addr['zip'] }}</p>@endif
-                            @if(!empty($addr['country']))
-                            <p>{{ $addr['country'] }}</p>@endif
-                            @if(!empty($addr['phone']))
-                            <p class="text-gray-500">{{ $addr['phone'] }}</p>@endif
+                            @if(!empty($addrName))
+                            <p class="font-medium">{{ $addrName }}</p>@endif
+                            @if(!empty($addrLine1))
+                            <p>{{ $addrLine1 }}</p>@endif
+                            @if(!empty($addrLine2))
+                            <p>{{ $addrLine2 }}</p>@endif
+                            @if(!empty($addrCity))
+                            <p>{{ $addrCity }}</p>@endif
+                            @if(!empty($addrZip))
+                            <p>{{ $addrZip }}</p>@endif
+                            @if(!empty($addrCountry))
+                            <p>{{ $addrCountry }}</p>@endif
+                            @if(!empty($addrPhone))
+                            <p class="text-gray-500">{{ $addrPhone }}</p>@endif
+                            @if(!empty($addr['landmark']))
+                            <p class="text-gray-400 text-xs italic">Near: {{ $addr['landmark'] }}</p>@endif
                         </address>
                     </div>
                 @endif
