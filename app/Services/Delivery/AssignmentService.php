@@ -19,6 +19,7 @@ use App\Models\Setting;
 use App\Models\ShipmentTrackingEvent;
 use App\Notifications\Carrier\DeliveryCompleted as DeliveryCompletedNotification;
 use App\Notifications\Carrier\DeliveryFailed as DeliveryFailedNotification;
+use App\Notifications\Customer\OrderOutForDelivery;
 use App\Notifications\Vendor\OrderReturnInTransit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -96,6 +97,12 @@ class AssignmentService
 
             $assignment->subOrder?->update(['status' => 'out_for_delivery']);
         });
+
+        $assignment->loadMissing('subOrder.order.customer');
+        $customer = $assignment->subOrder?->order?->customer;
+        if ($customer) {
+            $customer->notify(new OrderOutForDelivery($assignment->subOrder, $assignment->delivery_otp));
+        }
     }
 
     // ── verifyOtp ─────────────────────────────────────────────────────────────
@@ -313,6 +320,25 @@ class AssignmentService
                 'rejected_by_customer_at' => $isCustomerRefused ? now() : $assignment->rejected_by_customer_at,
                 'rejection_reason_mandatory' => $isCustomerRefused ? $isElectronicPayment : $assignment->rejection_reason_mandatory,
             ]);
+
+            if ($assignment->shipment) {
+                $assignment->shipment->update(['status' => 'failed']);
+
+                ShipmentTrackingEvent::create([
+                    'shipment_id' => $assignment->shipment_id,
+                    'status'      => 'failed',
+                    'description' => match ($failureReason) {
+                        'address_not_found' => 'Delivery failed: address could not be located.',
+                        'customer_not_home' => 'Delivery failed: recipient not available.',
+                        'customer_refused'  => 'Delivery failed: refused by recipient.',
+                        'phone_unreachable' => 'Delivery failed: could not reach recipient by phone.',
+                        'access_denied'     => 'Delivery failed: access to location denied.',
+                        default             => 'Delivery attempt failed.',
+                    },
+                    'location'    => "{$latitude},{$longitude}",
+                    'occurred_at' => now(),
+                ]);
+            }
 
             $cumulativeFails = DeliveryAssignment::where('shipment_id', $assignment->shipment_id)
                 ->where('status', DeliveryAssignment::STATUS_FAILED)

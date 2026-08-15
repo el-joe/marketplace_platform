@@ -60,8 +60,8 @@ class DeliveryZoneController extends Controller
             'name' => $validated['name'],
             'code' => $validated['code'],
             'city_ids' => $validated['city_ids'] ?? null,
-            'base_delivery_fee_cents' => $validated['base_delivery_fee'],
-            'cod_fee_cents' => $validated['cod_fee'],
+            'base_delivery_fee' => $validated['base_delivery_fee'],
+            'cod_fee' => $validated['cod_fee'],
             'max_active_agents' => $validated['max_active_agents'] ?? null,
             'is_active' => $validated['is_active'] ?? true,
         ]);
@@ -103,8 +103,8 @@ class DeliveryZoneController extends Controller
             'name' => $validated['name'],
             'code' => $validated['code'],
             'city_ids' => $validated['city_ids'] ?? null,
-            'base_delivery_fee_cents' => $validated['base_delivery_fee'],
-            'cod_fee_cents' => $validated['cod_fee'],
+            'base_delivery_fee' => $validated['base_delivery_fee'],
+            'cod_fee' => $validated['cod_fee'],
             'max_active_agents' => $validated['max_active_agents'] ?? null,
             'is_active' => $validated['is_active'] ?? $zone->is_active,
         ]);

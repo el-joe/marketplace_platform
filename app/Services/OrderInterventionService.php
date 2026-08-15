@@ -167,7 +167,10 @@ class OrderInterventionService
             $notification = match ($newStatus) {
                 'confirmed'        => new OrderConfirmed($subOrder),
                 'shipped'          => new CustomerOrderShipped($subOrder),
-                'out_for_delivery' => new OrderOutForDelivery($subOrder),
+                'out_for_delivery' => new OrderOutForDelivery(
+                    $subOrder,
+                    $subOrder->deliveryAssignments()->whereNotNull('delivery_otp')->latest()->first()?->delivery_otp,
+                ),
                 'delivered'        => new OrderDelivered($subOrder),
                 'cancelled'        => new CustomerOrderCancelled($subOrder, $reason),
                 'refunded'         => new OrderRefunded($subOrder),
