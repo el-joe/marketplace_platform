@@ -60,11 +60,15 @@
         $riskText = $riskScore >= 70 ? 'text-red-700' : ($riskScore >= 40 ? 'text-amber-700' : 'text-green-700');
 
         $payMethodLabels = [
-            'card' => __('admin.orders.payment_card'),
-            'wallet' => __('admin.orders.payment_wallet'),
-            'cod' => __('admin.orders.payment_cod'),
-            'bnpl' => __('admin.orders.payment_bnpl'),
+            'cod'           => __('admin.orders.payment_cod'),
+            'wallet'        => __('admin.orders.payment_wallet'),
             'bank_transfer' => __('admin.orders.payment_bank_transfer'),
+            'thawani'       => 'Thawani Payment',
+            'paytabs'       => 'Paytabs',
+            'stripe'        => 'Stripe',
+            // Legacy keys (orders placed before gateway rebuild)
+            'card'          => __('admin.orders.payment_card'),
+            'bnpl'          => __('admin.orders.payment_bnpl'),
         ];
 
         $disputeReasonLabels = [

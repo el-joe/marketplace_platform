@@ -12,6 +12,8 @@ return [
     'cancel'          => 'Cancel',
     'copy'            => 'Copy',
     'deleted_successfully' => 'Deleted successfully.',
+    'configured'      => 'Configured',
+    'no_credentials'  => 'No credentials',
     'month'           => 'Month',
     'no_results'      => 'No results found.',
     'delete'          => 'Delete',

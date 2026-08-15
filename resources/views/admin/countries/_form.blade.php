@@ -306,15 +306,15 @@
                     {{ __('admin.geography.payment_gateways_for', ['name' => $country->name_en]) }}
                 </h3>
                 <p class="text-xs text-gray-400 mt-0.5">
-                    Configure gateways from
+                    {{ __('admin.geography.manage_gateways_hint') }}
                     <a href="{{ route('admin.payment-gateways.index') }}" class="text-primary-600 underline hover:text-primary-800">
-                        Payment Gateways
+                        {{ __('admin.geography.go_to_payment_gateways') }}
                     </a>
                 </p>
             </div>
             <a href="{{ route('admin.payment-gateways.index') }}" class="btn btn-secondary btn-sm">
                 <x-heroicon name="arrow-top-right-on-square" class="w-4 h-4" />
-                Manage Gateways
+                {{ __('admin.geography.manage_gateways_btn') }}
             </a>
         </div>
 
@@ -322,17 +322,17 @@
             @forelse ($country->countryPaymentGateways()->with('gateway')->orderBy('sort_order')->get() as $cpg)
                 <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                     @if($cpg->gateway?->image)
-                        <img src="{{ $cpg->gateway->image }}" class="h-5 w-auto object-contain" alt="">
+                        <img src="{{ $cpg->gateway->image }}" class="h-5 w-auto object-contain flex-shrink-0" alt="">
                     @endif
                     <span class="flex-1 text-sm font-medium text-gray-800">{{ $cpg->display_name_en }}</span>
                     <span class="text-xs text-gray-400">{{ $cpg->gateway?->name }}</span>
-                    <span class="text-xs rounded px-1.5 py-0.5 {{ $cpg->environment === 'production' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">
+                    <span class="text-xs rounded px-1.5 py-0.5 {{ $cpg->environment === 'production' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
                         {{ ucfirst($cpg->environment) }}
                     </span>
                     @if($cpg->is_configured)
-                        <x-badge color="success" size="xs">{{ __('common.active') }}</x-badge>
+                        <x-badge color="success" size="xs">{{ __('common.configured') }}</x-badge>
                     @else
-                        <x-badge color="warning" size="xs">No credentials</x-badge>
+                        <x-badge color="warning" size="xs">{{ __('common.no_credentials') }}</x-badge>
                     @endif
                     @if($cpg->is_active)
                         <x-badge color="success" size="xs">{{ __('common.active') }}</x-badge>
@@ -342,8 +342,10 @@
                 </div>
             @empty
                 <p class="text-sm text-gray-400 py-4 text-center">
-                    No gateways configured for this country yet.
-                    <a href="{{ route('admin.payment-gateways.index') }}" class="text-primary-600 underline">Add one →</a>
+                    {{ __('admin.geography.no_payment_gateways_configured') }}
+                    <a href="{{ route('admin.payment-gateways.index') }}" class="text-primary-600 underline">
+                        {{ __('admin.geography.add_gateway_link') }}
+                    </a>
                 </p>
             @endforelse
         </div>

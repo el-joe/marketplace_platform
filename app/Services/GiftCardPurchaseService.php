@@ -33,7 +33,7 @@ class GiftCardPurchaseService
     }
 
     /**
-     * @param  array{gift_card_batch_id: string, quantity?: int, recipient_email?: string|null, recipient_name?: string|null, gift_message?: string|null, payment_method: string}  $data
+     * @param  array{gift_card_batch_id: string, quantity?: int, recipient_email?: string|null, recipient_name?: string|null, gift_message?: string|null, country_payment_gateway_id: string}  $data
      * @return array{order: Order, purchases: array<int, GiftCardPurchase>, cards: Collection}
      */
     public function purchase(array $data, Customer $buyer): array
@@ -43,6 +43,12 @@ class GiftCardPurchaseService
                 ->where('is_purchasable', true)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            $gatewayConfig = \App\Models\CountryPaymentGateway::where('id', $data['country_payment_gateway_id'])
+                ->with('gateway')
+                ->first();
+
+            $gatewayCode = $gatewayConfig?->gateway?->code ?? $data['country_payment_gateway_id'];
 
             $qty = $data['quantity'] ?? 1;
             if ($qty < $batch->min_quantity || $qty > $batch->max_quantity) {
@@ -80,7 +86,7 @@ class GiftCardPurchaseService
                 'warranty_total' => 0,
                 'total' => $totalAmount,
                 'wallet_amount_used' => 0,
-                'payment_method' => $data['payment_method'],
+                'payment_method' => $gatewayCode,
                 'payment_status' => 'pending',
                 'placed_at' => now(),
             ]);

@@ -22,8 +22,8 @@ class CountryService
     {
         $errors = [];
 
-        if (!$country->countryPaymentMethods()->where('is_active', true)->exists()) {
-            $errors[] = 'No active payment method configured for this country.';
+        if (!$country->countryPaymentGateways()->where('is_active', true)->exists()) {
+            $errors[] = 'No active payment gateway configured for this country.';
         }
 
         if (!$country->countryShippingSettings()->where('is_active', true)->exists()) {

@@ -115,9 +115,12 @@ Object.assign(window.TRANSLATIONS, {
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.transactions.payment_method') ?? 'Method' }}</label>
                 <select id="filter-payment-method" class="form-input w-full text-sm">
                     <option value="">{{ __('admin.all') }}</option>
-                    <option value="card">{{ __('admin.orders.payment_card') }}</option>
+                    <option value="cod">{{ __('admin.orders.payment_cod') }}</option>
                     <option value="wallet">{{ __('admin.orders.payment_wallet') }}</option>
-                    <option value="bank">{{ __('admin.orders.payment_bank_transfer') }}</option>
+                    <option value="bank_transfer">{{ __('admin.orders.payment_bank_transfer') }}</option>
+                    <option value="thawani">Thawani</option>
+                    <option value="paytabs">Paytabs</option>
+                    <option value="stripe">Stripe</option>
                 </select>
             </div>
             <div class="w-36">

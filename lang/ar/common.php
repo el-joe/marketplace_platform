@@ -12,6 +12,8 @@ return [
     'cancel'          => 'إلغاء',
     'copy'            => 'نسخ',
     'deleted_successfully' => 'تم الحذف بنجاح.',
+    'configured'      => 'مُهيَّأة',
+    'no_credentials'  => 'لا بيانات اعتماد',
     'month'           => 'الشهر',
     'no_results'      => 'لا توجد نتائج.',
     'delete'          => 'حذف',

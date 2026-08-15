@@ -16,7 +16,7 @@ class PurchaseGiftCardRequest extends FormRequest
         return [
             'gift_card_batch_id' => ['required', 'uuid', 'exists:gift_card_batches,id'],
             'quantity' => ['nullable', 'integer', 'min:1'],
-            'payment_method' => ['required', 'string'],
+            'country_payment_gateway_id' => ['required', 'uuid', 'exists:country_payment_gateways,id'],
             'recipient_email' => ['nullable', 'email'],
             'recipient_name' => ['nullable', 'string', 'max:255'],
             'gift_message' => ['nullable', 'string', 'max:500'],
