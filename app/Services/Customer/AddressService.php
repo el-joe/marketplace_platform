@@ -22,18 +22,9 @@ class AddressService
         $address->update(['is_default' => true]);
     }
 
-    /**
-     * An address cannot be deleted while it is the billing_address_id
-     * of any saved payment method for the customer.
-     * Orders use JSON snapshots (no FK), so they don't block deletion.
-     */
     public function canDelete(Address $address): bool
     {
-        $referencedByPaymentMethod = $address->addressable
-            ?->paymentMethods()
-            ?->where('billing_address_id', $address->id)
-            ->exists();
-
-        return !$referencedByPaymentMethod;
+        // payment_methods table removed — saved cards no longer exist
+        return true;
     }
 }

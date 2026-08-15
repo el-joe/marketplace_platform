@@ -39,7 +39,6 @@ class PaymentTransaction extends Model
         'status',
         'failure_code',
         'failure_message',
-        'payment_method_id',
         'raw_request',
         'raw_response',
         'processed_at',
@@ -53,11 +52,6 @@ class PaymentTransaction extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function paymentMethod(): BelongsTo
-    {
-        return $this->belongsTo(PaymentMethod::class);
     }
 
     public function refunds(): HasMany

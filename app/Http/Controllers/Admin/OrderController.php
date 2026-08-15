@@ -184,7 +184,6 @@ class OrderController extends Controller
             'subOrders.shippingMethod',
             'subOrders.codSettlement.agent',
             'subOrders.statusHistories.changedByAdmin',
-            'transactions.paymentMethod',
             'statusHistories.changedByAdmin',
             'disputes.messages',
             'refunds.approvedByAdmin',
