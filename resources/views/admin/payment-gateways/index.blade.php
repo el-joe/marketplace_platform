@@ -274,7 +274,7 @@
 
         <x-slot:footer>
             <button type="button" data-modal-close class="btn-secondary">Cancel</button>
-            <button type="submit" class="btn-primary">Save Gateway</button>
+            <button type="submit" form="gateway-form" class="btn-primary">Save Gateway</button>
         </x-slot:footer>
     </form>
 </x-modal>
