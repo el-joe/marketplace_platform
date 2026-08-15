@@ -360,41 +360,11 @@
             {{-- ── Payment Methods ──────────────────────────────────────────── --}}
             <div x-show="tab === 'payment_methods'">
                 <x-card title="{{ __('admin.customers_section.payment_methods_title') }}">
-                    @if($paymentMethods->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_saved_payment_methods') }}</p>
-                    @else
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            @foreach($paymentMethods as $pm)
-                            <div class="rounded-lg border border-gray-200 p-4 text-sm flex items-start justify-between gap-3">
-                                <div class="space-y-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-gray-800">
-                                            {{ strtoupper($pm->card_brand ?? $pm->type?->value ?? 'Card') }}
-                                        </span>
-                                        @if($pm->is_default)
-                                            <x-badge color="primary">{{ __('admin.customers_section.default_badge') }}</x-badge>
-                                        @endif
-                                    </div>
-                                    @if($pm->card_last4)
-                                        <p class="text-gray-600 font-mono">•••• •••• •••• {{ $pm->card_last4 }}</p>
-                                    @endif
-                                    @if($pm->card_exp_month && $pm->card_exp_year)
-                                        <p class="text-gray-500 text-xs">{{ __('admin.customers_section.expires_label') }} {{ str_pad($pm->card_exp_month, 2, '0', STR_PAD_LEFT) }}/{{ $pm->card_exp_year }}</p>
-                                    @endif
-                                    <p class="text-gray-400 text-xs">{{ ucfirst($pm->gateway ?? $pm->type?->value ?? '') }}</p>
-                                </div>
-                                @if(auth('admin')->user()->can('customers.edit'))
-                                <button type="button"
-                                    class="btn btn-xs btn-ghost text-danger-600 js-remove-payment-method flex-shrink-0"
-                                    data-id="{{ $pm->id }}"
-                                    data-customer="{{ $customer->id }}">
-                                    {{ __('admin.customers_section.remove') }}
-                                </button>
-                                @endif
-                            </div>
-                            @endforeach
-                        </div>
-                    @endif
+                    {{-- Saved card tokens (gateway_token) are no longer stored. --}}
+                    {{-- Payment history is shown in the Orders tab per sub-order. --}}
+                    <p class="text-sm text-gray-500 py-4 text-center">
+                        Payment history is available in the Orders tab. Saved cards are not stored — customers pay per order via the selected gateway.
+                    </p>
                 </x-card>
             </div>
 

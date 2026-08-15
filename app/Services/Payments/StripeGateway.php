@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * Stripe gateway using the NEW PaymentGatewayInterface (initiate/verify/refund).
- * Credentials stored in country_payment_methods.credentials_encrypted:
+ * Credentials stored in country_payment_gateways.credentials_encrypted:
  *   { "secret_key": "sk_live_...", "publishable_key": "pk_live_..." }
  */
 class StripeGateway extends AbstractPaymentGateway

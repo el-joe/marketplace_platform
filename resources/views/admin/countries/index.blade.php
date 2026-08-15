@@ -14,7 +14,7 @@
             ['title' => __('admin.geography.currency_col'), 'data' => 'currency_code', 'name' => 'currency_code', 'orderable' => false, 'searchable' => false, 'className' => 'text-center w-20'],
             ['title' => __('admin.geography.vat_col'), 'data' => 'vat_rate', 'name' => 'vat_rate', 'orderable' => false, 'searchable' => false, 'className' => 'text-end w-16'],
             ['title' => __('admin.geography.cities_col'), 'data' => 'cities_count', 'name' => 'cities_count', 'orderable' => false, 'searchable' => false, 'className' => 'text-center w-16'],
-            ['title' => __('admin.geography.payment_methods_col'), 'data' => 'active_payment_methods', 'name' => 'active_payment_methods', 'orderable' => false, 'searchable' => false, 'className' => 'text-center'],
+            ['title' => __('admin.geography.payment_gateways_col'), 'data' => 'active_payment_gateways', 'name' => 'active_payment_gateways', 'orderable' => false, 'searchable' => false, 'className' => 'text-center'],
             [
                 'title' => __('admin.geography.cod_col'),
                 'data' => 'cod_available',

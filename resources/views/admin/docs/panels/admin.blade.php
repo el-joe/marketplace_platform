@@ -203,7 +203,7 @@
                 <li><code>/admin/shipping-zones</code> — {{ __('docs/panels/admin.system.shipping_zones_note') }}</li>
                 <li><code>/admin/shipping-methods</code> — {{ __('docs/panels/admin.system.shipping_methods_note') }}</li>
                 <li><code>/admin/vendor-document-types</code> — {{ __('docs/panels/admin.system.vendor_document_types') }}</li>
-                <li><code>/admin/payment-methods</code> — {{ __('docs/panels/admin.system.payment_methods') }}</li>
+                <li><code>/admin/payment-gateways</code> — {{ __('docs/panels/admin.system.payment_gateways') }}</li>
                 <li><code>/admin/payment-gateways</code> — {{ __('docs/panels/admin.system.payment_gateways') }}</li>
                 <li><code>/admin/shipping/weight-slabs</code> — {{ __('docs/panels/admin.system.weight_slabs_note') }}</li>
                 <li><code>/admin/shipping-subsidies</code> — {{ __('docs/panels/admin.system.shipping_subsidies_note') }}</li>

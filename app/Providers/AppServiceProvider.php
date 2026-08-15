@@ -13,7 +13,6 @@ use App\View\Components\Form\Select;
 use App\Events\SubOrderPlaced;
 use App\Listeners\InvalidateVendorDashboardCache;
 use App\Services\GiftCardService;
-use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\AppContextService;
 use App\Services\Shared\PageBuilderService;
 use App\Services\Customer\CheckoutCalculationService;
@@ -83,7 +82,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(PaymentGatewayFactory::class);
         $this->app->singleton(ShippingCarrierFactory::class);
         $this->app->singleton(PageBuilderService::class);
         $this->app->singleton(ListingQueryService::class);

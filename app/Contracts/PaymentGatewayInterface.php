@@ -9,7 +9,7 @@ use App\Models\PaymentTransaction;
 
 interface PaymentGatewayInterface
 {
-    /** Unique code matching country_payment_methods.provider */
+    /** Unique code matching payment_gateways.code (e.g. 'thawani', 'paytabs', 'cod') */
     public function getCode(): string;
 
     /** Human-readable name */

@@ -345,9 +345,9 @@ class ProductDetailEnrichmentService
     public function getPaymentOptions(Country $country, int $productPriceCents, ?Customer $customer): array
     {
         $gatewayIds = $this->cacheRememberTagged(
-            "country_payment_methods_pdp:{$country->id}",
+            "country_payment_gateways_pdp:{$country->id}",
             600,
-            ['payment_methods'],
+            ['payment_gateways'],
             fn() => CountryPaymentGateway::where('country_id', $country->id)
                 ->where('is_active', true)
                 ->whereHas('gateway', fn ($q) => $q->whereIn('type', ['bnpl', 'wallet']))

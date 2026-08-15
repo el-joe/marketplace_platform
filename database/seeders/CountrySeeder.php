@@ -201,6 +201,10 @@ class CountrySeeder extends Seeder
         cache()->put('seeder_country_ids', $countryIds, 600);
 
         // ── Country Payment Methods ─────────────────────────────────────────
+        if (!\Illuminate\Support\Facades\Schema::hasTable('country_payment_methods')) {
+            return;
+        }
+
         $launchedCountries = ['SA', 'AE', 'EG', 'KW'];
         foreach ($launchedCountries as $iso) {
             $cid = $countryIds[$iso] ?? null;

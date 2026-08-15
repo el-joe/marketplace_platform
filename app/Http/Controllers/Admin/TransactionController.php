@@ -53,20 +53,20 @@ class TransactionController extends Controller
      * Base query for the transactions listing, shared by datatable() and export.
      *
      * Note: payment_transactions has no `payment_method` or `reference_number` column.
-     * We join payment_methods (pm.type) as the real-world equivalent of "payment method",
-     * and use gateway_transaction_id / idempotency_key as the reference identifiers.
+     * payment_transactions.gateway contains the gateway code (thawani, cod, bank_transfer, etc.)
+     * and serves as the payment method identifier. gateway_transaction_id / idempotency_key
+     * are the reference identifiers.
      */
     private function buildTransactionsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $query = PaymentTransaction::query()
             ->leftJoin('orders', 'orders.id', '=', 'payment_transactions.order_id')
             ->leftJoin('customers', 'customers.id', '=', 'payment_transactions.customer_id')
-            ->leftJoin('payment_methods as pm', 'pm.id', '=', 'payment_transactions.payment_method_id')
             ->select(
                 'payment_transactions.*',
                 'orders.order_number',
                 'customers.name as customer_name',
-                'pm.type as payment_method_type'
+                'payment_transactions.gateway as payment_method_type'
             );
 
         return $this->applyFilters($query, $request, [
@@ -75,7 +75,7 @@ class TransactionController extends Controller
                     ->orWhere('payment_transactions.idempotency_key', 'like', "%{$v}%");
             }),
             'type' => fn($q, $v) => $q->where('payment_transactions.type', $v),
-            'payment_method' => fn($q, $v) => $q->where('pm.type', $v),
+            'payment_method' => fn($q, $v) => $q->where('payment_transactions.gateway', $v),
             'status' => fn($q, $v) => $q->where('payment_transactions.status', $v),
             'gateway' => fn($q, $v) => $q->where('payment_transactions.gateway', $v),
             'date_from' => fn($q, $v) => $q->whereDate('payment_transactions.created_at', '>=', $v),

@@ -5944,6 +5944,7 @@ return [
         'vat_col'           => 'VAT',
         'cities_col'        => 'Cities',
         'payment_methods_col' => 'Pay. Methods',
+        'payment_gateways_col' => 'Payment Gateways',
         'cod_col'           => 'COD',
         'status_col'        => 'Status',
         'launched'          => 'Launched',

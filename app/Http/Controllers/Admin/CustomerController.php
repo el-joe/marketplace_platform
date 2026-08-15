@@ -203,7 +203,7 @@ class CustomerController extends Controller
 
         $orders = $customer->orders()->latest('placed_at')->take(20)->get();
         $reviews = $customer->reviews()->with('product')->latest()->take(20)->get();
-        $paymentMethods = $customer->paymentMethods()->latest()->get();
+        $paymentMethods = collect(); // payment_methods table removed — customers pay per-order via gateways
         $returnRequests = $customer->returnRequests()->latest()->take(20)->get();
         $disputes = $customer->disputes()->latest()->take(20)->get();
         $tickets = $customer->supportTickets()

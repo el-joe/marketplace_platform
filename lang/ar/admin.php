@@ -5912,6 +5912,7 @@ return [
         'vat_col'           => 'ضريبة القيمة المضافة',
         'cities_col'        => 'المدن',
         'payment_methods_col' => 'طرق الدفع',
+        'payment_gateways_col' => 'بوابات الدفع',
         'cod_col'           => 'الدفع عند الاستلام',
         'status_col'        => 'الحالة',
         'launched'          => 'مُفعّلة',
