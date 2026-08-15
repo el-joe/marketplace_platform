@@ -248,6 +248,15 @@
                     <x-form-input name="code" label="{{ __('admin.shipping_section.code_label') }}" placeholder="{{ __('admin.shipping_section.code_placeholder_carrier') }}" required />
                 </div>
                 <div class="sm:col-span-2">
+                    <x-form-select name="shipping_company_id" label="{{ __('admin.shipping_section.handled_by_company') }}">
+                        <option value="">{{ __('admin.shipping_section.no_linked_company') }}</option>
+                        @foreach($shippingCompanies as $company)
+                            <option value="{{ $company->id }}">{{ $company->name }}</option>
+                        @endforeach
+                    </x-form-select>
+                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.shipping_section.handled_by_company_note') }}</p>
+                </div>
+                <div class="sm:col-span-2">
                     <x-form-input name="api_endpoint" label="{{ __('admin.shipping_section.api_endpoint') }}" placeholder="https://api.example.com/" />
                 </div>
                 <div class="sm:col-span-2">

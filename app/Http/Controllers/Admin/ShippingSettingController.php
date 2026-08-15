@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\CountryShippingSetting;
 use App\Models\ShippingCarrier;
+use App\Models\ShippingCompany;
 use App\Models\ShippingMethod;
 use App\Models\ShippingRate;
 use App\Models\ShippingZone;
@@ -24,6 +25,7 @@ class ShippingSettingController extends Controller
     {
         $methods = ShippingMethod::orderBy('name')->get();
         $carriers = ShippingCarrier::orderBy('name')->get();
+        $shippingCompanies = ShippingCompany::active()->orderBy('name')->get(['id', 'name']);
         $countries = Country::where('is_active', 1)
             ->with('countryShippingSettings')
             ->orderBy('name_en')
@@ -33,7 +35,7 @@ class ShippingSettingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.shipping-settings.index', compact('methods', 'carriers', 'countries', 'zones'));
+        return view('admin.shipping-settings.index', compact('methods', 'carriers', 'shippingCompanies', 'countries', 'zones'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -45,6 +47,7 @@ class ShippingSettingController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'code' => ['required', 'string', 'max:20', 'unique:shipping_carriers,code'],
+            'shipping_company_id' => ['nullable', 'string', 'exists:shipping_companies,id'],
             'api_endpoint' => ['nullable', 'url', 'max:255'],
             'tracking_url_pattern' => ['nullable', 'string', 'max:500'],
             'supports_cod' => ['boolean'],
@@ -74,6 +77,7 @@ class ShippingSettingController extends Controller
     {
         $data = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:100'],
+            'shipping_company_id' => ['nullable', 'string', 'exists:shipping_companies,id'],
             'api_endpoint' => ['nullable', 'url', 'max:255'],
             'tracking_url_pattern' => ['nullable', 'string', 'max:500'],
             'supports_cod' => ['sometimes', 'boolean'],

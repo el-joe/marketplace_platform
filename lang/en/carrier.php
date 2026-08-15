@@ -62,6 +62,7 @@ return [
         'dashboard_retrieved'                => 'Dashboard snapshot retrieved.',
         'fallback_routing_retrieved'         => 'Fallback routing visibility retrieved.',
         'assignment_reassigned'              => 'Assignment reassigned successfully.',
+        'assignment_created'                 => 'Agent assigned successfully.',
     ],
 
     'nav' => [

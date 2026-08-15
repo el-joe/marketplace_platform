@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\CarrierPortal;
 
+use App\Enums\ShipmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
 use App\Models\Shipment;
+use App\Models\ShippingCarrier;
 use App\Notifications\DeliveryAgent\DeliveryReassigned;
 use App\Notifications\DeliveryAgent\NewDeliveryAssigned;
 use App\Traits\HasDataTable;
@@ -164,12 +166,14 @@ class AssignmentController extends Controller
 
         abort_unless($supervisor->hasPermission('view_orders'), 403, __('carrier.errors.no_permission_view_orders'));
 
-        // NOTE: shipments.carrier_id → shipping_carriers (DHL/FedEx integrations) is a DIFFERENT
-        // concept from shipping_company_id (local delivery companies with supervisors/agents).
-        // There is no schema link between them, so we show all unassigned non-delivered shipments.
-        // A future shipping_company_id column on shipments would enable company-scoped filtering.
+        // shipping_carriers.shipping_company_id links each carrier integration (e.g. Aramex API)
+        // to the local ShippingCompany that fulfils it, so unassigned shipments are scoped to
+        // the carriers linked to this supervisor's company.
+        $carrierIds = ShippingCarrier::where('shipping_company_id', $supervisor->shipping_company_id)->pluck('id');
+
         $shipments = Shipment::whereDoesntHave('deliveryAssignment')
-            ->where('status', '!=', 'delivered')
+            ->where('status', '!=', ShipmentStatus::Delivered)
+            ->whereIn('carrier_id', $carrierIds)
             ->with('subOrder.order')
             ->latest()
             ->paginate(20);
@@ -189,7 +193,10 @@ class AssignmentController extends Controller
 
         $request->validate(['agent_id' => 'required|string|exists:delivery_agents,id']);
 
+        $carrierIds = ShippingCarrier::where('shipping_company_id', $supervisor->shipping_company_id)->pluck('id');
+
         $shipment = Shipment::whereDoesntHave('deliveryAssignment')
+            ->whereIn('carrier_id', $carrierIds)
             ->findOrFail($shipmentId);
 
         $agent = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)

@@ -65,6 +65,11 @@ class ShippingCompany extends Model
         return $this->hasMany(ShippingFallbackRule::class, 'fallback_shipping_company_id');
     }
 
+    public function carriers(): HasMany
+    {
+        return $this->hasMany(ShippingCarrier::class);
+    }
+
     // ── Scopes ─────────────────────────────────────────────────────────────
 
     public function scopeActive($query)

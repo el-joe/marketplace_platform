@@ -7,6 +7,7 @@ use App\Http\Controllers\Carrier\DashboardController;
 use App\Http\Controllers\Carrier\FallbackStatusController;
 use App\Http\Controllers\Carrier\LiveMapController;
 use App\Http\Controllers\Carrier\NotificationController;
+use App\Http\Controllers\Carrier\ShipmentController;
 use App\Http\Controllers\Carrier\SupervisorController;
 use App\Http\Controllers\Carrier\SupportTicketController;
 use Illuminate\Support\Facades\Route;
@@ -100,6 +101,25 @@ Route::prefix('v1')->group(function (): void {
             ->name('carrier.assignments.')
             ->group(function (): void {
                 Route::post('assignments/{id}/reassign', [AgentController::class, 'reassign'])->name('reassign');
+            });
+
+        // ── Shipments (requires view_orders permission) ────────────────────────
+        // Scoped to the carriers linked to the supervisor's company via
+        // shipping_carriers.shipping_company_id.
+        Route::middleware('carrier.permission:view_orders')
+            ->prefix('shipments')
+            ->name('carrier.shipments.')
+            ->group(function (): void {
+                Route::get('unassigned', [ShipmentController::class, 'unassigned'])->name('unassigned');
+                Route::get('{id}', [ShipmentController::class, 'show'])->name('show');
+            });
+
+        // ── Assign agent to a shipment (requires assign_agents permission) ────
+        Route::middleware('carrier.permission:assign_agents')
+            ->prefix('shipments')
+            ->name('carrier.shipments.')
+            ->group(function (): void {
+                Route::post('{id}/assign-agent', [ShipmentController::class, 'assignAgent'])->name('assign-agent');
             });
 
         // ── Support Tickets (any authenticated supervisor) ────────────────────

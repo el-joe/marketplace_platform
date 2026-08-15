@@ -62,6 +62,7 @@ return [
         'dashboard_retrieved'                => 'تم استرجاع لوحة المعلومات.',
         'fallback_routing_retrieved'         => 'تم استرجاع بيانات التوجيه الاحتياطي.',
         'assignment_reassigned'              => 'تم إعادة تعيين الطلب بنجاح.',
+        'assignment_created'                 => 'تم تعيين المندوب بنجاح.',
     ],
 
     'nav' => [

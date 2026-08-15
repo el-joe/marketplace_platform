@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Crypt;
@@ -16,6 +17,7 @@ class ShippingCarrier extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'shipping_company_id',
         'name',
         'code',
         'api_endpoint',
@@ -45,6 +47,11 @@ class ShippingCarrier extends Model
     public function shipments(): HasMany
     {
         return $this->hasMany(Shipment::class, 'carrier_id');
+    }
+
+    public function shippingCompany(): BelongsTo
+    {
+        return $this->belongsTo(ShippingCompany::class);
     }
 
     public function files(): MorphMany
