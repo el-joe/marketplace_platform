@@ -1091,7 +1091,7 @@
     </x-modal>
 
     {{-- 6. Assign Shipping Method --}}
-    <x-modal id="shipping-assign-modal" title="{{ __('admin.orders.assign_shipping') }}" size="lg">
+    <x-modal id="shipping-assign-modal" title="{{ __('admin.orders.assign_carrier') }}" size="lg">
         <div id="shipping-assign-zone-warning"
             class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 mb-4">
             {{ __('admin.orders.cannot_determine_zone') }}
@@ -1102,7 +1102,7 @@
 
         <x-slot:footer>
             <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
-            <button type="button" id="shipping-assign-confirm" class="btn btn-primary" disabled>{{ __('admin.orders.confirm_assignment') }}</button>
+            <button type="button" id="shipping-assign-confirm" class="btn btn-primary" disabled>{{ __('admin.orders.confirm_carrier') }}</button>
         </x-slot:footer>
     </x-modal>
 

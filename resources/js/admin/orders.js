@@ -123,7 +123,6 @@ $(function () {
 
     // ── Shipping method assignment ───────────────────────────────────────────
 
-    let selectedShippingMethodId = null;
     let selectedCarrierId = null;
     let assignUrl = null;
 
@@ -131,65 +130,70 @@ $(function () {
         return (Number(cents || 0) / 100).toFixed(2);
     }
 
-    function renderShippingMethods(methods) {
+    function renderCarriers(data) {
         const $container = $('#shipping-assign-methods');
         $container.empty();
 
-        if (!methods || methods.length === 0) {
-            const noMethodsText = (window.TRANSLATIONS && window.TRANSLATIONS.no_eligible_shipping_methods) || 'No eligible shipping methods found.';
-            $container.append('<p class="text-sm text-gray-400 italic text-center py-4">' + noMethodsText + '</p>');
+        if (data.method) {
+            $container.append(
+                '<div class="rounded-lg bg-blue-50 border border-blue-200 p-3 mb-4">' +
+                '<p class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-0.5">' + ((window.TRANSLATIONS && window.TRANSLATIONS.selected_shipping_method) || 'Selected Shipping Method') + '</p>' +
+                '<p class="text-sm font-medium text-blue-900">' + data.method.name + '</p>' +
+                '<p class="text-xs text-blue-500">' + data.method.min_delivery_days + '–' + data.method.max_delivery_days + ' days</p>' +
+                '</div>'
+            );
+        }
+
+        if (!data.method_assigned) {
+            $container.append(
+                '<div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">' +
+                (data.message || 'No shipping method assigned yet.') +
+                '</div>'
+            );
             return;
         }
 
-        methods.forEach(function (method) {
-            const rates = method.rates || [];
-            const cheapest = rates.length
-                ? rates.reduce((a, b) => (a.base_fee <= b.base_fee ? a : b))
-                : null;
+        const carriers = data.carriers || [];
 
+        if (carriers.length === 0) {
+            const noCarrierText = (window.TRANSLATIONS && window.TRANSLATIONS.no_eligible_shipping_methods) || 'No carriers available for this method and destination.';
+            $container.append('<p class="text-sm text-gray-400 italic text-center py-4">' + noCarrierText + '</p>');
+            return;
+        }
+
+        carriers.forEach(function (carrier) {
+            const isCurrent = carrier.is_current;
             const $card = $('<div>', {
-                class: 'shipping-method-card border border-gray-200 rounded-xl p-4 cursor-pointer hover:border-primary-400',
-                'data-method-id': method.id,
+                class: 'carrier-card border rounded-xl p-4 cursor-pointer hover:border-primary-400 mb-2 '
+                    + (isCurrent ? 'border-primary-500 ring-2 ring-primary-200' : 'border-gray-200'),
+                'data-carrier-id': carrier.carrier_id || '',
             });
 
-            $card.append(
-                '<div class="flex items-center justify-between mb-2">' +
-                '<span class="font-medium text-gray-900">' + method.name + '</span>' +
-                '<span class="text-xs text-gray-500">' + method.min_delivery_days + '–' + method.max_delivery_days + ' days</span>' +
-                '</div>'
-            );
-
-            if (rates.length) {
-                const $carrierSelect = $('<select>', { class: 'form-select w-full text-sm shipping-carrier-select' });
-                rates.forEach(function (rate) {
-                    const label = (rate.carrier_name || (window.TRANSLATIONS && window.TRANSLATIONS.any_carrier) || 'Any carrier') + ' — ' + centsToAmount(rate.base_fee)
-                        + (rate.cod_extra_fee ? ' (+' + centsToAmount(rate.cod_extra_fee) + ' COD)' : '');
-                    $carrierSelect.append($('<option>', {
-                        value: rate.carrier_id || '',
-                        text: label,
-                        selected: cheapest && rate.carrier_id === cheapest.carrier_id,
-                        'data-base-fee': rate.base_fee,
-                    }));
-                });
-                $card.append($carrierSelect);
-            } else {
-                const noCarrierRateText = (window.TRANSLATIONS && window.TRANSLATIONS.no_carrier_rate_data) || 'No carrier rate data available for this method.';
-                $card.append('<p class="text-xs text-gray-400">' + noCarrierRateText + '</p>');
+            if (isCurrent) {
+                selectedCarrierId = carrier.carrier_id || null;
+                $('#shipping-assign-confirm').prop('disabled', false);
             }
 
-            $card.on('click', function (e) {
-                if ($(e.target).is('select, option')) return;
-                $('.shipping-method-card').removeClass('border-primary-500 ring-2 ring-primary-200');
-                $card.addClass('border-primary-500 ring-2 ring-primary-200');
-                selectedShippingMethodId = method.id;
-                selectedCarrierId = $card.find('.shipping-carrier-select').val() || null;
-                $('#shipping-assign-confirm').prop('disabled', false);
-            });
+            const feeText = (carrier.base_fee ? centsToAmount(carrier.base_fee) : '—')
+                + (carrier.cod_extra_fee ? ' (+' + centsToAmount(carrier.cod_extra_fee) + ' COD)' : '');
 
-            $card.find('.shipping-carrier-select').on('change', function () {
-                if (selectedShippingMethodId === method.id) {
-                    selectedCarrierId = $(this).val() || null;
-                }
+            let html = '<div class="flex items-center justify-between">';
+            html += '<div>';
+            html += '<span class="font-medium text-gray-900">' + (carrier.carrier_name || ((window.TRANSLATIONS && window.TRANSLATIONS.any_carrier) || 'Any carrier')) + '</span>';
+            html += '<span class="text-xs text-gray-500 ml-2">' + feeText + '</span>';
+            html += '</div>';
+            if (isCurrent) {
+                html += '<span class="text-xs bg-primary-50 text-primary-700 rounded px-1.5 py-0.5">Current</span>';
+            }
+            html += '</div>';
+
+            $card.html(html);
+
+            $card.on('click', function () {
+                $('.carrier-card').removeClass('border-primary-500 ring-2 ring-primary-200').addClass('border-gray-200');
+                $card.removeClass('border-gray-200').addClass('border-primary-500 ring-2 ring-primary-200');
+                selectedCarrierId = carrier.carrier_id || null;
+                $('#shipping-assign-confirm').prop('disabled', false);
             });
 
             $container.append($card);
@@ -201,7 +205,6 @@ $(function () {
         assignUrl = $btn.data('assign-url');
         const shippingUrl = $btn.data('shipping-url');
 
-        selectedShippingMethodId = null;
         selectedCarrierId = null;
         $('#shipping-assign-confirm').prop('disabled', true);
         $('#shipping-assign-zone-warning').addClass('hidden');
@@ -221,7 +224,7 @@ $(function () {
                 if (!res.destination_zone) {
                     $('#shipping-assign-zone-warning').removeClass('hidden');
                 }
-                renderShippingMethods(res.methods);
+                renderCarriers(res);
             },
             error: function (xhr) {
                 $('#shipping-assign-loading').addClass('hidden');
@@ -232,7 +235,7 @@ $(function () {
     });
 
     $('#shipping-assign-confirm').on('click', function () {
-        if (!selectedShippingMethodId || !assignUrl) return;
+        if (!assignUrl) return;
         const $btn = $(this);
         $btn.prop('disabled', true);
         $('#shipping-assign-error').addClass('hidden').text('');
@@ -241,21 +244,20 @@ $(function () {
             url: assignUrl,
             method: 'POST',
             data: {
-                shipping_method_id: selectedShippingMethodId,
                 carrier_id: selectedCarrierId,
                 _token: $('meta[name="csrf-token"]').attr('content'),
             },
-            success: function () {
+            success: function (res) {
                 $('[data-modal-close]').first().trigger('click');
                 if (window.Toast) {
-                    window.Toast.success((window.TRANSLATIONS && window.TRANSLATIONS.shipping_method_assigned) || 'Shipping method assigned.');
+                    window.Toast.success((res && res.message) || (window.TRANSLATIONS && window.TRANSLATIONS.shipping_method_assigned) || 'Carrier assigned.');
                 }
                 location.reload();
             },
             error: function (xhr) {
                 $btn.prop('disabled', false);
                 const json = xhr.responseJSON || {};
-                $('#shipping-assign-error').removeClass('hidden').text(json.message || (window.TRANSLATIONS && window.TRANSLATIONS.failed_assign_shipping_method) || 'Failed to assign shipping method.');
+                $('#shipping-assign-error').removeClass('hidden').text(json.message || (window.TRANSLATIONS && window.TRANSLATIONS.failed_assign_shipping_method) || 'Failed to assign carrier.');
             },
         });
     });

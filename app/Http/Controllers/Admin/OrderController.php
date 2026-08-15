@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
+use App\Models\ShippingCarrier;
 use App\Models\ShippingMethod;
 use App\Models\ShippingRate;
 use App\Models\ShippingZone;
@@ -452,101 +453,80 @@ class OrderController extends Controller
 
     public function availableShippingMethods(Request $request, SubOrder $subOrder): JsonResponse
     {
+        // Shipping method is already selected from checkout — we only need to pick a carrier
+        $method = $subOrder->shippingMethod;
+
+        if (!$method) {
+            return response()->json([
+                'method_assigned' => false,
+                'message' => __('admin.orders.shipping_method_not_assigned_yet'),
+                'carriers' => [],
+            ]);
+        }
+
         $snapshot = $subOrder->order->shipping_address_snapshot ?? [];
         $cityId = $snapshot['city_id'] ?? null;
 
         if (!$cityId) {
             $cityName = $snapshot['city'] ?? $snapshot['city_en'] ?? null;
             if ($cityName) {
-                $city = City::where('name_en', $cityName)
-                    ->first();
+                $city = City::where('name_en', $cityName)->first();
                 $cityId = $city?->id;
             }
         }
 
-        if (!$cityId) {
-            return response()->json([
-                'destination_zone' => null,
-                'methods' => ShippingMethod::where('is_active', true)
-                    ->orderBy('name')
-                    ->get(['id', 'name', 'code', 'min_delivery_days', 'max_delivery_days'])
-                    ->map(fn($method) => [
-                        'id' => $method->id,
-                        'name' => $method->name,
-                        'code' => $method->code,
-                        'min_delivery_days' => $method->min_delivery_days,
-                        'max_delivery_days' => $method->max_delivery_days,
-                        'rates' => [],
-                    ]),
-            ]);
-        }
+        $destinationZoneId = $cityId ? City::find($cityId)?->shipping_zone_id : null;
 
-        $destinationZoneId = City::find($cityId)?->shipping_zone_id;
-        abort_unless($destinationZoneId, 422, __('admin.orders.shipping_zone_not_assigned'));
-
-        $methods = ShippingMethod::where('is_active', true)
-            ->whereHas('shippingRates', fn($q) =>
-                $q->where('destination_zone_id', $destinationZoneId)
-                    ->where('is_active', true))
-            ->with([
-                'shippingRates' => fn($q) =>
-                    $q->where('destination_zone_id', $destinationZoneId)
-                        ->where('is_active', true)
-                        ->with('carrier')
-            ])
+        $carriers = ShippingRate::where('shipping_method_id', $method->id)
+            ->where('is_active', true)
+            ->when($destinationZoneId, fn($q) => $q->where('destination_zone_id', $destinationZoneId))
+            ->with('carrier')
             ->get()
-            ->map(fn($method) => [
-                'id' => $method->id,
-                'name' => $method->name,
-                'code' => $method->code,
-                'min_delivery_days' => $method->min_delivery_days,
-                'max_delivery_days' => $method->max_delivery_days,
-                'rates' => $method->shippingRates->map(fn($rate) => [
-                    'carrier_id' => $rate->carrier_id,
-                    'carrier_name' => $rate->carrier?->name,
-                    'base_fee' => $rate->base_fee,
-                    'cod_extra_fee' => $rate->cod_extra_fee,
-                    'free_shipping_threshold' => $rate->free_shipping_threshold,
-                ]),
+            ->map(fn($rate) => [
+                'carrier_id' => $rate->carrier_id,
+                'carrier_name' => $rate->carrier?->name ?? __('admin.orders.any_carrier'),
+                'carrier_code' => $rate->carrier?->code,
+                'base_fee' => $rate->base_fee,
+                'cod_extra_fee' => $rate->cod_extra_fee,
+                'free_shipping_threshold' => $rate->free_shipping_threshold,
+                'is_current' => $rate->carrier_id === $subOrder->carrier_id,
             ]);
 
         return response()->json([
-            'destination_zone' => ShippingZone::find($destinationZoneId)?->name,
-            'methods' => $methods,
+            'method_assigned' => true,
+            'method' => [
+                'id' => $method->id,
+                'name' => $method->name,
+                'min_delivery_days' => $method->min_delivery_days,
+                'max_delivery_days' => $method->max_delivery_days,
+            ],
+            'current_carrier_id' => $subOrder->carrier_id,
+            'destination_zone' => $destinationZoneId ? ShippingZone::find($destinationZoneId)?->name : null,
+            'carriers' => $carriers->values(),
         ]);
     }
 
     public function assignShippingMethod(Request $request, SubOrder $subOrder): JsonResponse
     {
         $request->validate([
-            'shipping_method_id' => 'required|uuid|exists:shipping_methods,id',
-            'carrier_id' => 'nullable|uuid|exists:shipping_carriers,id',
+            'carrier_id' => 'required|uuid|exists:shipping_carriers,id',
         ]);
 
         if (in_array($subOrder->status->value, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) {
             return response()->json(['success' => false, 'message' => __('admin.orders.cannot_change_shipping_after_shipped')], 422);
         }
 
-        $snapshot = $subOrder->order->shipping_address_snapshot ?? [];
-        $cityId = $snapshot['city_id'] ?? null;
-
-        if ($cityId) {
-            $destinationZoneId = City::find($cityId)?->shipping_zone_id;
-
-            $eligible = ShippingRate::where('destination_zone_id', $destinationZoneId)
-                ->where('shipping_method_id', $request->shipping_method_id)
-                ->where('is_active', true)
-                ->exists();
-
-            abort_unless($eligible, 422, __('admin.orders.shipping_method_not_available_for_zone'));
+        if (!$subOrder->shipping_method_id) {
+            return response()->json(['success' => false, 'message' => __('admin.orders.shipping_method_not_assigned_yet')], 422);
         }
 
         $fromStatus = $subOrder->status->value;
 
         $subOrder->update([
-            'shipping_method_id' => $request->shipping_method_id,
             'carrier_id' => $request->carrier_id,
         ]);
+
+        $carrier = ShippingCarrier::find($request->carrier_id);
 
         OrderStatusHistory::create([
             'order_id' => $subOrder->order_id,
@@ -554,17 +534,21 @@ class OrderController extends Controller
             'from_status' => $fromStatus,
             'to_status' => $fromStatus,
             'changed_by_admin_id' => auth('admin')->id(),
-            'reason' => __('admin.orders.shipping_method_assigned_reason', ['method' => ShippingMethod::find($request->shipping_method_id)?->name]),
+            'reason' => __('admin.orders.carrier_assigned_reason', ['carrier' => $carrier?->name]),
             'metadata' => json_encode([
-                'action' => 'shipping_method_assigned',
-                'shipping_method_id' => $request->shipping_method_id,
+                'action' => 'carrier_assigned',
                 'carrier_id' => $request->carrier_id,
+                'carrier_name' => $carrier?->name,
                 'assigned_by' => auth('admin')->id(),
                 'assigned_at' => now(),
             ]),
         ]);
 
-        return response()->json(['success' => true, 'message' => __('admin.orders.shipping_method_assigned')]);
+        return response()->json([
+            'success' => true,
+            'message' => __('admin.orders.carrier_assigned', ['carrier' => $carrier?->name]),
+            'carrier_name' => $carrier?->name,
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
