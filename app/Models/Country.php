@@ -64,9 +64,9 @@ class Country extends Model
     }
 
 
-    public function countryPaymentMethods(): HasMany
+    public function countryPaymentGateways(): HasMany
     {
-        return $this->hasMany(CountryPaymentMethod::class)->orderBy('sort_order');
+        return $this->hasMany(CountryPaymentGateway::class);
     }
 
     public function countryShippingSettings(): HasMany

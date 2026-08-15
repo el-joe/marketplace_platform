@@ -59,78 +59,56 @@ class CheckoutController extends Controller
      */
     public function paymentOptions(Request $request): JsonResponse
     {
-        $country = $request->attributes->get('country');
-
-        /** @var Customer $customer */
-        $customer = auth('customer')->user();
-
-        $methods = \App\Models\CountryPaymentMethod::where('country_id', $country->id)
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->get();
-
+        $country    = $request->attributes->get('country');
+        $customer   = auth('customer')->user();
         $orderTotal = (int) $request->query('order_total', 0);
-        $currency = $country->currency_code;
 
-        $shaped = $methods->map(function (\App\Models\CountryPaymentMethod $m) use ($orderTotal) {
-            $isRedirect = in_array($m->gateway_code, ['thawani', 'stripe', 'paypal'], true);
+        $gateways = \App\Models\CountryPaymentGateway::where('country_id', $country->id)
+            ->where('is_active', true)
+            ->with('gateway')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(function ($cpg) use ($orderTotal) {
+                $code      = $cpg->gateway?->code;
+                $feePct    = (float) $cpg->fee_pct;
+                $feeFixed  = (int) $cpg->fee_fixed;
+                $available = true;
+                $reason    = null;
 
-            $feePct = (float) $m->fee_pct;
-            $feeFixed = (int) $m->fee_fixed;
-            $gatewayFee = $orderTotal > 0
-                ? (int) round($orderTotal * ($feePct / 100)) + $feeFixed
-                : 0;
+                if ($cpg->min_order > 0 && $orderTotal > 0 && $orderTotal < $cpg->min_order) {
+                    $available = false;
+                    $reason    = 'Order below minimum.';
+                }
+                if ($cpg->max_order && $orderTotal > 0 && $orderTotal > $cpg->max_order) {
+                    $available = false;
+                    $reason    = 'Order exceeds maximum.';
+                }
 
-            $available = true;
-            $unavailableReason = null;
-
-            if ($m->min_order > 0 && $orderTotal > 0 && $orderTotal < $m->min_order) {
-                $available = false;
-                $unavailableReason = 'Order total below minimum for this payment method.';
-            }
-            if ($m->max_order !== null && $orderTotal > 0 && $orderTotal > $m->max_order) {
-                $available = false;
-                $unavailableReason = 'Order total exceeds maximum for this payment method.';
-            }
-
-            return [
-                'id' => $m->id,
-                'method_type' => $m->method_type,
-                'gateway_code' => $m->gateway_code,
-                'display_name' => [
-                    'en' => $m->display_name_en,
-                    'ar' => $m->display_name_ar,
-                ],
-                'provider_logo_url' => $m->provider_logo_path,
-                'fee_pct' => $feePct,
-                'fee_fixed' => $feeFixed,
-                'gateway_fee' => $gatewayFee,
-                'is_redirect' => $isRedirect,
-                'requires_token' => in_array($m->gateway_code, ['stripe'], true),
-                'is_available' => $available,
-                'unavailable_reason' => $unavailableReason,
-                'installments_count' => $m->installments_count,
-                'installment_label' => [
-                    'en' => $m->installment_label_en,
-                    'ar' => $m->installment_label_ar,
-                ],
-                'learn_more_url' => $m->learn_more_url,
-                'sort_order' => $m->sort_order,
-            ];
-        });
+                return [
+                    'id'            => $cpg->id,
+                    'gateway_code'  => $code,
+                    'type'          => $cpg->gateway?->type,
+                    'display_name'  => ['en' => $cpg->display_name_en, 'ar' => $cpg->display_name_ar],
+                    'image'         => $cpg->gateway?->image,
+                    'is_redirect'   => in_array($code, ['thawani', 'paytabs']),
+                    'fee_pct'       => $feePct,
+                    'fee_fixed'     => $feeFixed,
+                    'gateway_fee'   => $orderTotal > 0 ? (int) round($orderTotal * ($feePct / 100)) + $feeFixed : 0,
+                    'is_available'  => $available,
+                    'unavailable_reason' => $reason,
+                    'environment'   => $cpg->environment,
+                ];
+            });
 
         $wallet = \App\Models\CustomerWallet::where('customer_id', $customer->id)->first();
-        $walletApplicable = $wallet && $wallet->currency_code === $currency && $wallet->balance > 0;
 
         return ApiResponse::success([
-            'payment_options' => $shaped->values(),
+            'payment_options' => $gateways->values(),
             'wallet' => [
-                'balance' => $wallet?->balance ?? 0,
-                'currency_code' => $wallet?->currency_code ?? $currency,
-                'applicable' => $walletApplicable,
-                'max_usable' => $walletApplicable ? $wallet->balance : 0,
+                'balance'       => $wallet?->balance ?? 0,
+                'currency_code' => $wallet?->currency_code ?? $country->currency_code,
+                'applicable'    => $wallet && $wallet->currency_code === $country->currency_code && $wallet->balance > 0,
             ],
-            'currency' => $currency,
         ]);
     }
 

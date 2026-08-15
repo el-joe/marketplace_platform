@@ -21,7 +21,7 @@ use App\Jobs\FraudDetectionJob;
 use App\Jobs\NotifyVendorJob;
 use App\Jobs\OrderConfirmationEmailJob;
 use App\Models\Address;
-use App\Models\CountryPaymentMethod;
+use App\Models\CountryPaymentGateway;
 use App\Models\Coupon;
 use App\Models\CustomerWallet;
 use App\Exceptions\GiftCardCurrencyMismatchException;
@@ -244,14 +244,22 @@ class CheckoutController extends Controller
             $warrantyTotalCents
         );
 
-        $availablePaymentMethods = CountryPaymentMethod::where('country_id', $country->id)
+        $availableGateways = CountryPaymentGateway::where('country_id', $country->id)
             ->where('is_active', true)
-            ->pluck('method_type')
-            ->values()
-            ->all();
-        if ($country->cod_available && ! in_array('cod', $availablePaymentMethods, true)) {
-            $availablePaymentMethods[] = 'cod';
-        }
+            ->with('gateway')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn ($cpg) => [
+                'id'            => $cpg->id,
+                'gateway_code'  => $cpg->gateway?->code,
+                'display_name'  => ['en' => $cpg->display_name_en, 'ar' => $cpg->display_name_ar],
+                'type'          => $cpg->gateway?->type,
+                'is_redirect'   => in_array($cpg->gateway?->code, ['thawani', 'paytabs']),
+                'fee_pct'       => (float) $cpg->fee_pct,
+                'fee_fixed'     => (int) $cpg->fee_fixed,
+                'is_configured' => $cpg->is_configured,
+                'environment'   => $cpg->environment,
+            ])->values()->all();
 
         $items = CheckoutItemResource::collection(collect($cartItems)->values());
 
@@ -294,7 +302,7 @@ class CheckoutController extends Controller
             ],
             'address' => new CheckoutAddressResource($address, $country),
             'payment_method' => $validated['payment_method'],
-            'available_payment_methods' => $availablePaymentMethods,
+            'available_payment_gateways' => $availableGateways,
             'coupon' => $couponResponse,
             'wallet_balance' => $walletBalance,
             'wallet_currency' => $walletCurrency,
@@ -769,15 +777,11 @@ class CheckoutController extends Controller
                 'processed_at' => null,
             ]);
         } else {
-            $methodConfigQuery = CountryPaymentMethod::where('country_id', $country->id)
+            $methodConfig = CountryPaymentGateway::where('country_id', $country->id)
                 ->where('is_active', true)
-                ->where('method_type', $validated['payment_method']);
-
-            if (! empty($validated['gateway_code'])) {
-                $methodConfigQuery->where('gateway_code', $validated['gateway_code']);
-            }
-
-            $methodConfig = $methodConfigQuery->orderBy('sort_order')->first();
+                ->where('id', $validated['country_payment_gateway_id'])
+                ->with('gateway')
+                ->first();
 
             if (! $methodConfig) {
                 $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);

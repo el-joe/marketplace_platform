@@ -5,7 +5,7 @@ namespace App\Services\Customer;
 use App\Models\Address;
 use App\Models\Coupon;
 use App\Models\Country;
-use App\Models\CountryPaymentMethod;
+use App\Models\CountryPaymentGateway;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductBestsellerRanking;
@@ -344,50 +344,38 @@ class ProductDetailEnrichmentService
 
     public function getPaymentOptions(Country $country, int $productPriceCents, ?Customer $customer): array
     {
-        $methods = $this->cacheRememberTagged(
+        $gatewayIds = $this->cacheRememberTagged(
             "country_payment_methods_pdp:{$country->id}",
             600,
             ['payment_methods'],
-            fn() => CountryPaymentMethod::where('country_id', $country->id)
+            fn() => CountryPaymentGateway::where('country_id', $country->id)
                 ->where('is_active', true)
-                ->whereIn('method_type', ['bnpl', 'wallet'])
+                ->whereHas('gateway', fn ($q) => $q->whereIn('type', ['bnpl', 'wallet']))
                 ->orderBy('sort_order')
                 ->pluck('id')->toArray(),
         );
 
         $options = [];
-        $methods = CountryPaymentMethod::whereIn('id', $methods)->get();
+        $gateways = CountryPaymentGateway::whereIn('id', $gatewayIds)->with('gateway')->get();
 
-        foreach ($methods as $method) {
-            if ($method->min_order > 0 && $method->min_order > $productPriceCents) {
+        foreach ($gateways as $cpg) {
+            if ($cpg->min_order > 0 && $cpg->min_order > $productPriceCents) {
                 continue;
             }
-            if ($method->max_order !== null && $method->max_order < $productPriceCents) {
+            if ($cpg->max_order !== null && $cpg->max_order < $productPriceCents) {
                 continue;
             }
 
-            if ($method->method_type === 'bnpl') {
-                $installmentAmountCents = (int) floor($productPriceCents / max(1, $method->installments_count));
-                $formattedAmount = number_format($installmentAmountCents / 100, 2);
+            $type = $cpg->gateway?->type;
 
-                $label = $method->installment_label_en ?? 'Pay in {n} interest-free installments of {amount}';
-                $label = str_replace(
-                    ['{n}', '{amount}'],
-                    [$method->installments_count, $formattedAmount],
-                    $label,
-                );
-
+            if ($type === 'bnpl') {
                 $options[] = [
                     'method_type' => 'bnpl',
-                    'provider' => $method->provider,
-                    'display_name' => ['ar' => $method->display_name_ar, 'en' => $method->display_name_en],
-                    'installments_count' => $method->installments_count,
-                    'installment_amount' => $installmentAmountCents,
-                    'label' => $label,
-                    'provider_logo_path' => $method->provider_logo_path,
-                    'learn_more_url' => $method->learn_more_url,
+                    'provider' => $cpg->gateway?->code,
+                    'display_name' => ['ar' => $cpg->display_name_ar, 'en' => $cpg->display_name_en],
+                    'provider_logo_path' => $cpg->gateway?->image,
                 ];
-            } elseif ($method->method_type === 'wallet') {
+            } elseif ($type === 'wallet') {
                 if (!$customer) {
                     continue;
                 }
@@ -398,8 +386,8 @@ class ProductDetailEnrichmentService
 
                 $options[] = [
                     'method_type' => 'wallet',
-                    'provider' => $method->provider,
-                    'display_name' => ['ar' => $method->display_name_ar, 'en' => $method->display_name_en],
+                    'provider' => $cpg->gateway?->code,
+                    'display_name' => ['ar' => $cpg->display_name_ar, 'en' => $cpg->display_name_en],
                     'balance' => $wallet?->balance,
                 ];
             }

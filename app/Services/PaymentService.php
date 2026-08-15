@@ -3,12 +3,11 @@
 namespace App\Services;
 
 use App\DTOs\Payment\ConnectionTestResult;
-use App\Enums\CountryPaymentMethodVerificationStatus;
 use App\DTOs\Payment\PaymentInitiationData;
 use App\DTOs\Payment\PaymentInitiationResult;
 use App\DTOs\Payment\PaymentVerificationResult;
 use App\DTOs\Payment\RefundResult;
-use App\Models\CountryPaymentMethod;
+use App\Models\CountryPaymentGateway;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentGatewayFactory;
@@ -18,24 +17,24 @@ class PaymentService
 {
     public function initiatePayment(
         Order $order,
-        CountryPaymentMethod $methodConfig,
+        CountryPaymentGateway $gatewayConfig,
         ?string $idempotencyKey = null,
     ): PaymentInitiationResult {
-        $gateway        = PaymentGatewayFactory::make($methodConfig);
+        $gateway        = PaymentGatewayFactory::make($gatewayConfig);
         $idempotencyKey ??= (string) Str::uuid();
 
         $data = new PaymentInitiationData(
-            orderId: $order->id,
-            orderNumber: $order->order_number,
-            amountCents: $order->total,
-            currency: $methodConfig->effective_currency,
-            customerId: $order->customer_id,
+            orderId:       $order->id,
+            orderNumber:   $order->order_number,
+            amountCents:   $order->total,
+            currency:      $gatewayConfig->effective_currency,
+            customerId:    $order->customer_id,
             customerEmail: $order->customer->email,
             customerPhone: $order->customer->phone ?? null,
-            successUrl: route('checkout.success', $order->order_number),
-            cancelUrl: route('checkout.cancel', $order->order_number),
-            webhookUrl: route('webhooks.payment', $gateway->getCode()),
-            metadata: ['idempotency_key' => $idempotencyKey],
+            successUrl:    route('checkout.success', $order->order_number),
+            cancelUrl:     route('checkout.cancel', $order->order_number),
+            webhookUrl:    route('webhooks.payment', $gateway->getCode()),
+            metadata:      ['idempotency_key' => $idempotencyKey],
         );
 
         $result = $gateway->initiate($data);
@@ -45,7 +44,7 @@ class PaymentService
             'customer_id'            => $order->customer_id,
             'type'                   => 'authorization',
             'gateway'                => $gateway->getCode(),
-            'gateway_transaction_id' => $result->gatewayTransactionId ?? '',
+            'gateway_transaction_id' => $result->gatewayTransactionId ?? ('PENDING-' . $idempotencyKey),
             'idempotency_key'        => $idempotencyKey,
             'amount'                 => $order->total,
             'currency'               => $data->currency,
@@ -60,17 +59,17 @@ class PaymentService
 
     public function verifyAndCapture(PaymentTransaction $transaction): PaymentVerificationResult
     {
-        $methodConfig = CountryPaymentMethod::byGateway($transaction->gateway)
+        $gatewayConfig = CountryPaymentGateway::byGatewayCode($transaction->gateway)
             ->forCountry($transaction->order->customer->country_id)
             ->firstOrFail();
 
-        $gateway = PaymentGatewayFactory::make($methodConfig);
+        $gateway = PaymentGatewayFactory::make($gatewayConfig);
         $result  = $gateway->verify($transaction->gateway_transaction_id);
 
         $transaction->update([
             'status'          => $result->status,
-            'failure_code'    => $result->failureCode,
-            'failure_message' => $result->failureMessage,
+            'failure_code'    => $result->failureCode    ?? null,
+            'failure_message' => $result->failureMessage ?? null,
             'raw_response'    => $result->rawResponse,
             'processed_at'    => now(),
         ]);
@@ -87,16 +86,12 @@ class PaymentService
         int $amountCents,
         string $reason,
     ): RefundResult {
-        $methodConfig = CountryPaymentMethod::byGateway($originalTransaction->gateway)
+        $gatewayConfig = CountryPaymentGateway::byGatewayCode($originalTransaction->gateway)
             ->forCountry($originalTransaction->order->customer->country_id)
             ->firstOrFail();
 
-        $gateway = PaymentGatewayFactory::make($methodConfig);
-        $result  = $gateway->refund(
-            $originalTransaction->gateway_transaction_id,
-            $amountCents,
-            $reason,
-        );
+        $gateway = PaymentGatewayFactory::make($gatewayConfig);
+        $result  = $gateway->refund($originalTransaction->gateway_transaction_id, $amountCents, $reason);
 
         if ($result->success) {
             PaymentTransaction::create([
@@ -104,9 +99,9 @@ class PaymentService
                 'customer_id'            => $originalTransaction->customer_id,
                 'type'                   => 'refund',
                 'gateway'                => $gateway->getCode(),
-                'gateway_transaction_id' => $result->refundTransactionId ?? '',
+                'gateway_transaction_id' => $result->refundTransactionId ?? ('REFUND-' . Str::uuid()),
                 'idempotency_key'        => (string) Str::uuid(),
-                'amount'                 => $result->refundedAmountCents,
+                'amount'                 => -$result->refundedAmountCents,
                 'currency'               => $originalTransaction->currency,
                 'status'                 => 'succeeded',
                 'raw_response'           => $result->rawResponse,
@@ -117,14 +112,14 @@ class PaymentService
         return $result;
     }
 
-    public function testGatewayConnection(CountryPaymentMethod $methodConfig): ConnectionTestResult
+    public function testGatewayConnection(CountryPaymentGateway $gatewayConfig): ConnectionTestResult
     {
-        $gateway = PaymentGatewayFactory::make($methodConfig);
+        $gateway = PaymentGatewayFactory::make($gatewayConfig);
         $result  = $gateway->testConnection();
 
-        $methodConfig->update([
+        $gatewayConfig->update([
             'last_verified_at'           => now(),
-            'last_verification_status'   => $result->success ? CountryPaymentMethodVerificationStatus::Success : CountryPaymentMethodVerificationStatus::Failed,
+            'last_verification_status'   => $result->success ? 'success' : 'failed',
             'last_verification_message'  => $result->message,
         ]);
 

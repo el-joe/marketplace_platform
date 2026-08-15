@@ -18,7 +18,7 @@ class PaymentGatewayWebhookLog extends Model
     const UPDATED_AT = null;
 
     protected $fillable = [
-        'country_payment_method_id',
+        'country_payment_gateway_id',
         'gateway_code',
         'event_type',
         'payload',
@@ -45,9 +45,9 @@ class PaymentGatewayWebhookLog extends Model
         static::deleting(fn() => throw new \LogicException('WebhookLog records are append-only.'));
     }
 
-    public function countryPaymentMethod(): BelongsTo
+    public function countryGateway(): BelongsTo
     {
-        return $this->belongsTo(CountryPaymentMethod::class);
+        return $this->belongsTo(CountryPaymentGateway::class, 'country_payment_gateway_id');
     }
 
     public function paymentTransaction(): BelongsTo

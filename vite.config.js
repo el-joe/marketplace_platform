@@ -63,6 +63,7 @@ export default defineConfig({
                 'resources/js/admin/analytics.js',
                 'resources/js/admin/activity-log.js',
                 'resources/js/admin/payment-methods.js',
+                'resources/js/admin/payment-gateways.js',
                 'resources/js/admin/shipping-settings.js',
                 'resources/js/admin/shipping-method-show.js',
                 'resources/js/admin/shipping-weight-slabs.js',

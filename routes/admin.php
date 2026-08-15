@@ -1153,9 +1153,19 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     });
 
     // ─── Payment Gateways (DB-credential Strategy Pattern) ───────────────────
-    Route::prefix('payment-gateways')->name('payment-gateways.')->middleware('admin.permission:settings.view')->group(function () {
-        Route::get('/', [PaymentMethodController::class, 'gatewayIndex'])->name('index');
-    });
+    Route::prefix('payment-gateways')
+        ->name('payment-gateways.')
+        ->middleware('admin.permission:settings.view')
+        ->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'store'])->name('store')->middleware('admin.permission:settings.edit');
+            Route::put('/{countryGateway}', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
+            Route::delete('/{countryGateway}', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'destroy'])->name('destroy')->middleware('admin.permission:settings.edit');
+            Route::post('/{countryGateway}/toggle', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:settings.edit');
+            Route::post('/{countryGateway}/test-connection', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'testConnection'])->name('test-connection')->middleware('admin.permission:settings.edit');
+            Route::get('/{countryGateway}/webhook-logs', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'webhookLogs'])->name('webhook-logs');
+            Route::post('/sort-order', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'updateSortOrder'])->name('sort-order')->middleware('admin.permission:settings.edit');
+        });
 
     // ─── Payment Methods ──────────────────────────────────────────────────────
     Route::prefix('payment-methods')->name('payment-methods.')->middleware('admin.permission:settings.view')->group(function () {

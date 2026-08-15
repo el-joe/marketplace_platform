@@ -17,6 +17,7 @@ class PlaceOrderRequest extends FormRequest
         return [
             'address_id'         => ['required', 'integer', 'exists:addresses,id'],
             'payment_method'     => ['required', Rule::in(['card', 'wallet', 'cod', 'bnpl', 'bank_transfer'])],
+            'country_payment_gateway_id' => ['required', 'uuid', 'exists:country_payment_gateways,id'],
             'coupon_code'        => ['nullable', 'string', 'max:50'],
             'wallet_amount_to_use' => ['nullable', 'integer', 'min:1'],
             'wallet_amount_used' => ['nullable', 'integer', 'min:0'],
@@ -24,7 +25,6 @@ class PlaceOrderRequest extends FormRequest
             'idempotency_key'    => ['required', 'string', 'max:100'],
             'gateway_token'      => ['required_if:payment_method,card', 'nullable', 'string'],
             'gateway'            => ['required_if:payment_method,card', 'nullable', 'string', Rule::in(['thawani', 'stripe', 'tap'])],
-            'gateway_code'       => ['nullable', 'string', 'max:50'],
             'warranty_selections' => ['nullable', 'array'],
             'warranty_selections.*.listing_id' => ['required_with:warranty_selections', 'uuid'],
             'warranty_selections.*.warranty_plan_id' => ['required_with:warranty_selections', 'uuid'],

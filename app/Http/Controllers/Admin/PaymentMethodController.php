@@ -232,23 +232,6 @@ class PaymentMethodController extends Controller
         return response()->json($logs);
     }
 
-    public function gatewayIndex()
-    {
-        $countries         = Country::where('is_active', 1)->orderBy('name_en')->get();
-        $availableGateways = PaymentGatewayFactory::availableCodes();
-        $currencies        = Currency::where('is_active', 1)->orderBy('code')->get();
-
-        $methods = CountryPaymentMethod::with('country')
-            ->orderBy('country_id')
-            ->orderBy('sort_order')
-            ->get()
-            ->groupBy('country_id');
-
-        return view('admin.payment-gateways.index', compact(
-            'countries', 'availableGateways', 'currencies', 'methods'
-        ));
-    }
-
     // ── Legacy methods (existing config-based gateways) ───────────────────────
 
     public function testGateway(Request $request): JsonResponse

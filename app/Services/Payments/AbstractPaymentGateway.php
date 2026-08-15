@@ -3,14 +3,13 @@
 namespace App\Services\Payments;
 
 use App\Contracts\Payments\PaymentGatewayInterface;
-use App\Enums\CountryPaymentMethodEnvironment;
-use App\Models\CountryPaymentMethod;
+use App\Models\CountryPaymentGateway;
 use App\Models\PaymentGatewayWebhookLog;
 
 abstract class AbstractPaymentGateway implements PaymentGatewayInterface
 {
     public function __construct(
-        protected CountryPaymentMethod $config,
+        protected CountryPaymentGateway $config,
     ) {}
 
     protected function credentials(): array
@@ -20,7 +19,7 @@ abstract class AbstractPaymentGateway implements PaymentGatewayInterface
 
     protected function isProduction(): bool
     {
-        return $this->config->environment === CountryPaymentMethodEnvironment::Production;
+        return $this->config->isProduction();
     }
 
     protected function settlementCurrency(): string
@@ -36,13 +35,13 @@ abstract class AbstractPaymentGateway implements PaymentGatewayInterface
         ?string $transactionId = null,
     ): PaymentGatewayWebhookLog {
         return PaymentGatewayWebhookLog::create([
-            'country_payment_method_id' => $this->config->id,
-            'gateway_code'              => $this->getCode(),
-            'event_type'                => $eventType,
-            'payload'                   => $payload,
-            'headers'                   => $headers,
-            'signature_valid'           => $signatureValid,
-            'payment_transaction_id'    => $transactionId,
+            'country_payment_gateway_id' => $this->config->id,
+            'gateway_code'               => $this->getCode(),
+            'event_type'                 => $eventType,
+            'payload'                    => $payload,
+            'headers'                    => $headers,
+            'signature_valid'            => $signatureValid,
+            'payment_transaction_id'     => $transactionId,
         ]);
     }
 }

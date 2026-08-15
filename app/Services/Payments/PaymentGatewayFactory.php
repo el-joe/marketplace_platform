@@ -3,57 +3,47 @@
 namespace App\Services\Payments;
 
 use App\Contracts\Payments\PaymentGatewayInterface;
-use App\Models\CountryPaymentMethod;
+use App\Models\CountryPaymentGateway;
 
-/**
- * DB-credential-aware factory for the Strategy Pattern gateways.
- * Each gateway receives its CountryPaymentMethod config (with encrypted
- * credentials) rather than pulling from .env/config files.
- */
 class PaymentGatewayFactory
 {
-    /** @var array<string, class-string<AbstractPaymentGateway>> */
+    /** Maps gateway code → implementation class */
     private static array $map = [
         'thawani'       => ThawaniGateway::class,
-        'stripe'        => StripeGateway::class,
+        'paytabs'       => PaytabsGateway::class,
         'bank_transfer' => BankTransferGateway::class,
-        // 'paytabs'    => PaytabsGateway::class,
-        // 'tabby'      => TabbyGateway::class,
-        // 'noon_pay'   => NoonPayGateway::class,
-        // 'cod'        => CodGateway::class,
-        // 'paypal'     => PaypalGateway::class,  // add when implemented
+        // 'stripe'     => StripeGateway::class,
+        // 'cod'        => CodGateway::class,    // no-op, no API
+        // 'wallet'     => WalletGateway::class, // handled internally
     ];
 
-    public static function make(CountryPaymentMethod $config): PaymentGatewayInterface
+    public static function make(CountryPaymentGateway $config): PaymentGatewayInterface
     {
-        $code = $config->gateway_code;
+        $code = $config->gateway?->code;
 
-        if (!isset(self::$map[$code])) {
+        if (!$code || !isset(self::$map[$code])) {
             throw new \InvalidArgumentException(
                 "No gateway implementation registered for code: {$code}"
             );
         }
 
-        $class = self::$map[$code];
-
-        return new $class($config);
+        return new (self::$map[$code])($config);
     }
 
-    public static function makeForCountryAndType(
-        string $countryId,
-        string $methodType,
-    ): PaymentGatewayInterface {
-        $config = CountryPaymentMethod::active()
-            ->forCountry($countryId)
-            ->where('method_type', $methodType)
-            ->firstOrFail();
-
-        return self::make($config);
-    }
-
-    /** @return string[] */
-    public static function availableCodes(): array
+    public static function supports(string $code): bool
     {
-        return array_keys(self::$map);
+        return isset(self::$map[$code]);
+    }
+
+    /** Codes that require a browser redirect to an external checkout page */
+    public static function redirectCodes(): array
+    {
+        return ['thawani', 'paytabs'];
+    }
+
+    /** Codes that need no API and are handled internally */
+    public static function internalCodes(): array
+    {
+        return ['cod', 'wallet', 'bank_transfer'];
     }
 }

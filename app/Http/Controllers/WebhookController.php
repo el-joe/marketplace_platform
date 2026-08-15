@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CountryPaymentMethod;
+use App\Models\CountryPaymentGateway;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use App\Services\Payments\PaymentGatewayFactory;
@@ -13,7 +13,7 @@ class WebhookController extends Controller
 {
     public function payment(Request $request, string $gatewayCode): JsonResponse
     {
-        $methodConfig = CountryPaymentMethod::byGateway($gatewayCode)->active()->first();
+        $methodConfig = CountryPaymentGateway::byGatewayCode($gatewayCode)->active()->first();
 
         if (!$methodConfig) {
             return response()->json(['error' => 'No active config for gateway'], 404);

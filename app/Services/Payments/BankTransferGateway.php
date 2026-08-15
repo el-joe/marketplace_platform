@@ -15,7 +15,7 @@ use App\Enums\PaymentTransactionStatus;
  * Customer is shown bank account details from credentials.
  * Admin manually confirms receipt and marks as captured.
  *
- * Credentials stored in country_payment_methods.credentials_encrypted:
+ * Credentials stored in country_payment_gateways.credentials_encrypted:
  *   {
  *     "bank_name": "Bank Muscat",
  *     "account_name": "Marketplace LLC",
