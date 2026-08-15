@@ -55,7 +55,16 @@ class DeliveryZoneController extends Controller
             'is_active' => ['boolean'],
         ]);
 
-        $zone = DeliveryZone::create($validated);
+        $zone = DeliveryZone::create([
+            'country_id' => $validated['country_id'],
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'city_ids' => $validated['city_ids'] ?? null,
+            'base_delivery_fee_cents' => $validated['base_delivery_fee'],
+            'cod_fee_cents' => $validated['cod_fee'],
+            'max_active_agents' => $validated['max_active_agents'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -89,7 +98,16 @@ class DeliveryZoneController extends Controller
             'is_active' => ['boolean'],
         ]);
 
-        $zone->update($validated);
+        $zone->update([
+            'country_id' => $validated['country_id'],
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'city_ids' => $validated['city_ids'] ?? null,
+            'base_delivery_fee_cents' => $validated['base_delivery_fee'],
+            'cod_fee_cents' => $validated['cod_fee'],
+            'max_active_agents' => $validated['max_active_agents'] ?? null,
+            'is_active' => $validated['is_active'] ?? $zone->is_active,
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Zone updated.']);
     }

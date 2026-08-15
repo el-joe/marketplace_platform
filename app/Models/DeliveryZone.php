@@ -17,8 +17,8 @@ class DeliveryZone extends Model
         'code',
         'city_ids',
         'polygon_coordinates',
-        'base_delivery_fee',
-        'cod_fee',
+        'base_delivery_fee_cents',
+        'cod_fee_cents',
         'max_active_agents',
         'is_active',
     ];
@@ -29,8 +29,8 @@ class DeliveryZone extends Model
             'city_ids' => 'array',
             'polygon_coordinates' => 'array',
             'is_active' => 'boolean',
-            'base_delivery_fee' => 'integer',
-            'cod_fee' => 'integer',
+            'base_delivery_fee_cents' => 'integer',
+            'cod_fee_cents' => 'integer',
         ];
     }
 
@@ -53,13 +53,13 @@ class DeliveryZone extends Model
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    public function getBaseDeliveryFeeAttribute(): float
+    public function getBaseDeliveryFeeAttribute(): int
     {
-        return $this->base_delivery_fee / 100;
+        return (int) $this->base_delivery_fee_cents;
     }
 
-    public function getCodFeeAttribute(): float
+    public function getCodFeeAttribute(): int
     {
-        return $this->cod_fee / 100;
+        return (int) $this->cod_fee_cents;
     }
 }
