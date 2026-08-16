@@ -81,8 +81,16 @@
     <div class="lg:col-span-2 space-y-6">
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100">
-                <h2 class="font-bold text-gray-900">{{ __('admin.shipping_section.supervisors') }}</h2>
-                <p class="text-xs text-gray-500 mt-0.5">{{ __('admin.shipping_section.supervisors_desc') }}</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-gray-900">{{ __('admin.shipping_section.supervisors') }}</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ __('admin.shipping_section.supervisors_desc') }}</p>
+                    </div>
+                    <button type="button" id="btn-add-supervisor"
+                            class="btn btn-primary btn-sm">
+                        + {{ __('admin.shipping_section.add_supervisor') }}
+                    </button>
+                </div>
             </div>
             @if($shippingCompany->supervisors->isEmpty())
             <div class="px-6 py-8 text-center text-gray-400 text-sm">{{ __('admin.shipping_section.no_supervisors') }}</div>
@@ -93,9 +101,11 @@
                         <tr>
                             <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.name_col') }}</th>
                             <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.email_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('common.country') }}</th>
                             <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.permissions_col') }}</th>
                             <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.active_col') }}</th>
                             <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.notifications_col') }}</th>
+                            <th class="px-6 py-3 text-end font-semibold"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -103,6 +113,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-3 font-medium text-gray-900">{{ $sup->name }}</td>
                             <td class="px-6 py-3 text-gray-500">{{ $sup->email }}</td>
+                            <td class="px-6 py-3 text-gray-500">{{ $sup->country?->name_en ?? '—' }}</td>
                             <td class="px-6 py-3">
                                 <div class="flex flex-wrap gap-1">
                                     @foreach($sup->permissions ?? [] as $perm)
@@ -126,6 +137,13 @@
                                                 ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                                                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">
                                     {{ $sup->receives_all_notifications ? __('admin.shipping_section.notif_on') : __('admin.shipping_section.notif_off') }}
+                                </button>
+                            </td>
+                            <td class="px-6 py-3 text-end">
+                                <button type="button"
+                                        class="btn-delete-supervisor text-xs text-red-500 hover:text-red-700 font-medium"
+                                        data-url="{{ route('admin.shipping-companies.supervisors.destroy', $sup->id) }}">
+                                    {{ __('common.delete') }}
                                 </button>
                             </td>
                         </tr>
@@ -176,8 +194,151 @@
     </div>
 </div>
 
+{{-- ─── Add Supervisor Modal ──────────────────────────────────────────────── --}}
+<div id="supervisor-modal" class="modal-backdrop hidden">
+    <div class="modal-box w-full max-w-lg !p-0 overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900">{{ __('admin.shipping_section.add_supervisor') }}</h3>
+            <button type="button" id="supervisor-modal-close" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </div>
+
+        <form id="supervisor-form">
+            @csrf
+            <input type="hidden" name="shipping_company_id" value="{{ $shippingCompany->id }}">
+
+            <div class="px-6 py-5 space-y-4">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.full_name') }} <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" class="form-input w-full" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.email_required') }} <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" class="form-input w-full" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.phone_required') }}</label>
+                        <input type="text" name="phone" class="form-input w-full">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('common.country') }}</label>
+                        <select name="country_id" class="form-input w-full">
+                            <option value="">— {{ __('admin.shipping_section.supervisor_country_any') }} —</option>
+                            @foreach($countries as $country)
+                                <option value="{{ $country->id }}">{{ $country->name_en }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.shipping_section.supervisor_country_note') }}</p>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('admin.shipping_section.permissions_col') }} <span class="text-red-500">*</span></label>
+                        <div class="grid grid-cols-2 gap-2">
+                            @foreach(['manage_agents' => 'Manage Agents', 'view_orders' => 'View Orders', 'assign_orders' => 'Assign Orders', 'view_reports' => 'View Reports'] as $value => $label)
+                            <label class="flex items-center gap-2 text-sm text-gray-700">
+                                <input type="checkbox" name="permissions[]" value="{{ $value }}"
+                                       class="rounded border-gray-300 text-primary-600">
+                                {{ $label }}
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <div id="supervisor-temp-password-notice" class="hidden bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p class="text-xs font-medium text-amber-800">{{ __('admin.shipping_section.temp_password_label') }}</p>
+                    <p id="supervisor-temp-password-value" class="font-mono text-sm text-amber-900 mt-1 break-all"></p>
+                    <p class="text-xs text-amber-600 mt-1">{{ __('admin.shipping_section.temp_password_note') }}</p>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+                <button type="button" id="supervisor-modal-close-btn" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+                <button type="submit" id="supervisor-form-submit" class="btn btn-primary btn-sm">{{ __('admin.shipping_section.create_supervisor') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @push('scripts')
 <script>
+// ── Supervisor Modal ───────────────────────────────────────────────────────
+const supervisorModal = document.getElementById('supervisor-modal');
+const supervisorForm  = document.getElementById('supervisor-form');
+
+document.getElementById('btn-add-supervisor').addEventListener('click', () => {
+    supervisorForm.reset();
+    document.getElementById('supervisor-temp-password-notice').classList.add('hidden');
+    supervisorModal.classList.remove('hidden');
+});
+
+['supervisor-modal-close', 'supervisor-modal-close-btn'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => {
+        supervisorModal.classList.add('hidden');
+    });
+});
+
+supervisorForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('supervisor-form-submit');
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    const formData = new FormData(supervisorForm);
+
+    try {
+        const res = await fetch('{{ route('admin.shipping-companies.supervisors.store') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: formData,
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            // Show temp password
+            document.getElementById('supervisor-temp-password-value').textContent = data.temp_password;
+            document.getElementById('supervisor-temp-password-notice').classList.remove('hidden');
+            btn.disabled = true;
+            btn.textContent = '{{ __('common.saved') }}';
+
+            // Reload page after 3 seconds so the new supervisor appears in the table
+            setTimeout(() => location.reload(), 3000);
+        } else {
+            btn.disabled = false;
+            btn.textContent = '{{ __('admin.shipping_section.create_supervisor') }}';
+            alert(data.message ?? 'An error occurred.');
+        }
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = '{{ __('admin.shipping_section.create_supervisor') }}';
+        console.error(err);
+    }
+});
+
+// ── Supervisor Delete ──────────────────────────────────────────────────────
+document.querySelectorAll('.btn-delete-supervisor').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (!confirm('{{ __('admin.shipping_section.confirm_delete_supervisor') }}')) return;
+        const url  = btn.dataset.url;
+        const row  = btn.closest('tr');
+
+        const res  = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+        });
+        const data = await res.json();
+        if (data.success) row.remove();
+        else alert(data.message ?? 'Could not delete supervisor.');
+    });
+});
+
 function toggleNotifications(supervisorId, btn) {
     const url = btn.dataset.url;
     fetch(url, {

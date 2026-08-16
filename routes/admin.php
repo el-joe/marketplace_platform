@@ -1492,6 +1492,14 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{shippingCompany}/approve', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'approve'])->name('approve');
         Route::post('/{shippingCompany}/suspend', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'suspend'])->name('suspend');
         Route::post('/supervisors/{supervisor}/toggle-notifications', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'toggleSupervisorNotifications'])->name('supervisors.toggle-notifications');
+
+        Route::post('/supervisors', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'storeSupervisor'])
+            ->name('supervisors.store')
+            ->middleware('admin.permission:settings.edit');
+
+        Route::delete('/supervisors/{supervisor}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'destroySupervisor'])
+            ->name('supervisors.destroy')
+            ->middleware('admin.permission:settings.edit');
         Route::get('/fallback-rules', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'fallbackRules'])->name('fallback-rules.index');
         Route::post('/fallback-rules', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'storeFallbackRule'])->name('fallback-rules.store');
         Route::delete('/fallback-rules/{rule}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'destroyFallbackRule'])->name('fallback-rules.destroy');

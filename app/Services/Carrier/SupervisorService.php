@@ -19,6 +19,7 @@ class SupervisorService
 
         $supervisor = ShippingCompanySupervisor::create([
             'shipping_company_id' => $company->id,
+            'country_id'          => $data['country_id'] ?? null,
             'name'                => $data['name'],
             'email'               => $data['email'],
             'phone'               => $data['phone'] ?? null,

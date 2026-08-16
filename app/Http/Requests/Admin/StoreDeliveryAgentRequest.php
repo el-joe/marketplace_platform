@@ -23,6 +23,7 @@ class StoreDeliveryAgentRequest extends FormRequest
             'password' => ['required', 'string', 'min:8'],
             'country_id' => ['required', 'exists:countries,id'],
             'zone_id' => ['nullable', 'exists:delivery_zones,id'],
+            'shipping_company_id' => ['nullable', 'exists:shipping_companies,id'],
             'agent_type' => ['required', Rule::enum(DeliveryAgentType::class)],
             'vehicle_type' => ['required', Rule::enum(DeliveryAgentVehicleType::class)],
             'national_id' => ['nullable', 'string', 'max:30'],

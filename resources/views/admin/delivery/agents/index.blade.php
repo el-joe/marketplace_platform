@@ -200,6 +200,16 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.vehicle_plate') }}</label>
                             <input type="text" name="vehicle_plate" class="form-input w-full">
                         </div>
+                        <div id="shipping-company-field" class="col-span-2 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.shipping_company') }}</label>
+                            <select name="shipping_company_id" class="form-input w-full">
+                                <option value="">— {{ __('admin.delivery_section.select_company') }} —</option>
+                                @foreach($shippingCompanies as $company)
+                                    <option value="{{ $company->id }}">{{ $company->name }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">{{ __('admin.delivery_section.shipping_company_note') }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -236,6 +246,20 @@ Object.assign(window.TRANSLATIONS, {
 (function () {
     const DATATABLE_URL = @json(route('admin.delivery.agents.datatable'));
     const STORE_URL     = @json(route('admin.delivery.agents.store'));
+
+    // ── Toggle shipping company field for third_party agents ────────────────
+    const agentTypeSelect = document.querySelector('#agent-form select[name="agent_type"]');
+    const companyField    = document.getElementById('shipping-company-field');
+
+    function toggleCompanyField() {
+        const isThirdParty = agentTypeSelect?.value === 'third_party';
+        companyField?.classList.toggle('hidden', !isThirdParty);
+        const companySelect = companyField?.querySelector('select');
+        if (companySelect) companySelect.required = isThirdParty;
+    }
+
+    agentTypeSelect?.addEventListener('change', toggleCompanyField);
+    toggleCompanyField();
 
     // ── DataTable ─────────────────────────────────────────────────────────────
     const table = $('#agents-table').DataTable({

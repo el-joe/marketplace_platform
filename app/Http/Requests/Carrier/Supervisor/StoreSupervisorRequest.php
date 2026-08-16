@@ -16,6 +16,7 @@ class StoreSupervisorRequest extends FormRequest
             'name'            => ['required', 'string', 'max:255'],
             'email'           => ['required', 'email', 'max:255', 'unique:shipping_company_supervisors,email'],
             'phone'           => ['nullable', 'string', 'max:30'],
+            'country_id'      => ['nullable', 'string', 'exists:countries,id'],
             'permissions'     => ['required', 'array', 'min:1'],
             'permissions.*'   => ['string', 'in:' . implode(',', self::ALLOWED_PERMISSIONS)],
         ];

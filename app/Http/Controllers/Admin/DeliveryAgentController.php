@@ -8,10 +8,12 @@ use App\Enums\DeliveryAgentType;
 use App\Enums\DeliveryAgentVehicleType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDeliveryAgentRequest;
+use App\Enums\ShippingCompanyStatus;
 use App\Models\Country;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentDocument;
 use App\Models\DeliveryZone;
+use App\Models\ShippingCompany;
 use App\Traits\HasDataTable;
 use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
@@ -37,6 +39,9 @@ class DeliveryAgentController extends Controller
 
         $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
         $zones = DeliveryZone::where('is_active', true)->orderBy('name')->get(['id', 'name', 'country_id']);
+        $shippingCompanies = ShippingCompany::where('status', ShippingCompanyStatus::Active)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $stats = [
             'total' => DeliveryAgent::withoutTrashed()->count(),
@@ -53,6 +58,7 @@ class DeliveryAgentController extends Controller
             ],
             'countries' => $countries,
             'zones' => $zones,
+            'shippingCompanies' => $shippingCompanies,
             'stats' => $stats,
         ]);
     }
