@@ -406,7 +406,7 @@
 <script>
 // ── Company Edit Modal ───────────────────────────────────────────────────────
 (() => {
-    const BASE_URL  = @json(url('admin/shipping-companies'));
+    const BASE_URL  = @json(url('shipping-companies'));
     const CSRF      = () => document.querySelector('meta[name="csrf-token"]').content;
     const modal     = document.getElementById('company-modal');
     const form      = document.getElementById('company-form');
