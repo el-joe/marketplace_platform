@@ -154,6 +154,17 @@
                             </td>
                             <td class="px-6 py-3 text-end">
                                 <button type="button"
+                                        class="btn-edit-supervisor text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                                        data-id="{{ $sup->id }}"
+                                        data-name="{{ $sup->name }}"
+                                        data-email="{{ $sup->email }}"
+                                        data-phone="{{ $sup->phone ?? '' }}"
+                                        data-country-id="{{ $sup->country_id ?? '' }}"
+                                        data-permissions="{{ json_encode($sup->permissions ?? []) }}"
+                                        data-is-active="{{ $sup->is_active ? '1' : '0' }}">
+                                    {{ __('common.edit') }}
+                                </button>
+                                <button type="button"
                                         class="btn-delete-supervisor text-xs text-red-500 hover:text-red-700 font-medium"
                                         data-url="{{ route('admin.shipping-companies.supervisors.destroy', $sup->id) }}">
                                     {{ __('common.delete') }}
@@ -211,12 +222,14 @@
 <div id="supervisor-modal" class="modal-backdrop hidden">
     <div class="modal-box w-full max-w-lg !p-0 overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-900">{{ __('admin.shipping_section.add_supervisor') }}</h3>
+            <h3 id="supervisor-modal-title" class="text-lg font-semibold text-gray-900">{{ __('admin.shipping_section.add_supervisor') }}</h3>
             <button type="button" id="supervisor-modal-close" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
 
-        <form id="supervisor-form">
+        <form id="supervisor-form" method="POST">
             @csrf
+            <input type="hidden" name="_method" id="supervisor-method" value="POST">
+            <input type="hidden" id="supervisor-id" value="">
             <input type="hidden" name="shipping_company_id" value="{{ $shippingCompany->id }}">
 
             <div class="px-6 py-5 space-y-4">
@@ -242,7 +255,12 @@
                                 <option value="{{ $country->id }}">{{ $country->name_en }}</option>
                             @endforeach
                         </select>
-                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.shipping_section.supervisor_country_note') }}</p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            {{ __('admin.shipping_section.supervisor_country_note') }}
+                            @if(collect($shippingCompany->served_countries ?? [])->push($shippingCompany->country_id)->filter()->isNotEmpty())
+                                {{ __('admin.shipping_section.supervisor_country_restricted') }}
+                            @endif
+                        </p>
                     </div>
                     <div class="col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('admin.shipping_section.permissions_col') }} <span class="text-red-500">*</span></label>
@@ -254,6 +272,39 @@
                                 {{ $label }}
                             </label>
                             @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Password section --}}
+                <div id="supervisor-password-section">
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 id="supervisor-password-label"
+                            class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
+                            {{ __('admin.shipping_section.password_section_create') }}
+                        </h4>
+                        <div id="supervisor-password-auto" class="text-sm text-gray-500 italic">
+                            {{ __('admin.shipping_section.password_auto_generated') }}
+                        </div>
+                        <div id="supervisor-password-manual" class="hidden grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ __('admin.shipping_section.new_password') }}
+                                </label>
+                                <input type="password" name="password" id="supervisor-new-password"
+                                       class="form-input w-full" minlength="8"
+                                       placeholder="{{ __('admin.shipping_section.password_leave_blank') }}">
+                                <p class="text-xs text-gray-400 mt-1">
+                                    {{ __('admin.shipping_section.password_leave_blank_hint') }}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ __('admin.shipping_section.confirm_password') }}
+                                </label>
+                                <input type="password" name="password_confirmation" id="supervisor-confirm-password"
+                                       class="form-input w-full" minlength="8">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -486,11 +537,64 @@
 // ── Supervisor Modal ───────────────────────────────────────────────────────
 const supervisorModal = document.getElementById('supervisor-modal');
 const supervisorForm  = document.getElementById('supervisor-form');
+const SUPERVISOR_STORE_URL = '{{ route('admin.shipping-companies.supervisors.store') }}';
 
-document.getElementById('btn-add-supervisor').addEventListener('click', () => {
+function supervisorUpdateUrl(id) {
+    return '{{ url('admin/shipping-companies/supervisors') }}/' + id;
+}
+
+function openSupervisorModal(mode, data) {
     supervisorForm.reset();
     document.getElementById('supervisor-temp-password-notice').classList.add('hidden');
+    document.getElementById('supervisor-new-password').value     = '';
+    document.getElementById('supervisor-confirm-password').value = '';
+
+    const isEdit = mode === 'edit';
+
+    document.getElementById('supervisor-modal-title').textContent = isEdit
+        ? @json(__('admin.shipping_section.edit_supervisor'))
+        : @json(__('admin.shipping_section.add_supervisor'));
+
+    document.getElementById('supervisor-form-submit').textContent = isEdit
+        ? @json(__('common.save_changes'))
+        : @json(__('admin.shipping_section.create_supervisor'));
+
+    document.getElementById('supervisor-method').value = isEdit ? 'PUT' : 'POST';
+    document.getElementById('supervisor-id').value     = isEdit ? data.id : '';
+
+    document.getElementById('supervisor-password-auto').classList.toggle('hidden', isEdit);
+    document.getElementById('supervisor-password-manual').classList.toggle('hidden', !isEdit);
+
+    if (isEdit) {
+        supervisorForm.querySelector('[name="name"]').value       = data.name;
+        supervisorForm.querySelector('[name="email"]').value      = data.email;
+        supervisorForm.querySelector('[name="phone"]').value      = data.phone || '';
+        supervisorForm.querySelector('[name="country_id"]').value = data.countryId || '';
+
+        supervisorForm.querySelectorAll('[name="permissions[]"]').forEach(cb => {
+            cb.checked = (data.permissions || []).includes(cb.value);
+        });
+    }
+
     supervisorModal.classList.remove('hidden');
+}
+
+document.getElementById('btn-add-supervisor').addEventListener('click', () => {
+    openSupervisorModal('create', {});
+});
+
+document.querySelectorAll('.btn-edit-supervisor').forEach(btn => {
+    btn.addEventListener('click', () => {
+        openSupervisorModal('edit', {
+            id:          btn.dataset.id,
+            name:        btn.dataset.name,
+            email:       btn.dataset.email,
+            phone:       btn.dataset.phone,
+            countryId:   btn.dataset.countryId,
+            permissions: JSON.parse(btn.dataset.permissions || '[]'),
+            isActive:    btn.dataset.isActive === '1',
+        });
+    });
 });
 
 ['supervisor-modal-close', 'supervisor-modal-close-btn'].forEach(id => {
@@ -501,14 +605,27 @@ document.getElementById('btn-add-supervisor').addEventListener('click', () => {
 
 supervisorForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = document.getElementById('supervisor-form-submit');
+
+    const btn          = document.getElementById('supervisor-form-submit');
+    const supervisorId = document.getElementById('supervisor-id').value;
+    const isEdit        = !!supervisorId;
+
+    const newPwd     = document.getElementById('supervisor-new-password').value;
+    const confirmPwd = document.getElementById('supervisor-confirm-password').value;
+    if (isEdit && newPwd && newPwd !== confirmPwd) {
+        alert(@json(__('admin.shipping_section.password_mismatch')));
+        return;
+    }
+
     btn.disabled = true;
+    const label  = btn.textContent;
     btn.textContent = '...';
 
+    const url      = isEdit ? supervisorUpdateUrl(supervisorId) : SUPERVISOR_STORE_URL;
     const formData = new FormData(supervisorForm);
 
     try {
-        const res = await fetch('{{ route('admin.shipping-companies.supervisors.store') }}', {
+        const res = await fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -520,22 +637,30 @@ supervisorForm.addEventListener('submit', async (e) => {
         const data = await res.json();
 
         if (data.success) {
-            // Show temp password
-            document.getElementById('supervisor-temp-password-value').textContent = data.temp_password;
-            document.getElementById('supervisor-temp-password-notice').classList.remove('hidden');
-            btn.disabled = true;
-            btn.textContent = '{{ __('common.saved') }}';
+            if (!isEdit) {
+                // Show temp password
+                document.getElementById('supervisor-temp-password-value').textContent = data.temp_password;
+                document.getElementById('supervisor-temp-password-notice').classList.remove('hidden');
+                btn.disabled    = true;
+                btn.textContent = @json(__('common.saved'));
+            } else {
+                btn.disabled    = true;
+                btn.textContent = @json(__('common.saved'));
+            }
 
-            // Reload page after 3 seconds so the new supervisor appears in the table
-            setTimeout(() => location.reload(), 3000);
+            // Reload page shortly so the table reflects the change
+            setTimeout(() => location.reload(), isEdit ? 1500 : 3000);
         } else {
-            btn.disabled = false;
-            btn.textContent = '{{ __('admin.shipping_section.create_supervisor') }}';
-            alert(data.message ?? 'An error occurred.');
+            const errors = data.errors
+                ? Object.values(data.errors).flat().join('\n')
+                : data.message;
+            btn.disabled    = false;
+            btn.textContent = label;
+            alert(errors || @json(__('admin.shipping_section.save_failed')));
         }
     } catch (err) {
-        btn.disabled = false;
-        btn.textContent = '{{ __('admin.shipping_section.create_supervisor') }}';
+        btn.disabled    = false;
+        btn.textContent = label;
         console.error(err);
     }
 });

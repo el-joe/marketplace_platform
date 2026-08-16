@@ -9,6 +9,8 @@ return [
     'settings'        => 'الإعدادات',
     'search'          => 'بحث',
     'save'            => 'حفظ',
+    'save_changes'    => 'حفظ التغييرات',
+    'saved'           => 'تم الحفظ',
     'cancel'          => 'إلغاء',
     'copy'            => 'نسخ',
     'deleted_successfully' => 'تم الحذف بنجاح.',

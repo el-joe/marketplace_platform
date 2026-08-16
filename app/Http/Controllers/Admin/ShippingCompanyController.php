@@ -165,7 +165,15 @@ class ShippingCompanyController extends Controller
     {
         $shippingCompany->load(['country', 'supervisors.country', 'agents' => fn ($q) => $q->limit(20)]);
 
-        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'currency_code']);
+        $servedIds = collect($shippingCompany->served_countries ?? [])
+            ->push($shippingCompany->country_id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $countries = $servedIds->isNotEmpty()
+            ? Country::whereIn('id', $servedIds)->orderBy('name_en')->get(['id', 'name_en', 'currency_code'])
+            : Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'currency_code']);
 
         return view('admin.shipping-companies.show', compact('shippingCompany', 'countries'));
     }
@@ -209,7 +217,33 @@ class ShippingCompanyController extends Controller
     {
         $data = $request->validate([
             'shipping_company_id' => ['required', 'exists:shipping_companies,id'],
-            'country_id'          => ['nullable', 'exists:countries,id'],
+            'country_id'          => [
+                'nullable',
+                'exists:countries,id',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request) {
+                    if (! $value) {
+                        return;
+                    }
+
+                    $company = ShippingCompany::find($request->input('shipping_company_id'));
+                    if (! $company) {
+                        return;
+                    }
+
+                    $allowed = collect($company->served_countries ?? [])
+                        ->push($company->country_id)
+                        ->filter()
+                        ->unique();
+
+                    if ($allowed->isEmpty()) {
+                        return;
+                    }
+
+                    if (! $allowed->contains($value)) {
+                        $fail('The selected country is not in this company\'s served countries.');
+                    }
+                },
+            ],
             'name'                => ['required', 'string', 'max:255'],
             'email'               => ['required', 'email', 'max:255', 'unique:shipping_company_supervisors,email'],
             'phone'               => ['nullable', 'string', 'max:30'],
@@ -247,6 +281,78 @@ class ShippingCompanyController extends Controller
                 'permissions' => $supervisor->permissions,
             ],
         ], 201);
+    }
+
+    // ── Update Supervisor ──────────────────────────────────────────────────
+
+    public function updateSupervisor(Request $request, ShippingCompanySupervisor $supervisor): JsonResponse
+    {
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:255'],
+            'email'       => ['required', 'email', 'max:255',
+                              'unique:shipping_company_supervisors,email,' . $supervisor->id],
+            'phone'       => ['nullable', 'string', 'max:30'],
+            'country_id'  => [
+                'nullable',
+                'exists:countries,id',
+                function (string $attribute, mixed $value, \Closure $fail) use ($supervisor) {
+                    if (!$value) return;
+                    $company = $supervisor->company;
+                    $allowed = collect($company->served_countries ?? [])
+                        ->push($company->country_id)
+                        ->filter()
+                        ->unique();
+                    if ($allowed->isNotEmpty() && !$allowed->contains($value)) {
+                        $fail('The selected country is not in this company\'s served countries.');
+                    }
+                },
+            ],
+            'permissions' => ['required', 'array', 'min:1'],
+            'permissions.*' => ['string', 'in:manage_agents,view_orders,assign_orders,view_reports'],
+            'is_active'   => ['boolean'],
+            'password'    => ['nullable', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $updateData = [
+            'name'        => $data['name'],
+            'email'       => $data['email'],
+            'phone'       => $data['phone'] ?? null,
+            'country_id'  => $data['country_id'] ?? null,
+            'permissions' => $data['permissions'],
+            'is_active'   => $data['is_active'] ?? $supervisor->is_active,
+        ];
+
+        if (!empty($data['password'])) {
+            $updateData['password'] = $data['password'];
+        }
+
+        $supervisor->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('admin.shipping_section.supervisor_updated'),
+            'data'    => [
+                'id'          => $supervisor->id,
+                'name'        => $supervisor->name,
+                'email'       => $supervisor->email,
+                'country'     => $supervisor->fresh('country')->country?->name_en,
+                'permissions' => $supervisor->permissions,
+                'is_active'   => $supervisor->is_active,
+            ],
+        ]);
+    }
+
+    public function resetSupervisorPassword(ShippingCompanySupervisor $supervisor): JsonResponse
+    {
+        $tempPassword = Str::password(12, letters: true, numbers: true, symbols: false);
+
+        $supervisor->update(['password' => $tempPassword]);
+
+        return response()->json([
+            'success'       => true,
+            'message'       => __('admin.shipping_section.supervisor_password_reset'),
+            'temp_password' => $tempPassword,
+        ]);
     }
 
     // ── Destroy Supervisor ─────────────────────────────────────────────────

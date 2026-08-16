@@ -1512,6 +1512,14 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             ->name('supervisors.store')
             ->middleware('admin.permission:settings.edit');
 
+        Route::put('/supervisors/{supervisor}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'updateSupervisor'])
+            ->name('supervisors.update')
+            ->middleware('admin.permission:settings.edit');
+
+        Route::post('/supervisors/{supervisor}/reset-password', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'resetSupervisorPassword'])
+            ->name('supervisors.reset-password')
+            ->middleware('admin.permission:settings.edit');
+
         Route::delete('/supervisors/{supervisor}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'destroySupervisor'])
             ->name('supervisors.destroy')
             ->middleware('admin.permission:settings.edit');

@@ -9,6 +9,8 @@ return [
     'settings'        => 'Settings',
     'search'          => 'Search',
     'save'            => 'Save',
+    'save_changes'    => 'Save Changes',
+    'saved'           => 'Saved',
     'cancel'          => 'Cancel',
     'copy'            => 'Copy',
     'deleted_successfully' => 'Deleted successfully.',
