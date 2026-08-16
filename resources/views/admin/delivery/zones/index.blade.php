@@ -49,23 +49,48 @@
                                 <span class="font-medium text-gray-800">{{ $zone->agents_count }}</span>
                             </div>
                             <div class="flex justify-between">
+                                <span class="text-gray-500">{{ __('admin.delivery_section.cities_label') }}</span>
+                                <span class="font-medium text-gray-800">
+                                    {{ !empty($zone->city_ids) ? count($zone->city_ids) : 0 }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
                                 <span class="text-gray-500">{{ __('admin.delivery_section.delivery_fee_label') }}</span>
                                 <span
-                                    class="font-medium text-gray-800">{{ number_format($zone->base_delivery_fee, 2) }}</span>
+                                    class="font-medium text-gray-800">{{ number_format($zone->base_delivery_fee, 2) }} {{ $zone->country?->currency_code }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-500">{{ __('admin.delivery_section.cod_fee_label') }}</span>
-                                <span class="font-medium text-gray-800">{{ number_format($zone->cod_fee, 2) }}</span>
+                                <span class="font-medium text-gray-800">{{ number_format($zone->cod_fee, 2) }} {{ $zone->country?->currency_code }}</span>
                             </div>
                             @if($zone->max_active_agents)
+                                @php
+                                    $remaining = $zone->max_active_agents - $zone->agents_count;
+                                    $pct = $zone->max_active_agents > 0
+                                        ? min(100, round($zone->agents_count / $zone->max_active_agents * 100))
+                                        : 0;
+                                    $barColor = $pct >= 100 ? 'bg-red-500' : ($pct >= 75 ? 'bg-amber-400' : 'bg-emerald-500');
+                                @endphp
                                 <div class="flex justify-between">
                                     <span class="text-gray-500">{{ __('admin.delivery_section.max_agents_label') }}</span>
-                                    <span class="font-medium text-gray-800">{{ $zone->max_active_agents }}</span>
+                                    <span class="font-medium {{ $pct >= 100 ? 'text-red-600' : 'text-gray-800' }}">
+                                        {{ $zone->agents_count }} / {{ $zone->max_active_agents }}
+                                    </span>
                                 </div>
+                                <div class="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+                                    <div class="{{ $barColor }} h-1.5 rounded-full transition-all" style="width: {{ $pct }}%"></div>
+                                </div>
+                                @if($pct >= 100)
+                                    <p class="text-xs text-red-500 font-medium mt-1">{{ __('admin.delivery_section.zone_at_capacity') }}</p>
+                                @endif
                             @endif
                         </div>
 
                         <div class="flex gap-2">
+                            <a href="{{ route('admin.delivery.zones.show', $zone->id) }}"
+                               class="btn btn-xs btn-ghost flex-1">
+                                {{ __('admin.delivery_section.view') }}
+                            </a>
                             <button type="button" class="edit-zone-btn btn btn-xs btn-secondary flex-1" data-zone='@json($zone)'>
                                 {{ __('admin.delivery_section.edit') }}
                             </button>
@@ -142,6 +167,17 @@
                         <input type="checkbox" name="is_active" id="zone-active" value="1" class="rounded" checked>
                         <label for="zone-active" class="text-sm font-medium text-gray-700">{{ __('common.active') }}</label>
                     </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ __('admin.delivery_section.cities_label') }}
+                        </label>
+                        <select name="city_ids[]" id="zone-cities" multiple
+                                class="form-input w-full"
+                                style="min-height: 120px;">
+                            {{-- options injected by JS when country changes --}}
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.delivery_section.cities_hint') }}</p>
+                    </div>
                 </div>
 
                 <div class="pt-4 border-t flex justify-end gap-3">
@@ -168,10 +204,36 @@
             deleteZoneFailed: @json(__('admin.delivery_section.delete_zone_failed')),
         });
 
+        window.ALL_CITIES = @json($cities);
+
         (function () {
             const STORE_URL = @json(route('admin.delivery.zones.store'));
             const BASE_URL = @json(url('admin/delivery/zones'));
             const token = () => $('meta[name=csrf-token]').attr('content');
+
+            // ── City filter by country ───────────────────────────────────────────────
+            function populateCities(countryId, selectedIds) {
+                selectedIds = selectedIds || [];
+                const $select = $('#zone-cities');
+                $select.empty();
+
+                const filtered = window.ALL_CITIES.filter(c => c.country_id === countryId);
+
+                if (filtered.length === 0) {
+                    $select.append('<option disabled value="">— No cities found for this country —</option>');
+                    return;
+                }
+
+                filtered.forEach(city => {
+                    const selected = selectedIds.includes(city.id) ? 'selected' : '';
+                    $select.append(`<option value="${city.id}" ${selected}>${city.name_en}</option>`);
+                });
+            }
+
+            // Repopulate on country change
+            $('#zone-country').on('change', function () {
+                populateCities(this.value, []);
+            });
 
             // ── Open Add Modal ────────────────────────────────────────────────────────
             $('#add-zone-btn').on('click', () => {
@@ -198,12 +260,15 @@
                 $('#zone-delivery-fee').val(zone.base_delivery_fee);
                 $('#zone-cod-fee').val(zone.cod_fee);
                 $('#zone-active').prop('checked', !!zone.is_active);
+                const cityIds = zone.city_ids || [];
+                populateCities(zone.country_id, cityIds);
                 document.getElementById('zone-modal').classList.remove('hidden');
             });
 
             function resetForm() {
                 document.getElementById('zone-form').reset();
                 $('#zone-active').prop('checked', true);
+                $('#zone-cities').empty();
             }
 
             // ── Submit ────────────────────────────────────────────────────────────────

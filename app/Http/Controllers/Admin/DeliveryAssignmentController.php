@@ -131,26 +131,60 @@ class DeliveryAssignmentController extends Controller
         }
 
         $subOrder = SubOrder::with('order')->findOrFail($request->sub_order_id);
+        $order    = $subOrder->order;
 
-        // Find nearest available agent using Haversine formula
         $lat = (float) $request->pickup_latitude;
         $lng = (float) $request->pickup_longitude;
 
-        $agent = DeliveryAgent::where('status', DeliveryAgentStatus::Active)
-            ->where('is_available', true)
-            ->where('country_id', $subOrder->order->country_id)
-            ->whereNotNull('current_latitude')
-            ->whereNotNull('current_longitude')
-            ->selectRaw("*, (6371 * ACOS(
-                COS(RADIANS(?)) * COS(RADIANS(current_latitude)) *
-                COS(RADIANS(current_longitude) - RADIANS(?)) +
-                SIN(RADIANS(?)) * SIN(RADIANS(current_latitude))
-            )) AS distance_km", [$lat, $lng, $lat])
-            ->orderBy('distance_km')
-            ->first();
+        // Extract delivery city_id from shipping address snapshot
+        $deliveryCityId = data_get($order->shipping_address_snapshot, 'city_id');
+
+        // ── Pass 1: Zone-matched agents ────────────────────────────────────────
+        $agent = null;
+
+        if ($deliveryCityId) {
+            $zoneIds = DeliveryZone::where('is_active', true)
+                ->where('country_id', $order->country_id)
+                ->coversCity($deliveryCityId)
+                ->pluck('id');
+
+            if ($zoneIds->isNotEmpty()) {
+                $agent = DeliveryAgent::where('status', DeliveryAgentStatus::Active)
+                    ->where('is_available', true)
+                    ->where('country_id', $order->country_id)
+                    ->whereIn('zone_id', $zoneIds)
+                    ->whereNotNull('current_latitude')
+                    ->whereNotNull('current_longitude')
+                    ->selectRaw("*, (6371 * ACOS(
+                        COS(RADIANS(?)) * COS(RADIANS(current_latitude)) *
+                        COS(RADIANS(current_longitude) - RADIANS(?)) +
+                        SIN(RADIANS(?)) * SIN(RADIANS(current_latitude))
+                    )) AS distance_km", [$lat, $lng, $lat])
+                    ->orderBy('distance_km')
+                    ->first();
+            }
+        }
+
+        // ── Pass 2: Country-wide fallback (existing behavior) ──────────────────
+        $usedFallback = false;
+        if (!$agent) {
+            $usedFallback = true;
+            $agent = DeliveryAgent::where('status', DeliveryAgentStatus::Active)
+                ->where('is_available', true)
+                ->where('country_id', $order->country_id)
+                ->whereNotNull('current_latitude')
+                ->whereNotNull('current_longitude')
+                ->selectRaw("*, (6371 * ACOS(
+                    COS(RADIANS(?)) * COS(RADIANS(current_latitude)) *
+                    COS(RADIANS(current_longitude) - RADIANS(?)) +
+                    SIN(RADIANS(?)) * SIN(RADIANS(current_latitude))
+                )) AS distance_km", [$lat, $lng, $lat])
+                ->orderBy('distance_km')
+                ->first();
+        }
 
         if (!$agent) {
-            return response()->json(['success' => false, 'message' => 'No available agents found nearby.'], 422);
+            return response()->json(['success' => false, 'message' => 'No available agents found for this order\'s country.'], 422);
         }
 
         $assignment = DeliveryAssignment::create([
@@ -164,12 +198,13 @@ class DeliveryAssignmentController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Assigned to {$agent->name} ({$agent->distance_km} km away).",
+            'message' => ($usedFallback ? '[Fallback] ' : '') . "Assigned to {$agent->name} ({$agent->distance_km} km away).",
             'assignment' => [
                 'id' => $assignment->id,
                 'agent_name' => $agent->name,
                 'agent_id' => $agent->id,
                 'distance_km' => round($agent->distance_km, 2),
+                'zone_matched' => !$usedFallback,
             ],
         ]);
     }
@@ -215,6 +250,7 @@ class DeliveryAssignmentController extends Controller
             ->whereNotNull('current_latitude')
             ->whereNotNull('current_longitude')
             ->select(['id', 'name', 'status', 'is_available', 'current_latitude', 'current_longitude', 'last_location_at', 'zone_id'])
+            ->with('zone:id,name')
             ->get()
             ->map(fn($a) => [
                 'type' => 'agent',
@@ -225,6 +261,7 @@ class DeliveryAssignmentController extends Controller
                 'lat' => (float) $a->current_latitude,
                 'lng' => (float) $a->current_longitude,
                 'zone_id' => $a->zone_id,
+                'zone_name' => $a->zone?->name ?? null,
                 'updated' => $a->last_location_at?->diffForHumans() ?? 'Unknown',
             ]);
 

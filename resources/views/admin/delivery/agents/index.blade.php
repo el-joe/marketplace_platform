@@ -247,6 +247,31 @@ Object.assign(window.TRANSLATIONS, {
     const DATATABLE_URL = @json(route('admin.delivery.agents.datatable'));
     const STORE_URL     = @json(route('admin.delivery.agents.store'));
 
+    // ── Filter zone dropdown by selected country ─────────────────────────────
+    const ALL_ZONES = @json($zones);
+
+    function filterZonesByCountry(countryId) {
+        const $zoneSelect = $('select[name="zone_id"]', '#agent-modal');
+        const current = $zoneSelect.val();
+        $zoneSelect.empty().append('<option value="">{{ __("admin.delivery_section.no_zone") }}</option>');
+
+        if (!countryId) return;
+
+        ALL_ZONES
+            .filter(z => String(z.country_id) === String(countryId))
+            .forEach(z => {
+                $zoneSelect.append(`<option value="${z.id}">${z.name}</option>`);
+            });
+
+        if (ALL_ZONES.find(z => String(z.id) === String(current) && String(z.country_id) === String(countryId))) {
+            $zoneSelect.val(current);
+        }
+    }
+
+    $(document).on('change', '#agent-modal select[name="country_id"]', function () {
+        filterZonesByCountry(this.value);
+    });
+
     // ── Toggle shipping company field for third_party agents ────────────────
     const agentTypeSelect = document.querySelector('#agent-form select[name="agent_type"]');
     const companyField    = document.getElementById('shipping-company-field');
@@ -359,7 +384,8 @@ Object.assign(window.TRANSLATIONS, {
             $form.find('input[name=name]').val(agent.name);
             $form.find('input[name=phone]').val(agent.phone);
             $form.find('select[name=country_id]').val(agent.country_id);
-            $form.find('select[name=zone_id]').val(agent.zone_id ?? '');
+            filterZonesByCountry(agent.country_id);
+            if (agent.zone_id) $form.find('select[name=zone_id]').val(agent.zone_id);
             $form.find('select[name=agent_type]').val(agent.agent_type);
             $form.find('select[name=vehicle_type]').val(agent.vehicle_type);
             $form.find('input[name=national_id]').val(agent.national_id ?? '');
@@ -370,6 +396,7 @@ Object.assign(window.TRANSLATIONS, {
             $submitBtn.text(window.TRANSLATIONS.createAgent);
             $('#agent-form-method').val('POST');
             submitUrl = STORE_URL;
+            filterZonesByCountry('');
         }
 
         $modal.removeClass('hidden');

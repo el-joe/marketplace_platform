@@ -3,8 +3,10 @@
 namespace App\Http\Requests\Carrier\Agent;
 
 use App\Enums\DeliveryAgentVehicleType;
+use App\Models\DeliveryZone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreAgentRequest extends FormRequest
 {
@@ -22,5 +24,23 @@ class StoreAgentRequest extends FormRequest
             'zone_id'       => ['nullable', 'string', 'exists:delivery_zones,id'],
             'country_id'    => ['required', 'string', 'exists:countries,id'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v) {
+            $zoneId    = $this->input('zone_id');
+            $countryId = $this->input('country_id');
+
+            if ($zoneId && $countryId) {
+                $match = DeliveryZone::where('id', $zoneId)
+                    ->where('country_id', $countryId)
+                    ->exists();
+
+                if (!$match) {
+                    $v->errors()->add('zone_id', 'The selected zone does not belong to the specified country.');
+                }
+            }
+        });
     }
 }

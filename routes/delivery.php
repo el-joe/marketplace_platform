@@ -75,6 +75,9 @@ Route::domain('delivery.' . env('APP_DOMAIN', 'localhost'))
             Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
             Route::post('/profile/password', [ProfileController::class, 'changePassword'])->name('profile.password');
 
+            // Me
+            Route::get('/me/zone', [ProfileController::class, 'zone'])->name('me.zone');
+
             // Wallet
             Route::get('/wallet', [\App\Http\Controllers\Delivery\WalletController::class, 'index'])->name('wallet.index');
             Route::post('/wallet/withdraw', [\App\Http\Controllers\Delivery\WalletController::class, 'requestWithdrawal'])->name('wallet.withdraw');

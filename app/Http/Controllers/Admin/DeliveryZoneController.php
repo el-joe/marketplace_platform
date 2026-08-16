@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\DeliveryAgentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\City;
 use App\Models\Country;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryZone;
@@ -26,7 +27,10 @@ class DeliveryZoneController extends Controller
             ->orderBy('name')
             ->get();
 
-        $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
+        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
+        $cities    = City::where('is_active', true)
+            ->orderBy('name_en')
+            ->get(['id', 'country_id', 'name_en', 'name_ar']);
 
         return view('admin.delivery.zones.index', [
             'breadcrumbs' => [
@@ -36,6 +40,7 @@ class DeliveryZoneController extends Controller
             ],
             'zones' => $zones,
             'countries' => $countries,
+            'cities' => $cities,
         ]);
     }
 
@@ -54,6 +59,8 @@ class DeliveryZoneController extends Controller
             'max_active_agents' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
         ]);
+
+        $this->assertCitiesBelongToCountry($validated['city_ids'] ?? [], $validated['country_id']);
 
         $zone = DeliveryZone::create([
             'country_id' => $validated['country_id'],
@@ -75,11 +82,51 @@ class DeliveryZoneController extends Controller
 
     // ── Show ──────────────────────────────────────────────────────────────────
 
-    public function show(DeliveryZone $zone): JsonResponse
+    public function show(Request $request, DeliveryZone $zone): View|JsonResponse
     {
         $zone->load('country');
 
-        return response()->json(['zone' => $zone]);
+        // AJAX: return JSON (used by edit modal population)
+        if ($request->expectsJson()) {
+            $cityDetails = [];
+            if (!empty($zone->city_ids)) {
+                $cityDetails = City::whereIn('id', $zone->city_ids)
+                    ->get(['id', 'name_en', 'name_ar'])
+                    ->toArray();
+            }
+            return response()->json(['zone' => $zone, 'city_details' => $cityDetails]);
+        }
+
+        // HTML: return full page
+        $agents = DeliveryAgent::where('zone_id', $zone->id)
+            ->with('country')
+            ->orderBy('status')
+            ->orderBy('name')
+            ->get();
+
+        $cities = !empty($zone->city_ids)
+            ? City::whereIn('id', $zone->city_ids)->orderBy('name_en')->get(['id', 'name_en', 'name_ar'])
+            : collect();
+
+        // Agents from the same country NOT in this zone (for add-to-zone UI)
+        $availableAgents = DeliveryAgent::where('country_id', $zone->country_id)
+            ->where(fn($q) => $q->whereNull('zone_id')->orWhere('zone_id', '!=', $zone->id))
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get(['id', 'name', 'status', 'zone_id']);
+
+        return view('admin.delivery.zones.show', [
+            'breadcrumbs' => [
+                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
+                ['label' => 'Delivery'],
+                ['label' => 'Zones', 'url' => route('admin.delivery.zones.index')],
+                ['label' => $zone->name],
+            ],
+            'zone'            => $zone,
+            'agents'          => $agents,
+            'cities'          => $cities,
+            'availableAgents' => $availableAgents,
+        ]);
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
@@ -98,6 +145,8 @@ class DeliveryZoneController extends Controller
             'is_active' => ['boolean'],
         ]);
 
+        $this->assertCitiesBelongToCountry($validated['city_ids'] ?? [], $validated['country_id']);
+
         $zone->update([
             'country_id' => $validated['country_id'],
             'name' => $validated['name'],
@@ -110,6 +159,19 @@ class DeliveryZoneController extends Controller
         ]);
 
         return response()->json(['success' => true, 'message' => 'Zone updated.']);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function assertCitiesBelongToCountry(array $cityIds, string $countryId): void
+    {
+        if (empty($cityIds)) {
+            return;
+        }
+
+        $validCount = City::whereIn('id', $cityIds)->where('country_id', $countryId)->count();
+
+        abort_if($validCount !== count($cityIds), 422, 'All selected cities must belong to the zone\'s country.');
     }
 
     // ── Destroy ───────────────────────────────────────────────────────────────

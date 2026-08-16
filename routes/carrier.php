@@ -5,6 +5,7 @@ use App\Http\Controllers\CarrierPortal\AssignmentController;
 use App\Http\Controllers\CarrierPortal\AuthController;
 use App\Http\Controllers\CarrierPortal\DashboardController;
 use App\Http\Controllers\CarrierPortal\SupervisorController;
+use App\Http\Controllers\CarrierPortal\ZoneController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,9 @@ Route::name('carrier.')
             Route::post('/agents', [AgentController::class, 'store'])->name('agents.store');
             Route::patch('/agents/{id}/suspend', [AgentController::class, 'suspend'])->name('agents.suspend');
             Route::patch('/agents/{id}/activate', [AgentController::class, 'activate'])->name('agents.activate');
+
+            // Zones (scoped to supervisor's country, for agent zone dropdown)
+            Route::get('/zones', [ZoneController::class, 'index'])->name('zones.index');
 
             // Supervisors (owner-level only, gated inside controller)
             Route::resource('supervisors', SupervisorController::class)

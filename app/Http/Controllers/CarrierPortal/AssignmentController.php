@@ -6,6 +6,7 @@ use App\Enums\ShipmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
+use App\Models\DeliveryZone;
 use App\Models\Shipment;
 use App\Models\ShippingCarrier;
 use App\Notifications\DeliveryAgent\DeliveryReassigned;
@@ -192,6 +193,19 @@ class AssignmentController extends Controller
         // supervisor is backfilled with their own country_id.
         $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
 
+        // City IDs covered by this company's active agents' zones — narrows
+        // unassigned shipments to those actually deliverable by this company,
+        // instead of every shipment in the country.
+        $cityIds = DeliveryZone::whereHas('agents', fn ($q) =>
+                $q->where('shipping_company_id', $supervisor->shipping_company_id)
+                    ->when($countryId, fn ($q2) => $q2->where('country_id', $countryId))
+            )
+            ->pluck('city_ids')
+            ->flatten()
+            ->filter()
+            ->unique()
+            ->values();
+
         $shipments = $noCarriersLinked
             ? Shipment::where('id', null)->paginate(20)
             : Shipment::whereDoesntHave('deliveryAssignment')
@@ -199,6 +213,14 @@ class AssignmentController extends Controller
                 ->whereIn('carrier_id', $carrierIds)
                 ->whereHas('subOrder.order', fn ($q) =>
                     $q->where('country_id', $countryId)
+                )
+                ->when($cityIds->isNotEmpty(), fn ($q) =>
+                    $q->whereHas('subOrder.order', fn ($q2) =>
+                        $q2->whereIn(
+                            DB::raw("JSON_UNQUOTE(JSON_EXTRACT(shipping_address_snapshot, '$.city_id'))"),
+                            $cityIds
+                        )
+                    )
                 )
                 ->with('subOrder.order')
                 ->latest()

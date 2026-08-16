@@ -199,7 +199,10 @@ class DeliveryAgentController extends Controller
             ],
             'agent' => $agent,
             'assignmentStats' => $assignmentStats,
-            'zones' => DeliveryZone::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'zones' => DeliveryZone::where('is_active', true)
+                ->where('country_id', $agent->country_id)
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 
@@ -238,6 +241,28 @@ class DeliveryAgentController extends Controller
             'base_salary' => ['nullable', 'integer', 'min:0'],
             'per_delivery_fee' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        if (!empty($validated['zone_id'])) {
+            $zoneCountry = DeliveryZone::where('id', $validated['zone_id'])->value('country_id');
+
+            if ($zoneCountry !== $validated['country_id']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The selected zone does not belong to the agent\'s country.',
+                ], 422);
+            }
+
+            if ($validated['zone_id'] !== $agent->zone_id) {
+                $zone = DeliveryZone::find($validated['zone_id']);
+
+                if ($zone && $zone->isAtCapacity()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Zone \"{$zone->name}\" is at full capacity ({$zone->max_active_agents} agents).",
+                    ], 422);
+                }
+            }
+        }
 
         $agent->update($validated);
 
@@ -285,6 +310,27 @@ class DeliveryAgentController extends Controller
     public function assignToZone(Request $request, DeliveryAgent $agent): JsonResponse
     {
         $request->validate(['zone_id' => ['nullable', 'exists:delivery_zones,id']]);
+
+        if ($request->filled('zone_id')) {
+            $zoneCountry = DeliveryZone::where('id', $request->input('zone_id'))->value('country_id');
+
+            if ($zoneCountry !== $agent->country_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Zone country mismatch. The zone must belong to the same country as the agent.',
+                ], 422);
+            }
+
+            $zone = DeliveryZone::find($request->input('zone_id'));
+
+            if ($zone && $zone->isAtCapacity()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Zone \"{$zone->name}\" is at full capacity ({$zone->max_active_agents} agents). "
+                               . 'Increase the max agents limit or reassign an existing agent first.',
+                ], 422);
+            }
+        }
 
         $agent->update(['zone_id' => $request->input('zone_id')]);
 
