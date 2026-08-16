@@ -162,6 +162,46 @@ class AgentController extends Controller
         return view('carrier.agents.show', compact('agent', 'zones'));
     }
 
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $this->requirePermission('manage_agents');
+
+        $agent = $this->agentForCurrentCompany($id);
+
+        $data = $request->validate([
+            'name'                    => ['required', 'string', 'max:255'],
+            'phone'                   => ['required', 'string', 'max:30',
+                                          'unique:delivery_agents,phone,' . $agent->id],
+            'vehicle_type'            => ['required', 'in:motorcycle,car,van,bicycle'],
+            'national_id'             => ['nullable', 'string', 'max:50'],
+            'vehicle_plate'           => ['nullable', 'string', 'max:20'],
+            'emergency_contact_name'  => ['nullable', 'string', 'max:255'],
+            'emergency_contact_phone' => ['nullable', 'string', 'max:30'],
+            'password'                => ['nullable', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $updateData = [
+            'name'                    => $data['name'],
+            'phone'                   => $data['phone'],
+            'vehicle_type'            => $data['vehicle_type'],
+            'national_id'             => $data['national_id'] ?? null,
+            'vehicle_plate'           => $data['vehicle_plate'] ?? null,
+            'emergency_contact_name'  => $data['emergency_contact_name'] ?? null,
+            'emergency_contact_phone' => $data['emergency_contact_phone'] ?? null,
+        ];
+
+        if (!empty($data['password'])) {
+            $updateData['password'] = $data['password'];
+        }
+
+        $agent->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('carrier.agents.updated_success'),
+        ]);
+    }
+
     public function assignZone(Request $request, string $id): JsonResponse
     {
         $this->requirePermission('manage_agents');
@@ -197,6 +237,24 @@ class AgentController extends Controller
         $zoneName = $zoneId ? DeliveryZone::find($zoneId)?->name : __('carrier.agents.no_zone');
 
         return response()->json(['success' => true, 'message' => __('carrier.agents.zone_updated', ['name' => $zoneName])]);
+    }
+
+    public function resetPassword(Request $request, string $id): JsonResponse
+    {
+        $this->requirePermission('manage_agents');
+
+        $agent = $this->agentForCurrentCompany($id);
+
+        $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $agent->update(['password' => $request->input('password')]);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('carrier.agents.password_reset_success'),
+        ]);
     }
 
     public function suspend(string $id): RedirectResponse

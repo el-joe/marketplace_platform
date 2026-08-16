@@ -57,12 +57,30 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">{{ $sl }}</span>
                     </td>
                     <td class="px-6 py-3 text-gray-600">{{ number_format($agent->rating_avg, 1) }} ⭐</td>
-                    <td class="px-6 py-3">
+                    <td class="px-6 py-3 space-x-3">
                         <a href="{{ route('carrier.agents.show', $agent->id) }}"
                            class="text-indigo-600 hover:underline text-xs font-medium">
                             {{ __('carrier.common.view') }}
                         </a>
                         @if(auth('shipping_supervisor')->user()->hasPermission('manage_agents'))
+                        <button type="button"
+                                class="btn-edit-agent text-indigo-600 hover:underline text-xs font-medium"
+                                data-id="{{ $agent->id }}"
+                                data-name="{{ $agent->name }}"
+                                data-phone="{{ $agent->phone }}"
+                                data-vehicle-type="{{ $agent->vehicle_type->value }}"
+                                data-national-id="{{ $agent->national_id ?? '' }}"
+                                data-vehicle-plate="{{ $agent->vehicle_plate ?? '' }}"
+                                data-emergency-name="{{ $agent->emergency_contact_name ?? '' }}"
+                                data-emergency-phone="{{ $agent->emergency_contact_phone ?? '' }}">
+                            {{ __('carrier.agents.edit') }}
+                        </button>
+                        <button type="button"
+                                class="btn-reset-password text-amber-600 hover:underline text-xs font-medium"
+                                data-id="{{ $agent->id }}"
+                                data-name="{{ $agent->name }}">
+                            {{ __('carrier.agents.reset_password_btn') }}
+                        </button>
                         @if($agent->status === \App\Enums\DeliveryAgentStatus::Suspended)
                         <form method="POST" action="{{ route('carrier.agents.activate', $agent->id) }}" class="inline">
                             @csrf @method('PATCH')
@@ -87,4 +105,367 @@
     @endif
 </div>
 
+@if(auth('shipping_supervisor')->user()->hasPermission('manage_agents'))
+<div id="edit-agent-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden">
+
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-bold text-gray-900">{{ __('carrier.agents.edit_agent') }}</h3>
+            <button type="button" id="edit-agent-close"
+                    class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+
+        <form id="edit-agent-form" class="px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
+            @csrf
+            <input type="hidden" name="_method" value="PUT">
+            <input type="hidden" id="edit-agent-id" value="">
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        {{ __('carrier.common.full_name') }} <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" id="edit-name" required
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        {{ __('carrier.common.phone') }} <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="phone" id="edit-phone" required
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        {{ __('carrier.agents.vehicle_type') }} <span class="text-red-500">*</span>
+                    </label>
+                    <select name="vehicle_type" id="edit-vehicle-type" required
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                        @foreach(['motorcycle','car','van','bicycle'] as $vt)
+                            <option value="{{ $vt }}">{{ __('carrier.vehicle_types.' . $vt) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        {{ __('carrier.agents.create.national_id') }}
+                    </label>
+                    <input type="text" name="national_id" id="edit-national-id"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        {{ __('carrier.agents.vehicle_plate') }}
+                    </label>
+                    <input type="text" name="vehicle_plate" id="edit-vehicle-plate"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4">
+                <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
+                    {{ __('carrier.agents.emergency_contact') }}
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            {{ __('carrier.agents.emergency_name') }}
+                        </label>
+                        <input type="text" name="emergency_contact_name" id="edit-emergency-name"
+                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            {{ __('carrier.agents.emergency_phone') }}
+                        </label>
+                        <input type="text" name="emergency_contact_phone" id="edit-emergency-phone"
+                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4">
+                <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
+                    {{ __('carrier.agents.change_password') }}
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            {{ __('carrier.agents.new_password') }}
+                        </label>
+                        <input type="password" name="password" id="edit-password" minlength="8"
+                               placeholder="{{ __('carrier.agents.password_blank_hint') }}"
+                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            {{ __('carrier.agents.confirm_password') }}
+                        </label>
+                        <input type="password" name="password_confirmation" id="edit-password-confirm" minlength="8"
+                               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-1.5">{{ __('carrier.agents.password_blank_hint') }}</p>
+            </div>
+
+            <div id="edit-agent-errors" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700"></div>
+        </form>
+
+        <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+            <button type="button" id="edit-agent-cancel"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-5 py-2.5 rounded-lg text-sm transition">
+                {{ __('carrier.common.cancel') }}
+            </button>
+            <button type="button" id="edit-agent-submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm transition">
+                {{ __('carrier.common.save_changes') }}
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- ── Reset Agent Password Modal ──────────────────────────────────────── --}}
+@if(auth('shipping_supervisor')->user()->hasPermission('manage_agents'))
+<div id="reset-password-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div>
+                <h3 class="text-lg font-bold text-gray-900">{{ __('carrier.agents.reset_password_title') }}</h3>
+                <p id="reset-agent-name" class="text-sm text-gray-500 mt-0.5"></p>
+            </div>
+            <button type="button" id="reset-password-close"
+                    class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+
+        <form id="reset-password-form" class="px-6 py-5 space-y-4">
+            @csrf
+            <input type="hidden" id="reset-agent-id" value="">
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    {{ __('carrier.agents.new_password') }} <span class="text-red-500">*</span>
+                </label>
+                <input type="password" name="password" id="reset-password-field"
+                       required minlength="8"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    {{ __('carrier.common.confirm_password') }} <span class="text-red-500">*</span>
+                </label>
+                <input type="password" name="password_confirmation" id="reset-password-confirm"
+                       required minlength="8"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div id="reset-password-error"
+                 class="hidden bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm text-red-700">
+            </div>
+
+            <div id="reset-password-success"
+                 class="hidden bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2.5 text-sm text-emerald-700">
+            </div>
+        </form>
+
+        <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+            <button type="button" id="reset-password-cancel"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-5 py-2.5 rounded-lg text-sm transition">
+                {{ __('carrier.common.cancel') }}
+            </button>
+            <button type="button" id="reset-password-submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-lg text-sm transition">
+                {{ __('carrier.agents.reset_password_btn') }}
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
 @endsection
+
+@push('scripts')
+<script>
+const editModal   = document.getElementById('edit-agent-modal');
+const editForm    = document.getElementById('edit-agent-form');
+const submitBtn   = document.getElementById('edit-agent-submit');
+const errorsBox   = document.getElementById('edit-agent-errors');
+const BASE_URL    = @json(url('carrier/agents'));
+const CSRF        = () => document.querySelector('meta[name="csrf-token"]').content;
+
+function openEditModal(data) {
+    editForm.reset();
+    errorsBox.classList.add('hidden');
+
+    document.getElementById('edit-agent-id').value          = data.id;
+    document.getElementById('edit-name').value              = data.name;
+    document.getElementById('edit-phone').value             = data.phone;
+    document.getElementById('edit-vehicle-type').value      = data.vehicleType;
+    document.getElementById('edit-national-id').value       = data.nationalId;
+    document.getElementById('edit-vehicle-plate').value     = data.vehiclePlate;
+    document.getElementById('edit-emergency-name').value    = data.emergencyName;
+    document.getElementById('edit-emergency-phone').value   = data.emergencyPhone;
+
+    editModal.classList.remove('hidden');
+}
+
+document.querySelectorAll('.btn-edit-agent').forEach(btn => {
+    btn.addEventListener('click', () => openEditModal({
+        id:             btn.dataset.id,
+        name:           btn.dataset.name,
+        phone:          btn.dataset.phone,
+        vehicleType:    btn.dataset.vehicleType,
+        nationalId:     btn.dataset.nationalId,
+        vehiclePlate:   btn.dataset.vehiclePlate,
+        emergencyName:  btn.dataset.emergencyName,
+        emergencyPhone: btn.dataset.emergencyPhone,
+    }));
+});
+
+['edit-agent-close', 'edit-agent-cancel'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => editModal.classList.add('hidden'));
+});
+
+function passwordsMatch() {
+    const pwd     = document.getElementById('edit-password').value;
+    const confirm = document.getElementById('edit-password-confirm').value;
+    if (pwd && pwd !== confirm) {
+        showErrors(@json(__('carrier.agents.password_mismatch')));
+        return false;
+    }
+    return true;
+}
+
+function showErrors(msg) {
+    errorsBox.textContent = msg;
+    errorsBox.classList.remove('hidden');
+}
+
+submitBtn.addEventListener('click', async () => {
+    if (!passwordsMatch()) return;
+
+    const agentId = document.getElementById('edit-agent-id').value;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '...';
+
+    const formData = new FormData(editForm);
+
+    try {
+        const res  = await fetch(`${BASE_URL}/${agentId}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF(), 'Accept': 'application/json' },
+            body: formData,
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            editModal.classList.add('hidden');
+            window.Toast?.success(data.message);
+            setTimeout(() => location.reload(), 900);
+        } else {
+            const errors = data.errors
+                ? Object.values(data.errors).flat().join('\n')
+                : (data.message ?? @json(__('carrier.errors.generic')));
+            showErrors(errors);
+            submitBtn.disabled = false;
+            submitBtn.textContent = @json(__('carrier.common.save_changes'));
+        }
+    } catch {
+        showErrors(@json(__('carrier.errors.generic')));
+        submitBtn.disabled = false;
+        submitBtn.textContent = @json(__('carrier.common.save_changes'));
+    }
+});
+
+// ── Reset Password Modal ──────────────────────────────────────────────────
+(function () {
+    const modal     = document.getElementById('reset-password-modal');
+    const form      = document.getElementById('reset-password-form');
+    const resetSubmitBtn = document.getElementById('reset-password-submit');
+    const errorBox  = document.getElementById('reset-password-error');
+    const successBox = document.getElementById('reset-password-success');
+    const RESET_BASE_URL  = @json(url('carrier/agents'));
+
+    function openModal(id, name) {
+        form.reset();
+        errorBox.classList.add('hidden');
+        successBox.classList.add('hidden');
+        resetSubmitBtn.disabled = false;
+        resetSubmitBtn.textContent = @json(__('carrier.agents.reset_password_btn'));
+
+        document.getElementById('reset-agent-id').value  = id;
+        document.getElementById('reset-agent-name').textContent = name;
+
+        modal.classList.remove('hidden');
+        document.getElementById('reset-password-field').focus();
+    }
+
+    document.querySelectorAll('.btn-reset-password').forEach(btn => {
+        btn.addEventListener('click', () => openModal(btn.dataset.id, btn.dataset.name));
+    });
+
+    ['reset-password-close', 'reset-password-cancel'].forEach(id => {
+        document.getElementById(id)?.addEventListener('click', () => modal.classList.add('hidden'));
+    });
+
+    resetSubmitBtn?.addEventListener('click', async () => {
+        const agentId = document.getElementById('reset-agent-id').value;
+        const pwd     = document.getElementById('reset-password-field').value;
+        const confirm = document.getElementById('reset-password-confirm').value;
+
+        errorBox.classList.add('hidden');
+        successBox.classList.add('hidden');
+
+        if (!pwd || pwd.length < 8) {
+            errorBox.textContent = @json(__('carrier.agents.password_min_length'));
+            errorBox.classList.remove('hidden');
+            return;
+        }
+        if (pwd !== confirm) {
+            errorBox.textContent = @json(__('carrier.agents.password_mismatch'));
+            errorBox.classList.remove('hidden');
+            return;
+        }
+
+        resetSubmitBtn.disabled = true;
+        resetSubmitBtn.textContent = '...';
+
+        const formData = new FormData(form);
+
+        try {
+            const res  = await fetch(`${RESET_BASE_URL}/${agentId}/reset-password`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': CSRF(), 'Accept': 'application/json' },
+                body: formData,
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                successBox.textContent = data.message;
+                successBox.classList.remove('hidden');
+                form.reset();
+                resetSubmitBtn.disabled = true;
+                setTimeout(() => modal.classList.add('hidden'), 1500);
+            } else {
+                const errors = data.errors
+                    ? Object.values(data.errors).flat().join('\n')
+                    : (data.message ?? @json(__('carrier.errors.generic')));
+                errorBox.textContent = errors;
+                errorBox.classList.remove('hidden');
+                resetSubmitBtn.disabled = false;
+                resetSubmitBtn.textContent = @json(__('carrier.agents.reset_password_btn'));
+            }
+        } catch {
+            errorBox.textContent = @json(__('carrier.errors.generic'));
+            errorBox.classList.remove('hidden');
+            resetSubmitBtn.disabled = false;
+            resetSubmitBtn.textContent = @json(__('carrier.agents.reset_password_btn'));
+        }
+    });
+})();
+</script>
+@endpush
