@@ -540,7 +540,7 @@ const supervisorForm  = document.getElementById('supervisor-form');
 const SUPERVISOR_STORE_URL = '{{ route('admin.shipping-companies.supervisors.store') }}';
 
 function supervisorUpdateUrl(id) {
-    return '{{ url('admin/shipping-companies/supervisors') }}/' + id;
+    return '{{ url('shipping-companies/supervisors') }}/' + id;
 }
 
 function openSupervisorModal(mode, data) {
