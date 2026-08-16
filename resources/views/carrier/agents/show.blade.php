@@ -258,6 +258,16 @@
 @endsection
 
 @push('scripts')
+@php $agentJson = [
+    'id'             => $agent->id,
+    'name'           => $agent->name,
+    'phone'          => $agent->phone,
+    'vehicleType'    => $agent->vehicle_type->value,
+    'nationalId'     => $agent->national_id ?? '',
+    'vehiclePlate'   => $agent->vehicle_plate ?? '',
+    'emergencyName'  => $agent->emergency_contact_name ?? '',
+    'emergencyPhone' => $agent->emergency_contact_phone ?? '',
+]; @endphp
 <script>
 document.getElementById('zone-assign-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -301,16 +311,7 @@ const errorsBox  = document.getElementById('edit-agent-errors');
 const BASE_URL   = @json(url('carrier/agents'));
 const CSRF       = () => document.querySelector('meta[name="csrf-token"]').content;
 
-const AGENT = @json([
-    'id'             => $agent->id,
-    'name'           => $agent->name,
-    'phone'          => $agent->phone,
-    'vehicleType'    => $agent->vehicle_type->value,
-    'nationalId'     => $agent->national_id ?? '',
-    'vehiclePlate'   => $agent->vehicle_plate ?? '',
-    'emergencyName'  => $agent->emergency_contact_name ?? '',
-    'emergencyPhone' => $agent->emergency_contact_phone ?? '',
-]);
+const AGENT = @json($agentJson);
 
 function openEditModal() {
     editForm?.reset();
