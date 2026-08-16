@@ -64,6 +64,12 @@
                     {{ __('carrier.nav.supervisors') }}
                 </a>
                 @endif
+                @if(auth('shipping_supervisor')->user()?->hasPermission('view_reports'))
+                <a href="{{ route('carrier.reports.orders') }}"
+                   class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.reports.*') ? 'text-indigo-600 font-bold' : '' }}">
+                    {{ __('carrier.nav.reports') }}
+                </a>
+                @endif
 
                 {{-- Language switcher (AR / EN) --}}
                 <div class="relative" x-data="{ open: false }">

@@ -25,13 +25,13 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                 <tr>
-                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.agents.name') }}</th>
-                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.common.phone') }}</th>
-                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.agents.vehicle_type') }}</th>
-                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.agents.zone') }}</th>
-                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.assignments.status') }}</th>
-                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.agents.avg_rating') }}</th>
-                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.common.actions') }}</th>
+                    <th class="px-6 py-3 text-left font-semibold">{{ __('carrier.agents.name') }}</th>
+                    <th class="px-6 py-3 text-left font-semibold">{{ __('carrier.common.phone') }}</th>
+                    <th class="px-6 py-3 text-left font-semibold">{{ __('carrier.agents.vehicle_type') }}</th>
+                    <th class="px-6 py-3 text-left font-semibold">{{ __('carrier.agents.zone') }}</th>
+                    <th class="px-6 py-3 text-left font-semibold">{{ __('carrier.assignments.status') }}</th>
+                    <th class="px-6 py-3 text-left font-semibold">{{ __('carrier.agents.avg_rating') }}</th>
+                    <th class="px-4 py-3 text-left font-semibold">{{ __('carrier.common.actions') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -57,42 +57,82 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">{{ $sl }}</span>
                     </td>
                     <td class="px-6 py-3 text-gray-600">{{ number_format($agent->rating_avg, 1) }} ⭐</td>
-                    <td class="px-6 py-3 space-x-3">
-                        <a href="{{ route('carrier.agents.show', $agent->id) }}"
-                           class="text-indigo-600 hover:underline text-xs font-medium">
-                            {{ __('carrier.common.view') }}
-                        </a>
-                        @if(auth('shipping_supervisor')->user()->hasPermission('manage_agents'))
-                        <button type="button"
-                                class="btn-edit-agent text-indigo-600 hover:underline text-xs font-medium"
-                                data-id="{{ $agent->id }}"
-                                data-name="{{ $agent->name }}"
-                                data-phone="{{ $agent->phone }}"
-                                data-vehicle-type="{{ $agent->vehicle_type->value }}"
-                                data-national-id="{{ $agent->national_id ?? '' }}"
-                                data-vehicle-plate="{{ $agent->vehicle_plate ?? '' }}"
-                                data-emergency-name="{{ $agent->emergency_contact_name ?? '' }}"
-                                data-emergency-phone="{{ $agent->emergency_contact_phone ?? '' }}">
-                            {{ __('carrier.agents.edit') }}
-                        </button>
-                        <button type="button"
-                                class="btn-reset-password text-amber-600 hover:underline text-xs font-medium"
-                                data-id="{{ $agent->id }}"
-                                data-name="{{ $agent->name }}">
-                            {{ __('carrier.agents.reset_password_btn') }}
-                        </button>
-                        @if($agent->status === \App\Enums\DeliveryAgentStatus::Suspended)
-                        <form method="POST" action="{{ route('carrier.agents.activate', $agent->id) }}" class="inline">
-                            @csrf @method('PATCH')
-                            <button class="text-emerald-600 hover:underline text-xs font-medium">{{ __('carrier.agents.activate') }}</button>
-                        </form>
-                        @else
-                        <form method="POST" action="{{ route('carrier.agents.suspend', $agent->id) }}" class="inline">
-                            @csrf @method('PATCH')
-                            <button class="text-red-500 hover:underline text-xs font-medium">{{ __('carrier.agents.suspend') }}</button>
-                        </form>
-                        @endif
-                        @endif
+                    <td class="px-4 py-3 min-w-[200px]">
+                        <div class="flex flex-wrap gap-1.5 items-center">
+
+                            {{-- View --}}
+                            <a href="{{ route('carrier.agents.show', $agent->id) }}"
+                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold
+                                      bg-gray-100 text-gray-700 hover:bg-gray-200 transition whitespace-nowrap">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                {{ __('carrier.common.view') }}
+                            </a>
+
+                            @if(auth('shipping_supervisor')->user()->hasPermission('manage_agents'))
+
+                            {{-- Edit --}}
+                            <button type="button"
+                                    class="btn-edit-agent inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold
+                                           bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition whitespace-nowrap"
+                                    data-id="{{ $agent->id }}"
+                                    data-name="{{ $agent->name }}"
+                                    data-phone="{{ $agent->phone }}"
+                                    data-vehicle-type="{{ $agent->vehicle_type->value }}"
+                                    data-national-id="{{ $agent->national_id ?? '' }}"
+                                    data-vehicle-plate="{{ $agent->vehicle_plate ?? '' }}"
+                                    data-emergency-name="{{ $agent->emergency_contact_name ?? '' }}"
+                                    data-emergency-phone="{{ $agent->emergency_contact_phone ?? '' }}">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                {{ __('carrier.agents.edit') }}
+                            </button>
+
+                            {{-- Reset Password --}}
+                            <button type="button"
+                                    class="btn-reset-password inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold
+                                           bg-amber-50 text-amber-700 hover:bg-amber-100 transition whitespace-nowrap"
+                                    data-id="{{ $agent->id }}"
+                                    data-name="{{ $agent->name }}">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                </svg>
+                                {{ __('carrier.agents.reset_password_btn') }}
+                            </button>
+
+                            {{-- Suspend / Activate --}}
+                            @if($agent->status === \App\Enums\DeliveryAgentStatus::Suspended)
+                            <form method="POST" action="{{ route('carrier.agents.activate', $agent->id) }}" class="inline">
+                                @csrf @method('PATCH')
+                                <button type="submit"
+                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold
+                                               bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition whitespace-nowrap">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    {{ __('carrier.agents.activate') }}
+                                </button>
+                            </form>
+                            @else
+                            <form method="POST" action="{{ route('carrier.agents.suspend', $agent->id) }}" class="inline"
+                                  onsubmit="return confirm('{{ __('carrier.agents.suspend_confirm', ['name' => $agent->name]) }}')">
+                                @csrf @method('PATCH')
+                                <button type="submit"
+                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold
+                                               bg-red-50 text-red-600 hover:bg-red-100 transition whitespace-nowrap">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                    </svg>
+                                    {{ __('carrier.agents.suspend') }}
+                                </button>
+                            </form>
+                            @endif
+
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @endforeach

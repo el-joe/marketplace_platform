@@ -4,6 +4,7 @@ use App\Http\Controllers\CarrierPortal\AgentController;
 use App\Http\Controllers\CarrierPortal\AssignmentController;
 use App\Http\Controllers\CarrierPortal\AuthController;
 use App\Http\Controllers\CarrierPortal\DashboardController;
+use App\Http\Controllers\CarrierPortal\ReportController;
 use App\Http\Controllers\CarrierPortal\SupervisorController;
 use App\Http\Controllers\CarrierPortal\ZoneController;
 use App\Http\Controllers\NotificationController;
@@ -77,5 +78,17 @@ Route::name('carrier.')
             Route::get('/assignments', [AssignmentController::class, 'index'])->name('assignments.index');
             Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
             Route::post('/assignments/{assignment}/reassign', [AssignmentController::class, 'reassign'])->name('assignments.reassign');
+
+            // Reports
+            Route::get('/reports/orders', [ReportController::class, 'orders'])->name('reports.orders');
+            Route::get('/reports/orders/export', [ReportController::class, 'ordersExport'])->name('reports.orders.export');
+            Route::get('/reports/earnings', [ReportController::class, 'earnings'])->name('reports.earnings');
+            Route::get('/reports/earnings/export', [ReportController::class, 'earningsExport'])->name('reports.earnings.export');
+            Route::get('/reports/payouts', [ReportController::class, 'payouts'])->name('reports.payouts');
+            Route::get('/reports/cod-settlements', [ReportController::class, 'codSettlements'])->name('reports.cod-settlements');
+            Route::get('/reports/performance', [ReportController::class, 'performance'])->name('reports.performance');
+            Route::get('/reports/performance/trend', [ReportController::class, 'performanceTrend'])->name('reports.performance.trend');
+            Route::get('/reports/claims', [ReportController::class, 'claims'])->name('reports.claims');
+            Route::get('/reports/claims/{claim}', [ReportController::class, 'claimShow'])->name('reports.claims.show');
         });
     });
