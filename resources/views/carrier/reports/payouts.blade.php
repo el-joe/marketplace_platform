@@ -3,11 +3,30 @@
 @section('content')
 
 <div class="mb-4 flex items-center gap-1 border-b border-gray-200">
-    <a href="{{ route('carrier.reports.orders') }}" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-indigo-600">{{ __('carrier.reports.tab_orders') }}</a>
-    <a href="{{ route('carrier.reports.earnings') }}" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-indigo-600">{{ __('carrier.reports.tab_earnings') }}</a>
-    <a href="{{ route('carrier.reports.payouts') }}" class="px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">{{ __('carrier.reports.tab_payouts') }}</a>
-    <a href="{{ route('carrier.reports.cod-settlements') }}" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-indigo-600">{{ __('carrier.reports.tab_cod_settlements') }}</a>
-    <a href="{{ route('carrier.reports.performance') }}" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-indigo-600">{{ __('carrier.reports.tab_performance') }}</a>
+    <a href="{{ route('carrier.reports.orders') }}"
+       class="px-4 py-2 text-sm font-medium {{ request()->routeIs('carrier.reports.orders*') ? 'text-indigo-600 font-bold border-b-2 border-indigo-600' : 'text-gray-500 hover:text-indigo-600' }}">
+        {{ __('carrier.reports.tab_orders') }}
+    </a>
+    <a href="{{ route('carrier.reports.earnings') }}"
+       class="px-4 py-2 text-sm font-medium {{ request()->routeIs('carrier.reports.earnings*') ? 'text-indigo-600 font-bold border-b-2 border-indigo-600' : 'text-gray-500 hover:text-indigo-600' }}">
+        {{ __('carrier.reports.tab_earnings') }}
+    </a>
+    <a href="{{ route('carrier.reports.payouts') }}"
+       class="px-4 py-2 text-sm font-medium {{ request()->routeIs('carrier.reports.payouts*') ? 'text-indigo-600 font-bold border-b-2 border-indigo-600' : 'text-gray-500 hover:text-indigo-600' }}">
+        {{ __('carrier.reports.tab_payouts') }}
+    </a>
+    <a href="{{ route('carrier.reports.cod-settlements') }}"
+       class="px-4 py-2 text-sm font-medium {{ request()->routeIs('carrier.reports.cod-settlements*') ? 'text-indigo-600 font-bold border-b-2 border-indigo-600' : 'text-gray-500 hover:text-indigo-600' }}">
+        {{ __('carrier.reports.tab_cod_settlements') }}
+    </a>
+    <a href="{{ route('carrier.reports.performance') }}"
+       class="px-4 py-2 text-sm font-medium {{ request()->routeIs('carrier.reports.performance*') ? 'text-indigo-600 font-bold border-b-2 border-indigo-600' : 'text-gray-500 hover:text-indigo-600' }}">
+        {{ __('carrier.reports.tab_performance') }}
+    </a>
+    <a href="{{ route('carrier.reports.claims') }}"
+       class="px-4 py-2 text-sm font-medium {{ request()->routeIs('carrier.reports.claims*') ? 'text-indigo-600 font-bold border-b-2 border-indigo-600' : 'text-gray-500 hover:text-indigo-600' }}">
+        {{ __('carrier.reports.tab_claims') }}
+    </a>
 </div>
 
 <div class="mb-6">

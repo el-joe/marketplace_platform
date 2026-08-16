@@ -127,6 +127,7 @@ return [
 
         'tab_cod_settlements' => 'COD Settlements',
         'tab_performance'     => 'Performance',
+        'tab_claims'          => 'Claims',
         'cod_title'           => 'COD Settlements',
         'cod_subtitle'        => 'Cash on delivery collection and remittance status per agent.',
         'cod_pending_cash'    => 'Pending Cash (awaiting remittance)',

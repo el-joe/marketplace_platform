@@ -80,6 +80,8 @@ Route::name('carrier.')
             Route::post('/assignments/{assignment}/reassign', [AssignmentController::class, 'reassign'])->name('assignments.reassign');
 
             // Reports
+            Route::get('/reports', fn () => redirect()->route('carrier.reports.orders'))
+                ->name('reports.index');
             Route::get('/reports/orders', [ReportController::class, 'orders'])->name('reports.orders');
             Route::get('/reports/orders/export', [ReportController::class, 'ordersExport'])->name('reports.orders.export');
             Route::get('/reports/earnings', [ReportController::class, 'earnings'])->name('reports.earnings');

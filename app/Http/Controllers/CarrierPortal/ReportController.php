@@ -244,9 +244,6 @@ class ReportController extends Controller
                   ?? $supervisor->company?->country?->currency_code
                   ?? '—';
 
-        // Use DB raw select rather than the Eloquent model — DeliveryAgentPayout
-        // has legacy accessors that divide net_amount/gross_earnings by 100,
-        // which no longer matches the post-rename integer columns.
         $payouts = DB::table('delivery_agent_payouts as p')
             ->join('delivery_agents as a', 'a.id', '=', 'p.agent_id')
             ->whereIn('p.agent_id', $agentIds)

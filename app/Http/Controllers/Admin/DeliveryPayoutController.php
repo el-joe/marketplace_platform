@@ -91,8 +91,8 @@ class DeliveryPayoutController extends Controller
                 'agent_name' => e($payout->agent_name),
                 'period' => $payout->period_start->format('d M') . ' – ' . $payout->period_end->format('d M Y'),
                 'total_deliveries' => $payout->total_deliveries,
-                'gross_earnings' => number_format($payout->gross_earnings / 100, 2),
-                'net_amount' => number_format($payout->net_amount / 100, 2),
+                'gross_earnings' => number_format($payout->gross_earnings, 2),
+                'net_amount' => number_format($payout->net_amount, 2),
                 'currency' => $payout->currency,
                 'status' => $payout->status->value,
                 'status_label' => $payout->status->label(),
@@ -156,7 +156,7 @@ class DeliveryPayoutController extends Controller
             $payouts[] = [
                 'id'           => $payout->id,
                 'payout_number' => $payout->payout_number,
-                'net_amount'   => number_format($net / 100, 2),
+                'net_amount'   => number_format($net, 2),
                 'currency'     => $payout->currency,
             ];
         }

@@ -52,16 +52,4 @@ class DeliveryAgentPayout extends Model
     {
         return $this->belongsTo(Admin::class, 'approved_by_admin_id');
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
-
-    public function getNetAmountAttribute(): float
-    {
-        return $this->net_amount / 100;
-    }
-
-    public function getGrossEarningsAttribute(): float
-    {
-        return $this->gross_earnings / 100;
-    }
 }
