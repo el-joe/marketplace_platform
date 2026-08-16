@@ -34,7 +34,12 @@ class AgentController extends Controller
         /** @var ShippingCompanySupervisor $supervisor */
         $supervisor = auth('shipping_supervisor_api')->user();
 
+        // Compat shim: falls back to the company's home country until the
+        // supervisor is backfilled with their own country_id.
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
+
         $query = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->with('zone')
             ->orderBy('created_at', 'desc');
 
@@ -288,10 +293,15 @@ class AgentController extends Controller
     {
         $agent = DeliveryAgent::find($id);
 
+        // Compat shim: falls back to the company's home country until the
+        // supervisor is backfilled with their own country_id.
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
+
         if (
             $agent === null
             || $agent->shipping_company_id === null              // platform agent — absolutely off-limits
             || $agent->shipping_company_id !== $supervisor->shipping_company_id
+            || ($countryId && $agent->country_id !== $countryId)
         ) {
             abort(404);
         }

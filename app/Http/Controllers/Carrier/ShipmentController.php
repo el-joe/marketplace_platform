@@ -35,14 +35,16 @@ class ShipmentController extends Controller
             ], __('carrier.assignments.no_carriers_linked_body'));
         }
 
-        $companyCountryId = $supervisor->company?->country_id;
+        // Compat shim: falls back to the company's home country until the
+        // supervisor is backfilled with their own country_id.
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
 
         $shipments = Shipment::whereDoesntHave('deliveryAssignment')
             ->where('status', '!=', ShipmentStatus::Delivered)
             ->whereIn('carrier_id', $carrierIds)
-            ->when($companyCountryId, fn ($q) =>
+            ->when($countryId, fn ($q) =>
                 $q->whereHas('subOrder.order', fn ($q2) =>
-                    $q2->where('country_id', $companyCountryId)
+                    $q2->where('country_id', $countryId)
                 )
             )
             ->with([
@@ -76,6 +78,8 @@ class ShipmentController extends Controller
 
         $carrierIds = ShippingCarrier::where('shipping_company_id', $supervisor->shipping_company_id)->pluck('id');
 
+        // NOTE: show() does not filter by supervisor's country — it 404s only on
+        // carrier scope, matching the pre-existing behavior for this endpoint.
         $shipment = Shipment::whereIn('carrier_id', $carrierIds)
             ->with(['subOrder.order.customer', 'subOrder.items', 'trackingEvents', 'deliveryAssignment.agent'])
             ->findOrFail($id);
@@ -113,7 +117,7 @@ class ShipmentController extends Controller
         $request->validate(['agent_id' => ['required', 'string', 'exists:delivery_agents,id']]);
 
         $carrierIds = ShippingCarrier::where('shipping_company_id', $supervisor->shipping_company_id)->pluck('id');
-        $companyCountryId = $supervisor->company?->country_id;
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
 
         $shipment = Shipment::whereDoesntHave('deliveryAssignment')
             ->whereIn('carrier_id', $carrierIds)
@@ -124,7 +128,7 @@ class ShipmentController extends Controller
             ->where('status', 'active')
             ->firstOrFail();
 
-        if ($companyCountryId && $agent->country_id !== $companyCountryId) {
+        if ($countryId && $agent->country_id !== $countryId) {
             return ApiResponse::error('Agent does not operate in this country.', [], 422);
         }
 

@@ -37,7 +37,12 @@ class AgentController extends Controller
     /** Shared query for the index view and the export, scoped to the supervisor's company. */
     private function buildAgentsQuery(Request $request, $supervisor): Builder
     {
-        $query = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id);
+        // Compat shim: supervisors created before country scoping fall back to
+        // their company's home country until backfilled with their own country_id.
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
+
+        $query = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId));
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -101,7 +106,7 @@ class AgentController extends Controller
 
         DeliveryAgent::create([
             ...$data,
-            'country_id'             => $supervisor->company->country_id,
+            'country_id'             => $supervisor->country_id ?? $supervisor->company->country_id,
             'agent_type'             => 'third_party',
             'shipping_company_id'    => $supervisor->shipping_company_id,
             'added_by_supervisor_id' => $supervisor->id,
@@ -143,9 +148,11 @@ class AgentController extends Controller
     private function agentForCurrentCompany(string $id): DeliveryAgent
     {
         $supervisor = auth('shipping_supervisor')->user();
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
 
         return DeliveryAgent::where('id', $id)
             ->where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->firstOrFail();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,7 @@ class ShippingCarrier extends Model
 
     protected $fillable = [
         'shipping_company_id',
+        'country_id',
         'name',
         'code',
         'api_endpoint',
@@ -54,9 +56,21 @@ class ShippingCarrier extends Model
         return $this->belongsTo(ShippingCompany::class);
     }
 
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
     public function files(): MorphMany
     {
         return $this->morphMany(File::class, 'model');
+    }
+
+    // ── Scopes ────────────────────────────────────────────────────────────────
+
+    public function scopeForCountry(Builder $query, string $countryId): Builder
+    {
+        return $query->where('country_id', $countryId);
     }
 
     // ── Credential helpers ────────────────────────────────────────────────────

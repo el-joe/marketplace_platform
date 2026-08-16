@@ -271,6 +271,7 @@ function initCarrierModal() {
         $form.find('[name="name"]').val(row.name);
         $form.find('[name="code"]').val(row.code);
         $form.find('[name="shipping_company_id"]').val(row.shipping_company_id ?? '');
+        $form.find('[name="country_id"]').val(row.country_id ?? '');
         $form.find('[name="api_endpoint"]').val(row.api_endpoint ?? '');
         $form.find('[name="tracking_url_pattern"]').val(row.tracking_url_pattern ?? '');
         $('#carrier-credentials').val('');  // Never pre-fill credentials
@@ -297,6 +298,7 @@ function initCarrierModal() {
         const payload = {
             name: $form.find('[name="name"]').val(),
             shipping_company_id: $form.find('[name="shipping_company_id"]').val() || null,
+            country_id: $form.find('[name="country_id"]').val() || null,
             api_endpoint: $form.find('[name="api_endpoint"]').val() || null,
             tracking_url_pattern: $form.find('[name="tracking_url_pattern"]').val() || null,
             supports_cod: $form.find('[name="supports_cod"]').is(':checked') ? 1 : 0,

@@ -17,6 +17,7 @@ class ShippingCompanySupervisor extends Authenticatable implements JWTSubject
 
     protected $fillable = [
         'shipping_company_id',
+        'country_id',
         'name',
         'email',
         'phone',
@@ -48,6 +49,11 @@ class ShippingCompanySupervisor extends Authenticatable implements JWTSubject
         return $this->belongsTo(ShippingCompany::class, 'shipping_company_id');
     }
 
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────
 
     // ── JWTSubject ────────────────────────────────────────────────────────────
@@ -62,6 +68,7 @@ class ShippingCompanySupervisor extends Authenticatable implements JWTSubject
         return [
             'guard'               => 'shipping_supervisor_api',
             'shipping_company_id' => $this->shipping_company_id,
+            'country_id'          => $this->country_id,
             'permissions'         => $this->permissions ?? [],
         ];
     }

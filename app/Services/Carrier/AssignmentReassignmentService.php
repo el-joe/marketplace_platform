@@ -31,6 +31,9 @@ class AssignmentReassignmentService
         ShippingCompanySupervisor $actor,
     ): DeliveryAssignment {
         $companyId = $actor->shipping_company_id;
+        // Compat shim: falls back to the company's home country until the
+        // supervisor is backfilled with their own country_id.
+        $countryId = $actor->country_id ?? $actor->company?->country_id;
 
         // Validate current agent belongs to the supervisor's company.
         $currentAgent = $assignment->agent;
@@ -38,8 +41,11 @@ class AssignmentReassignmentService
             abort(404);
         }
 
-        // Validate new agent belongs to the same company (never platform agents).
-        if ($newAgent->shipping_company_id !== $companyId) {
+        // Validate new agent belongs to the same company (never platform agents)
+        // and, when the supervisor is country-scoped, the same country.
+        if ($newAgent->shipping_company_id !== $companyId
+            || ($countryId && $newAgent->country_id !== $countryId)
+        ) {
             throw ValidationException::withMessages([
                 'new_delivery_agent_id' => 'The new agent does not belong to your company.',
             ]);

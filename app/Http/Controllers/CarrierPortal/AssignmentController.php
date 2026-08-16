@@ -39,7 +39,10 @@ class AssignmentController extends Controller
             ->latest('assigned_at')
             ->paginate(25);
 
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
+
         $agents = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->active()
             ->get(['id', 'name', 'vehicle_type', 'rating_avg']);
 
@@ -49,7 +52,10 @@ class AssignmentController extends Controller
     /** Shared query for the index view and the export, scoped to the supervisor's company. */
     private function buildAssignmentsQuery(Request $request, $supervisor): Builder
     {
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
+
         $agentIds = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->pluck('id');
 
         $query = DeliveryAssignment::whereIn('agent_id', $agentIds);
@@ -96,8 +102,11 @@ class AssignmentController extends Controller
 
         abort_unless($supervisor->hasPermission('view_orders'), 403, __('carrier.errors.no_permission_view_orders'));
 
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
+
         $assignment = DeliveryAssignment::query()
-            ->whereHas('agent', fn ($q) => $q->where('shipping_company_id', $supervisor->shipping_company_id))
+            ->whereHas('agent', fn ($q) => $q->where('shipping_company_id', $supervisor->shipping_company_id)
+                ->when($countryId, fn ($q2) => $q2->where('country_id', $countryId)))
             ->with([
                 'agent',
                 'shipment.subOrder.order.customer',
@@ -107,6 +116,7 @@ class AssignmentController extends Controller
             ->findOrFail($assignmentId);
 
         $availableAgents = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->where('status', 'active')
             ->where('is_available', true)
             ->where('id', '!=', $assignment->agent_id)
@@ -123,16 +133,21 @@ class AssignmentController extends Controller
 
         $request->validate(['new_agent_id' => 'required|string|exists:delivery_agents,id']);
 
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
+
         $assignment = DeliveryAssignment::query()
-            ->whereHas('agent', fn ($q) => $q->where('shipping_company_id', $supervisor->shipping_company_id))
+            ->whereHas('agent', fn ($q) => $q->where('shipping_company_id', $supervisor->shipping_company_id)
+                ->when($countryId, fn ($q2) => $q2->where('country_id', $countryId)))
             ->findOrFail($assignmentId);
 
         if (!in_array($assignment->status?->value, ['assigned', 'accepted'])) {
             return response()->json(['success' => false, 'message' => __('carrier.assignments.cannot_reassign_picked_up')], 422);
         }
 
-        // Scope new agent to same company — prevents assigning to another company's agent.
+        // Scope new agent to same company and country — prevents assigning to
+        // another company's agent, or an agent outside this supervisor's country.
         $newAgent = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->where('id', $request->new_agent_id)
             ->where('status', 'active')
             ->firstOrFail();
@@ -173,19 +188,24 @@ class AssignmentController extends Controller
 
         $noCarriersLinked = $carrierIds->isEmpty();
 
+        // Compat shim: falls back to the company's home country until the
+        // supervisor is backfilled with their own country_id.
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
+
         $shipments = $noCarriersLinked
             ? Shipment::where('id', null)->paginate(20)
             : Shipment::whereDoesntHave('deliveryAssignment')
                 ->where('status', '!=', ShipmentStatus::Delivered)
                 ->whereIn('carrier_id', $carrierIds)
                 ->whereHas('subOrder.order', fn ($q) =>
-                    $q->where('country_id', $supervisor->company?->country_id)
+                    $q->where('country_id', $countryId)
                 )
                 ->with('subOrder.order')
                 ->latest()
                 ->paginate(20);
 
         $agents = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->where('status', 'active')
             ->get(['id', 'name', 'vehicle_type', 'is_available', 'rating_avg']);
 
@@ -201,6 +221,7 @@ class AssignmentController extends Controller
         $request->validate(['agent_id' => 'required|string|exists:delivery_agents,id']);
 
         $carrierIds = ShippingCarrier::where('shipping_company_id', $supervisor->shipping_company_id)->pluck('id');
+        $countryId = $supervisor->country_id ?? $supervisor->company?->country_id;
 
         $shipment = Shipment::whereDoesntHave('deliveryAssignment')
             ->whereIn('carrier_id', $carrierIds)
@@ -208,6 +229,7 @@ class AssignmentController extends Controller
             ->findOrFail($shipmentId);
 
         $agent = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->where('id', $request->agent_id)
             ->where('status', 'active')
             ->firstOrFail();

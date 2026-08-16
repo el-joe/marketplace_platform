@@ -48,6 +48,7 @@ class ShippingSettingController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'code' => ['required', 'string', 'max:20', 'unique:shipping_carriers,code'],
             'shipping_company_id' => ['nullable', 'string', 'exists:shipping_companies,id'],
+            'country_id' => ['nullable', 'string', 'exists:countries,id'],
             'api_endpoint' => ['nullable', 'url', 'max:255'],
             'tracking_url_pattern' => ['nullable', 'string', 'max:500'],
             'supports_cod' => ['boolean'],
@@ -78,6 +79,7 @@ class ShippingSettingController extends Controller
         $data = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:100'],
             'shipping_company_id' => ['nullable', 'string', 'exists:shipping_companies,id'],
+            'country_id' => ['nullable', 'string', 'exists:countries,id'],
             'api_endpoint' => ['nullable', 'url', 'max:255'],
             'tracking_url_pattern' => ['nullable', 'string', 'max:500'],
             'supports_cod' => ['sometimes', 'boolean'],
