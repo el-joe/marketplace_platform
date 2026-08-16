@@ -233,7 +233,7 @@ document.querySelectorAll('.btn-remove-from-zone').forEach(btn => {
         const name = btn.dataset.agentName;
         if (!confirm(`Remove ${name} from this zone?`)) return;
 
-        const assignUrl = `{{ url('admin/delivery/agents') }}/${btn.dataset.agentId}/assign-zone`;
+        const assignUrl = `{{ url('delivery/agents') }}/${btn.dataset.agentId}/assign-zone`;
         const res = await fetch(assignUrl, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRFTOKEN(), 'Accept': 'application/json', 'Content-Type': 'application/json' },

@@ -187,7 +187,7 @@ Object.assign(window.TRANSLATIONS, {
 (function () {
     const DATATABLE_URL = @json(route('admin.delivery.payouts.datatable'));
     const GENERATE_URL  = @json(route('admin.delivery.payouts.generate'));
-    const BASE_URL      = @json(url('admin/delivery/payouts'));
+    const BASE_URL      = @json(url('delivery/payouts'));
     const token         = () => $('meta[name=csrf-token]').attr('content');
 
     // ── DataTable ─────────────────────────────────────────────────────────────

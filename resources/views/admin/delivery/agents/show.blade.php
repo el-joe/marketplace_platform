@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const ZONE_URL       = @json(route('admin.delivery.agents.assign-zone', $agent->id));
     const ASSIGN_DT_URL  = @json(route('admin.delivery.agents.assignments.datatable', $agent->id));
     const EARNINGS_URL   = @json(route('admin.delivery.agents.earnings-summary', $agent->id));
-    const VERIFY_BASE    = @json(url('admin/delivery/documents'));
+    const VERIFY_BASE    = @json(url('delivery/documents'));
     const token          = () => $('meta[name=csrf-token]').attr('content');
 
     // ── Assignments DataTable ────────────────────────────────────────────────

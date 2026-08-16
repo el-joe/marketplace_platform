@@ -208,7 +208,7 @@
 
         (function () {
             const STORE_URL = @json(route('admin.delivery.zones.store'));
-            const BASE_URL = @json(url('admin/delivery/zones'));
+            const BASE_URL = @json(url('delivery/zones'));
             const token = () => $('meta[name=csrf-token]').attr('content');
 
             // ── City filter by country ───────────────────────────────────────────────
