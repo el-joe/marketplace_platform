@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'zone' => [
+        'your_zone' => 'Your Delivery Zone',
+        'delivery_fee' => 'Delivery Fee',
+        'cod_fee' => 'COD Fee',
+        'covered_cities' => 'Cities You Cover',
+        'no_zone_assigned' => 'You have not been assigned to a delivery zone yet. Contact your supervisor.',
+    ],
+
     'nav' => [
         'home' => 'Home',
         'my_deliveries' => 'My Deliveries',

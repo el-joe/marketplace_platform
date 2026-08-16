@@ -59,6 +59,8 @@ Route::name('carrier.')
             Route::post('/agents', [AgentController::class, 'store'])->name('agents.store');
             Route::patch('/agents/{id}/suspend', [AgentController::class, 'suspend'])->name('agents.suspend');
             Route::patch('/agents/{id}/activate', [AgentController::class, 'activate'])->name('agents.activate');
+            Route::get('/agents/{id}', [AgentController::class, 'show'])->name('agents.show');
+            Route::patch('/agents/{id}/zone', [AgentController::class, 'assignZone'])->name('agents.assign-zone');
 
             // Zones (scoped to supervisor's country, for agent zone dropdown)
             Route::get('/zones', [ZoneController::class, 'index'])->name('zones.index');

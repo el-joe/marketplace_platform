@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Delivery;
 
 use App\Http\Controllers\Controller;
+use App\Models\City;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
 use App\Models\DeliveryAgentEarning;
@@ -54,11 +55,21 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $agent->loadMissing('zone.country');
+
+        $zoneCities = collect();
+        if ($agent->zone && !empty($agent->zone->city_ids)) {
+            $zoneCities = City::whereIn('id', $agent->zone->city_ids)
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_ar']);
+        }
+
         return view('delivery.dashboard', compact(
             'agent',
             'todayAssignments',
             'earningsToday',
-            'pendingAssignments'
+            'pendingAssignments',
+            'zoneCities'
         ));
     }
 }

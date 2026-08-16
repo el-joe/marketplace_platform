@@ -15,6 +15,19 @@
         @endif
     </div>
     <div class="flex items-center gap-2">
+        <button type="button" id="btn-edit-company"
+                class="btn btn-secondary btn-sm"
+                data-id="{{ $shippingCompany->id }}"
+                data-name="{{ $shippingCompany->name }}"
+                data-legal-name="{{ $shippingCompany->legal_name }}"
+                data-country-id="{{ $shippingCompany->country_id }}"
+                data-contact-email="{{ $shippingCompany->contact_email }}"
+                data-contact-phone="{{ $shippingCompany->contact_phone }}"
+                data-served-countries="{{ json_encode($shippingCompany->served_countries ?? []) }}"
+                data-can-notify="{{ $shippingCompany->can_supervisors_receive_all_notifications ? '1' : '0' }}"
+                data-logo="{{ $shippingCompany->logo_path ? \Illuminate\Support\Facades\Storage::url($shippingCompany->logo_path) : '' }}">
+            {{ __('admin.shipping_section.edit_company') }}
+        </button>
         @if($shippingCompany->status === \App\Enums\ShippingCompanyStatus::Pending)
         <form method="POST" action="{{ route('admin.shipping-companies.approve', $shippingCompany->id) }}">
             @csrf
@@ -259,6 +272,214 @@
         </form>
     </div>
 </div>
+
+{{-- ─── Create / Edit Company Modal ───────────────────────────────────────── --}}
+<div id="company-modal" class="modal-backdrop hidden">
+    <div class="modal-box w-full max-w-2xl !p-0 overflow-hidden">
+
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 id="company-modal-title" class="text-lg font-semibold text-gray-900">
+                {{ __('admin.shipping_section.edit_company') }}
+            </h3>
+            <button type="button" id="company-modal-close"
+                    class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </div>
+
+        <form id="company-form" enctype="multipart/form-data">
+            @csrf
+            <input type="hidden" name="_method" id="company-form-method" value="PUT">
+            <input type="hidden" id="company-id" value="">
+
+            <div class="px-6 py-5 space-y-5 max-h-[72vh] overflow-y-auto">
+
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
+                        {{ __('admin.shipping_section.section_basic_info') }}
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('admin.shipping_section.company_name') }} <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="name" id="field-name" class="form-input w-full" required>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('admin.shipping_section.legal_name') }}
+                            </label>
+                            <input type="text" name="legal_name" id="field-legal-name" class="form-input w-full">
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('admin.shipping_section.contact_email') }} <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" name="contact_email" id="field-contact-email" class="form-input w-full" required>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('admin.shipping_section.phone') }}
+                            </label>
+                            <input type="text" name="contact_phone" id="field-contact-phone" class="form-input w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
+                        {{ __('admin.shipping_section.section_geography') }}
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('admin.shipping_section.home_country') }}
+                            </label>
+                            <select name="country_id" id="field-country" class="form-input w-full">
+                                <option value="">— {{ __('admin.shipping_section.select_country') }} —</option>
+                                @foreach($countries as $country)
+                                    <option value="{{ $country->id }}">{{ $country->name_en }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">{{ __('admin.shipping_section.home_country_note') }}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ __('admin.shipping_section.served_countries') }}
+                            </label>
+                            <select name="served_countries[]" id="field-served-countries"
+                                    multiple class="form-input w-full" style="min-height: 100px;">
+                                @foreach($countries as $country)
+                                    <option value="{{ $country->id }}">
+                                        {{ $country->name_en }}{{ $country->currency_code ? ' (' . $country->currency_code . ')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">{{ __('admin.shipping_section.served_countries_note') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
+                        {{ __('admin.shipping_section.section_logo') }}
+                    </h4>
+                    <div id="current-logo-wrap" class="hidden mb-3">
+                        <img id="current-logo-img" src="" alt="Logo"
+                             class="h-14 w-auto object-contain rounded border border-gray-200 p-1">
+                        <label class="flex items-center gap-2 mt-2 text-sm text-red-500 cursor-pointer">
+                            <input type="checkbox" name="remove_logo" value="1" id="field-remove-logo"
+                                   class="rounded border-gray-300">
+                            {{ __('admin.shipping_section.remove_logo') }}
+                        </label>
+                    </div>
+                    <input type="file" name="logo" id="field-logo"
+                           accept="image/*" class="form-input w-full text-sm">
+                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.shipping_section.logo_hint') }}</p>
+                </div>
+
+                <div>
+                    <label class="flex items-center gap-3 text-sm text-gray-700 cursor-pointer">
+                        <input type="checkbox" name="can_supervisors_receive_all_notifications"
+                               id="field-can-notify" value="1"
+                               class="rounded border-gray-300 text-primary-600" checked>
+                        {{ __('admin.shipping_section.can_supervisors_receive_all_notifications_label') }}
+                    </label>
+                    <p class="text-xs text-gray-400 mt-1 ml-6">
+                        {{ __('admin.shipping_section.can_supervisors_receive_all_notifications_note') }}
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+                <button type="button" id="company-modal-cancel" class="btn btn-ghost btn-sm">
+                    {{ __('common.cancel') }}
+                </button>
+                <button type="submit" id="company-form-submit" class="btn btn-primary btn-sm">
+                    {{ __('common.save') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+// ── Company Edit Modal ───────────────────────────────────────────────────────
+(() => {
+    const BASE_URL  = @json(url('admin/shipping-companies'));
+    const CSRF      = () => document.querySelector('meta[name="csrf-token"]').content;
+    const modal     = document.getElementById('company-modal');
+    const form      = document.getElementById('company-form');
+    const submitBtn = document.getElementById('company-form-submit');
+
+    document.getElementById('btn-edit-company').addEventListener('click', (e) => {
+        const btn = e.currentTarget;
+        form.reset();
+        document.getElementById('current-logo-wrap').classList.add('hidden');
+        document.getElementById('current-logo-img').src = '';
+
+        document.getElementById('company-id').value          = btn.dataset.id;
+        document.getElementById('field-name').value          = btn.dataset.name;
+        document.getElementById('field-legal-name').value    = btn.dataset.legalName || '';
+        document.getElementById('field-country').value       = btn.dataset.countryId || '';
+        document.getElementById('field-contact-email').value = btn.dataset.contactEmail;
+        document.getElementById('field-contact-phone').value = btn.dataset.contactPhone || '';
+        document.getElementById('field-can-notify').checked  = btn.dataset.canNotify === '1';
+
+        const served = JSON.parse(btn.dataset.servedCountries || '[]');
+        [...document.getElementById('field-served-countries').options].forEach(opt => {
+            opt.selected = served.includes(opt.value);
+        });
+
+        const logoUrl = btn.dataset.logo;
+        if (logoUrl) {
+            document.getElementById('current-logo-img').src = logoUrl;
+            document.getElementById('current-logo-wrap').classList.remove('hidden');
+        }
+
+        modal.classList.remove('hidden');
+    });
+
+    ['company-modal-close', 'company-modal-cancel'].forEach(id => {
+        document.getElementById(id)?.addEventListener('click', () => modal.classList.add('hidden'));
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+
+        const companyId = document.getElementById('company-id').value;
+        const formData   = new FormData(form);
+        formData.set('_method', 'PUT');
+
+        if (!document.getElementById('field-can-notify').checked) {
+            formData.set('can_supervisors_receive_all_notifications', '0');
+        }
+
+        try {
+            const res  = await fetch(`${BASE_URL}/${companyId}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': CSRF(), 'Accept': 'application/json' },
+                body: formData,
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                window.Toast?.success(data.message);
+                setTimeout(() => location.reload(), 800);
+            } else {
+                const errors = data.errors ? Object.values(data.errors).flat().join('\n') : data.message;
+                window.Toast?.error(errors || @json(__('admin.shipping_section.failed_to_save')));
+                submitBtn.disabled = false;
+            }
+        } catch {
+            window.Toast?.error(@json(__('admin.shipping_section.failed_to_save')));
+            submitBtn.disabled = false;
+        }
+    });
+})();
+</script>
+@endpush
 
 @push('scripts')
 <script>

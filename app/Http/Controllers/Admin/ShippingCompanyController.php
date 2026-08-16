@@ -12,6 +12,7 @@ use App\Models\ShippingFallbackRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -31,14 +32,140 @@ class ShippingCompanyController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('admin.shipping-companies.index', compact('companies', 'stats'));
+        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'currency_code']);
+
+        return view('admin.shipping-companies.index', compact('companies', 'stats', 'countries'));
+    }
+
+    public function create(): View
+    {
+        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'currency_code']);
+
+        return view('admin.shipping-companies.create', compact('countries'));
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name'                                       => ['required', 'string', 'max:255'],
+            'legal_name'                                 => ['nullable', 'string', 'max:255'],
+            'country_id'                                 => ['nullable', 'exists:countries,id'],
+            'contact_email'                              => ['required', 'email', 'max:255', 'unique:shipping_companies,contact_email'],
+            'contact_phone'                               => ['nullable', 'string', 'max:30'],
+            'served_countries'                            => ['nullable', 'array'],
+            'served_countries.*'                          => ['exists:countries,id'],
+            'status'                                       => ['required', 'in:pending,active,suspended'],
+            'can_supervisors_receive_all_notifications'    => ['boolean'],
+            'logo'                                         => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        $logoPath = null;
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('shipping-companies/logos', 'public');
+        }
+
+        $company = ShippingCompany::create([
+            'name'                                       => $data['name'],
+            'legal_name'                                 => $data['legal_name'] ?? null,
+            'country_id'                                 => $data['country_id'] ?? null,
+            'contact_email'                              => $data['contact_email'],
+            'contact_phone'                               => $data['contact_phone'] ?? null,
+            'served_countries'                            => $data['served_countries'] ?? null,
+            'status'                                       => $data['status'],
+            'can_supervisors_receive_all_notifications'    => $data['can_supervisors_receive_all_notifications'] ?? true,
+            'logo_path'                                   => $logoPath,
+            'approved_by_admin_id'                        => $data['status'] === 'active' ? auth('admin')->id() : null,
+            'approved_at'                                  => $data['status'] === 'active' ? now() : null,
+        ]);
+
+        return response()->json([
+            'success'  => true,
+            'message'  => __('admin.shipping_section.company_created'),
+            'redirect' => route('admin.shipping-companies.show', $company->id),
+        ], 201);
+    }
+
+    public function update(Request $request, ShippingCompany $shippingCompany): JsonResponse
+    {
+        $data = $request->validate([
+            'name'                                       => ['required', 'string', 'max:255'],
+            'legal_name'                                 => ['nullable', 'string', 'max:255'],
+            'country_id'                                 => ['nullable', 'exists:countries,id'],
+            'contact_email'                              => ['required', 'email', 'max:255',
+                                                              'unique:shipping_companies,contact_email,' . $shippingCompany->id],
+            'contact_phone'                               => ['nullable', 'string', 'max:30'],
+            'served_countries'                            => ['nullable', 'array'],
+            'served_countries.*'                          => ['exists:countries,id'],
+            'can_supervisors_receive_all_notifications'    => ['boolean'],
+            'logo'                                         => ['nullable', 'image', 'max:2048'],
+            'remove_logo'                                 => ['boolean'],
+        ]);
+
+        $logoPath = $shippingCompany->logo_path;
+
+        if ($request->boolean('remove_logo') && $logoPath) {
+            Storage::disk('public')->delete($logoPath);
+            $logoPath = null;
+        }
+
+        if ($request->hasFile('logo')) {
+            if ($logoPath) {
+                Storage::disk('public')->delete($logoPath);
+            }
+            $logoPath = $request->file('logo')->store('shipping-companies/logos', 'public');
+        }
+
+        $shippingCompany->update([
+            'name'                                       => $data['name'],
+            'legal_name'                                 => $data['legal_name'] ?? null,
+            'country_id'                                 => $data['country_id'] ?? null,
+            'contact_email'                              => $data['contact_email'],
+            'contact_phone'                               => $data['contact_phone'] ?? null,
+            'served_countries'                            => $data['served_countries'] ?? null,
+            'can_supervisors_receive_all_notifications'    => $data['can_supervisors_receive_all_notifications'] ?? true,
+            'logo_path'                                   => $logoPath,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('admin.shipping_section.company_updated'),
+        ]);
+    }
+
+    public function destroy(ShippingCompany $shippingCompany): JsonResponse
+    {
+        if ($shippingCompany->agents()->whereNull('deleted_at')->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('admin.shipping_section.company_has_agents'),
+            ], 422);
+        }
+
+        if ($shippingCompany->supervisors()->whereNull('deleted_at')->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('admin.shipping_section.company_has_supervisors'),
+            ], 422);
+        }
+
+        if ($shippingCompany->logo_path) {
+            Storage::disk('public')->delete($shippingCompany->logo_path);
+        }
+
+        $shippingCompany->delete();
+
+        return response()->json([
+            'success'  => true,
+            'message'  => __('admin.shipping_section.company_deleted'),
+            'redirect' => route('admin.shipping-companies.index'),
+        ]);
     }
 
     public function show(ShippingCompany $shippingCompany): View
     {
         $shippingCompany->load(['country', 'supervisors.country', 'agents' => fn ($q) => $q->limit(20)]);
 
-        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
+        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'currency_code']);
 
         return view('admin.shipping-companies.show', compact('shippingCompany', 'countries'));
     }

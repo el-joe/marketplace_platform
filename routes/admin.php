@@ -1488,7 +1488,22 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     // ─── Shipping Companies (Carrier Portal) ─────────────────────────────────
     Route::prefix('shipping-companies')->name('shipping-companies.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'index'])->name('index');
+
+        Route::get('/create', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'create'])
+            ->name('create')
+            ->middleware('admin.permission:settings.edit');
+
+        Route::post('/', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'store'])
+            ->name('store')
+            ->middleware('admin.permission:settings.edit');
+
         Route::get('/{shippingCompany}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'show'])->name('show');
+        Route::put('/{shippingCompany}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'update'])
+            ->name('update')
+            ->middleware('admin.permission:settings.edit');
+        Route::delete('/{shippingCompany}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'destroy'])
+            ->name('destroy')
+            ->middleware('admin.permission:settings.edit');
         Route::post('/{shippingCompany}/approve', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'approve'])->name('approve');
         Route::post('/{shippingCompany}/suspend', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'suspend'])->name('suspend');
         Route::post('/supervisors/{supervisor}/toggle-notifications', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'toggleSupervisorNotifications'])->name('supervisors.toggle-notifications');

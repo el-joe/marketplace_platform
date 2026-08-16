@@ -90,6 +90,7 @@ return [
         'phone'           => 'Phone Number',
         'password'        => 'Password',
         'confirm_password' => 'Confirm Password',
+        'view'            => 'View',
     ],
 
     'vehicle_types' => [
@@ -160,6 +161,18 @@ return [
         'added_success'     => 'Agent added successfully.',
         'suspended_success' => 'Agent suspended.',
         'activated_success' => 'Agent activated.',
+        'zone'              => 'Zone',
+        'no_zone'           => 'No zone assigned',
+        'zone_note'         => 'Assign this agent to a delivery zone. Capacity limits apply.',
+        'zone_assignment'   => 'Zone Assignment',
+        'current_zone'      => 'Current Zone',
+        'update_zone'       => 'Update Zone',
+        'zone_updated'      => 'Zone updated: :name.',
+        'zone_country_mismatch' => 'Zone does not belong to your country.',
+        'zone_at_capacity'  => 'Zone ":name" is at full capacity.',
+        'back'              => '← Agents',
+        'details'           => 'Agent Details',
+        'total_deliveries'  => 'Total Deliveries',
         'create' => [
             'title'                 => 'Add New Agent',
             'back_to_agents'        => 'Back to Agents',

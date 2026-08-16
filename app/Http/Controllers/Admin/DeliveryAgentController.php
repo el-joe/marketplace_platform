@@ -201,8 +201,9 @@ class DeliveryAgentController extends Controller
             'assignmentStats' => $assignmentStats,
             'zones' => DeliveryZone::where('is_active', true)
                 ->where('country_id', $agent->country_id)
+                ->withCount(['agents' => fn ($q) => $q->whereIn('status', ['active', 'on_shift'])])
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'max_active_agents']),
         ]);
     }
 

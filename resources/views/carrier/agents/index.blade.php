@@ -28,6 +28,7 @@
                     <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.agents.name') }}</th>
                     <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.common.phone') }}</th>
                     <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.agents.vehicle_type') }}</th>
+                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.agents.zone') }}</th>
                     <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.assignments.status') }}</th>
                     <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.agents.avg_rating') }}</th>
                     <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.common.actions') }}</th>
@@ -42,6 +43,7 @@
                     </td>
                     <td class="px-6 py-3 text-gray-600">{{ $agent->phone }}</td>
                     <td class="px-6 py-3 text-gray-600">{{ $agent->vehicle_type->label() }}</td>
+                    <td class="px-6 py-3 text-gray-600">{{ $agent->zone?->name ?? '—' }}</td>
                     <td class="px-6 py-3">
                         @php
                             $sc = ['active'=>'emerald','suspended'=>'red','inactive'=>'gray','on_shift'=>'blue'][$agent->status->value] ?? 'gray';
@@ -56,6 +58,10 @@
                     </td>
                     <td class="px-6 py-3 text-gray-600">{{ number_format($agent->rating_avg, 1) }} ⭐</td>
                     <td class="px-6 py-3">
+                        <a href="{{ route('carrier.agents.show', $agent->id) }}"
+                           class="text-indigo-600 hover:underline text-xs font-medium">
+                            {{ __('carrier.common.view') }}
+                        </a>
                         @if(auth('shipping_supervisor')->user()->hasPermission('manage_agents'))
                         @if($agent->status === \App\Enums\DeliveryAgentStatus::Suspended)
                         <form method="POST" action="{{ route('carrier.agents.activate', $agent->id) }}" class="inline">

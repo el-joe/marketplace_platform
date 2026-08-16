@@ -53,6 +53,31 @@
                 <input type="text" name="national_id" value="{{ old('national_id') }}"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
+            <div class="sm:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    {{ __('carrier.agents.zone') }}
+                </label>
+                <select name="zone_id"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">— {{ __('carrier.agents.no_zone') }} —</option>
+                    @foreach($zones as $zone)
+                        @php
+                            $full = $zone->max_active_agents && $zone->agents_count >= $zone->max_active_agents;
+                        @endphp
+                        <option value="{{ $zone->id }}"
+                                {{ old('zone_id') === $zone->id ? 'selected' : '' }}
+                                {{ $full ? 'disabled' : '' }}>
+                            {{ $zone->name }}
+                            @if($zone->max_active_agents)
+                                ({{ $zone->agents_count }}/{{ $zone->max_active_agents }})
+                                {{ $full ? '— Full' : '' }}
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('zone_id')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                <p class="text-xs text-gray-400 mt-1">{{ __('carrier.agents.zone_note') }}</p>
+            </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('carrier.common.password') }}</label>
                 <input type="password" name="password" required

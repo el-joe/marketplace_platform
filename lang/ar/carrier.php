@@ -90,6 +90,7 @@ return [
         'phone'           => 'رقم الجوال',
         'password'        => 'كلمة المرور',
         'confirm_password' => 'تأكيد كلمة المرور',
+        'view'            => 'عرض',
     ],
 
     'vehicle_types' => [
@@ -160,6 +161,18 @@ return [
         'added_success'     => 'تم إضافة المندوب بنجاح.',
         'suspended_success' => 'تم إيقاف المندوب.',
         'activated_success' => 'تم تفعيل المندوب.',
+        'zone'              => 'المنطقة',
+        'no_zone'           => 'لا توجد منطقة',
+        'zone_note'         => 'عيّن هذا المندوب لمنطقة توصيل. تنطبق حدود السعة.',
+        'zone_assignment'   => 'تعيين المنطقة',
+        'current_zone'      => 'المنطقة الحالية',
+        'update_zone'       => 'تحديث المنطقة',
+        'zone_updated'      => 'تم تحديث المنطقة: :name.',
+        'zone_country_mismatch' => 'المنطقة لا تنتمي لدولتك.',
+        'zone_at_capacity'  => 'المنطقة ":name" ممتلئة بالكامل.',
+        'back'              => '← المندوبون',
+        'details'           => 'تفاصيل المندوب',
+        'total_deliveries'  => 'إجمالي التوصيلات',
         'create' => [
             'title'                 => 'إضافة مندوب جديد',
             'back_to_agents'        => 'العودة للمناديب',

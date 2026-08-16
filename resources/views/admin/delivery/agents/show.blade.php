@@ -179,6 +179,9 @@
                                 </option>
                             @endforeach
                         </select>
+                        <div id="zone-capacity-info" class="text-xs text-gray-400 mb-3 hidden">
+                            <span id="zone-capacity-text"></span>
+                        </div>
                         <button type="submit" class="btn btn-secondary btn-sm w-full">{{ __('admin.delivery_section.update_zone') }}</button>
                     </form>
                 </x-card>
@@ -387,6 +390,7 @@ Object.assign(window.TRANSLATIONS, {
     suspensionReasonPrompt: @json(__('admin.delivery_section.suspension_reason_prompt')),
     resetPasswordConfirm: @json(__('admin.delivery_section.reset_password_confirm')),
     tempPasswordAlert: @json(__('admin.delivery_section.temp_password_alert')),
+    updateZone: @json(__('admin.delivery_section.update_zone')),
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -483,14 +487,47 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ── Zone Form ─────────────────────────────────────────────────────────────
+    const zoneCapacities = @json(
+        $zones->mapWithKeys(fn($z) => [
+            $z->id => [
+                'max'   => $z->max_active_agents,
+                'count' => $z->agents_count,
+            ]
+        ])
+    );
+
+    $('#zone-select').on('change', function () {
+        const id   = this.value;
+        const info = zoneCapacities[id];
+        const $box = $('#zone-capacity-info');
+        if (!id || !info) { $box.addClass('hidden'); return; }
+        const full = info.max && info.count >= info.max;
+        $box.removeClass('hidden')
+            .find('#zone-capacity-text')
+            .html(info.max
+                ? `${info.count} / ${info.max} agents${full ? ' — <span class="text-red-500 font-semibold">at capacity</span>' : ''}`
+                : `${info.count} agent(s) — no cap`
+            );
+    }).trigger('change');
+
     $('#zone-form').on('submit', function (e) {
         e.preventDefault();
+        const btn = $(this).find('button[type=submit]');
+        btn.prop('disabled', true).text('...');
         $.ajax({
             url    : ZONE_URL,
             method : 'POST',
             data   : { _token: token(), zone_id: $('#zone-select').val() },
-            success: res => { if (res.success) window.Toast?.success(res.message); },
-            error  : xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.failedGeneric),
+            success: res => {
+                if (res.success) {
+                    window.Toast?.success(res.message);
+                    setTimeout(() => location.reload(), 800);
+                }
+            },
+            error  : xhr => {
+                window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.failedGeneric);
+                btn.prop('disabled', false).text(window.TRANSLATIONS.updateZone);
+            },
         });
     });
 

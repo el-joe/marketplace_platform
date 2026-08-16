@@ -5,9 +5,11 @@ namespace App\Http\Controllers\CarrierPortal;
 use App\Enums\DeliveryAgentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
+use App\Models\DeliveryZone;
 use App\Traits\HasDataTable;
 use App\Traits\HasExport;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,6 +29,7 @@ class AgentController extends Controller
         }
 
         $agents = $this->buildAgentsQuery($request, $supervisor)
+            ->with('zone:id,name')
             ->withCount('assignments')
             ->latest()
             ->paginate(20);
@@ -86,7 +89,16 @@ class AgentController extends Controller
     {
         $this->requirePermission('manage_agents');
 
-        return view('carrier.agents.create');
+        $supervisor = auth('shipping_supervisor')->user();
+        $countryId  = $supervisor->country_id ?? $supervisor->company?->country_id;
+
+        $zones = DeliveryZone::where('is_active', true)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->withCount(['agents' => fn ($q) => $q->whereIn('status', ['active', 'on_shift'])])
+            ->orderBy('name')
+            ->get(['id', 'name', 'max_active_agents']);
+
+        return view('carrier.agents.create', compact('zones'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -100,13 +112,27 @@ class AgentController extends Controller
             'password'     => ['required', 'string', 'min:8', 'confirmed'],
             'vehicle_type' => ['required', 'in:motorcycle,car,van,bicycle'],
             'national_id'  => ['nullable', 'string', 'max:50'],
+            'zone_id'      => ['nullable', 'exists:delivery_zones,id'],
         ]);
 
         $supervisor = auth('shipping_supervisor')->user();
+        $supervisorCountry = $supervisor->country_id ?? $supervisor->company?->country_id;
+
+        if (!empty($data['zone_id'])) {
+            $zone = DeliveryZone::find($data['zone_id']);
+
+            if ($supervisorCountry && $zone->country_id !== $supervisorCountry) {
+                return back()->withErrors(['zone_id' => __('carrier.agents.zone_country_mismatch')])->withInput();
+            }
+
+            if ($zone->isAtCapacity()) {
+                return back()->withErrors(['zone_id' => __('carrier.agents.zone_at_capacity', ['name' => $zone->name])])->withInput();
+            }
+        }
 
         DeliveryAgent::create([
             ...$data,
-            'country_id'             => $supervisor->country_id ?? $supervisor->company->country_id,
+            'country_id'             => $supervisorCountry,
             'agent_type'             => 'third_party',
             'shipping_company_id'    => $supervisor->shipping_company_id,
             'added_by_supervisor_id' => $supervisor->id,
@@ -115,6 +141,62 @@ class AgentController extends Controller
 
         return redirect()->route('carrier.agents.index')
             ->with('success', __('carrier.agents.added_success'));
+    }
+
+    public function show(string $id): View
+    {
+        $this->requirePermission('manage_agents');
+
+        $agent = $this->agentForCurrentCompany($id);
+        $agent->load('zone', 'documents');
+
+        $supervisor = auth('shipping_supervisor')->user();
+        $countryId  = $supervisor->country_id ?? $supervisor->company?->country_id;
+
+        $zones = DeliveryZone::where('is_active', true)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->withCount(['agents' => fn ($q) => $q->whereIn('status', ['active', 'on_shift'])])
+            ->orderBy('name')
+            ->get(['id', 'name', 'max_active_agents']);
+
+        return view('carrier.agents.show', compact('agent', 'zones'));
+    }
+
+    public function assignZone(Request $request, string $id): JsonResponse
+    {
+        $this->requirePermission('manage_agents');
+
+        $agent = $this->agentForCurrentCompany($id);
+
+        $request->validate([
+            'zone_id' => ['nullable', 'exists:delivery_zones,id'],
+        ]);
+
+        $zoneId = $request->input('zone_id');
+
+        if ($zoneId) {
+            $zone = DeliveryZone::find($zoneId);
+
+            $supervisor = auth('shipping_supervisor')->user();
+            $supervisorCountry = $supervisor->country_id ?? $supervisor->company?->country_id;
+
+            if ($supervisorCountry && $zone->country_id !== $supervisorCountry) {
+                return response()->json(['success' => false, 'message' => __('carrier.agents.zone_country_mismatch')], 422);
+            }
+
+            if ($zoneId !== $agent->zone_id && $zone->isAtCapacity()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('carrier.agents.zone_at_capacity', ['name' => $zone->name]),
+                ], 422);
+            }
+        }
+
+        $agent->update(['zone_id' => $zoneId]);
+
+        $zoneName = $zoneId ? DeliveryZone::find($zoneId)?->name : __('carrier.agents.no_zone');
+
+        return response()->json(['success' => true, 'message' => __('carrier.agents.zone_updated', ['name' => $zoneName])]);
     }
 
     public function suspend(string $id): RedirectResponse

@@ -71,6 +71,43 @@
     @endforeach
 </div>
 
+{{-- ── Zone Info ────────────────────────────────────────────────────────────── --}}
+@if($agent->zone)
+<div class="d-card mb-4">
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-sm">{{ __('delivery.zone.your_zone') }}</h2>
+        <span class="text-xs text-slate-500 font-mono">{{ $agent->zone->code }}</span>
+    </div>
+    <p class="text-lg font-black text-indigo-400 mb-3">{{ $agent->zone->name }}</p>
+    <div class="grid grid-cols-2 gap-3 text-sm mb-4">
+        <div>
+            <p class="text-slate-500 text-xs">{{ __('delivery.zone.delivery_fee') }}</p>
+            <p class="font-semibold">{{ number_format($agent->zone->base_delivery_fee) }} {{ $agent->zone->country?->currency_code }}</p>
+        </div>
+        <div>
+            <p class="text-slate-500 text-xs">{{ __('delivery.zone.cod_fee') }}</p>
+            <p class="font-semibold">{{ number_format($agent->zone->cod_fee) }} {{ $agent->zone->country?->currency_code }}</p>
+        </div>
+    </div>
+    @if($zoneCities->isNotEmpty())
+    <div>
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{{ __('delivery.zone.covered_cities') }}</p>
+        <div class="flex flex-wrap gap-1.5">
+            @foreach($zoneCities as $city)
+            <span class="bg-indigo-500/10 text-indigo-300 text-xs font-medium px-2 py-0.5 rounded-full">
+                {{ app()->getLocale() === 'ar' ? $city->name_ar : $city->name_en }}
+            </span>
+            @endforeach
+        </div>
+    </div>
+    @endif
+</div>
+@else
+<div class="d-card mb-4 text-sm text-amber-400">
+    {{ __('delivery.zone.no_zone_assigned') }}
+</div>
+@endif
+
 {{-- ── Pending Assignments ──────────────────────────────────────────────────── --}}
 @if($pendingAssignments->isNotEmpty())
     <div class="mb-5">
