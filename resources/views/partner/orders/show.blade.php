@@ -9,6 +9,7 @@
         window.ORDER_DETAIL = {
             confirmUrl: '{{ route('partner.orders.confirm', $subOrder->sub_order_number) }}',
             shipUrl: '{{ route('partner.orders.ship', $subOrder->sub_order_number) }}',
+            shipPreviewUrl: '{{ route('partner.orders.ship-preview', $subOrder->sub_order_number) }}',
             outForDeliveryUrl: '{{ route('partner.orders.out-for-delivery', $subOrder->sub_order_number) }}',
             deliverUrl: '{{ route('partner.orders.deliver', $subOrder->sub_order_number) }}',
             cancelUrl: '{{ route('partner.orders.cancel', $subOrder->sub_order_number) }}',
@@ -456,10 +457,15 @@
                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
                         placeholder="{{ __('partner.orders.tracking_number_placeholder') }}">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.orders.expected_delivery_date') }}</label>
-                    <input type="date" name="estimated_delivery_date" required min="{{ date('Y-m-d') }}"
-                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                <div id="ship-delivery-estimate" class="hidden bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3">
+                    <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-0.5">
+                        {{ __('partner.orders.estimated_delivery_auto') }}
+                    </p>
+                    <p id="ship-delivery-label" class="text-sm font-medium text-indigo-800"></p>
+                    <p class="text-xs text-indigo-400 mt-0.5">{{ __('partner.orders.estimated_delivery_auto_note') }}</p>
+                </div>
+                <div id="ship-no-method" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-700">
+                    {{ __('partner.orders.no_shipping_method_estimate') }}
                 </div>
                 <div id="ship-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>
                 <div class="flex gap-3 pt-2">

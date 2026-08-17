@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -67,5 +68,57 @@ class ShippingMethod extends Model
     public function categoryShippingMethods(): HasMany
     {
         return $this->hasMany(CategoryShippingMethod::class);
+    }
+
+    /**
+     * Compute the latest estimated delivery date from now.
+     * Uses max_delivery_days + handling_time_hours + order_cutoff_time.
+     * Returns a Carbon date (not datetime) for storage in estimated_delivery_date.
+     */
+    public function computeEstimatedDeliveryDate(string $timezone = 'UTC'): Carbon
+    {
+        $now = Carbon::now($timezone);
+
+        // Check if order cutoff has passed today
+        $cutoffPassed = false;
+        if ($this->order_cutoff_time) {
+            $cutoff = Carbon::parse($now->toDateString() . ' ' . $this->order_cutoff_time, $timezone);
+            $cutoffPassed = $now->greaterThan($cutoff);
+        }
+
+        $maxDays = (int) ($this->max_delivery_days ?? 3) + ($cutoffPassed ? 1 : 0);
+
+        // Handling time brings us to when vendor hands over to carrier
+        $readyAt = $now->copy()->addHours((int) ($this->handling_time_hours ?? 24));
+
+        // Estimated delivery = ready time + transit days
+        return $readyAt->copy()->addDays($maxDays)->startOfDay();
+    }
+
+    /**
+     * Human-readable delivery window string for display in the modal.
+     * e.g. "2–5 days · arrives by Tue, Aug 20"
+     */
+    public function deliveryWindowLabel(string $timezone = 'UTC'): string
+    {
+        $now = Carbon::now($timezone);
+
+        $cutoffPassed = false;
+        if ($this->order_cutoff_time) {
+            $cutoff = Carbon::parse($now->toDateString() . ' ' . $this->order_cutoff_time, $timezone);
+            $cutoffPassed = $now->greaterThan($cutoff);
+        }
+
+        $minDays = (int) ($this->min_delivery_days ?? 1) + ($cutoffPassed ? 1 : 0);
+        $maxDays = (int) ($this->max_delivery_days ?? 3) + ($cutoffPassed ? 1 : 0);
+
+        $readyAt  = $now->copy()->addHours((int) ($this->handling_time_hours ?? 24));
+        $latestAt = $readyAt->copy()->addDays($maxDays)->startOfDay();
+
+        if ($minDays === $maxDays) {
+            return "{$maxDays} days · arrives by " . $latestAt->format('D, M j');
+        }
+
+        return "{$minDays}–{$maxDays} days · arrives by " . $latestAt->format('D, M j');
     }
 }

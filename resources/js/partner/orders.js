@@ -162,7 +162,30 @@ function initShipModal() {
     const modal = document.getElementById('ship-modal');
     if (!btn || !form || !modal || !ORDER_DETAIL) return;
 
-    btn.addEventListener('click', () => showModal('ship-modal'));
+    btn.addEventListener('click', async () => {
+        const estimateBox = document.getElementById('ship-delivery-estimate');
+        const noMethodBox = document.getElementById('ship-no-method');
+        const labelEl = document.getElementById('ship-delivery-label');
+
+        estimateBox?.classList.add('hidden');
+        noMethodBox?.classList.add('hidden');
+
+        showModal('ship-modal');
+
+        try {
+            const res = await fetch(ORDER_DETAIL.shipPreviewUrl);
+            const data = await res.json();
+
+            if (data.has_estimate) {
+                if (labelEl) labelEl.textContent = data.label;
+                estimateBox?.classList.remove('hidden');
+            } else {
+                noMethodBox?.classList.remove('hidden');
+            }
+        } catch {
+            // Silently skip if preview fails — ship still works
+        }
+    });
 
     document.getElementById('ship-modal-close')?.addEventListener('click', () => hideModal('ship-modal'));
     document.getElementById('ship-cancel-btn')?.addEventListener('click', () => hideModal('ship-modal'));

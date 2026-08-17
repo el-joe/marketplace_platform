@@ -100,6 +100,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/{subOrderNumber}', 'show')->name('show')->middleware('vendor.can:orders.view');
         Route::post('/{subOrderNumber}/confirm', 'confirm')->name('confirm')->middleware('vendor.can:orders.process');
         Route::post('/{subOrderNumber}/ship', 'ship')->name('ship')->middleware('vendor.can:orders.process');
+        Route::get('/{subOrderNumber}/ship-preview', 'shipPreview')->name('ship-preview')->middleware('vendor.can:orders.process');
         Route::post('/{subOrderNumber}/out-for-delivery', 'markOutForDelivery')->name('out-for-delivery')->middleware('vendor.can:orders.process');
         Route::post('/{subOrderNumber}/deliver', 'markDelivered')->name('deliver')->middleware('vendor.can:orders.process');
         Route::post('/{subOrderNumber}/cancel', 'cancel')->name('cancel')->middleware('vendor.can:orders.cancel');

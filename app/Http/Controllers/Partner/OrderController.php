@@ -274,10 +274,10 @@ class OrderController extends Controller
     {
         $request->validate([
             'tracking_number' => ['required', 'string', 'max:100'],
-            'estimated_delivery_date' => ['required', 'date', 'after_or_equal:today'],
         ]);
 
         $subOrder = $this->vendorSubOrder($subOrderNumber);
+        $subOrder->loadMissing(['shippingMethod', 'warehouse.country']);
 
         if (!in_array($subOrder->status->value, ['placed', 'confirmed', 'processing', 'packed'])) {
             return response()->json(['success' => false, 'message' => 'لا يمكن شحن هذا الطلب في حالته الحالية.'], 422);
@@ -294,10 +294,17 @@ class OrderController extends Controller
                 $fromStatus = $subOrder->status->value;
 
                 // 1. Update sub_order
+                $method = $subOrder->shippingMethod;
+                $timezone = $subOrder->warehouse?->country?->timezone ?? 'Asia/Dubai';
+
+                $estimatedDelivery = $method
+                    ? $method->computeEstimatedDeliveryDate($timezone)->toDateString()
+                    : now()->addDays(5)->toDateString();
+
                 $subOrder->update([
                     'status' => 'shipped',
                     'tracking_number' => $request->input('tracking_number'),
-                    'estimated_delivery_date' => $request->input('estimated_delivery_date'),
+                    'estimated_delivery_date' => $estimatedDelivery,
                     'shipped_at' => now(),
                 ]);
 
@@ -390,6 +397,29 @@ class OrderController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'تم تأكيد الشحن بنجاح.']);
+    }
+
+    public function shipPreview(string $subOrderNumber): JsonResponse
+    {
+        $subOrder = $this->vendorSubOrder($subOrderNumber);
+        $subOrder->loadMissing(['shippingMethod', 'warehouse.country']);
+
+        $method = $subOrder->shippingMethod;
+        $timezone = $subOrder->warehouse?->country?->timezone ?? 'Asia/Dubai';
+
+        if (!$method) {
+            return response()->json([
+                'has_estimate' => false,
+                'label' => null,
+                'date' => null,
+            ]);
+        }
+
+        return response()->json([
+            'has_estimate' => true,
+            'label' => $method->deliveryWindowLabel($timezone),
+            'date' => $method->computeEstimatedDeliveryDate($timezone)->format('D, M j, Y'),
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
