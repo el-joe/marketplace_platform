@@ -154,7 +154,7 @@ function submitReassign() {
     const selected = document.querySelector('input[name="reassign_agent"]:checked');
     if (!selected) { alert('{{ __('carrier.assignments.please_select_agent') }}'); return; }
 
-    fetch(`/carrier/assignments/${currentAssignmentId}/reassign`, {
+    fetch(`/assignments/${currentAssignmentId}/reassign`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

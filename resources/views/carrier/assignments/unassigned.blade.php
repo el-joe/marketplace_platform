@@ -138,7 +138,7 @@
                 const selected = document.querySelector('input[name="assign_agent"]:checked');
                 if (!selected) { alert('{{ __('carrier.assignments.please_select_agent') }}'); return; }
 
-                const url = `/carrier/assignments/${currentShipmentId}/assign`;
+                const url = `/assignments/${currentShipmentId}/assign`;
 
                 fetch(url, {
                     method: 'POST',
