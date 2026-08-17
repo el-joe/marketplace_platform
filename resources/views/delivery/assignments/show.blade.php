@@ -75,13 +75,20 @@
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">{{ __('delivery.assignments.deliver_to') }}</p>
                     @if($order?->shipping_address_snapshot)
                                 <p class="text-sm text-slate-200 mt-0.5">
-                                    {{ is_array($order->shipping_address_snapshot)
-                        ? implode(', ', array_filter([
-                            $order->shipping_address_snapshot['street'] ?? null,
-                            $order->shipping_address_snapshot['city'] ?? null,
-                            $order->shipping_address_snapshot['country'] ?? null,
-                        ]))
-                        : $order->shipping_address_snapshot }}
+                                    @php
+                                        $snap    = is_array($order->shipping_address_snapshot)
+                                            ? $order->shipping_address_snapshot
+                                            : [];
+                                        $rawCity = $snap['city'] ?? null;
+                                        $snapCity = is_array($rawCity)
+                                            ? ($rawCity[app()->getLocale()] ?? $rawCity['en'] ?? $rawCity['ar'] ?? null)
+                                            : $rawCity;
+                                    @endphp
+                                    {{ implode(', ', array_filter([
+                                        $snap['street_address'] ?? $snap['street'] ?? null,
+                                        $snapCity,
+                                        $snap['country'] ?? null,
+                                    ])) }}
                                 </p>
                     @else
                         <p class="text-sm text-slate-500 mt-0.5">{{ __('delivery.assignments.address_unavailable') }}</p>

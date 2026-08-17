@@ -102,7 +102,15 @@
                 @if(!empty($address['address_line_1']))<p>{{ $address['address_line_1'] }}</p>@endif
                 @if(!empty($address['address_line_2']))<p>{{ $address['address_line_2'] }}</p>@endif
                 <p>
-                    @if(!empty($address['city'])){{ $address['city'] }}@endif
+                    @if(!empty($address['city']))
+                        @php
+                            $rawCity = $address['city'];
+                            $cityLabel = is_array($rawCity)
+                                ? ($rawCity[app()->getLocale()] ?? $rawCity['en'] ?? $rawCity['ar'] ?? '')
+                                : $rawCity;
+                        @endphp
+                        {{ $cityLabel }}
+                    @endif
                     @if(!empty($address['state'])), {{ $address['state'] }}@endif
                     @if(!empty($address['postal_code'])) {{ $address['postal_code'] }}@endif
                 </p>

@@ -141,7 +141,7 @@
                     @endif
                     @php
                         $addrStr = function ($val): ?string {
-                            if (is_array($val))  return $val['name_en'] ?? $val['name_ar'] ?? null;
+                            if (is_array($val))  return $val[app()->getLocale()] ?? $val['en'] ?? $val['ar'] ?? $val['name_en'] ?? $val['name_ar'] ?? null;
                             if (is_object($val)) return $val->name_en   ?? $val->name_ar   ?? null;
                             return $val ?: null;
                         };
