@@ -40,8 +40,11 @@
                     <tbody class="divide-y divide-gray-100">
                         @foreach($shipments as $shipment)
                             @php
-                                $address = $shipment->subOrder?->order?->shipping_address_snapshot ?? [];
-                                $city = $address['city'] ?? '—';
+                                $address  = $shipment->subOrder?->order?->shipping_address_snapshot ?? [];
+                                $rawCity  = $address['city'] ?? null;
+                                $city     = is_array($rawCity)
+                                    ? ($rawCity['name_en'] ?? $rawCity['name_ar'] ?? '—')
+                                    : ($rawCity ?? '—');
                             @endphp
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-3 font-mono text-xs text-gray-600">{{ $shipment->tracking_number }}</td>
