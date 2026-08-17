@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\InventoryMovementReferenceType;
+use App\Enums\InventoryMovementType;
 use App\Http\Controllers\Controller;
 use App\Models\InventoryMovement;
 use App\Models\OrderStatusHistory;
@@ -358,10 +360,10 @@ class OrderController extends Controller
 
                     InventoryMovement::create([
                         'warehouse_inventory_id' => $inventory->id,
-                        'movement_type' => 'outbound',
+                        'movement_type' => InventoryMovementType::Outbound->value,
                         'quantity_delta' => -$item->quantity,
                         'quantity_after' => $newOnHand,
-                        'reference_type' => 'order',
+                        'reference_type' => InventoryMovementReferenceType::Order->value,
                         'reference_id' => $subOrder->id,
                         'reason' => 'order_shipped',
                         'created_by_user_id' => Auth::guard('vendor')->user()->id,
