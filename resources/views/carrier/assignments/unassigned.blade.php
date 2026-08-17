@@ -43,7 +43,7 @@
                                 $address  = $shipment->subOrder?->order?->shipping_address_snapshot ?? [];
                                 $rawCity  = $address['city'] ?? null;
                                 $city     = is_array($rawCity)
-                                    ? ($rawCity['name_en'] ?? $rawCity['name_ar'] ?? '—')
+                                    ? ($rawCity[app()->getLocale()] ?? $rawCity['en'] ?? $rawCity['ar'] ?? '—')
                                     : ($rawCity ?? '—');
                             @endphp
                             <tr class="hover:bg-gray-50">
