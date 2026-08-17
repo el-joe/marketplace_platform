@@ -289,7 +289,7 @@ class OrderController extends Controller
 
         $vendorId = $this->vendorId();
 
-        try {
+        // try {
             DB::transaction(function () use ($request, $subOrder, $vendorId) {
                 $fromStatus = $subOrder->status->value;
 
@@ -391,10 +391,10 @@ class OrderController extends Controller
                     'tracking' => $request->input('tracking_number'),
                 ]);
             });
-        } catch (\Throwable $e) {
-            Log::error('Ship action failed', ['error' => $e->getMessage(), 'sub_order' => $subOrderNumber]);
-            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء تحديث الشحن. يرجى المحاولة مرة أخرى.'], 500);
-        }
+        // } catch (\Throwable $e) {
+        //     Log::error('Ship action failed', ['error' => $e->getMessage(), 'sub_order' => $subOrderNumber]);
+        //     return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء تحديث الشحن. يرجى المحاولة مرة أخرى.'], 500);
+        // }
 
         return response()->json(['success' => true, 'message' => 'تم تأكيد الشحن بنجاح.']);
     }
