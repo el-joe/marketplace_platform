@@ -2820,6 +2820,471 @@
       ]
     },
     {
+      "name": "Receivers",
+      "description": "",
+      "item": [
+        {
+          "name": "List Receivers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "receivers"
+              ]
+            },
+            "description": "Lists the authenticated customer's saved receivers (order recipients), most-recently-set-default first.\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "receivers"
+                  ]
+                },
+                "description": "Lists the authenticated customer's saved receivers (order recipients), most-recently-set-default first.\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Receivers retrieved.\",\n  \"data\": [\n    {\n      \"id\": \"9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7\",\n      \"name\": \"Ahmed Fathy\",\n      \"phone\": \"+201098765432\",\n      \"is_default\": true\n    },\n    {\n      \"id\": \"8b2c3d4e-5f6a-4789-b0c1-d2e3f4a5b6c7\",\n      \"name\": \"Sara Adel\",\n      \"phone\": \"+201123456789\",\n      \"is_default\": false\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Receiver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "receivers"
+              ]
+            },
+            "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `name` | string | Yes | Max 255 chars |\n| `phone` | string | Yes | Max 30 chars |\n| `is_default` | boolean | No | Set as default receiver |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "name",
+                  "value": "Ahmed Fathy",
+                  "description": "Required. Max 255 chars (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "+201098765432",
+                  "description": "Required. Max 30 chars (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "is_default",
+                  "value": "true",
+                  "description": "Optional. Set as default receiver (type: boolean)",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "201 Example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "receivers"
+                  ]
+                },
+                "description": "**Form fields (application/x-www-form-urlencoded):**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `name` | string | Yes | Max 255 chars |\n| `phone` | string | Yes | Max 30 chars |\n| `is_default` | boolean | No | Set as default receiver |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login.",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "name",
+                      "value": "Ahmed Fathy",
+                      "description": "Required. Max 255 chars (type: string)",
+                      "type": "text"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "+201098765432",
+                      "description": "Required. Max 30 chars (type: string)",
+                      "type": "text"
+                    },
+                    {
+                      "key": "is_default",
+                      "value": "true",
+                      "description": "Optional. Set as default receiver (type: boolean)",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Receiver added.\",\n  \"data\": {\n    \"id\": \"9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7\",\n    \"name\": \"Ahmed Fathy\",\n    \"phone\": \"+201098765432\",\n    \"is_default\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Receiver",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers/9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "receivers",
+                "9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7"
+              ]
+            },
+            "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `name` | string | Yes | Max 255 chars |\n| `phone` | string | Yes | Max 30 chars |\n| `is_default` | boolean | No | Set as default receiver |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "name",
+                  "value": "Ahmed Fathy",
+                  "description": "Required. Max 255 chars (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "+201098765432",
+                  "description": "Required. Max 30 chars (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "is_default",
+                  "value": "true",
+                  "description": "Optional. Set as default receiver (type: boolean)",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers/9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "receivers",
+                    "9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7"
+                  ]
+                },
+                "description": "**Body fields:**\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `name` | string | Yes | Max 255 chars |\n| `phone` | string | Yes | Max 30 chars |\n| `is_default` | boolean | No | Set as default receiver |\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login.",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "name",
+                      "value": "Ahmed Fathy",
+                      "description": "Required. Max 255 chars (type: string)",
+                      "type": "text"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "+201098765432",
+                      "description": "Required. Max 30 chars (type: string)",
+                      "type": "text"
+                    },
+                    {
+                      "key": "is_default",
+                      "value": "true",
+                      "description": "Optional. Set as default receiver (type: boolean)",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Receiver updated.\",\n  \"data\": {\n    \"id\": \"9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7\",\n    \"name\": \"Ahmed Fathy Mostafa\",\n    \"phone\": \"+201098765432\",\n    \"is_default\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Receiver",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers/9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "receivers",
+                "9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7"
+              ]
+            },
+            "description": "Deletes a receiver. Fails with 422 if it is the customer's default receiver — set another receiver as default first.\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers/9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "receivers",
+                    "9a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7"
+                  ]
+                },
+                "description": "Deletes a receiver. Fails with 422 if it is the customer's default receiver — set another receiver as default first.\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Receiver removed.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Set Default Receiver",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers/8b2c3d4e-5f6a-4789-b0c1-d2e3f4a5b6c7/set-default",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "receivers",
+                "8b2c3d4e-5f6a-4789-b0c1-d2e3f4a5b6c7/set-default"
+              ]
+            },
+            "description": "Marks this receiver as the customer's default.\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "name",
+                  "value": "Ahmed Fathy",
+                  "description": "Required. Max 255 chars (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "+201098765432",
+                  "description": "Required. Max 30 chars (type: string)",
+                  "type": "text"
+                },
+                {
+                  "key": "is_default",
+                  "value": "true",
+                  "description": "Optional. Set as default receiver (type: boolean)",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/receivers/8b2c3d4e-5f6a-4789-b0c1-d2e3f4a5b6c7/set-default",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "receivers",
+                    "8b2c3d4e-5f6a-4789-b0c1-d2e3f4a5b6c7/set-default"
+                  ]
+                },
+                "description": "Marks this receiver as the customer's default.\n\n**Auth:** Requires Bearer token (`{{access_token}}`), set automatically after login.",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "name",
+                      "value": "Ahmed Fathy",
+                      "description": "Required. Max 255 chars (type: string)",
+                      "type": "text"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "+201098765432",
+                      "description": "Required. Max 30 chars (type: string)",
+                      "type": "text"
+                    },
+                    {
+                      "key": "is_default",
+                      "value": "true",
+                      "description": "Optional. Set as default receiver (type: boolean)",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Default receiver updated.\",\n  \"data\": {\n    \"id\": \"8b2c3d4e-5f6a-4789-b0c1-d2e3f4a5b6c7\",\n    \"name\": \"Sara Adel\",\n    \"phone\": \"+201123456789\",\n    \"is_default\": true\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Payment Methods",
       "description": "",
       "item": [
@@ -15012,6 +15477,148 @@
                 }
               ],
               "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"7a1b2c3d-4e5f-6789-a0b1-c2d3e4f5a6b7\",\n    \"slug\": \"samsung-galaxy-a55\",\n    \"name\": {\n      \"ar\": \"\\u0633\\u0627\\u0645\\u0633\\u0648\\u0646\\u062c \\u062c\\u0627\\u0644\\u0627\\u0643\\u0633\\u064a A55\",\n      \"en\": \"Samsung Galaxy A55 8/128GB\"\n    },\n    \"has_variants\": true,\n    \"rating_avg\": 4.5,\n    \"rating_count\": 128,\n    \"brand\": {\n      \"id\": \"brand-01\",\n      \"name\": {\n        \"en\": \"Samsung\"\n      }\n    },\n    \"is_wishlisted\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Travel Package by ID (Shortcut)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/travel/tp-001",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "travel",
+                "tp-001"
+              ]
+            },
+            "description": "Shorthand for GET /listings/travel/{id} — accepts the travel package UUID directly.\n\n**Auth:** Public endpoint, no token required.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/travel/tp-001",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "travel",
+                    "tp-001"
+                  ]
+                },
+                "description": "Shorthand for GET /listings/travel/{id} — accepts the travel package UUID directly.\n\n**Auth:** Public endpoint, no token required.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"tp-001\",\n    \"title\": {\n      \"en\": \"Luxor & Aswan 4-Day Nile Cruise\",\n      \"ar\": \"\\u0631\\u062d\\u0644\\u0629 \\u0646\\u064a\\u0644\\u064a\\u0629 4 \\u0623\\u064a\\u0627\\u0645 \\u0628\\u064a\\u0646 \\u0627\\u0644\\u0623\\u0642\\u0635\\u0631 \\u0648\\u0623\\u0633\\u0648\\u0627\\u0646\"\n    },\n    \"price\": 899900,\n    \"currency\": \"EGP\",\n    \"duration_days\": 4,\n    \"is_active\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Classified Listing by ID (Shortcut)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/v1/{{country}}/classified/b7c8d9e0-1f2a-4b3c-8d4e-5f6a7b8c9d0e",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "v1",
+                "{{country}}",
+                "classified",
+                "b7c8d9e0-1f2a-4b3c-8d4e-5f6a7b8c9d0e"
+              ]
+            },
+            "description": "Shorthand for GET /listings/classified/{id} — accepts the classified listing UUID directly.\n\n**Auth:** Public endpoint, no token required.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "200 Example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/customer/v1/{{country}}/classified/b7c8d9e0-1f2a-4b3c-8d4e-5f6a7b8c9d0e",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "customer",
+                    "v1",
+                    "{{country}}",
+                    "classified",
+                    "b7c8d9e0-1f2a-4b3c-8d4e-5f6a7b8c9d0e"
+                  ]
+                },
+                "description": "Shorthand for GET /listings/classified/{id} — accepts the classified listing UUID directly.\n\n**Auth:** Public endpoint, no token required.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b7c8d9e0-1f2a-4b3c-8d4e-5f6a7b8c9d0e\",\n    \"listing_number\": \"CL-2026-000123\",\n    \"title\": {\n      \"en\": \"iPhone 13 Pro Max 256GB - Like New\"\n    },\n    \"price\": 2500000,\n    \"currency\": \"EGP\",\n    \"condition\": \"used_like_new\",\n    \"status\": \"active\"\n  }\n}"
             }
           ]
         },

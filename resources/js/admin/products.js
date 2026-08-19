@@ -619,7 +619,7 @@ function initFormSubmit() {
         const T = window.TRANSLATIONS || {};
         const $btn = $('#submit-btn').prop('disabled', true).text(T.validatingEllipsis || 'Validating…');
         const validateData = new FormData(this);
-
+        validateData.append('_method', 'POST'); // ensure it's POST for validation
         $.ajax({
             url: validateUrl,
             method: 'POST',
