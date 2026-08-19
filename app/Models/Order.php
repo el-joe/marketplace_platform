@@ -127,4 +127,56 @@ class Order extends Model
     {
         return $this->morphMany(File::class, 'model');
     }
+
+    /**
+     * Sync the parent order's status based on all its sub-orders' current statuses.
+     * Called after any sub-order status change regardless of who made it.
+     */
+    public function syncStatusFromSubOrders(?string $changedByAdminId = null): void
+    {
+        $this->loadMissing('subOrders');
+
+        $statuses = $this->subOrders->pluck('status')->map(
+            fn ($s) => $s instanceof \BackedEnum ? $s->value : $s
+        );
+
+        $newStatus = null;
+
+        if ($statuses->every(fn ($s) => $s === 'completed')) {
+            $newStatus = 'completed';
+        } elseif ($statuses->every(fn ($s) => in_array($s, ['cancelled', 'refunded'], true))) {
+            $newStatus = 'cancelled';
+        } elseif ($statuses->every(fn ($s) => $s === 'delivered')) {
+            $newStatus = 'delivered';
+        } elseif ($statuses->contains('delivered')) {
+            $newStatus = 'partially_delivered';
+        } elseif ($statuses->every(fn ($s) => in_array($s, ['shipped', 'out_for_delivery', 'delivered', 'completed'], true))) {
+            $newStatus = 'shipped';
+        } elseif ($statuses->contains(fn ($s) => in_array($s, ['shipped', 'out_for_delivery'], true))) {
+            $newStatus = 'partially_shipped';
+        }
+
+        $currentStatus = $this->status instanceof \BackedEnum
+            ? $this->status->value
+            : $this->status;
+
+        if ($newStatus && $newStatus !== $currentStatus) {
+            $old = $currentStatus;
+
+            $this->update([
+                'status' => $newStatus,
+                'completed_at' => $newStatus === 'completed' ? now() : $this->completed_at,
+                'cancelled_at' => $newStatus === 'cancelled' ? now() : $this->cancelled_at,
+            ]);
+
+            OrderStatusHistory::create([
+                'order_id' => $this->id,
+                'sub_order_id' => null,
+                'from_status' => $old,
+                'to_status' => $newStatus,
+                'changed_by_admin_id' => $changedByAdminId,
+                'reason' => '[Auto] Order status synced from sub-order changes.',
+            ]);
+        }
+    }
 }

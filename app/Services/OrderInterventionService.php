@@ -155,7 +155,8 @@ class OrderInterventionService
 
             // If all sub-orders of the parent order are now completed/cancelled,
             // auto-advance the parent order status.
-            $this->syncParentOrderStatus($subOrder->order_id, $adminId);
+            $order = Order::find($subOrder->order_id);
+            $order?->syncStatusFromSubOrders(changedByAdminId: $adminId);
         });
 
         // Notify the customer outside the transaction so a notification failure
@@ -497,63 +498,4 @@ class OrderInterventionService
         );
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Private helpers
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /**
-     * After a sub-order status change, sync the parent order's overall status.
-     * Rules:
-     *  - All sub-orders completed → order = completed
-     *  - All sub-orders cancelled → order = cancelled
-     *  - Any sub-order delivered, none cancelled-only → order = delivered
-     *  - Any sub-order shipped   → order = partially_shipped or shipped
-     */
-    private function syncParentOrderStatus(string $orderId, string $adminId): void
-    {
-        $order = Order::with('subOrders')->find($orderId);
-
-        if (!$order) {
-            return;
-        }
-
-        $statuses = $order->subOrders->pluck('status')->map(fn ($s) => $s->value);
-
-        $newStatus = null;
-
-        if ($statuses->every(fn($s) => $s === 'completed')) {
-            $newStatus = 'completed';
-        } elseif ($statuses->every(fn($s) => in_array($s, ['cancelled', 'refunded'], true))) {
-            $newStatus = 'cancelled';
-        } elseif ($statuses->contains('delivered') && !$statuses->every(fn($s) => $s === 'delivered')) {
-            $newStatus = 'partially_delivered';
-        } elseif ($statuses->every(fn($s) => $s === 'delivered')) {
-            $newStatus = 'delivered';
-        } elseif (
-            $statuses->contains(fn($s) => in_array($s, ['shipped', 'out_for_delivery'], true))
-            && !$statuses->every(fn($s) => in_array($s, ['shipped', 'out_for_delivery', 'delivered', 'completed'], true))
-        ) {
-            $newStatus = 'partially_shipped';
-        } elseif ($statuses->every(fn($s) => in_array($s, ['shipped', 'out_for_delivery'], true))) {
-            $newStatus = 'shipped';
-        }
-
-        if ($newStatus && $newStatus !== $order->status->value) {
-            $old = $order->status->value;
-            $order->update([
-                'status' => $newStatus,
-                'completed_at' => $newStatus === 'completed' ? now() : $order->completed_at,
-                'cancelled_at' => $newStatus === 'cancelled' ? now() : $order->cancelled_at,
-            ]);
-
-            OrderStatusHistory::create([
-                'order_id' => $order->id,
-                'sub_order_id' => null,
-                'from_status' => $old,
-                'to_status' => $newStatus,
-                'changed_by_admin_id' => $adminId,
-                'reason' => '[Auto] Order status synced from sub-order changes.',
-            ]);
-        }
-    }
 }

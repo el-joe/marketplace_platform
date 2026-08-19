@@ -61,4 +61,14 @@ class SubOrderObserver
             }
         });
     }
+
+    public function updated(SubOrder $subOrder): void
+    {
+        if (! $subOrder->wasChanged('status')) {
+            return;
+        }
+
+        $order = \App\Models\Order::find($subOrder->order_id);
+        $order?->syncStatusFromSubOrders(changedByAdminId: null);
+    }
 }
