@@ -12,7 +12,6 @@ use App\Http\Requests\Customer\CheckoutPrepareRequest;
 use App\Http\Requests\Customer\PlaceOrderRequest;
 use App\Http\Requests\Customer\ShippingMethodsRequest;
 use App\Http\Resources\Customer\CheckoutAddressResource;
-use App\Http\Resources\Customer\CheckoutItemResource;
 use App\Http\Resources\Customer\CheckoutShippingMethodResource;
 use App\Http\Resources\Customer\OrderResource;
 use App\Http\Resources\Customer\PlaceOrderResultResource;
@@ -152,8 +151,16 @@ class CheckoutController extends Controller
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
         $cart->load([
             'items.vendorListing.vendor',
-            'items.vendorListing.productVariant.product',
-            'items.adminListing.productVariant.product',
+            'items.vendorListing.productVariant.product.category',
+            'items.vendorListing.productVariant.product.images',
+            'items.vendorListing.warehouseInventories',
+            'items.vendorListing.primaryShippingMethod',
+            'items.adminListing.productVariant.product.category',
+            'items.adminListing.productVariant.product.images',
+            'items.adminListing.warehouseInventories',
+            'items.adminListing.primaryShippingMethod',
+            'items.selectedShippingMethod',
+            'coupon',
         ]);
 
         if ($cart->items->isEmpty()) {
@@ -273,7 +280,7 @@ class CheckoutController extends Controller
                 'environment'   => $cpg->environment,
             ])->values()->all();
 
-        $items = CheckoutItemResource::collection(collect($cartItems)->values());
+        $shipmentGroupsForItems = $this->cartService->buildShippingGroups($cart, $country->id);
 
         $wallet = CustomerWallet::where('customer_id', $customer->id)->first();
         $orderCurrency = $cart->currency ?? $customer->country?->currency_code;
@@ -332,7 +339,7 @@ class CheckoutController extends Controller
                 'value' => $case->value,
                 'label' => $case->label(),
             ])->values(),
-            'items' => $items,
+            'shipment_groups' => $shipmentGroupsForItems,
         ], __('common.exceptions.checkout.preview_ready'));
     }
 

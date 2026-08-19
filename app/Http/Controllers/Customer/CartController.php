@@ -12,8 +12,6 @@ use App\Http\Resources\Customer\CartItemResource;
 use App\Http\Resources\Customer\CartResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Cart;
-use App\Models\CartItem;
-use App\Models\CountryShippingSetting;
 use App\Models\CustomerWallet;
 use App\Services\BannerService;
 use App\Services\Customer\CartService;
@@ -91,7 +89,7 @@ class CartController extends Controller
         $country = $request->attributes->get('country');
 
         return $this->cartResponse($cart, [
-            'shipping_groups' => $this->buildShippingGroups($cart, $country?->id),
+            'shipping_groups' => $this->cartService->buildShippingGroups($cart, $country?->id),
             'cart_banner' => $this->resolveCartBanner($request),
             'savings_and_benefits' => $this->savingsBenefitsService->get(
                 (int) $cart->estimated_total,
@@ -172,97 +170,6 @@ class CartController extends Controller
             'amount_applied' => $applied,
             'remaining_after_wallet' => (int) $cart->estimated_total - $applied,
         ];
-    }
-
-    /**
-     * Groups cart items by their selected_shipping_method_id so the app can
-     * render a Noon-style cart with items grouped under their delivery
-     * method. Items with no selection yet fall into a shared "unassigned"
-     * group (null method).
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function buildShippingGroups(Cart $cart, ?string $countryId): array
-    {
-        $items = CartItem::where('cart_id', $cart->id)
-            ->with([
-                'vendorListing.vendor',
-                'adminListing',
-                'selectedShippingMethod',
-                'vendorListing.productVariant.product',
-                'vendorListing.productVariant.images',
-                'adminListing.productVariant.product',
-                'adminListing.productVariant.images',
-            ])
-            ->get();
-
-        if ($items->isEmpty()) {
-            return [];
-        }
-
-        $groups = $items->groupBy('selected_shipping_method_id');
-
-        return $groups->map(function ($groupItems) use ($countryId) {
-            $method = $groupItems->first()->selectedShippingMethod;
-
-            $groupSubtotal = $groupItems->sum(fn($item) => $item->unit_price * $item->quantity);
-
-            $threshold = ($method && $countryId)
-                ? CountryShippingSetting::where('country_id', $countryId)
-                    ->where('shipping_method_id', $method->id)
-                    ->value('free_shipping_threshold')
-                : null;
-
-            $isFreeShipping = $threshold !== null && $groupSubtotal >= $threshold;
-
-            return [
-                'shipping_method' => $method ? [
-                    'id' => $method->id,
-                    'name' => $method->name,
-                    'code' => $method->code,
-                    'badge_label_en' => $method->badge_label_en,
-                    'badge_label_ar' => $method->badge_label_ar,
-                    'badge_color_hex' => $method->badge_color_hex,
-                    'delivery_label_en' => $method->delivery_label_en,
-                    'delivery_label_ar' => $method->delivery_label_ar,
-                    'is_express_type' => (bool) $method->is_express_type,
-                ] : null,
-                'is_free_shipping' => $isFreeShipping,
-                'group_subtotal' => $groupSubtotal,
-                'items_count' => $groupItems->count(),
-                'items' => $groupItems->map(function ($item) use ($method) {
-                    $isVendor = (bool) $item->vendor_listing_id;
-                    $listing = $isVendor ? $item->vendorListing : $item->adminListing;
-                    $variant = $listing?->productVariant;
-                    $product = $variant?->product;
-                    $primaryImage = $variant?->images?->firstWhere('is_primary', true) ?? $variant?->images?->first();
-
-                    return [
-                        'id' => $item->id,
-                        'quantity' => $item->quantity,
-                        'unit_price' => $item->unit_price,
-                        'line_total' => $item->unit_price * $item->quantity,
-                        'product_url' => "/products/{$variant?->id}/" . ($isVendor ? $item->vendor_listing_id : $item->admin_listing_id),
-                        'product_name_en' => $product?->name_en,
-                        'product_name_ar' => $product?->name_ar,
-                        'max_order_quantity' => $listing?->max_order_quantity,
-                        'variant_name' => $variant?->variant_name,
-                        'primary_image' => $primaryImage?->path,
-                        'listing_id' => $isVendor ? $item->vendor_listing_id : $item->admin_listing_id,
-                        'listing_type' => $isVendor ? 'vendor' : 'admin',
-                        'vendor' => $isVendor ? [
-                            'id' => $item->vendorListing->vendor->id,
-                            'store_name' => $item->vendorListing->vendor->store_name,
-                        ] : null,
-                        'selected_shipping_method' => [
-                            'id' => $method?->id,
-                            'name' => $method?->name,
-                            'code' => $method?->code,
-                        ],
-                    ];
-                })->values(),
-            ];
-        })->values()->all();
     }
 
     private function resolveCartBanner(Request $request): ?BannerResource
