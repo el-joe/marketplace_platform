@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryInstruction;
 use App\Enums\OrderPaymentStatus;
 use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -25,6 +26,7 @@ class Order extends Model
             'cancelled_at' => 'datetime',
             'status' => OrderStatus::class,
             'payment_status' => OrderPaymentStatus::class,
+            'delivery_instruction' => DeliveryInstruction::class,
             'loyalty_discount' => 'integer',
             'loyalty_points_used' => 'decimal:2',
             'loyalty_points_earned' => 'decimal:2',
@@ -53,6 +55,7 @@ class Order extends Model
         'shipping_address_snapshot',
         'billing_address_snapshot',
         'customer_notes',
+        'delivery_instruction',
         'ip_address',
         'user_agent',
         'device_fingerprint',

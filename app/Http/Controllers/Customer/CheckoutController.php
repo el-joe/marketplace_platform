@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Enums\AdminListingStatus;
+use App\Enums\DeliveryInstruction;
 use App\Enums\GlobalSystemType;
 use App\Enums\VendorListingStatus;
 use App\Events\SubOrderPlaced;
@@ -327,6 +328,10 @@ class CheckoutController extends Controller
             'wallet_applicable' => $walletApplicable,
             'wallet' => $walletInfo,
             'loyalty' => $this->loyaltyService->previewInfo($customer, $orderCurrency),
+            'delivery_instructions' => collect(DeliveryInstruction::cases())->map(fn (DeliveryInstruction $case) => [
+                'value' => $case->value,
+                'label' => $case->label(),
+            ])->values(),
             'items' => $items,
         ], __('common.exceptions.checkout.preview_ready'));
     }
@@ -547,6 +552,7 @@ class CheckoutController extends Controller
                     'payment_status' => 'pending',
                     'shipping_address_snapshot' => $this->buildAddressSnapshot($address, $receiver),
                     'customer_notes' => $validated['customer_notes'] ?? null,
+                    'delivery_instruction' => $validated['delivery_instruction'] ?? null,
                     'ip_address' => request()->ip() ?? '0.0.0.0',
                     'user_agent' => request()->userAgent(),
                     'placed_at' => now(),

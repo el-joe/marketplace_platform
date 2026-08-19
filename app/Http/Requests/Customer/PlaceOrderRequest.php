@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Customer;
 
+use App\Enums\DeliveryInstruction;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PlaceOrderRequest extends FormRequest
 {
@@ -21,6 +23,7 @@ class PlaceOrderRequest extends FormRequest
             'wallet_amount_to_use'       => ['nullable', 'integer', 'min:1'],
             'wallet_amount_used'         => ['nullable', 'integer', 'min:0'],
             'customer_notes'             => ['nullable', 'string', 'max:500'],
+            'delivery_instruction'       => ['nullable', Rule::enum(DeliveryInstruction::class)],
             'idempotency_key'            => ['required', 'string', 'max:100'],
             'warranty_selections'        => ['nullable', 'array'],
             'warranty_selections.*.listing_id'      => ['required_with:warranty_selections', 'uuid'],
