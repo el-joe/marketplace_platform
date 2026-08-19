@@ -19,7 +19,7 @@
         @foreach($gateways as $gw)
             <div class="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-4 text-center shadow-sm">
                 @if($gw->image)
-                    <img src="{{ $gw->image }}" alt="{{ $gw->name }}" class="h-8 w-auto object-contain">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::url($gw->image) }}" alt="{{ $gw->name }}" class="h-8 w-auto object-contain">
                 @else
                     <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
                         <x-heroicon name="credit-card" class="w-5 h-5" />
@@ -40,6 +40,23 @@
                     @endif
                     @if($gw->supports_refund)
                         <span title="Supports refunds">↩️</span>
+                    @endif
+                </div>
+                {{-- Image upload --}}
+                <div class="mt-2 flex flex-col items-center gap-1">
+                    <label class="cursor-pointer">
+                        <input type="file" accept="image/*" class="hidden"
+                               onchange="uploadGatewayImage('{{ $gw->id }}', this)">
+                        <span class="text-xs text-primary-600 hover:underline font-medium">
+                            {{ $gw->image ? __('admin.payment_gateways.change_image') : __('admin.payment_gateways.upload_image') }}
+                        </span>
+                    </label>
+                    @if($gw->image)
+                        <button type="button"
+                                class="text-xs text-red-500 hover:underline"
+                                onclick="deleteGatewayImage('{{ $gw->id }}', this)">
+                            {{ __('admin.payment_gateways.remove_image') }}
+                        </button>
                     @endif
                 </div>
             </div>
@@ -83,7 +100,7 @@
                         {{-- Logo --}}
                         <div class="w-8 flex-shrink-0 flex items-center justify-center">
                             @if($cpg->gateway?->image)
-                                <img src="{{ $cpg->gateway->image }}" alt="" class="h-6 w-auto object-contain">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::url($cpg->gateway->image) }}" alt="" class="h-6 w-auto object-contain">
                             @else
                                 <x-heroicon name="credit-card" class="w-5 h-5 text-gray-300" />
                             @endif
@@ -290,6 +307,50 @@
         <button type="button" id="btn-confirm-delete-gateway" class="btn-danger">Remove</button>
     </x-slot:footer>
 </x-modal>
+
+@push('scripts')
+<script>
+async function uploadGatewayImage(gatewayId, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const res = await fetch(`{{ url('/admin/payment-gateways/gateways') }}/${gatewayId}/image`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        window.Toast?.success(data.message);
+        setTimeout(() => location.reload(), 800);
+    } else {
+        window.Toast?.error(data.message ?? 'Upload failed.');
+    }
+}
+
+async function deleteGatewayImage(gatewayId, btn) {
+    if (!confirm('Remove this image?')) return;
+
+    const res = await fetch(`{{ url('/admin/payment-gateways/gateways') }}/${gatewayId}/image`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        window.Toast?.success(data.message);
+        setTimeout(() => location.reload(), 800);
+    }
+}
+</script>
+@endpush
 
 @vite(['resources/js/admin/payment-gateways.js'])
 @endsection

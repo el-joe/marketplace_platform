@@ -11,6 +11,7 @@ use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class PaymentGatewayController extends Controller
@@ -178,6 +179,39 @@ class PaymentGatewayController extends Controller
             'success' => $result->success,
             'message' => $result->message,
         ]);
+    }
+
+    // ── Gateway image ─────────────────────────────────────────────────────
+
+    public function uploadImage(Request $request, PaymentGateway $gateway): JsonResponse
+    {
+        $request->validate([
+            'image' => ['required', 'image', 'max:1024', 'mimes:png,jpg,jpeg,svg,webp'],
+        ]);
+
+        if ($gateway->image) {
+            Storage::disk('public')->delete($gateway->image);
+        }
+
+        $path = $request->file('image')->store('payment-gateways', 'public');
+
+        $gateway->update(['image' => $path]);
+
+        return response()->json([
+            'success'   => true,
+            'image_url' => Storage::url($path),
+            'message'   => 'Gateway image updated.',
+        ]);
+    }
+
+    public function deleteImage(PaymentGateway $gateway): JsonResponse
+    {
+        if ($gateway->image) {
+            Storage::disk('public')->delete($gateway->image);
+            $gateway->update(['image' => null]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Image removed.']);
     }
 
     // ── Webhook logs ──────────────────────────────────────────────────────

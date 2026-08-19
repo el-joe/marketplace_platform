@@ -10365,4 +10365,12 @@ return [
         'subtitle' => 'Configure influencer fees and affiliate commission settings per country.',
         'title' => 'Marketer Settings',
     ],
+
+    // ─── Payment Gateways (image upload) ────────────────────────────────────────
+    'payment_gateways' => [
+        'upload_image' => 'Upload Image',
+        'change_image' => 'Change Image',
+        'remove_image' => 'Remove Image',
+        'no_image'     => 'No image',
+    ],
 ];

@@ -1160,6 +1160,8 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             Route::post('/{countryGateway}/test-connection', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'testConnection'])->name('test-connection')->middleware('admin.permission:settings.edit');
             Route::get('/{countryGateway}/webhook-logs', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'webhookLogs'])->name('webhook-logs');
             Route::post('/sort-order', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'updateSortOrder'])->name('sort-order')->middleware('admin.permission:settings.edit');
+            Route::post('/gateways/{gateway}/image', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'uploadImage'])->name('gateways.upload-image')->middleware('admin.permission:settings.edit');
+            Route::delete('/gateways/{gateway}/image', [\App\Http\Controllers\Admin\PaymentGatewayController::class, 'deleteImage'])->name('gateways.delete-image')->middleware('admin.permission:settings.edit');
         });
 
     // ─── Vendor Document Types ────────────────────────────────────────────────

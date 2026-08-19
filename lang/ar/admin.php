@@ -10323,4 +10323,12 @@ return [
         'subtitle' => 'إعداد رسوم المؤثرين وعمولات المسوقين لكل دولة.',
         'title' => 'إعدادات المسوقين',
     ],
+
+    // ─── Payment Gateways (image upload) ────────────────────────────────────────
+    'payment_gateways' => [
+        'upload_image' => 'رفع صورة',
+        'change_image' => 'تغيير الصورة',
+        'remove_image' => 'إزالة الصورة',
+        'no_image'     => 'لا توجد صورة',
+    ],
 ];

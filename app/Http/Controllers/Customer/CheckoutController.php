@@ -278,6 +278,9 @@ class CheckoutController extends Controller
                 'fee_fixed'     => (int) $cpg->fee_fixed,
                 'is_configured' => $cpg->is_configured,
                 'environment'   => $cpg->environment,
+                'image_url'     => $cpg->gateway?->image
+                    ? \Illuminate\Support\Facades\Storage::url($cpg->gateway->image)
+                    : null,
             ])->values()->all();
 
         $shipmentGroupsForItems = $this->cartService->buildShippingGroups($cart, $country->id);
