@@ -15,6 +15,7 @@ class PlaceOrderRequest extends FormRequest
     {
         return [
             'address_id'                 => ['required', 'integer', 'exists:addresses,id'],
+            'receiver_id'                => ['nullable', 'uuid', 'exists:customer_receivers,id'],
             'country_payment_gateway_id' => ['required', 'uuid', 'exists:country_payment_gateways,id'],
             'coupon_code'                => ['nullable', 'string', 'max:50'],
             'wallet_amount_to_use'       => ['nullable', 'integer', 'min:1'],

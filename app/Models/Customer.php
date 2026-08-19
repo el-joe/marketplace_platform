@@ -96,6 +96,11 @@ class Customer extends Authenticatable implements JWTSubject
         return $this->morphMany(Address::class, 'addressable');
     }
 
+    public function receivers(): HasMany
+    {
+        return $this->hasMany(CustomerReceiver::class);
+    }
+
     public function otpTokens(): HasMany
     {
         return $this->hasMany(CustomerOtpToken::class);

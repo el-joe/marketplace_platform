@@ -23,6 +23,8 @@ use App\Jobs\OrderConfirmationEmailJob;
 use App\Models\Address;
 use App\Models\CountryPaymentGateway;
 use App\Models\Coupon;
+use App\Models\Customer;
+use App\Models\CustomerReceiver;
 use App\Models\CustomerWallet;
 use App\Exceptions\GiftCardCurrencyMismatchException;
 use App\Exceptions\InsufficientWalletBalanceException;
@@ -162,6 +164,8 @@ class CheckoutController extends Controller
             return ApiResponse::error(__('common.exceptions.checkout.address_not_found'), [], 404);
         }
         $address->load('city.shippingZone');
+
+        $receiver = $this->resolveReceiver($customer, $validated['receiver_id'] ?? null);
 
         // Resolve gateway to determine type (cod, wallet, redirect, etc.)
         $selectedGateway = CountryPaymentGateway::where('id', $validated['country_payment_gateway_id'] ?? null)
@@ -308,6 +312,12 @@ class CheckoutController extends Controller
                 'vendor_delivery' => $vendorDeliveryResponse,
             ],
             'address' => new CheckoutAddressResource($address, $country),
+            'receiver' => $receiver
+                ? ['id' => $receiver->id, 'name' => $receiver->name, 'phone' => $receiver->phone, 'is_default' => $receiver->is_default]
+                : null,
+            'receivers' => CustomerReceiver::where('customer_id', $customer->id)
+                ->orderByDesc('is_default')
+                ->get(['id', 'name', 'phone', 'is_default']),
             'gateway_code' => $gatewayCode,
             'gateway_type' => $selectedGateway?->gateway?->type,
             'available_payment_gateways' => $availableGateways,
@@ -394,6 +404,8 @@ class CheckoutController extends Controller
             return ApiResponse::error(__('common.exceptions.checkout.address_not_found'), [], 404);
         }
         $address->load('city.shippingZone');
+
+        $receiver = $this->resolveReceiver($customer, $validated['receiver_id'] ?? null);
 
         // Single gateway resolution — all payment logic derives from this
         $methodConfig = CountryPaymentGateway::where('id', $validated['country_payment_gateway_id'])
@@ -507,7 +519,7 @@ class CheckoutController extends Controller
 
         try {
             $result = DB::transaction(function () use (
-                $customer, $country, $address, $validated, $coupon,
+                $customer, $country, $address, $receiver, $validated, $coupon,
                 $cartItems, $summary, $attribution, $vendorShipping,
                 $warrantySelections, $cart, $couponDiscountCents,
                 $loyaltyDiscount, $loyaltyPointsToUse,
@@ -533,7 +545,7 @@ class CheckoutController extends Controller
                     'coupon_code_used' => $coupon?->code,
                     'payment_method' => $gatewayCode,
                     'payment_status' => 'pending',
-                    'shipping_address_snapshot' => $this->buildAddressSnapshot($address),
+                    'shipping_address_snapshot' => $this->buildAddressSnapshot($address, $receiver),
                     'customer_notes' => $validated['customer_notes'] ?? null,
                     'ip_address' => request()->ip() ?? '0.0.0.0',
                     'user_agent' => request()->userAgent(),
@@ -1006,13 +1018,24 @@ class CheckoutController extends Controller
         return $candidate;
     }
 
-    private function buildAddressSnapshot(Address $address): array
+    private function resolveReceiver(Customer $customer, ?string $receiverId): ?CustomerReceiver
+    {
+        $receiver = $receiverId
+            ? CustomerReceiver::where('customer_id', $customer->id)->find($receiverId)
+            : null;
+
+        return $receiver ?? CustomerReceiver::where('customer_id', $customer->id)
+            ->where('is_default', true)
+            ->first();
+    }
+
+    private function buildAddressSnapshot(Address $address, ?CustomerReceiver $receiver = null): array
     {
         $address->loadMissing('city');
 
         return [
-            'recipient_name' => $address->recipient_name,
-            'recipient_phone' => $address->recipient_phone,
+            'recipient_name' => $receiver?->name ?? $address->recipient_name,
+            'recipient_phone' => $receiver?->phone ?? $address->recipient_phone,
             'country_id' => $address->country_id,
             'city_id' => $address->city_id,
             'city' => [

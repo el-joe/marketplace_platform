@@ -331,6 +331,15 @@ return [
             'retrieved'       => 'Addresses retrieved.',
         ],
 
+        'receiver' => [
+            'created'               => 'Receiver added.',
+            'updated'               => 'Receiver updated.',
+            'deleted'               => 'Receiver removed.',
+            'default_updated'       => 'Default receiver updated.',
+            'cannot_delete_default' => 'Cannot delete the default receiver. Set another receiver as default first.',
+            'retrieved'             => 'Receivers retrieved.',
+        ],
+
         'account_listing' => [
             'created'            => 'Listing created.',
             'edit_not_allowed'   => 'Only draft or rejected listings can be edited.',

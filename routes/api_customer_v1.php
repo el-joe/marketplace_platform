@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Customer\WalletController as ApiWalletController;
 use App\Http\Controllers\Api\Customer\WarrantyController as ApiWarrantyController;
 use App\Http\Controllers\Api\Customer\WishlistController as ApiWishlistController;
 use App\Http\Controllers\Customer\AddressController;
+use App\Http\Controllers\Customer\ReceiverController;
 use App\Http\Controllers\Customer\AuthController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CartRecommendationsController;
@@ -329,6 +330,15 @@ use Illuminate\Support\Facades\Route;
                 Route::put('{address}', [AddressController::class, 'update'])->name('update');
                 Route::delete('{address}', [AddressController::class, 'destroy'])->name('destroy');
                 Route::put('{address}/set-default', [AddressController::class, 'setDefault'])->name('set-default');
+            });
+
+            // Receivers
+            Route::prefix('receivers')->name('customer.receivers.')->group(function (): void {
+                Route::get('/', [ReceiverController::class, 'index'])->name('index');
+                Route::post('/', [ReceiverController::class, 'store'])->name('store');
+                Route::put('{receiver}', [ReceiverController::class, 'update'])->name('update');
+                Route::delete('{receiver}', [ReceiverController::class, 'destroy'])->name('destroy');
+                Route::put('{receiver}/set-default', [ReceiverController::class, 'setDefault'])->name('set-default');
             });
 
             // Cart merge (auth only)
