@@ -188,6 +188,7 @@ class CheckoutController extends Controller
         }
 
         $cartItems = $cart->items->all();
+        $totalItemsQty = collect($cartItems)->sum('quantity');
 
         // Build shipping per cart-item group using each item's selected_shipping_method_id
         $shippingMethodIds = collect($cartItems)
@@ -306,6 +307,7 @@ class CheckoutController extends Controller
         ])->values();
 
         return ApiResponse::success([
+            'total_items_qty' => $totalItemsQty,
             'order_summary' => $summary,
             'shipping' => [
                 'total_fee'     => $vendorShipping['total'],
